@@ -20,7 +20,8 @@
     "format": "prettier --write .",
     "db:up": "docker compose up -d --wait mongo",
     "db:down": "docker compose down",
-    "db:indexes": "tsx --env-file-if-exists=.env.local scripts/db-indexes.ts"
+    "db:indexes": "tsx --env-file-if-exists=.env.local scripts/db-indexes.ts",
+    "seed": "tsx --env-file-if-exists=.env.local scripts/seed.ts"
   },
   "dependencies": {
     "@vercel/functions": "^3.11.3",
