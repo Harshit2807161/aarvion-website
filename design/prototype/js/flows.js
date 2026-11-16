@@ -102,9 +102,10 @@
     load() {
       const v = store.get(K.cart, null);
       if (v === null) {
-        this.items = EX.cart.map((i) => ({ ...i }));
-        this.seeded = true;
-        this.save();
+        // a new visitor's cart is empty, the same on every page; the example cart is seeded only
+        // under an explicit ?state= (see DEMO above)
+        this.items = [];
+        this.seeded = false;
       } else {
         this.items = (v.items || []).filter((i) => BY[i.slug] && i.qty > 0).map((i) => ({ slug: i.slug, qty: Math.min(LIMIT_EACH, i.qty | 0) }));
         this.seeded = !!v.seeded;
@@ -290,28 +291,8 @@
     return { open, close, top };
   })();
 
-  /* ── Header: nav fill, menu, cart pill, account pill ──────────────── */
-  function initNav() {
-    const nav = $(".nav");
-    if (!nav) return;
-    const band = $(".band, .auth-page");
-    let raf = 0;
-    const set = () => {
-      raf = 0;
-      const b = band ? band.getBoundingClientRect().bottom : 0;
-      nav.classList.toggle("on-light", b < nav.getBoundingClientRect().bottom + 4);
-    };
-    addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(set); }, { passive: true });
-    addEventListener("resize", set);
-    set();
-    const btn = $(".nav-menu"), menu = $("#menu");
-    const toggle = (on) => { nav.classList.toggle("menu-open", on); btn.setAttribute("aria-expanded", on); };
-    btn && btn.addEventListener("click", () => toggle(!nav.classList.contains("menu-open")));
-    document.addEventListener("click", (e) => { if (nav.classList.contains("menu-open") && !nav.contains(e.target)) toggle(false); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && nav.classList.contains("menu-open")) { toggle(false); btn.focus(); } });
-    menu && menu.addEventListener("click", (e) => { if (e.target.closest("a")) toggle(false); });
-  }
-
+  /* ── Header: cart count and account pill (the store header's search, notices and
+     stuck shadow are js/store.js) ─────────────────────────────────────── */
   let countReady = false;
   function renderCount() {
     const n = Cart.count();
@@ -1518,7 +1499,6 @@ ${status === "delivered" ? `<p class="why">If anything arrived damaged, wrong or
   }
 
   /* ── Boot ─────────────────────────────────────────────────────────── */
-  initNav();
   renderAcct();
   renderCart();
   initDock();

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-16T16:49:37Z",
+  "generatedAt": "2026-11-16T20:40:33Z",
   "title": "Design System: Aarvion",
   "extensions": {
     "colorMeta": {
@@ -1107,12 +1107,12 @@
       {
         "name": "duration-ink",
         "value": "420ms steps(5, end)",
-        "purpose": "A pocket MRP inking in on load (from 450ms + i x 150ms)."
+        "purpose": "A pocket MRP inking in on load (from 450ms + i x 150ms) (v1 hero print-in; retired from the home in v2, token kept)."
       },
       {
         "name": "duration-strike",
         "value": "300ms",
-        "purpose": "The strike drawing across a printed MRP (from 860ms + i x 150ms)."
+        "purpose": "The strike drawing across a printed MRP (from 860ms + i x 150ms) (v1 hero print-in; retired from the home in v2, token kept)."
       },
       {
         "name": "duration-stamp",
@@ -1122,7 +1122,7 @@
       {
         "name": "stagger-pocket",
         "value": "150ms",
-        "purpose": "Delay between hero pockets printing their stamps."
+        "purpose": "Delay between hero pockets printing their stamps (v1 hero print-in; retired from the home in v2, token kept)."
       },
       {
         "name": "press-scale",
@@ -1177,7 +1177,7 @@
       {
         "name": "film-engine",
         "value": "native scroll; one passive listener + one rAF tick; data-in / data-out ranges -> --ti / --to (registered numbers, 4dp, write on change); transform and opacity only",
-        "purpose": "The home page's scroll film."
+        "purpose": "The home page's ordering film, category bento rise, rail rise and close."
       },
       {
         "name": "film-easings",
@@ -1186,13 +1186,33 @@
       },
       {
         "name": "film-pins",
-        "value": "hero 190lvh, stamp 200lvh, steps 200lvh, close 110lvh; at <=720px 120 / 140 / 160 / 80lvh; Act 2 overlaps the hero by -48lvh (-33lvh phone)",
+        "value": "steps 200lvh, close 110lvh; at <=719px 160 / 80lvh",
         "purpose": "Pinned act lengths beyond one viewport."
       },
       {
         "name": "reduced-motion",
-        "value": "no .film class: static composition; no stamp print-in; flyer never fetched; sheets and toasts opacity-only 200ms",
+        "value": "no .film class: static composition; the banner never autoplays and its rotation control is hidden; the announcement shows its first notice only; sheets and toasts opacity-only 200ms",
         "purpose": "prefers-reduced-motion: reduce, and no JavaScript."
+      },
+      {
+        "name": "banner-autoplay",
+        "value": "6s per slide, run by the current dot's fill (CSS animation; its animationend advances)",
+        "purpose": "Held by hover, focus inside, touch (until 4s after release), a hidden tab or the banner leaving the screen; stopped by the pause control; never started under reduced motion."
+      },
+      {
+        "name": "banner-crossfade",
+        "value": "700ms opacity on ease-out; the incoming picture settles from scale 1.035 over 1600ms; its copy rises 10px, staggered from 140ms by 60ms",
+        "purpose": "Desktop slide change (phones swipe a native scroll-snap row)."
+      },
+      {
+        "name": "announce-rotate",
+        "value": "600ms opacity cross-fade every 5s, phones only",
+        "purpose": "One notice at a time in the announcement line at 720px and below."
+      },
+      {
+        "name": "rail-rise",
+        "value": "translateY((1 - ti) x 80-110px) as each rail enters",
+        "purpose": "Rails rise at their own rate: the parallax."
       }
     ],
     "breakpoints": [
@@ -1217,7 +1237,7 @@
         "value": "767px"
       },
       {
-        "name": "nav-collapse",
+        "name": "header-stack",
         "value": "880px"
       },
       {
@@ -1225,8 +1245,8 @@
         "value": "960px"
       },
       {
-        "name": "nav-tight",
-        "value": "1060px"
+        "name": "header-tight",
+        "value": "1100px"
       },
       {
         "name": "admin-rail-collapse",
@@ -1251,6 +1271,10 @@
       {
         "name": "tw-xl",
         "value": "80rem"
+      },
+      {
+        "name": "banner-cards",
+        "value": "719px"
       }
     ]
   },
@@ -1280,18 +1304,18 @@
       "css": ".ds-btn-quiet { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px; font: 600 0.9375rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); letter-spacing: -0.005em; white-space: nowrap; cursor: pointer; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease; background: #fff; color: var(--color-ink, #17201b); box-shadow: inset 0 0 0 1.5px var(--color-neutral-300, #bec5c1); } .ds-btn-quiet:hover { background: var(--color-neutral-50, #f6f8f7); box-shadow: inset 0 0 0 1.5px var(--color-neutral-400, #959e99); } .ds-btn-quiet:active { transform: scale(0.97); } .ds-btn-quiet:focus-visible { outline: 2px solid var(--color-forest-700, #2a4d36); outline-offset: 3px; }"
     },
     {
-      "name": "Glass Nav Pill",
+      "name": "Store Header",
       "kind": "nav",
-      "refersTo": "nav-bar",
-      "description": "The floating 60px pill nav: glass on forest ground, solid forest-900 over light ground. Logo, therapy links, Upload Rx and Cart pills.",
-      "html": "<div class=\"ds-ground\"><nav class=\"ds-nav\" aria-label=\"Main\"><a class=\"ds-brand\" href=\"#\"><svg width=\"40\" height=\"11\" viewBox=\"0 0 360 96\" aria-hidden=\"true\" style=\"fill:#7fd3a6;overflow:visible\"><path d=\"M 8 90 C 95 40, 225 6, 300 10 C 330 12, 352 30, 344 58 C 334 44, 318 34, 294 32 C 215 28, 110 54, 8 90 Z\"/><path d=\"M 170 62 C 215 44, 262 36, 286 38 C 296 40, 300 48, 296 58 C 288 50, 274 46, 254 47 C 222 50, 196 56, 170 62 Z\"/></svg><span>AARVION</span></a><a class=\"ds-nav-link\" href=\"#\">Cardiology</a><a class=\"ds-nav-link\" href=\"#\">Eye care</a><span class=\"ds-nav-end\"><a class=\"ds-nav-pill\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V4.5M7.5 9 12 4.5 16.5 9\"/><path d=\"M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3\"/></svg><span>Upload Rx</span></a><a class=\"ds-nav-pill\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3.5 4.5h2l2.1 10.2a1.5 1.5 0 0 0 1.5 1.2h7.6a1.5 1.5 0 0 0 1.5-1.1L19.8 8H6.4\"/><circle cx=\"10\" cy=\"19.6\" r=\"1.1\"/><circle cx=\"17\" cy=\"19.6\" r=\"1.1\"/></svg><span>Cart</span><span style=\"opacity:.6\">·</span><span class=\"ds-count\">1</span></a></span></nav></div>",
-      "css": ".ds-ground { padding: 24px; background: radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px, var(--color-forest-800, #1f3d2b); border-radius: 16px; } .ds-nav { display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 8px 0 22px; border-radius: 999px; color: #fff; background: rgb(255 255 255 / 0.07); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15), inset 0 1px 0 rgb(255 255 255 / 0.12); -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%); } .ds-brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin-right: auto; color: #fff; text-decoration: none; font: 800 1.0625rem/1 Montserrat, 'Host Grotesk', sans-serif; letter-spacing: 0.06em; } .ds-nav-link, .ds-nav-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 999px; color: rgb(255 255 255 / 0.9); text-decoration: none; font: 500 0.9375rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); transition: background-color 180ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-nav-end { display: flex; gap: 6px; margin-left: auto; } .ds-nav-pill { color: #fff; padding: 0 16px; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22); } .ds-count { font: 600 0.9375rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); font-variant-numeric: tabular-nums; } .ds-nav-link:hover, .ds-nav-pill:hover { background: rgb(255 255 255 / 0.1); } .ds-nav-pill:active { transform: scale(0.96); } .ds-nav a:focus-visible { outline: 2px solid var(--color-sand-200, #e8dcc4); outline-offset: 3px; }"
+      "refersTo": "store-header",
+      "description": "Sticky white header shared by every customer page: logo, a wide search (suggestions and strength chips), the forest Upload prescription pill, Sign in and Cart with a mono count, over a 44px category bar. Phones stack logo row, full-width search and a scrolling chip row; checkout keeps only the logo and a secure-checkout note.",
+      "html": "<div class=\"ds-head\"><div class=\"ds-ann\">Free delivery across India · Cash on delivery available · A pharmacist checks every prescription</div><div class=\"ds-row\"><a class=\"ds-brand\" href=\"#\"><svg width=\"40\" height=\"11\" viewBox=\"0 0 360 96\" aria-hidden=\"true\" style=\"fill:#3fa36f;overflow:visible\"><path d=\"M 8 90 C 95 40, 225 6, 300 10 C 330 12, 352 30, 344 58 C 334 44, 318 34, 294 32 C 215 28, 110 54, 8 90 Z\"/><path d=\"M 170 62 C 215 44, 262 36, 286 38 C 296 40, 300 48, 296 58 C 288 50, 274 46, 254 47 C 222 50, 196 56, 170 62 Z\"/></svg><span>AARVION</span></a><label class=\"ds-q\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4.5 4.5\"/></svg><input type=\"search\" placeholder=\"Search medicines by brand or salt\"></label><a class=\"ds-rx\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V4.5M7.5 9 12 4.5 16.5 9\"/><path d=\"M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3\"/></svg><span>Upload prescription</span></a><a class=\"ds-cart\" href=\"#\">Cart <b>2</b></a></div><nav class=\"ds-cats\" aria-label=\"Shop by category\"><a href=\"#\">Heart care</a><a href=\"#\">Diabetes care</a><a href=\"#\">Eye care</a><a href=\"#\">Respiratory care</a><a href=\"#\">All medicines</a></nav></div>",
+      "css": ".ds-head { border-radius: 16px; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px #dadfdc; font: 500 15px/1 Geist, system-ui, sans-serif; color: #17201b; } .ds-ann { background: #172f21; color: #fff; text-align: center; padding: 11px 16px; font-size: 13px; } .ds-row { display: flex; align-items: center; gap: 20px; padding: 14px 20px; } .ds-brand { display: inline-flex; align-items: center; gap: 10px; color: #172f21; text-decoration: none; font: 800 17px/1 Montserrat, sans-serif; letter-spacing: .06em; } .ds-q { flex: 1; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; border-radius: 999px; box-shadow: inset 0 0 0 1px #8a948f; color: #2a4d36; } .ds-q input { flex: 1; border: 0; outline: none; font: 400 16px Geist, sans-serif; background: transparent; } .ds-rx { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px 0 16px; border-radius: 999px; background: #1f3d2b; color: #fff; text-decoration: none; font-weight: 600; } .ds-cart { color: inherit; text-decoration: none; } .ds-cart b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin-left: 6px; border-radius: 999px; background: #1f3d2b; color: #fff; font: 600 12px 'Geist Mono', monospace; } .ds-cats { display: flex; gap: 28px; padding: 14px 20px; border-top: 1px solid #dadfdc; } .ds-cats a { color: #2a302d; text-decoration: none; } .ds-cats a:last-child { color: #2a4d36; font-weight: 600; }"
     },
     {
       "name": "Search Pill with Strength Chips",
       "kind": "input",
       "refersTo": "search-pill",
-      "description": "The working search on forest ground: a 56px white pill, sand focus outline, mono strength chips that toggle to sand.",
+      "description": "The header search: a 48px white pill with a 1px line-strong edge, forest-700 icon, forest-600 focus edge with a forest-100 halo. Focus opens a white panel with the mono strength chips (pressed forest-800) above the suggestions listbox.",
       "html": "<div class=\"ds-ground\"><label class=\"ds-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4.5 4.5\"/></svg><input type=\"search\" placeholder=\"Search brand or salt, e.g. Sacuwin\"></label><div class=\"ds-chips\"><span>Strength</span><button class=\"ds-chip\" aria-pressed=\"false\">50</button><button class=\"ds-chip\" aria-pressed=\"true\">100</button><button class=\"ds-chip\" aria-pressed=\"false\">200</button></div></div>",
       "css": ".ds-ground { padding: 28px; background: radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px, var(--color-forest-800, #1f3d2b); border-radius: 16px; } .ds-search { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px 0 20px; border-radius: 999px; background: #fff; color: var(--color-forest-700, #2a4d36); box-shadow: 0 12px 28px -14px rgb(5 15 10 / 0.6); } .ds-search:focus-within { outline: 2px solid var(--color-sand-200, #e8dcc4); outline-offset: 3px; } .ds-search input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; outline: none; font: 400 1rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-ink, #17201b); caret-color: var(--color-forest-600, #376145); } .ds-search input::placeholder { color: var(--color-neutral-500, #6b7570); } .ds-chips { display: flex; align-items: center; gap: 6px; margin-top: 10px; padding-left: 16px; font: 400 0.8125rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-text-on-dark-muted, #c9d5cd); } .ds-chips span { margin-right: 4px; } .ds-chip { height: 32px; min-width: 52px; padding: 0 14px; border: 0; border-radius: 999px; cursor: pointer; background: rgb(255 255 255 / 0.06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.24); color: #fff; font: 600 0.8125rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease; } .ds-chip:hover:not([aria-pressed=\"true\"]) { background: rgb(255 255 255 / 0.12); } .ds-chip:active { transform: scale(0.95); } .ds-chip[aria-pressed=\"true\"] { background: var(--color-sand-200, #e8dcc4); color: var(--color-forest-900, #172f21); box-shadow: none; } .ds-chip:focus-visible { outline: 2px solid var(--color-sand-200, #e8dcc4); outline-offset: 3px; }"
     },
@@ -1299,9 +1323,25 @@
       "name": "Foil Pocket with Stamp Price",
       "kind": "card",
       "refersTo": "pocket",
-      "description": "The repeatable product unit: the pack under its dome on the foil print field, name with the Rx badge, salt line, then the dot-matrix stamp pair (struck MRP above the price) and Add to cart. Foil is the shipped raster; flat foil-200 shows if the asset path does not resolve.",
-      "html": "<article class=\"ds-pocket\"><div class=\"ds-dome\"><img src=\"design/prototype/assets/products/sacuwin-100.webp\" alt=\"Sacuwin 100 carton and blister strip\"></div><div class=\"ds-pocket-body\"><p class=\"ds-name\"><span>Sacuwin 100</span><abbr class=\"ds-rx\" title=\"Prescription required\">Rx</abbr></p><p class=\"ds-salt\">Sacubitril 49 mg + Valsartan 51 mg · 14 tablets</p><p class=\"ds-stamp\"><s class=\"ds-mrp\"><span class=\"ds-dm\" style=\"--pitch:1.2px\">MRP ₹407</span></s><span class=\"ds-price\"><span class=\"ds-dm\" style=\"--pitch:2.4px\">₹387</span></span></p><button class=\"ds-add\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5.5v13M5.5 12h13\"/></svg><span>Add to cart</span></button></div></article>",
-      "css": ".ds-pocket { width: 240px; padding: 12px 12px 16px; border-radius: 22px; color: var(--color-ink, #17201b); background: url(\"design/prototype/assets/foil/foil-knurl-print-1x.webp\") 0 0 / 140px 120px, url(\"design/prototype/assets/foil/foil-plate.webp\") 0 0 / 1440px 360px, var(--color-foil-200, #e2e6e4); box-shadow: 0 12px 18px -12px rgb(9 22 15 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(40 50 45 / 0.12); display: grid; gap: 14px; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-pocket:has(button:active) { transform: scale(0.97); } .ds-dome { display: grid; place-items: center; height: 188px; border-radius: 16px; background: url(\"design/prototype/assets/foil/dome-floor.webp\") 0 0 / 100% 100%, var(--color-foil-100, #eef1f0); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -2px 6px rgb(60 70 65 / 0.16); transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-pocket:hover .ds-dome { transform: translateY(-3px); } .ds-dome img { max-height: 160px; max-width: 82%; filter: drop-shadow(0 6px 7px rgb(20 32 26 / 0.22)); } .ds-pocket-body { display: flex; flex-direction: column; gap: 4px; padding: 0 4px; } .ds-pocket p { margin: 0; } .ds-name { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 600 1.1875rem/1.2 var(--font-display, \"Host Grotesk\", \"Geist\", ui-sans-serif, sans-serif); letter-spacing: -0.012em; } .ds-rx { padding: 4px 5px 3px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px currentColor; font: 600 0.6875rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); letter-spacing: 0.02em; color: var(--color-forest-700, #2a4d36); text-decoration: none; } .ds-salt { font: 400 0.8125rem/1.45 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-neutral-800, #2a302d); } .ds-stamp { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px !important; font-family: var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); font-variant-numeric: tabular-nums; line-height: 1; } .ds-mrp { position: relative; text-decoration: none; font-size: 1.125rem; font-weight: 600; padding: 2px 0; } .ds-mrp::after { content: \"\"; position: absolute; left: -3px; right: -3px; top: 50%; height: 2px; margin-top: -1px; border-radius: 2px; background: var(--color-forest-600, #376145); } .ds-price { font-size: 2.125rem; font-weight: 600; letter-spacing: -0.02em; } .ds-dm { display: inline-block; -webkit-mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch); mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch); } .ds-add { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; margin-top: 12px; border: 0; border-radius: 999px; cursor: pointer; background: var(--color-forest-800, #1f3d2b); color: #fff; font: 600 0.875rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); transition: background-color 180ms ease; } .ds-add:hover { background: var(--color-forest-700, #2a4d36); } .ds-add:focus-visible { outline: 2px solid var(--color-forest-700, #2a4d36); outline-offset: 3px; }"
+      "description": "The repeatable product unit, in the product rails: the pack under its dome on the foil print field, name with the Rx badge, the actives with their strengths (at most two lines, three on phones; a strength never breaks), the pack, then the dot-matrix stamp pair (struck MRP with a floored % off tag, above the price) and Add to cart, which becomes the stepper. Foil is the shipped raster; flat foil-200 shows if the asset path does not resolve.",
+      "html": "<article class=\"ds-pocket\"><div class=\"ds-dome\"><img src=\"design/prototype/assets/products/sacuwin-100.webp\" alt=\"Sacuwin 100 carton and blister strip\"></div><div class=\"ds-pocket-body\"><p class=\"ds-name\"><span>Sacuwin 100</span><abbr class=\"ds-rx\" title=\"Prescription required\">Rx</abbr></p><p class=\"ds-salt\">Sacubitril 49 mg + Valsartan 51 mg · 14 tablets</p><p class=\"ds-stamp\"><span class=\"ds-top\"><s class=\"ds-mrp\"><span class=\"ds-dm\" style=\"--pitch:1.2px\">MRP ₹407</span></s><span class=\"ds-off\">5% off</span></span><span class=\"ds-price\"><span class=\"ds-dm\" style=\"--pitch:2.4px\">₹387</span></span></p><button class=\"ds-add\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5.5v13M5.5 12h13\"/></svg><span>Add to cart</span></button></div></article>",
+      "css": ".ds-pocket { width: 240px; padding: 12px 12px 16px; border-radius: 22px; color: var(--color-ink, #17201b); background: url(\"design/prototype/assets/foil/foil-knurl-print-1x.webp\") 0 0 / 140px 120px, url(\"design/prototype/assets/foil/foil-plate.webp\") 0 0 / 1440px 360px, var(--color-foil-200, #e2e6e4); box-shadow: 0 12px 18px -12px rgb(9 22 15 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(40 50 45 / 0.12); display: grid; gap: 14px; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-pocket:has(button:active) { transform: scale(0.97); } .ds-dome { display: grid; place-items: center; height: 188px; border-radius: 16px; background: url(\"design/prototype/assets/foil/dome-floor.webp\") 0 0 / 100% 100%, var(--color-foil-100, #eef1f0); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -2px 6px rgb(60 70 65 / 0.16); transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-pocket:hover .ds-dome { transform: translateY(-3px); } .ds-dome img { max-height: 160px; max-width: 82%; filter: drop-shadow(0 6px 7px rgb(20 32 26 / 0.22)); } .ds-pocket-body { display: flex; flex-direction: column; gap: 4px; padding: 0 4px; } .ds-pocket p { margin: 0; } .ds-name { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 600 1.1875rem/1.2 var(--font-display, \"Host Grotesk\", \"Geist\", ui-sans-serif, sans-serif); letter-spacing: -0.012em; } .ds-rx { padding: 4px 5px 3px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px currentColor; font: 600 0.6875rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); letter-spacing: 0.02em; color: var(--color-forest-700, #2a4d36); text-decoration: none; } .ds-salt { font: 400 0.8125rem/1.45 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-neutral-800, #2a302d); } .ds-stamp { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px !important; font-family: var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); font-variant-numeric: tabular-nums; line-height: 1; } .ds-mrp { position: relative; text-decoration: none; font-size: 1.125rem; font-weight: 600; padding: 2px 0; } .ds-mrp::after { content: \"\"; position: absolute; left: -3px; right: -3px; top: 50%; height: 2px; margin-top: -1px; border-radius: 2px; background: var(--color-forest-600, #376145); } .ds-price { font-size: 2.125rem; font-weight: 600; letter-spacing: -0.02em; } .ds-dm { display: inline-block; -webkit-mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch); mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch); } .ds-add { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; margin-top: 12px; border: 0; border-radius: 999px; cursor: pointer; background: var(--color-forest-800, #1f3d2b); color: #fff; font: 600 0.875rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); transition: background-color 180ms ease; } .ds-add:hover { background: var(--color-forest-700, #2a4d36); } .ds-add:focus-visible { outline: 2px solid var(--color-forest-700, #2a4d36); outline-offset: 3px; } .ds-top { display: flex; align-items: center; gap: 8px; } .ds-off { display: inline-flex; align-items: center; height: 22px; padding: 0 7px; border-radius: 999px; background: #f1f6f2; color: #2a4d36; font: 600 12px/1 'Geist Mono', monospace; text-decoration: none; }"
+    },
+    {
+      "name": "Trust Strip",
+      "kind": "strip",
+      "refersTo": "trust-strip",
+      "description": "Four promises on sand-50 shipping-label paper, each a 28px stroke icon and two lines (Geist 600 title, caption), divided by 1.5px dashed sand-400 perforations. No numbers. 2 x 2 on phones.",
+      "html": "<ul class=\"ds-trust\"><li><b>Genuine medicines</b><span>Straight from Aarvion</span></li><li><b>Pharmacist-checked</b><span>Every prescription, before packing</span></li><li><b>Free delivery</b><span>Across India, on every order</span></li><li><b>Cash on delivery</b><span>Or pay online with Razorpay</span></li></ul>",
+      "css": ".ds-trust { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 16px 0; list-style: none; border-radius: 16px; background: #fbf8f2; font-family: Geist, sans-serif; } .ds-trust li { display: grid; gap: 2px; padding: 4px 20px; } .ds-trust li + li { border-left: 1.5px dashed #c8b085; } .ds-trust b { font-size: 15px; color: #17201b; } .ds-trust span { font-size: 13px; color: #535c57; }"
+    },
+    {
+      "name": "Banner Carousel",
+      "kind": "carousel",
+      "refersTo": "banner",
+      "description": "Four slides at content width (1280 x 420, 22px radius): a generated scene with the real pack cutouts composited on the right, a live heading, line and forest button on the left. Dots with a 6s progress fill, prev/next and a pause control below. Phones swipe 16:9 picture cards with a tight copy panel, the next one peeking.",
+      "html": "<div class=\"ds-ban\"><img src=\"design/prototype/assets/banners/sacuwin-1280.webp\" alt=\"Sacuwin 50, 100 and 200 packs on pedestals\"><div class=\"ds-ban-copy\"><p class=\"ds-ban-t\">Sacuwin 50, 100 and 200</p><p class=\"ds-ban-l\">Sacubitril and valsartan tablets in genuine Aarvion packs, delivered free.</p><a class=\"ds-ban-b\" href=\"#\">Shop Sacuwin</a></div></div><div class=\"ds-dots\"><span class=\"on\"></span><span></span><span></span><span></span></div>",
+      "css": ".ds-ban { position: relative; aspect-ratio: 1280 / 420; border-radius: 22px; overflow: hidden; background: #f1f6f2; } .ds-ban img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 100% 50%; } .ds-ban-copy { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; height: 100%; max-width: 48%; padding-left: 5%; } .ds-ban-t { font: 700 30px/1.06 'Host Grotesk', sans-serif; letter-spacing: -0.028em; color: #17201b; } .ds-ban-l { font: 400 15px/1.45 Geist, sans-serif; color: #3e4642; } .ds-ban-b { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border-radius: 999px; background: #1f3d2b; color: #fff; font: 600 14px Geist, sans-serif; text-decoration: none; } .ds-dots { display: flex; justify-content: center; gap: 14px; margin-top: 14px; } .ds-dots span { width: 8px; height: 8px; border-radius: 4px; background: #bec5c1; } .ds-dots span.on { width: 28px; background: #2a4d36; }"
     },
     {
       "name": "OTP Input",
@@ -1354,16 +1394,16 @@
   ],
   "narrative": {
     "northStar": "The Stamped Foil Strip",
-    "overview": "Aarvion sells its own prescription medicines, and the system is built from the objects a buyer in India already trusts to tell the truth about a price: the medicine pack, its silver blister strip, and the dot-matrix MRP inked on the carton. The persuasion surface puts the real packs in one continuous foil strip that rises out of a dotted forest field through white fog. Each pocket is the same unit and differs only in value. Every price appears as a pair: the printed MRP, struck through in green, above the Aarvion price stamped ₹20 lower. The stamp is the brand's voice. Everything else stays quiet so the stamp can be read.\n\nThe world has two registers. The **Persuade** register (the home page) is a scroll film on native scroll: five acts in which the headline lifts, the strip zooms, Sacuwin 100 flies through the screen, a page-sized MRP resolves dot by dot and is struck, and the bento of therapy areas arrives from depth. The **Operate** register (sign-in, cart, checkout, order, account and the staff admin) gives up the strip and the film. It keeps only what the work needs from the world: the forest band, the white work sheet rising out of it, shipping-label paper for receipts and slips, the stamp for totals and order numbers, the perforated rule, and small blister wells for product thumbnails. Admin is denser still: forest rail, neutral-50 ground, 46px rows, Geist Mono ids, and the perforation as its single signature.\n\nThe mood is calm, exact and physical. Colour lives on grounds and rules while text stays neutral. Materials are real rasters rendered from a physical model, not CSS imitations. Motion is cinematic on the home page and brief everywhere else. This is someone's heart or eye medicine, so nothing shouts, blinks for attention or invents urgency.",
+    "overview": "Aarvion sells its own prescription medicines, and the system is built from the objects a buyer in India already trusts to tell the truth about a price: the medicine pack, its silver blister strip, and the dot-matrix MRP inked on the carton. The home page is laid out as an Indian medicine store (the format of 1mg, PharmEasy and Apollo Pharmacy): an announcement line, a sticky white store header with search, a rotating banner, quick actions, a trust strip, the category bento, rails of products, then the ordering film, questions, the close and a store footer. What makes it Aarvion's is the shelf: every product sits in the same foil blister pocket on a print-field strip, and every price is the pack's own dot-matrix stamp, the printed MRP struck in green above the price, with the store's % off beside it as a plain fact. The ₹20 is never a headline. Everything else stays quiet so the pack and its price can be read.\n\nThe world has two registers. The **Persuade** register (the home page) is a store with craft in its motion: banners that cross-fade on their own clock, a bento that rises from depth, rails that rise with parallax, a pinned ordering film (steps, a filling perforation, documents scaling in from depth) and a closing logo pan-in on forest. The **Operate** register (sign-in, cart, checkout, order, account and the staff admin) shares the store header and footer but gives up the strip and the film. It keeps only what the work needs from the world: the forest band, the white work sheet rising out of it, shipping-label paper for receipts and slips, the stamp for totals and order numbers, the perforated rule, and small blister wells for product thumbnails. Admin is denser still: forest rail, neutral-50 ground, 46px rows, Geist Mono ids, and the perforation as its single signature.\n\nThe mood is calm, exact and physical. Colour lives on grounds and rules while text stays neutral. Materials are real rasters, rendered from a physical model or composited from the real pack photos, never CSS imitations. Motion is crafted on the home page and brief everywhere else. This is someone's heart or eye medicine, so nothing shouts, blinks for attention or invents urgency.",
     "keyCharacteristics": [
-      "Deep forest field (#1F3D2B) with a 5px inkjet dot grain, fading through procedural fog into a clean white page.",
-      "One foil blister strip of identical pockets, built from procedural rasters: lit aluminium, diamond knurl, clear PVC domes and pressed perforations.",
-      "Every price is a stamp pair: the struck printed MRP above the price, in Geist Mono, dot-matrix at stamp sizes.",
+      "Store chrome: a forest-900 announcement line, a sticky white header (logo, wide search, Upload prescription, Sign in, Cart with count) over a category bar, and a forest-900 store footer.",
+      "Banners: generated scenes with the real pack cutouts composited onto them (scripts/composite_store_banners.py), live HTML copy on the left, rotating every 6s.",
+      "One foil blister pocket for every product, on print-field strips built from procedural rasters: lit aluminium, diamond knurl, clear PVC domes and pressed perforations.",
+      "Every price is a stamp pair: the struck printed MRP with a % off tag above the price, in Geist Mono, dot-matrix at stamp sizes.",
       "Host Grotesk display (600–700, tight tracking), Geist body, Geist Mono for every number, id and code. All three draw ₹.",
       "Sand (#E8DCC4) is the one primary action on forest ground; forest-800 is the primary action on white.",
-      "Pill controls, a glass pill nav that turns solid over light ground, and soft forest-tinted shadows.",
-      "A scroll film driven by one rAF tick on native scroll, transform and opacity only, with a complete static composition under reduced motion.",
-      "Operate screens and admin borrow the world's details, never its spectacle."
+      "Pill controls, soft forest-tinted shadows, dashed perforation wherever things belong to one strip, document or sequence.",
+      "A scroll engine (one passive listener, one rAF tick, transform and opacity only) for the ordering film, the bento rise, the rail rise and the close, with a complete static composition under reduced motion."
     ],
     "rules": [
       {
@@ -1408,7 +1448,7 @@
       },
       {
         "name": "The Uniform Knurl Rule",
-        "body": "The knurl only ever scales uniformly. When Act 1's fill grows non-uniformly from the plate to the frame, its foil counter-scales so the diamond keeps its proportions, and the knurl stays baked into that one layer. Splitting it out turned the fill into brushed metal.",
+        "body": "The knurl only ever scales uniformly. Any foil that grows non-uniformly counter-scales its knurl so the diamond keeps its proportions (v1's Act 1 fill did this; the store home has no growing fill).",
         "section": "elevation"
       },
       {
@@ -1433,7 +1473,7 @@
       }
     ],
     "dos": [
-      "**Do** show every price as the pair: the struck printed MRP in forest-600 above the price, which is always MRP − ₹20 and never stored.",
+      "**Do** show every price as the pair: the struck printed MRP in forest-600 with its % off tag, above the price, which is always MRP − ₹20 (% off = floor(2000 / MRP in paise × 100), never rounded up) and never stored.",
       "**Do** keep colour on fields, fills and rules, with text in ink, neutral-900, neutral-600 or white.",
       "**Do** use one sand-200 pill as the primary action on forest ground and one forest-800 pill as the primary action on white.",
       "**Do** set every number, price, id, code and count in Geist Mono with tabular figures, and set names in Host Grotesk or Geist.",
@@ -1455,7 +1495,10 @@
       "**Don't** add scroll-jacking, a smooth-scroll library or animation of layout properties.",
       "**Don't** use hard offset shadows, gradient text or glyph icons; shadows are soft and forest-tinted, and icons are the SVG stroke set.",
       "**Don't** show a check on a pending or interrupted step.",
-      "**Don't** set people's names in Geist Mono, even in admin tables and the audit trail."
+      "**Don't** set people's names in Geist Mono, even in admin tables and the audit trail.",
+      "**Don't** lead a headline, banner, section or meta title with the ₹20. It is a plain price fact in the stamp pair and the % off tag, nothing more.",
+      "**Don't** invent ratings, reviews, customer counts, \"bestseller\", \"trending\" or certifications, and don't use therapy-area words where a shopper reads: Heart care, Diabetes care, Eye care, Respiratory care.",
+      "**Don't** let a Win2Age-printed pack lead a banner; the lead banner shows Sacuwin, which carries Aarvion's print."
     ]
   }
 }

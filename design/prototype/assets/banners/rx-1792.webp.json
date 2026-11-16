@@ -1,0 +1,30 @@
+{
+ "prompt": "Composite, not generated as one image. Scene: assets/banners/store/rx-scene.png (gpt-image-2.5-flare, run in Figma; Figma file dlvnZAbqR9Vbnk3Sg7Eixi, node 4:3; generation prompt not recorded; no products, text or logos in it). No packs; cropped and encoded by scripts/composite_store_banners.py.",
+ "createdAt": "2026-11-16T21:06:14.000Z",
+ "file": "rx-1792.webp",
+ "origin": "AI-generated scene, no products",
+ "scene": "assets/banners/store/rx-scene.png",
+ "sceneGenerator": "gpt-image-2.5-flare, run in Figma",
+ "figmaFile": "dlvnZAbqR9Vbnk3Sg7Eixi",
+ "figmaNode": "4:3",
+ "sceneSha256": "dfc5409bddf9a175",
+ "cutouts": [],
+ "cutoutOrigin": "owner product photos (assets/products/original), background removed by scripts/make_cutouts.py",
+ "generator": "scripts/composite_store_banners.py",
+ "command": "python3 -I scripts/composite_store_banners.py <project_root>",
+ "crop": {
+  "x": 0,
+  "y": 180,
+  "w": 1792,
+  "h": 588,
+  "of": "1792x768 composite"
+ },
+ "pixels": [
+  1792,
+  588
+ ],
+ "encode": "Pillow WebP quality 86 method 6",
+ "bytes": 30330,
+ "text": "none baked in; headline, line and button are live HTML",
+ "date": "2026-11-16"
+}
