@@ -44,6 +44,43 @@ describe("readJson", () => {
     const e = await thrown(readJson(req, Body));
     expect(e.status).toBe(415);
   });
+  it("415 for a content type that merely starts with application/json", async () => {
+    const e = await thrown(
+      readJson(jsonPost("/x", { a: "b" }, { contentType: "application/jsonp" }), Body),
+    );
+    expect([e.status, e.code]).toEqual([415, "unsupported_media_type"]);
+  });
+  it("accepts uppercase type with spaced parameters", async () => {
+    const req = jsonPost("/x", { a: "b" }, { contentType: "Application/JSON ; charset=utf-8" });
+    expect(await readJson(req, Body)).toEqual({ a: "b" });
+  });
+  it("413 when content-length exceeds 16 KB", async () => {
+    const big = JSON.stringify({ a: "x".repeat(17 * 1024) });
+    const e = await thrown(readJson(jsonPost("/x", big), Body));
+    expect([e.status, e.code]).toEqual([413, "payload_too_large"]);
+  });
+  it("413 for an over-cap body without a content-length header", async () => {
+    const chunk = new TextEncoder().encode("x".repeat(1024));
+    let sent = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(c) {
+        if (sent++ < 40) c.enqueue(chunk);
+        else c.close();
+      },
+    });
+    const req = new Request("http://localhost:3000/x", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: stream,
+      duplex: "half",
+    } as RequestInit);
+    const e = await thrown(readJson(req, Body));
+    expect([e.status, e.code]).toEqual([413, "payload_too_large"]);
+  });
+  it("accepts a body just under the cap", async () => {
+    const ok = JSON.stringify({ a: "x".repeat(15 * 1024) });
+    expect((await readJson(jsonPost("/x", ok), Body)).a.length).toBe(15 * 1024);
+  });
   it("400 invalid_json for malformed JSON", async () => {
     const e = await thrown(readJson(jsonPost("/x", "{"), Body));
     expect([e.status, e.code]).toEqual([400, "invalid_json"]);

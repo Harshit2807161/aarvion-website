@@ -23,15 +23,38 @@ export function jsonResponse(
   return new Response(JSON.stringify(body), { status: init.status ?? 200, headers });
 }
 
-/** Parses a JSON request body against a schema, throwing HttpError on any problem. */
-export async function readJson<T>(req: Request, schema: z.ZodType<T>): Promise<T> {
-  const type = req.headers.get("content-type")?.trim().toLowerCase() ?? "";
-  if (!type.startsWith("application/json")) {
-    throw new HttpError(415, "unsupported_media_type");
+export const MAX_JSON_BYTES = 16 * 1024;
+
+/** Reads the body as text, refusing more than `max` bytes even without a Content-Length. */
+async function readCapped(req: Request, max: number): Promise<string> {
+  const declared = Number(req.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > max) throw new HttpError(413, "payload_too_large");
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > max) {
+      await reader.cancel();
+      throw new HttpError(413, "payload_too_large");
+    }
+    chunks.push(value);
   }
+  return new TextDecoder().decode(Buffer.concat(chunks));
+}
+
+/** Parses a JSON request body (max 16 KB) against a schema, throwing HttpError on any problem. */
+export async function readJson<T>(req: Request, schema: z.ZodType<T>): Promise<T> {
+  // Exact media type, optionally with parameters: "application/jsonp" must not pass.
+  const type = (req.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
+  if (type !== "application/json") throw new HttpError(415, "unsupported_media_type");
+  const text = await readCapped(req, MAX_JSON_BYTES);
   let raw: unknown;
   try {
-    raw = await req.json();
+    raw = JSON.parse(text);
   } catch {
     throw new HttpError(400, "invalid_json");
   }
