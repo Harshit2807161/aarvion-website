@@ -81,6 +81,23 @@ describe("readJson", () => {
     const ok = JSON.stringify({ a: "x".repeat(15 * 1024) });
     expect((await readJson(jsonPost("/x", ok), Body)).a.length).toBe(15 * 1024);
   });
+  it("accepts exactly 16384 bytes and rejects 16385", async () => {
+    const exact = (bytes: number) => `{"a":"${"x".repeat(bytes - 8)}"}`;
+    expect(exact(16384)).toHaveLength(16384);
+    expect((await readJson(jsonPost("/x", exact(16384)), Body)).a).toHaveLength(16376);
+    const e = await thrown(readJson(jsonPost("/x", exact(16385)), Body));
+    expect([e.status, e.code]).toEqual([413, "payload_too_large"]);
+  });
+  it("413 when Content-Length lies small but the body is over the cap", async () => {
+    const big = JSON.stringify({ a: "x".repeat(20 * 1024) });
+    const req = new Request("http://localhost:3000/x", {
+      method: "POST",
+      headers: { "content-type": "application/json", "content-length": "10" },
+      body: big,
+    });
+    const e = await thrown(readJson(req, Body));
+    expect([e.status, e.code]).toEqual([413, "payload_too_large"]);
+  });
   it("400 invalid_json for malformed JSON", async () => {
     const e = await thrown(readJson(jsonPost("/x", "{"), Body));
     expect([e.status, e.code]).toEqual([400, "invalid_json"]);
