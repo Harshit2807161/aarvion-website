@@ -19,7 +19,7 @@ export type Actor = "customer" | "staff" | "system";
 
 export type OrderForTransition = {
   status: OrderStatus;
-  /** The order date; confirm and ship require the Rx valid at this instant and at `ctx.at`. */
+  /** The order date. Informational: Rx validity is judged at `ctx.at`, not here. */
   createdAt: Date;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
@@ -55,27 +55,36 @@ export function initialStatus(method: PaymentMethod): OrderStatus {
 }
 
 /**
- * Allowed edges. Cancel is allowed until the order is packed.
+ * Allowed edges.
+ *
+ * Cancel is an edge from pending_payment, placed, on_hold and confirmed. The
+ * customer-facing "cancel until packed" window is enforced by actor in the
+ * O-phase API, not by this table; staff may need `hold` from confirmed and
+ * packed, which is why those two are edges too.
+ *
+ * Rx rule: `confirm`, `pack` and `ship` judge the Rx currently attached to the
+ * order at `ctx.at` only. There is no createdAt check here; order placement (O2)
+ * owns that. An Rx that lapsed before dispatch fails `rx_not_valid`; staff then
+ * `hold` the order (from placed, confirmed or packed), ask the customer for a new
+ * Rx, and `confirm` again from on_hold once a replacement is approved.
  *
  * F16: `hold` and `cancel` on a paid order return a `refund` effect, yet
  * `on_hold -> confirmed` stays an edge (a new Rx is approved). If the caller
  * executes the refund, the prepaid order is `refunded` and `confirm` fails with
  * `payment_required`, so such an order can only leave `on_hold` via `cancel`.
  * It can resume only if a later order phase defers executing the refund while
- * the order is on hold. Separately, an Rx valid at order creation but expired by
- * confirm/ship time fails `rx_not_valid`; the admin then holds the order and asks
- * the customer for a new Rx.
+ * the order is on hold.
  */
-export const ORDER_EDGES: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
-  pending_payment: ["placed", "cancelled"],
-  placed: ["confirmed", "on_hold", "cancelled"],
-  on_hold: ["confirmed", "cancelled"],
-  confirmed: ["packed", "cancelled"],
-  packed: ["shipped"],
-  shipped: ["delivered"],
-  delivered: [],
-  cancelled: [],
-};
+export const ORDER_EDGES: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = Object.freeze({
+  pending_payment: Object.freeze(["placed", "cancelled"] as const),
+  placed: Object.freeze(["confirmed", "on_hold", "cancelled"] as const),
+  on_hold: Object.freeze(["confirmed", "cancelled"] as const),
+  confirmed: Object.freeze(["packed", "on_hold", "cancelled"] as const),
+  packed: Object.freeze(["shipped", "on_hold"] as const),
+  shipped: Object.freeze(["delivered"] as const),
+  delivered: Object.freeze([] as const),
+  cancelled: Object.freeze([] as const),
+});
 
 const TARGET: Record<OrderEvent["type"], OrderStatus> = {
   payment_captured: "placed",
@@ -99,16 +108,16 @@ function guard(
 ): TransitionErrorCode | null {
   switch (event.type) {
     case "confirm":
+    case "pack":
     case "ship": {
       if (event.type === "ship" && (!event.awb.trim() || !event.courier.trim())) {
         return "awb_required";
       }
       // Compliance: dispensing happens at dispatch, so an expired Rx cannot
-      // authorise it. The Rx must be valid at order creation AND at the time of
-      // this gated transition (`at`).
-      if (!isRxValidOn(order.rx, order.createdAt) || !isRxValidOn(order.rx, at)) {
-        return "rx_not_valid";
-      }
+      // authorise it. Judge the Rx currently on the order at the moment of this
+      // gated transition (`at`) only.
+      if (!isRxValidOn(order.rx, at)) return "rx_not_valid";
+      if (event.type === "pack") return null;
       if (order.paymentMethod !== "cod" && order.paymentStatus !== "paid") {
         return "payment_required";
       }
@@ -128,13 +137,15 @@ export function transition(
   ctx: { at: Date; by: Actor },
 ): TransitionResult {
   const to = TARGET[event.type];
-  if (!ORDER_EDGES[order.status].includes(to)) return { ok: false, error: "invalid_transition" };
+  // Fail closed on a status outside the table (e.g. a legacy value read from the DB).
+  const edges = Object.hasOwn(ORDER_EDGES, order.status) ? ORDER_EDGES[order.status] : [];
+  if (!edges.includes(to)) return { ok: false, error: "invalid_transition" };
 
   const error = guard(order, event, ctx.at);
   if (error) return { ok: false, error };
 
   const entry: StatusHistoryEntry = { from: order.status, to, at: ctx.at, by: ctx.by };
-  if (event.type === "hold" || event.type === "cancel") entry.reason = event.reason;
+  if (event.type === "hold" || event.type === "cancel") entry.reason = event.reason.trim();
 
   const refund =
     (event.type === "hold" || event.type === "cancel") && order.paymentStatus === "paid";

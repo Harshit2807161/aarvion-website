@@ -115,7 +115,10 @@ export async function verifyOtpChallenge(
   if (!doc) return { ok: false, reason: "no_active_challenge" };
 
   const expected = Buffer.from(doc.codeHash, "hex");
-  const actual = Buffer.from(hashOtp({ challengeId: doc.challengeId, identifier: id, code }), "hex");
+  const actual = Buffer.from(
+    hashOtp({ challengeId: doc.challengeId, identifier: id, code }),
+    "hex",
+  );
   if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
     return { ok: false, reason: "mismatch" };
   }

@@ -37,8 +37,8 @@ describe("ORDER_EDGES", () => {
       pending_payment: ["placed", "cancelled"],
       placed: ["confirmed", "on_hold", "cancelled"],
       on_hold: ["confirmed", "cancelled"],
-      confirmed: ["packed", "cancelled"],
-      packed: ["shipped"],
+      confirmed: ["packed", "on_hold", "cancelled"],
+      packed: ["shipped", "on_hold"],
       shipped: ["delivered"],
       delivered: [],
       cancelled: [],
@@ -72,8 +72,13 @@ describe("all 64 from/to pairs", () => {
     }
     const r = transition(happy(from), event, ctx);
     expect(r.ok).toBe(allowed);
-    if (r.ok) expect(r.to).toBe(to);
-    else expect(r.error).toBe("invalid_transition");
+    if (r.ok) {
+      expect(r.to).toBe(to);
+      // The fixture is paid: only hold and cancel emit a refund and carry a reason.
+      const hasReason = to === "on_hold" || to === "cancelled";
+      expect(r.effects).toEqual(hasReason ? ["refund"] : []);
+      expect("reason" in r.entry).toBe(hasReason);
+    } else expect(r.error).toBe("invalid_transition");
   });
 });
 
@@ -165,6 +170,11 @@ describe("ship guards", () => {
     const o = { ...happy("packed"), paymentStatus: "refunded" as const };
     expect(transition(o, ship(), ctx)).toEqual({ ok: false, error: "payment_required" });
   });
+  it("accepts an optional trackingUrl", () => {
+    expect(transition(happy("packed"), ship({ trackingUrl: "https://t.example/1" }), ctx).ok).toBe(
+      true,
+    );
+  });
 });
 
 describe("reason guards", () => {
@@ -176,6 +186,12 @@ describe("reason guards", () => {
       });
     }
     expect(transition(happy("placed"), { type, reason: "x".repeat(500) }, ctx).ok).toBe(true);
+  });
+  it("checks the edge before the reason", () => {
+    expect(transition(happy("shipped"), { type: "cancel", reason: "" }, ctx)).toEqual({
+      ok: false,
+      error: "invalid_transition",
+    });
   });
 });
 
@@ -202,6 +218,10 @@ describe("refund effects (F16)", () => {
     const r = transition(o, { type: "cancel", reason: "x" }, ctx);
     expect(r.ok && r.effects).toEqual([]);
   });
+  it("non-refunding transitions have no effects", () => {
+    const r = transition(happy("placed"), { type: "confirm" }, ctx);
+    expect(r.ok && r.effects).toEqual([]);
+  });
 });
 
 describe("history entry and purity", () => {
@@ -219,38 +239,131 @@ describe("history entry and purity", () => {
       reason: "Ordered by mistake",
     });
   });
-  it("does not mutate a deep-frozen order", () => {
+  it("omits reason for events without one", () => {
+    const r = transition(happy("placed"), { type: "confirm" }, ctx);
+    expect(r.ok && r.entry).not.toHaveProperty("reason");
+  });
+  it("does not mutate the order, including its Date fields", () => {
     const o = happy("placed");
-    Object.freeze(o);
-    Object.freeze(o.rx);
-    Object.freeze(o.createdAt);
-    expect(() => transition(o, { type: "confirm" }, ctx)).not.toThrow();
-    expect(o.status).toBe("placed");
+    const before = structuredClone(o);
+    transition(o, { type: "confirm" }, ctx);
+    transition(o, { type: "hold", reason: "r" }, ctx);
+    expect(o).toEqual(before);
+  });
+  it("stores the trimmed reason", () => {
+    const r = transition(happy("placed"), { type: "cancel", reason: "  spaced  " }, ctx);
+    expect(r.ok && r.entry.reason).toBe("spaced");
+  });
+  it("fails closed on an unknown status", () => {
+    const o = { ...happy("placed"), status: "bogus" as OrderStatus };
+    expect(transition(o, { type: "confirm" }, ctx)).toEqual({
+      ok: false,
+      error: "invalid_transition",
+    });
+    expect(transition(o, { type: "toString" } as unknown as OrderEvent, ctx).ok).toBe(false);
+  });
+  it("freezes the edge table and its arrays", () => {
+    expect(Object.isFrozen(ORDER_EDGES)).toBe(true);
+    for (const list of Object.values(ORDER_EDGES)) expect(Object.isFrozen(list)).toBe(true);
+  });
+  it("checks the edge before any guard", () => {
+    // Shipped cannot be held; the empty reason and lapsed Rx must not mask that.
+    const o = { ...happy("shipped"), rx: { ...happy("shipped").rx, status: "rejected" as const } };
+    expect(transition(o, { type: "hold", reason: "" }, ctx)).toEqual({
+      ok: false,
+      error: "invalid_transition",
+    });
+    expect(transition(o, { type: "confirm" }, ctx)).toEqual({
+      ok: false,
+      error: "invalid_transition",
+    });
   });
 });
 
-describe("Rx must be valid at order creation AND at the gated transition", () => {
+describe("Rx is judged at ctx.at on the Rx currently attached", () => {
   // Rx dated 1 May 2026 IST expires 1 Nov 2026 IST (exclusive).
-  const rx = { status: "approved" as const, rxDate: d("2026-04-30T18:30:00Z"), validUntil: null };
+  const rxMay = {
+    status: "approved" as const,
+    rxDate: d("2026-04-30T18:30:00Z"),
+    validUntil: null,
+  };
+  const created = d("2026-10-20T06:00:00Z");
+  const validNow = { at: d("2026-10-25T06:00:00Z"), by: "staff" } as const;
+  const expiredNow = { at: d("2026-11-16T06:00:00Z"), by: "staff" } as const;
   const ship: OrderEvent = { type: "ship", awb: "A1", courier: "C" };
-  it.each([
-    ["valid at both", "2026-10-20", "2026-10-25", true],
-    ["valid at creation, expired at ctx.at", "2026-10-20", "2026-11-16", false],
-    ["already expired at creation", "2026-11-16", "2026-10-25", false],
-  ])("confirm and ship: %s", (_n, created, now, ok) => {
-    const c = { at: d(`${now}T06:00:00Z`), by: "staff" } as const;
-    const o = (status: OrderStatus) => ({
-      ...happy(status),
-      createdAt: d(`${created}T06:00:00Z`),
-      rx,
+  const events: [OrderStatus, OrderEvent][] = [
+    ["placed", { type: "confirm" }],
+    ["confirmed", { type: "pack" }],
+    ["packed", ship],
+  ];
+
+  it.each(events)("%s: Rx valid at creation but expired at ctx.at -> rx_not_valid", (from, ev) => {
+    const o = { ...happy(from), createdAt: created, rx: rxMay };
+    expect(transition(o, ev, validNow).ok).toBe(true);
+    expect(transition(o, ev, expiredNow)).toEqual({ ok: false, error: "rx_not_valid" });
+  });
+
+  it("replacement Rx dated after createdAt, valid at ctx.at: confirm from on_hold is ok (I2)", () => {
+    const o = {
+      ...happy("on_hold"),
+      createdAt: d("2026-11-16T06:00:00Z"),
+      rx: { status: "approved" as const, rxDate: d("2026-11-17T18:30:00Z"), validUntil: null },
+    };
+    const r = transition(o, { type: "confirm" }, { at: d("2026-11-19T06:00:00Z"), by: "staff" });
+    expect(r.ok && r.to).toBe("confirmed");
+  });
+
+  it("replacement Rx dated after createdAt, valid at ctx.at: ship from packed is ok (I1)", () => {
+    const o = {
+      ...happy("packed"),
+      createdAt: d("2026-11-16T06:00:00Z"),
+      rx: { status: "approved" as const, rxDate: d("2026-11-17T18:30:00Z"), validUntil: null },
+    };
+    expect(transition(o, ship, { at: d("2026-11-19T06:00:00Z"), by: "staff" }).ok).toBe(true);
+  });
+
+  it("packed with a lapsed Rx can be held with a reason, then cancelled (I1)", () => {
+    const packed = { ...happy("packed"), createdAt: created, rx: rxMay };
+    expect(transition(packed, ship, expiredNow)).toEqual({ ok: false, error: "rx_not_valid" });
+    const held = transition(packed, { type: "hold", reason: "Rx lapsed" }, expiredNow);
+    expect(held.ok && held.to).toBe("on_hold");
+    expect(held.ok && held.effects).toEqual(["refund"]);
+    expect(
+      transition({ ...packed, status: "on_hold" }, { type: "cancel", reason: "x" }, expiredNow).ok,
+    ).toBe(true);
+    expect(transition(packed, { type: "hold", reason: " " }, expiredNow)).toEqual({
+      ok: false,
+      error: "reason_required",
     });
-    for (const [from, ev] of [
-      ["placed", { type: "confirm" }],
-      ["packed", ship],
-    ] as const) {
-      const r = transition(o(from), ev, c);
-      expect(r.ok).toBe(ok);
-      if (!r.ok) expect(r.error).toBe("rx_not_valid");
-    }
+  });
+
+  it("hold on a COD packed order emits no refund", () => {
+    const o = {
+      ...happy("packed"),
+      paymentMethod: "cod" as const,
+      paymentStatus: "pending" as const,
+    };
+    const r = transition(o, { type: "hold", reason: "Rx lapsed" }, ctx);
+    expect(r.ok && r.effects).toEqual([]);
+  });
+
+  it("keeps precedence awb_required -> rx_not_valid -> payment_required", () => {
+    const o = {
+      ...happy("packed"),
+      createdAt: created,
+      rx: rxMay,
+      paymentStatus: "refunded" as const,
+    };
+    expect(transition(o, { type: "ship", awb: "", courier: "C" }, expiredNow)).toEqual({
+      ok: false,
+      error: "awb_required",
+    });
+    expect(transition(o, ship, expiredNow)).toEqual({ ok: false, error: "rx_not_valid" });
+    expect(transition(o, ship, validNow)).toEqual({ ok: false, error: "payment_required" });
+  });
+
+  it("pack does not require payment", () => {
+    const o = { ...happy("confirmed"), paymentStatus: "refunded" as const };
+    expect(transition(o, { type: "pack" }, ctx).ok).toBe(true);
   });
 });
