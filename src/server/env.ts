@@ -11,6 +11,10 @@ const schema = z.object({
     emptyToUndefined,
     z.enum(["production", "preview", "development"]).optional(),
   ),
+  SMS_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "msg91"]).default("mock")),
+  EMAIL_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "resend"]).default("mock")),
+  PAYMENTS_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["fake", "razorpay"]).default("fake")),
+  FILE_STORE: z.preprocess(emptyToUndefined, z.enum(["memory", "local", "blob"]).default("memory")),
   ALLOW_MOCKS_IN_PROD_BUILD: z.preprocess(emptyToUndefined, z.literal("1").optional()),
 });
 

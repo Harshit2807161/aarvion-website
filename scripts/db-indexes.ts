@@ -1,6 +1,7 @@
 // Run with: node --experimental-strip-types --no-warnings scripts/db-indexes.ts
 import { closeMongo, getDb } from "../src/server/db/client.ts";
 import { ensureIndexes } from "../src/server/db/indexes.ts";
+import "../src/server/db/register-all.ts";
 
 try {
   const results = await ensureIndexes(await getDb());
