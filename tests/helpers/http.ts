@@ -29,3 +29,9 @@ export function getReq(path: string, opts: { cookie?: string } = {}): Request {
   if (opts.cookie) headers.cookie = opts.cookie;
   return new Request(new URL(path, TEST_ORIGIN), { method: "GET", headers });
 }
+
+/** The raw session token from a response's Set-Cookie, or null when none was set. */
+export function sessionTokenFrom(res: Response): string | null {
+  const m = /^__Host-aarv_sid=([A-Za-z0-9_-]{43});/.exec(res.headers.get("set-cookie") ?? "");
+  return m ? m[1]! : null;
+}

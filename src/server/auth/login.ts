@@ -1,8 +1,16 @@
 import { z } from "zod";
 import { getDeps } from "../deps.ts";
-import { hitRateLimit } from "../security/rate-limit.ts";
+import { hitRateLimit, peekRateLimit } from "../security/rate-limit.ts";
 import { normalizeIdentifier, identifierKey, type Channel } from "./identifier.ts";
-import { OTP_TTL_MS, cancelOtpChallenge, issueOtpChallenge, resendCooldownSec } from "./otp.ts";
+import {
+  OTP_TTL_MS,
+  cancelOtpChallenge,
+  issueOtpChallenge,
+  resendCooldownSec,
+  verifyOtpChallenge,
+} from "./otp.ts";
+import { createSession, revokeSession, sessionKindForRole, type SessionKind } from "./sessions.ts";
+import { findOrCreateUserByIdentifier, toPublicUser, type PublicUser } from "./users.ts";
 
 export const SendOtpBody = z.object({
   channel: z.enum(["phone", "email"]),
@@ -80,4 +88,60 @@ export async function sendOtp(i: {
     return { ok: false, error: "delivery_failed" };
   }
   return { ok: true, resendAfterSec: RESEND_AFTER_SEC };
+}
+
+/**
+ * F6: `code` is a loose string so every bad code, including a malformed one,
+ * takes the same invalid_code path as a wrong one.
+ */
+export const VerifyOtpBody = SendOtpBody.extend({ code: z.string().max(16) });
+
+/**
+ * Known risk (F11): the cap is keyed by identifier alone, so a third party who
+ * knows a phone or email can lock that user out of login for 24 h.
+ */
+export const OTP_VERIFY_FAILURE_LIMIT = { limit: 10, windowMs: 86_400_000 } as const;
+
+export type VerifyOtpResult =
+  | { ok: true; user: PublicUser; isNewUser: boolean; token: string; kind: SessionKind }
+  | { ok: false; error: "invalid_code" }
+  | { ok: false; error: "too_many_attempts"; retryAfterSec: number };
+
+/**
+ * Order is fixed: normalise, failure cap (peek), verify the challenge, find or
+ * create the user, revoke any presented session (anti-fixation), create a fresh
+ * session. Every failure reason collapses to invalid_code; the code and the
+ * token are never logged or returned.
+ */
+export async function verifyOtpAndLogin(i: {
+  channel: Channel;
+  identifier: string;
+  code: string;
+  existingToken: string | null;
+  now: Date;
+}): Promise<VerifyOtpResult> {
+  const id = normalizeIdentifier(i.channel, i.identifier);
+  if (!id) return { ok: false, error: "invalid_code" };
+
+  const failureKey = `otp-verify-fail:${identifierKey(id)}`;
+  const cap = await peekRateLimit({ key: failureKey, ...OTP_VERIFY_FAILURE_LIMIT, now: i.now });
+  if (!cap.allowed)
+    return { ok: false, error: "too_many_attempts", retryAfterSec: cap.retryAfterSec };
+
+  const verified = await verifyOtpChallenge(id, i.code, i.now);
+  if (!verified.ok) {
+    await hitRateLimit({ key: failureKey, ...OTP_VERIFY_FAILURE_LIMIT, now: i.now });
+    return { ok: false, error: "invalid_code" };
+  }
+
+  const { user, created } = await findOrCreateUserByIdentifier(id, i.now);
+  if (i.existingToken) await revokeSession(i.existingToken);
+  const { token } = await createSession(user, i.now);
+  return {
+    ok: true,
+    user: toPublicUser(user),
+    isNewUser: created,
+    token,
+    kind: sessionKindForRole(user.role),
+  };
 }
