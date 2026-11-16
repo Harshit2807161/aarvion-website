@@ -1,6 +1,6 @@
 # Aarvion Pharmaceuticals website
 
-Pre-build workspace (Stages 0–3). The app code starts in Stage 5 in the GitHub repo `Harshit2807161/aarvion-website`.
+Pre-build workspace (Stages 0–3) plus the Next.js app (Stage 5).
 
 - `docs/catalogue.md`: all 32 catalogue lines, listed vs missing
 - `docs/missing-products.md`: 20 products with no photo, and how to add them later
@@ -14,3 +14,15 @@ Pre-build workspace (Stages 0–3). The app code starts in Stage 5 in the GitHub
 - `scripts/`: rebuild docs and seed data (`build_stage0_docs.py`) and banner composites (`composite_banners.py`)
 
 Decided stack: Next.js 16 (App Router) + TypeScript, Node runtime, MongoDB, Vercel.
+
+## Development
+
+Requires Node 24 (`.nvmrc`) and pnpm 12. Copy `.env.example` to `.env.local`.
+
+- `pnpm dev`: start the dev server
+- `pnpm build` / `pnpm start`: production build and server
+- `pnpm lint`, `pnpm typecheck`, `pnpm format`
+- `pnpm test:unit`: Vitest `unit` project (happy-dom, `src/**/*.test.ts(x)`)
+- `pnpm test:int`: Vitest `int` project (node, `tests/int/**/*.test.ts`)
+
+Stack decisions: `docs/decisions/stack.md`.
