@@ -2,7 +2,8 @@ import { createHash, randomBytes } from "node:crypto";
 import type { ObjectId } from "mongodb";
 import { getDb } from "../db/client.ts";
 import { registerIndexes } from "../db/indexes.ts";
-import { STAFF_ROLES, type Role, type UserDoc } from "./users.ts";
+import { STAFF_ROLES, type Role } from "./roles.ts";
+import type { UserDoc } from "./users.ts";
 
 export const SESSIONS_COLLECTION = "sessions";
 

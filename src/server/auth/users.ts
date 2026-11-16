@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { getDb } from "../db/client.ts";
 import { registerIndexes } from "../db/indexes.ts";
 import type { Identifier } from "./identifier.ts";
+import type { Role } from "./roles.ts";
 import { revokeUserSessions } from "./sessions.ts";
 
 export const USERS_COLLECTION = "users";
@@ -21,9 +22,7 @@ registerIndexes(USERS_COLLECTION, [
   },
 ]);
 
-export type Role = "customer" | "pharmacist" | "operations" | "admin";
-export const STAFF_ROLES = ["pharmacist", "operations", "admin"] as const;
-export type StaffRole = (typeof STAFF_ROLES)[number];
+export { STAFF_ROLES, type Role, type StaffRole } from "./roles.ts";
 
 export type UserDoc = {
   _id: ObjectId;

@@ -27,3 +27,5 @@ auth phase, in the PR that adds the dev outbox page:
 - `isMockForbidden()` also refuses when mocks are allowed in a production build and
   the database name equals the production database name, with a unit test.
 - Every dev-only route calls `isMockForbidden()` and returns `notFound()` when true.
+
+- `__Host-aarv_sid` requires `Secure`: on plain http it works on `http://localhost` in Chrome and Firefox, but not in Safari or on LAN or `*.test` hosts, so use `localhost` or https for local dev.
