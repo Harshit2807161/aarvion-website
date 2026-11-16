@@ -1,0 +1,50 @@
+{
+  "prompt": "Procedural, not AI-generated: The foil body seen 1.5x closer, at 2x, tileable: Act 1's full-frame fill, shown at background-size 1440px 540px under foil-knurl-fill.webp. Rendered by scripts/render_foil.py (numpy heightfield, environment-lit), seed 2611, 2880x1080.",
+  "createdAt": "2026-11-16T14:44:44Z",
+  "origin": "procedural",
+  "aiGenerated": false,
+  "generator": "scripts/render_foil.py",
+  "command": ".tools/venv/bin/python -I scripts/render_foil.py",
+  "pixels": [
+    2880,
+    1080
+  ],
+  "alpha": false,
+  "encode": "cwebp -quiet -m 6 -q 76 -sharp_yuv <master.png> -o foil-fill.webp",
+  "seed": 2611,
+  "params": {
+    "w": 2880,
+    "h": 1080,
+    "mean": 0.85,
+    "rolls": [
+      [
+        1,
+        0,
+        34.0
+      ],
+      [
+        2,
+        1,
+        20.0
+      ],
+      [
+        3,
+        0,
+        12.0
+      ],
+      [
+        5,
+        1,
+        5.0
+      ]
+    ],
+    "crumple": [
+      4.2,
+      120.0
+    ],
+    "streak": [
+      0.09,
+      0.04
+    ]
+  }
+}

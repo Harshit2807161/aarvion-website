@@ -1,0 +1,26 @@
+{
+  "prompt": "Procedural, not AI-generated: Print-field knurl: the same diamond emboss, period and phase as foil-knurl.webp at 0.32 gain, for the smooth printed field under names, salts and stamps (lidding foil is smooth where it is printed); 2x, tile shown at 140px 120px over foil-plate.webp. Rendered by scripts/render_foil.py (numpy heightfield, environment-lit), seed 2611, 280x240.",
+  "createdAt": "2026-11-16T15:41:52Z",
+  "origin": "procedural",
+  "aiGenerated": false,
+  "generator": "scripts/render_foil.py",
+  "command": ".tools/venv/bin/python -I scripts/render_foil.py --only dome-cat,dome-feature,dome-hero,dome-hero-m,foil-knurl-print,foil-knurl-print-1x",
+  "pixels": [
+    280,
+    240
+  ],
+  "alpha": true,
+  "encode": "cwebp -quiet -m 6 -lossless -z 9 -exact <master.png> -o foil-knurl-print.webp",
+  "seed": 2611,
+  "params": {
+    "a": 14,
+    "b": 12,
+    "cells": 20,
+    "amp": 2.3,
+    "soft": 0.5,
+    "jitter": 0.16,
+    "tilt": 0.14,
+    "base": 0.855,
+    "gain": 0.32
+  }
+}

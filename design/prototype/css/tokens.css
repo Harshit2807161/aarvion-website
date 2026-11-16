@@ -1,0 +1,169 @@
+/*
+  Aarvion design tokens.
+  Names follow Tailwind 4 theme namespaces (--color-*, --font-*, --text-*,
+  --spacing-*, --radius-*, --shadow-*, --ease-*, --breakpoint-*), so this block
+  can move into `@theme { ... }` in the Next.js app unchanged. Values that have
+  no Tailwind namespace (durations, z-index, layout) are plain custom properties.
+*/
+:root {
+  color-scheme: light;
+
+  /* ── Forest: the field colour. 800 is the brand ground. ─────────────── */
+  --color-forest-50: #f1f6f2;
+  --color-forest-100: #dfebe2;
+  --color-forest-200: #bfd6c6;
+  --color-forest-300: #95bba2;
+  --color-forest-400: #6a9a7a;
+  --color-forest-500: #4a7b5b;
+  --color-forest-600: #376145;
+  --color-forest-700: #2a4d36;
+  --color-forest-800: #1f3d2b;
+  --color-forest-900: #172f21;
+  --color-forest-950: #0e1e15;
+
+  /* Leaf: the logo swoosh. 300 on dark ground, 500 on light. */
+  --color-leaf-300: #7fd3a6;
+  --color-leaf-500: #3fa36f;
+
+  /* ── Neutral: grey tinted toward the forest. Text lives here. ────────── */
+  --color-white: #ffffff;
+  --color-neutral-50: #f6f8f7;
+  --color-neutral-100: #eceeed;
+  --color-neutral-200: #dadfdc;
+  --color-neutral-300: #bec5c1;
+  --color-neutral-400: #959e99;
+  --color-neutral-500: #6b7570;
+  --color-neutral-600: #535c57;
+  --color-neutral-700: #3e4642;
+  --color-neutral-800: #2a302d;
+  --color-neutral-900: #1a1f1c;
+  --color-neutral-950: #0f1311;
+
+  /* ── Sand: the primary action on dark ground. 200 is the brand sand. ── */
+  --color-sand-50: #fbf8f2;
+  --color-sand-100: #f5eee1;
+  --color-sand-200: #e8dcc4;
+  --color-sand-300: #dccaa6;
+  --color-sand-400: #c8b085;
+  --color-sand-500: #a98f62;
+
+  /* ── Foil: blister aluminium, from highlight to fold shadow. ─────────── */
+  --color-foil-50: #f8f9f9;
+  --color-foil-100: #eef1f0;
+  --color-foil-200: #e2e6e4;
+  --color-foil-300: #cfd5d2;
+  --color-foil-400: #b4bcb8;
+  --color-foil-500: #949d98;
+  --color-foil-600: #737c77;
+
+  /* Ink: the inkjet stamp on the pack. */
+  --color-ink: #17201b;
+  --color-ink-muted: #4f5853;
+
+  /* Semantic roles */
+  --color-text: var(--color-neutral-900);
+  --color-text-muted: var(--color-neutral-600);
+  --color-text-on-dark: var(--color-white);
+  --color-text-on-dark-muted: #c9d5cd;
+  --color-rule: var(--color-neutral-200);
+  --color-perforation: var(--color-foil-500);
+  --color-focus-light: var(--color-forest-700);
+  --color-focus-dark: var(--color-sand-200);
+
+  /* ── Type ─────────────────────────────────────────────────────────────── */
+  --font-display: "Host Grotesk", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-wordmark: "Montserrat", "Host Grotesk", sans-serif;
+
+  --text-display-xl: clamp(2.5rem, 1.05rem + 4.6vw, 5rem);
+  --text-display-xl--line-height: 1;
+  --text-display-xl--letter-spacing: -0.035em;
+  --text-display-l: clamp(2.125rem, 1.35rem + 2.45vw, 3.5rem);
+  --text-display-l--line-height: 1.04;
+  --text-display-l--letter-spacing: -0.03em;
+  --text-display-m: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+  --text-display-m--line-height: 1.08;
+  --text-display-m--letter-spacing: -0.025em;
+  --text-title: clamp(1.25rem, 1.12rem + 0.4vw, 1.5rem);
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.015em;
+  --text-lead: clamp(1.0625rem, 1rem + 0.25vw, 1.25rem);
+  --text-lead--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
+
+  /* Stamp sizes (Geist Mono, dot-matrix) */
+  --text-stamp-l: clamp(1.875rem, 1.5rem + 1vw, 2.5rem);
+  --text-stamp-m: 1.625rem;
+  --text-stamp-s: 0.9375rem;
+  --text-stamp-xl: clamp(3.5rem, 2.2rem + 4.2vw, 6rem);
+
+  /* ── Space: 4px base, one rhythm for the whole page ──────────────────── */
+  --spacing: 0.25rem;
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+  --spacing-32: 8rem;
+  --spacing-gutter: clamp(1rem, 0.4rem + 2.6vw, 2.5rem);
+  --spacing-section: clamp(5rem, 3.4rem + 6.4vw, 9rem);
+  --spacing-heading: clamp(2rem, 1.6rem + 1.6vw, 3rem);
+
+  --container-page: 75rem;
+  --container-prose: 40rem;
+
+  /* ── Radii ────────────────────────────────────────────────────────────── */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1rem;
+  --radius-strip: 1.375rem;
+  --radius-pill: 999px;
+
+  /* ── Shadows: offset + soft blur, tinted from the forest ──────────────── */
+  --shadow-xs: 0 1px 2px rgb(14 30 21 / 0.08);
+  --shadow-sm: 0 2px 6px -1px rgb(14 30 21 / 0.10), 0 1px 2px rgb(14 30 21 / 0.06);
+  --shadow-md: 0 10px 24px -8px rgb(14 30 21 / 0.18), 0 2px 6px -2px rgb(14 30 21 / 0.08);
+  --shadow-lg: 0 24px 48px -18px rgb(14 30 21 / 0.28), 0 6px 14px -6px rgb(14 30 21 / 0.12);
+  --shadow-strip: 0 12px 18px -12px rgb(9 22 15 / 0.42);
+  --shadow-blister: 0 6px 10px -4px rgb(14 30 21 / 0.28), 0 1px 1px rgb(14 30 21 / 0.18);
+  --inset-shadow-blister: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -2px 6px rgb(60 70 65 / 0.16);
+  --inset-shadow-pressed: inset 0 3px 10px rgb(40 50 45 / 0.28), inset 0 1px 2px rgb(40 50 45 / 0.25);
+
+  /* ── Motion ───────────────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-press: 140ms;
+  --duration-fast: 180ms;
+  --duration-base: 220ms;
+  --duration-slow: 320ms;
+  --duration-ink: 420ms;
+  --duration-strike: 300ms;
+  --duration-stamp: 260ms;
+  --stagger-pocket: 150ms;
+
+  /* ── Layers ───────────────────────────────────────────────────────────── */
+  --z-strip: 2;
+  --z-popover: 30;
+  --z-nav: 40;
+
+  /* ── Breakpoints (documented; CSS media queries cannot read vars) ─────── */
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+}

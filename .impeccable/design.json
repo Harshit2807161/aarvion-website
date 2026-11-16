@@ -1,0 +1,1461 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-16T16:49:37Z",
+  "title": "Design System: Aarvion",
+  "extensions": {
+    "colorMeta": {
+      "forest-50": {
+        "role": "primary",
+        "displayName": "Mist Green",
+        "canonical": "#f1f6f2",
+        "oklch": "oklch(96.8% 0.007 151.9)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-100": {
+        "role": "primary",
+        "displayName": "Pale Fern",
+        "canonical": "#dfebe2",
+        "oklch": "oklch(92.9% 0.018 153.6)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-200": {
+        "role": "primary",
+        "displayName": "Fern Edge",
+        "canonical": "#bfd6c6",
+        "oklch": "oklch(85.4% 0.033 155.3)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-300": {
+        "role": "primary",
+        "displayName": "Sage Rule",
+        "canonical": "#95bba2",
+        "oklch": "oklch(75.7% 0.054 156.1)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-400": {
+        "role": "primary",
+        "displayName": "Moss",
+        "canonical": "#6a9a7a",
+        "oklch": "oklch(64.3% 0.071 154.8)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-500": {
+        "role": "primary",
+        "displayName": "Leafmould",
+        "canonical": "#4a7b5b",
+        "oklch": "oklch(53.9% 0.074 154.5)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-600": {
+        "role": "primary",
+        "displayName": "Strike Green",
+        "canonical": "#376145",
+        "oklch": "oklch(45.3% 0.066 153.8)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-700": {
+        "role": "primary",
+        "displayName": "Pine Ink",
+        "canonical": "#2a4d36",
+        "oklch": "oklch(38.6% 0.057 154.1)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-800": {
+        "role": "primary",
+        "displayName": "Deep Forest Field",
+        "canonical": "#1f3d2b",
+        "oklch": "oklch(33.1% 0.049 156.2)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-900": {
+        "role": "primary",
+        "displayName": "Night Forest",
+        "canonical": "#172f21",
+        "oklch": "oklch(28.1% 0.040 157.0)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "forest-950": {
+        "role": "primary",
+        "displayName": "Forest Shadow",
+        "canonical": "#0e1e15",
+        "oklch": "oklch(21.7% 0.028 158.3)",
+        "tonalRamp": [
+          "#0e1e15",
+          "#172f21",
+          "#1f3d2b",
+          "#2a4d36",
+          "#376145",
+          "#6a9a7a",
+          "#bfd6c6",
+          "#f1f6f2"
+        ]
+      },
+      "leaf-300": {
+        "role": "primary",
+        "displayName": "Swoosh Leaf (on dark)",
+        "canonical": "#7fd3a6",
+        "oklch": "oklch(80.1% 0.105 159.4)",
+        "tonalRamp": [
+          "#00170b",
+          "#01321d",
+          "#0d4f33",
+          "#24744f",
+          "#4e9872",
+          "#80ba9a",
+          "#acdbc0",
+          "#d5f9e4"
+        ]
+      },
+      "leaf-500": {
+        "role": "primary",
+        "displayName": "Swoosh Leaf (on light)",
+        "canonical": "#3fa36f",
+        "oklch": "oklch(64.3% 0.122 157.4)",
+        "tonalRamp": [
+          "#00170a",
+          "#00321b",
+          "#01502f",
+          "#0e7649",
+          "#439a6b",
+          "#79bc95",
+          "#a8dcbc",
+          "#d2fae1"
+        ]
+      },
+      "sand-50": {
+        "role": "secondary",
+        "displayName": "Shipping-Label Paper",
+        "canonical": "#fbf8f2",
+        "oklch": "oklch(98.0% 0.009 84.6)",
+        "tonalRamp": [
+          "#191002",
+          "#34260e",
+          "#a98f62",
+          "#c8b085",
+          "#dccaa6",
+          "#e8dcc4",
+          "#f5eee1",
+          "#fbf8f2"
+        ]
+      },
+      "sand-100": {
+        "role": "secondary",
+        "displayName": "Pale Sand",
+        "canonical": "#f5eee1",
+        "oklch": "oklch(95.1% 0.019 83.1)",
+        "tonalRamp": [
+          "#191002",
+          "#34260e",
+          "#a98f62",
+          "#c8b085",
+          "#dccaa6",
+          "#e8dcc4",
+          "#f5eee1",
+          "#fbf8f2"
+        ]
+      },
+      "sand-200": {
+        "role": "secondary",
+        "displayName": "Label Sand",
+        "canonical": "#e8dcc4",
+        "oklch": "oklch(89.8% 0.035 84.6)",
+        "tonalRamp": [
+          "#191002",
+          "#34260e",
+          "#a98f62",
+          "#c8b085",
+          "#dccaa6",
+          "#e8dcc4",
+          "#f5eee1",
+          "#fbf8f2"
+        ]
+      },
+      "sand-300": {
+        "role": "secondary",
+        "displayName": "Ruled Sand",
+        "canonical": "#dccaa6",
+        "oklch": "oklch(84.5% 0.052 84.5)",
+        "tonalRamp": [
+          "#191002",
+          "#34260e",
+          "#a98f62",
+          "#c8b085",
+          "#dccaa6",
+          "#e8dcc4",
+          "#f5eee1",
+          "#fbf8f2"
+        ]
+      },
+      "sand-400": {
+        "role": "secondary",
+        "displayName": "Perforation Sand",
+        "canonical": "#c8b085",
+        "oklch": "oklch(76.7% 0.064 81.9)",
+        "tonalRamp": [
+          "#191002",
+          "#34260e",
+          "#a98f62",
+          "#c8b085",
+          "#dccaa6",
+          "#e8dcc4",
+          "#f5eee1",
+          "#fbf8f2"
+        ]
+      },
+      "sand-500": {
+        "role": "secondary",
+        "displayName": "Kraft Sand",
+        "canonical": "#a98f62",
+        "oklch": "oklch(66.3% 0.069 80.8)",
+        "tonalRamp": [
+          "#191002",
+          "#34260e",
+          "#a98f62",
+          "#c8b085",
+          "#dccaa6",
+          "#e8dcc4",
+          "#f5eee1",
+          "#fbf8f2"
+        ]
+      },
+      "foil-50": {
+        "role": "tertiary",
+        "displayName": "Foil Highlight",
+        "canonical": "#f8f9f9",
+        "oklch": "oklch(98.1% 0.001 197.1)",
+        "tonalRamp": [
+          "#252a28",
+          "#737c77",
+          "#949d98",
+          "#b4bcb8",
+          "#cfd5d2",
+          "#e2e6e4",
+          "#eef1f0",
+          "#f8f9f9"
+        ]
+      },
+      "foil-100": {
+        "role": "tertiary",
+        "displayName": "Bright Foil",
+        "canonical": "#eef1f0",
+        "oklch": "oklch(95.6% 0.003 174.5)",
+        "tonalRamp": [
+          "#252a28",
+          "#737c77",
+          "#949d98",
+          "#b4bcb8",
+          "#cfd5d2",
+          "#e2e6e4",
+          "#eef1f0",
+          "#f8f9f9"
+        ]
+      },
+      "foil-200": {
+        "role": "tertiary",
+        "displayName": "Blister Aluminium",
+        "canonical": "#e2e6e4",
+        "oklch": "oklch(92.1% 0.005 165.0)",
+        "tonalRamp": [
+          "#252a28",
+          "#737c77",
+          "#949d98",
+          "#b4bcb8",
+          "#cfd5d2",
+          "#e2e6e4",
+          "#eef1f0",
+          "#f8f9f9"
+        ]
+      },
+      "foil-300": {
+        "role": "tertiary",
+        "displayName": "Foil Fold",
+        "canonical": "#cfd5d2",
+        "oklch": "oklch(86.8% 0.008 164.9)",
+        "tonalRamp": [
+          "#252a28",
+          "#737c77",
+          "#949d98",
+          "#b4bcb8",
+          "#cfd5d2",
+          "#e2e6e4",
+          "#eef1f0",
+          "#f8f9f9"
+        ]
+      },
+      "foil-400": {
+        "role": "tertiary",
+        "displayName": "Pending Rail",
+        "canonical": "#b4bcb8",
+        "oklch": "oklch(78.8% 0.010 164.8)",
+        "tonalRamp": [
+          "#252a28",
+          "#737c77",
+          "#949d98",
+          "#b4bcb8",
+          "#cfd5d2",
+          "#e2e6e4",
+          "#eef1f0",
+          "#f8f9f9"
+        ]
+      },
+      "foil-500": {
+        "role": "tertiary",
+        "displayName": "Perforation Grey",
+        "canonical": "#949d98",
+        "oklch": "oklch(68.7% 0.013 161.9)",
+        "tonalRamp": [
+          "#252a28",
+          "#737c77",
+          "#949d98",
+          "#b4bcb8",
+          "#cfd5d2",
+          "#e2e6e4",
+          "#eef1f0",
+          "#f8f9f9"
+        ]
+      },
+      "foil-600": {
+        "role": "tertiary",
+        "displayName": "Foil Shadow",
+        "canonical": "#737c77",
+        "oklch": "oklch(57.7% 0.013 161.8)",
+        "tonalRamp": [
+          "#252a28",
+          "#737c77",
+          "#949d98",
+          "#b4bcb8",
+          "#cfd5d2",
+          "#e2e6e4",
+          "#eef1f0",
+          "#f8f9f9"
+        ]
+      },
+      "ink": {
+        "role": "tertiary",
+        "displayName": "Inkjet Ink",
+        "canonical": "#17201b",
+        "oklch": "oklch(23.3% 0.016 160.5)",
+        "tonalRamp": [
+          "#0f1310",
+          "#252a27",
+          "#3d4440",
+          "#5c6660",
+          "#7f8983",
+          "#a5ada8",
+          "#c9d0cc",
+          "#ebf0ed"
+        ]
+      },
+      "ink-muted": {
+        "role": "tertiary",
+        "displayName": "Faded Ink",
+        "canonical": "#4f5853",
+        "oklch": "oklch(45.1% 0.014 161.6)",
+        "tonalRamp": [
+          "#0f1311",
+          "#252a27",
+          "#3e4441",
+          "#5d6661",
+          "#808984",
+          "#a5ada9",
+          "#c9cfcc",
+          "#ebf0ed"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "Page White",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#121212",
+          "#292929",
+          "#424242",
+          "#636363",
+          "#868686",
+          "#ababab",
+          "#cecece",
+          "#eeeeee"
+        ]
+      },
+      "neutral-50": {
+        "role": "neutral",
+        "displayName": "Cool Ground",
+        "canonical": "#f6f8f7",
+        "oklch": "oklch(97.7% 0.002 165.1)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-100": {
+        "role": "neutral",
+        "displayName": "Quiet Fill",
+        "canonical": "#eceeed",
+        "oklch": "oklch(94.7% 0.003 165.1)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-200": {
+        "role": "neutral",
+        "displayName": "Rule Grey",
+        "canonical": "#dadfdc",
+        "oklch": "oklch(89.9% 0.007 160.1)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-300": {
+        "role": "neutral",
+        "displayName": "Quiet Edge",
+        "canonical": "#bec5c1",
+        "oklch": "oklch(81.7% 0.009 161.3)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-400": {
+        "role": "neutral",
+        "displayName": "Admin Field Edge",
+        "canonical": "#959e99",
+        "oklch": "oklch(69.0% 0.013 161.9)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-500": {
+        "role": "neutral",
+        "displayName": "Placeholder Grey",
+        "canonical": "#6b7570",
+        "oklch": "oklch(55.2% 0.014 164.4)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-600": {
+        "role": "neutral",
+        "displayName": "Muted Text",
+        "canonical": "#535c57",
+        "oklch": "oklch(46.5% 0.014 161.6)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-700": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "#3e4642",
+        "oklch": "oklch(38.5% 0.012 164.3)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-800": {
+        "role": "neutral",
+        "displayName": "Foil Text",
+        "canonical": "#2a302d",
+        "oklch": "oklch(30.2% 0.010 164.3)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-900": {
+        "role": "neutral",
+        "displayName": "Forest-Tinted Black",
+        "canonical": "#1a1f1c",
+        "oklch": "oklch(23.3% 0.009 159.3)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "neutral-950": {
+        "role": "neutral",
+        "displayName": "Near Black",
+        "canonical": "#0f1311",
+        "oklch": "oklch(18.2% 0.007 164.0)",
+        "tonalRamp": [
+          "#0f1311",
+          "#1a1f1c",
+          "#2a302d",
+          "#3e4642",
+          "#535c57",
+          "#959e99",
+          "#dadfdc",
+          "#f6f8f7"
+        ]
+      },
+      "text-on-dark-muted": {
+        "role": "neutral",
+        "displayName": "On-Dark Muted",
+        "canonical": "#c9d5cd",
+        "oklch": "oklch(86.2% 0.017 156.9)",
+        "tonalRamp": [
+          "#0f1310",
+          "#252a27",
+          "#3d4540",
+          "#5c6660",
+          "#7f8982",
+          "#a5ada8",
+          "#c9d0cb",
+          "#ebf0ec"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Control Edge",
+        "canonical": "#8a948f",
+        "oklch": "oklch(65.7% 0.014 164.6)",
+        "tonalRamp": [
+          "#0f1311",
+          "#252a28",
+          "#3e4441",
+          "#5d6661",
+          "#808984",
+          "#a5ada9",
+          "#c9cfcc",
+          "#ebf0ed"
+        ]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Danger Red",
+        "canonical": "#b3261e",
+        "oklch": "oklch(50.1% 0.178 28.7)",
+        "tonalRamp": [
+          "#2a0000",
+          "#530302",
+          "#7b1611",
+          "#ae2e25",
+          "#d6584b",
+          "#f2897b",
+          "#ffbab0",
+          "#ffe9e5"
+        ]
+      },
+      "danger-ink": {
+        "role": "status",
+        "displayName": "Danger Ink",
+        "canonical": "#8c1d18",
+        "oklch": "oklch(42.0% 0.147 28.1)",
+        "tonalRamp": [
+          "#2a0101",
+          "#4d100c",
+          "#72241d",
+          "#a33d34",
+          "#ca6357",
+          "#e79084",
+          "#ffbab0",
+          "#ffe9e5"
+        ]
+      },
+      "danger-50": {
+        "role": "status",
+        "displayName": "Danger Wash",
+        "canonical": "#fcefee",
+        "oklch": "oklch(96.2% 0.014 22.8)",
+        "tonalRamp": [
+          "#151010",
+          "#2d2727",
+          "#484040",
+          "#6b6060",
+          "#8e8383",
+          "#b1a8a8",
+          "#d3cccb",
+          "#f3edec"
+        ]
+      },
+      "danger-200": {
+        "role": "status",
+        "displayName": "Danger Edge",
+        "canonical": "#f3c9c5",
+        "oklch": "oklch(87.1% 0.048 24.5)",
+        "tonalRamp": [
+          "#1b0d0c",
+          "#362321",
+          "#543b39",
+          "#7b5a57",
+          "#9f7c79",
+          "#c0a3a0",
+          "#e0c7c5",
+          "#fde9e7"
+        ]
+      },
+      "wait-ink": {
+        "role": "status",
+        "displayName": "Waiting Ink",
+        "canonical": "#66511f",
+        "oklch": "oklch(44.6% 0.073 86.1)",
+        "tonalRamp": [
+          "#181001",
+          "#33270c",
+          "#4f401d",
+          "#746134",
+          "#988458",
+          "#baa985",
+          "#daccaf",
+          "#f8eed7"
+        ]
+      },
+      "hold-ink": {
+        "role": "status",
+        "displayName": "Hold Ink",
+        "canonical": "#7f4500",
+        "oklch": "oklch(45.2% 0.106 60.3)",
+        "tonalRamp": [
+          "#1f0c00",
+          "#402000",
+          "#61370c",
+          "#8b5420",
+          "#b07848",
+          "#cfa079",
+          "#ecc5a6",
+          "#ffeadb"
+        ]
+      },
+      "hold-50": {
+        "role": "status",
+        "displayName": "Hold Wash",
+        "canonical": "#fcefdc",
+        "oklch": "oklch(95.7% 0.029 77.5)",
+        "tonalRamp": [
+          "#15110b",
+          "#2e281f",
+          "#494135",
+          "#6c6252",
+          "#8f8575",
+          "#b2a99c",
+          "#d4cdc2",
+          "#f3eee5"
+        ]
+      },
+      "hold-300": {
+        "role": "status",
+        "displayName": "Hold Ring",
+        "canonical": "#e6b770",
+        "oklch": "oklch(80.7% 0.104 76.7)",
+        "tonalRamp": [
+          "#1b0f00",
+          "#392400",
+          "#5a3c00",
+          "#825b13",
+          "#a67e40",
+          "#c6a573",
+          "#e5c9a2",
+          "#ffebd0"
+        ]
+      },
+      "admin-warn-bg": {
+        "role": "status",
+        "displayName": "Admin Amber Wash",
+        "canonical": "#fbf1d9",
+        "oklch": "oklch(96.0% 0.033 88.1)",
+        "tonalRamp": [
+          "#151109",
+          "#2d281d",
+          "#484233",
+          "#6b634f",
+          "#8e8572",
+          "#b1aa9a",
+          "#d3cdc0",
+          "#f2eee4"
+        ]
+      },
+      "admin-warn-fg": {
+        "role": "status",
+        "displayName": "Admin Amber Ink",
+        "canonical": "#6a4a00",
+        "oklch": "oklch(43.3% 0.090 80.2)",
+        "tonalRamp": [
+          "#1a0f00",
+          "#372502",
+          "#553e10",
+          "#7c5d25",
+          "#a0814b",
+          "#c1a77b",
+          "#e0cba8",
+          "#fdecd1"
+        ]
+      },
+      "admin-danger": {
+        "role": "status",
+        "displayName": "Admin Red",
+        "canonical": "#a8321f",
+        "oklch": "oklch(49.3% 0.157 31.8)",
+        "tonalRamp": [
+          "#290100",
+          "#4f0d04",
+          "#752113",
+          "#a63a28",
+          "#cd614d",
+          "#ea8e7d",
+          "#febbad",
+          "#fee9e5"
+        ]
+      },
+      "admin-danger-bg": {
+        "role": "status",
+        "displayName": "Admin Red Wash",
+        "canonical": "#fbe9e6",
+        "oklch": "oklch(94.8% 0.020 28.9)",
+        "tonalRamp": [
+          "#16100f",
+          "#2f2725",
+          "#4a3f3e",
+          "#6e5f5d",
+          "#918280",
+          "#b4a8a5",
+          "#d5cbc9",
+          "#f4eceb"
+        ]
+      },
+      "admin-danger-fg": {
+        "role": "status",
+        "displayName": "Admin Red Ink",
+        "canonical": "#8c2a1d",
+        "oklch": "oklch(43.4% 0.135 30.7)",
+        "tonalRamp": [
+          "#280301",
+          "#4a140c",
+          "#6f281e",
+          "#9e4234",
+          "#c56758",
+          "#e29385",
+          "#fdbbaf",
+          "#fee9e5"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display-xl": {
+        "displayName": "Display XL",
+        "purpose": "The hero headline and the closing headline, white on forest. Balanced wrap."
+      },
+      "display-l": {
+        "displayName": "Display L",
+        "purpose": "Home section headings, the sign-in title and the Cardiology tile name."
+      },
+      "display-m": {
+        "displayName": "Display M",
+        "purpose": "The white title in the Operate band, bento tile names, empty-state and account headings."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Fact terms, step headings, FAQ questions and checkout step headings."
+      },
+      "name": {
+        "displayName": "Product Name",
+        "purpose": "Product names in pockets and cart lines (1.125rem in hero pockets, 1.0625rem in compact lines)."
+      },
+      "subhead": {
+        "displayName": "Subhead",
+        "purpose": "Option cards, drop zones, Rx items and the receipt head."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Muted sublines under display headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text; 0.9375rem inside boxes, notes and summaries."
+      },
+      "body-sm": {
+        "displayName": "Body S",
+        "purpose": "Salts, hints, notes and meta lines."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Salt and pack lines in pockets, timeline times, small meta."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Pill button labels; 1rem large, 0.875rem small."
+      },
+      "nav-link": {
+        "displayName": "Nav Link",
+        "purpose": "Nav links and nav pills on the glass bar."
+      },
+      "stamp-price": {
+        "displayName": "Stamp Price",
+        "purpose": "The price in a pocket, dot-matrix at 2.4px pitch."
+      },
+      "stamp-total": {
+        "displayName": "Stamp Total",
+        "purpose": "Total payable on receipts and the place-order block, dot-matrix at 2.1px pitch."
+      },
+      "stamp-mrp": {
+        "displayName": "Stamp MRP",
+        "purpose": "The struck printed MRP above a pocket price, dot-matrix at 1.2px pitch."
+      },
+      "stamp-count": {
+        "displayName": "Stamp Count",
+        "purpose": "Big dot-matrix counts in empty wells and the All 11 pocket."
+      },
+      "mono-data": {
+        "displayName": "Mono Data",
+        "purpose": "Solid line prices, ids, cart counts and step numbers. Tabular."
+      },
+      "mono-chip": {
+        "displayName": "Mono Chip",
+        "purpose": "Strength chips and small mono labels."
+      },
+      "rx-mark": {
+        "displayName": "Rx Mark",
+        "purpose": "The outlined Rx badge."
+      },
+      "otp-digit": {
+        "displayName": "OTP Digit",
+        "purpose": "Digits inside the six OTP boxes."
+      },
+      "admin-heading": {
+        "displayName": "Admin Heading",
+        "purpose": "Admin page headings."
+      },
+      "admin-body": {
+        "displayName": "Admin Body",
+        "purpose": "Admin body text, tables and inputs."
+      },
+      "admin-control": {
+        "displayName": "Admin Control",
+        "purpose": "Admin buttons and field labels."
+      },
+      "admin-id": {
+        "displayName": "Admin Id",
+        "purpose": "Order, Rx and product ids in admin tables. Never names."
+      },
+      "admin-count": {
+        "displayName": "Admin Count",
+        "purpose": "The four dashboard counts."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "The AARVION wordmark beside the swoosh. Live text, owner approval pending."
+      }
+    },
+    "shadows": [
+      {
+        "name": "xs",
+        "value": "0 1px 2px rgb(14 30 21 / 0.08)",
+        "purpose": "Pressed admin segment and admin switch knob."
+      },
+      {
+        "name": "sm",
+        "value": "0 2px 6px -1px rgb(14 30 21 / 0.10), 0 1px 2px rgb(14 30 21 / 0.06)",
+        "purpose": "Segmented thumb, switch knob, drop-zone icon."
+      },
+      {
+        "name": "md",
+        "value": "0 10px 24px -8px rgb(14 30 21 / 0.18), 0 2px 6px -2px rgb(14 30 21 / 0.08)",
+        "purpose": "Catalogue strips, file chip, admin menus and toasts."
+      },
+      {
+        "name": "lg",
+        "value": "0 24px 48px -18px rgb(14 30 21 / 0.28), 0 6px 14px -6px rgb(14 30 21 / 0.12)",
+        "purpose": "Search suggestions, example documents, feature pocket, admin drawer and dialog."
+      },
+      {
+        "name": "strip",
+        "value": "0 12px 18px -12px rgb(9 22 15 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(40 50 45 / 0.12)",
+        "purpose": "The hero foil strip's lift and lit edges."
+      },
+      {
+        "name": "blister",
+        "value": "0 6px 10px -4px rgb(14 30 21 / 0.28), 0 1px 1px rgb(14 30 21 / 0.18), inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -2px 6px rgb(60 70 65 / 0.16)",
+        "purpose": "Small product wells on Operate screens (with the radial blister gradient)."
+      },
+      {
+        "name": "pressed",
+        "value": "inset 0 3px 10px rgb(40 50 45 / 0.28), inset 0 1px 2px rgb(40 50 45 / 0.25)",
+        "purpose": "An opened hero pocket's dome floor."
+      },
+      {
+        "name": "dome-contact",
+        "value": "0 16px 24px -12px rgb(14 30 21 / 0.35)",
+        "purpose": "Fades in under a dome on fine-pointer hover as it lifts 3px."
+      },
+      {
+        "name": "sheet",
+        "value": "0 30px 60px -20px rgb(5 15 10 / 0.45), 0 8px 20px -10px rgb(5 15 10 / 0.3)",
+        "purpose": "Cart drawer, dialogs and bottom sheets."
+      },
+      {
+        "name": "auth-card",
+        "value": "0 30px 60px -30px rgb(5 15 10 / 0.6), 0 8px 18px -10px rgb(5 15 10 / 0.35)",
+        "purpose": "The sign-in card on the forest field."
+      },
+      {
+        "name": "on-forest",
+        "value": "0 12px 28px -14px rgb(5 15 10 / 0.6)",
+        "purpose": "Under the search pill on forest ground."
+      },
+      {
+        "name": "nav-solid",
+        "value": "0 14px 30px -14px rgb(14 30 21 / 0.55)",
+        "purpose": "Under the solid forest-900 nav over light ground."
+      },
+      {
+        "name": "toast",
+        "value": "0 18px 36px -16px rgb(5 15 10 / 0.6)",
+        "purpose": "Customer toasts."
+      },
+      {
+        "name": "focus-input",
+        "value": "0 0 0 1px #376145, 0 0 0 4px #dfebe2",
+        "purpose": "Focused input: forest-600 edge plus a 4px forest-100 halo."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 2px solid #2a4d36 (on light) or #e8dcc4 (on forest); outline-offset: 3px",
+        "purpose": "Every :focus-visible on customer surfaces; admin uses 2px offset."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Default for presses, entrances, the total re-stamp and the stamp print-in."
+      },
+      {
+        "name": "ease-in-out",
+        "value": "cubic-bezier(0.77, 0, 0.175, 1)",
+        "purpose": "Admin toast exit."
+      },
+      {
+        "name": "ease-drawer",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Drawers and bottom sheets sliding in and out."
+      },
+      {
+        "name": "duration-press",
+        "value": "140ms",
+        "purpose": "Press scale on buttons, pills, chips and steppers."
+      },
+      {
+        "name": "duration-fast",
+        "value": "180ms",
+        "purpose": "Colour and background state changes; menu fade."
+      },
+      {
+        "name": "duration-base",
+        "value": "220ms",
+        "purpose": "Small moves: segmented thumb, switch knob, arrows, cart count slide, total re-stamp."
+      },
+      {
+        "name": "duration-slow",
+        "value": "320ms",
+        "purpose": "Auth step entrance and the phone checkout dock."
+      },
+      {
+        "name": "duration-ink",
+        "value": "420ms steps(5, end)",
+        "purpose": "A pocket MRP inking in on load (from 450ms + i x 150ms)."
+      },
+      {
+        "name": "duration-strike",
+        "value": "300ms",
+        "purpose": "The strike drawing across a printed MRP (from 860ms + i x 150ms)."
+      },
+      {
+        "name": "duration-stamp",
+        "value": "260ms",
+        "purpose": "A price or order number stamping in from scale 1.16 (from 1120ms + i x 150ms on pockets)."
+      },
+      {
+        "name": "stagger-pocket",
+        "value": "150ms",
+        "purpose": "Delay between hero pockets printing their stamps."
+      },
+      {
+        "name": "press-scale",
+        "value": "0.97 buttons and pockets; 0.96 nav pills; 0.95 chips; 0.9 dark stepper; 0.88 light stepper; 0.98 tiles and tabs; 0.99 option cards",
+        "purpose": "How far each control gives under a press."
+      },
+      {
+        "name": "restamp-total",
+        "value": "scale 1.12 -> 1, opacity 0.35 -> 1, 220ms, ease-out (reduced motion: opacity 0.45 -> 1, 160ms)",
+        "purpose": "Total payable re-stamps once when it changes; cancels any running run first."
+      },
+      {
+        "name": "cart-bump",
+        "value": "scale 1.35 at 40%, 260ms ease-out",
+        "purpose": "Cart count in the nav on Operate pages."
+      },
+      {
+        "name": "sheet-side",
+        "value": "translateX in 480ms, out 300ms, ease-drawer; scrim 380ms in",
+        "purpose": "Cart drawer."
+      },
+      {
+        "name": "sheet-dialog",
+        "value": "scale 0.96 -> 1 + fade, 260ms / 220ms in, 200ms out, ease-out",
+        "purpose": "Centred dialogs."
+      },
+      {
+        "name": "sheet-bottom",
+        "value": "translateY 100% -> 0, 460ms in, 280ms out, ease-drawer; dismiss past 28% height or 24px at > 0.45px/ms; upward drag rubber-bands (sqrt)",
+        "purpose": "Drawers and dialogs below 640px."
+      },
+      {
+        "name": "toast-customer",
+        "value": "enter from translateY(100%) 400ms via @starting-style; leave opacity + 12px drop 220ms; 4.6s, pause on hover/focus, resume 2.4s",
+        "purpose": "Customer toasts."
+      },
+      {
+        "name": "toast-admin",
+        "value": "in 240ms (10px rise, scale 0.98) ease-out; out 160ms ease-in-out; 4.8s default",
+        "purpose": "Admin toasts."
+      },
+      {
+        "name": "drawer-admin",
+        "value": "translateX 280ms ease-drawer; scrim 200ms",
+        "purpose": "Admin side drawer."
+      },
+      {
+        "name": "otp-shake",
+        "value": "300ms ease-out, -6 / 5 / -3 / 1px",
+        "purpose": "Wrong OTP. None under reduced motion."
+      },
+      {
+        "name": "film-engine",
+        "value": "native scroll; one passive listener + one rAF tick; data-in / data-out ranges -> --ti / --to (registered numbers, 4dp, write on change); transform and opacity only",
+        "purpose": "The home page's scroll film."
+      },
+      {
+        "name": "film-easings",
+        "value": "lin t; out 1-(1-t)^3; in t^3; io cubic in-out",
+        "purpose": "Per-element easing named in data-in / data-out."
+      },
+      {
+        "name": "film-pins",
+        "value": "hero 190lvh, stamp 200lvh, steps 200lvh, close 110lvh; at <=720px 120 / 140 / 160 / 80lvh; Act 2 overlaps the hero by -48lvh (-33lvh phone)",
+        "purpose": "Pinned act lengths beyond one viewport."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "no .film class: static composition; no stamp print-in; flyer never fetched; sheets and toasts opacity-only 200ms",
+        "purpose": "prefers-reduced-motion: reduce, and no JavaScript."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "otp-tight",
+        "value": "400px"
+      },
+      {
+        "name": "admin-single",
+        "value": "560px"
+      },
+      {
+        "name": "bottom-sheet",
+        "value": "639px"
+      },
+      {
+        "name": "phone",
+        "value": "720px"
+      },
+      {
+        "name": "bento-rows",
+        "value": "767px"
+      },
+      {
+        "name": "nav-collapse",
+        "value": "880px"
+      },
+      {
+        "name": "operate-single",
+        "value": "960px"
+      },
+      {
+        "name": "nav-tight",
+        "value": "1060px"
+      },
+      {
+        "name": "admin-rail-collapse",
+        "value": "1100px"
+      },
+      {
+        "name": "admin-table-tight",
+        "value": "1360px"
+      },
+      {
+        "name": "tw-sm",
+        "value": "40rem"
+      },
+      {
+        "name": "tw-md",
+        "value": "48rem"
+      },
+      {
+        "name": "tw-lg",
+        "value": "64rem"
+      },
+      {
+        "name": "tw-xl",
+        "value": "80rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Sand Button (primary on forest)",
+      "kind": "button",
+      "refersTo": "button-sand",
+      "description": "The one primary action on forest ground, e.g. Upload prescription. Sand pill, forest-900 label, presses to 0.97.",
+      "html": "<div class=\"ds-ground\"><button class=\"ds-btn-sand\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V4.5M7.5 9 12 4.5 16.5 9\"/><path d=\"M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3\"/></svg><span>Upload prescription</span></button></div>",
+      "css": ".ds-ground { padding: 28px; background: radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px, var(--color-forest-800, #1f3d2b); border-radius: 16px; } .ds-btn-sand { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px; font: 600 0.9375rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); letter-spacing: -0.005em; white-space: nowrap; cursor: pointer; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease; min-height: 56px; padding: 0 26px; font-size: 1rem; background: var(--color-sand-200, #e8dcc4); color: var(--color-forest-900, #172f21); } .ds-btn-sand:hover { background: var(--color-sand-100, #f5eee1); } .ds-btn-sand:active { transform: scale(0.97); } .ds-btn-sand:focus-visible { outline: 2px solid var(--color-sand-200, #e8dcc4); outline-offset: 3px; }"
+    },
+    {
+      "name": "Forest Button (primary on white)",
+      "kind": "button",
+      "refersTo": "button-forest",
+      "description": "The primary action on white ground: Checkout, Add to cart, Place order.",
+      "html": "<button class=\"ds-btn-forest\"><span>Checkout</span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button>",
+      "css": ".ds-btn-forest { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px; font: 600 0.9375rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); letter-spacing: -0.005em; white-space: nowrap; cursor: pointer; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease; background: var(--color-forest-800, #1f3d2b); color: #fff; } .ds-btn-forest:hover { background: var(--color-forest-700, #2a4d36); } .ds-btn-forest:active { transform: scale(0.97); } .ds-btn-forest:focus-visible { outline: 2px solid var(--color-forest-700, #2a4d36); outline-offset: 3px; }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Secondary action on white: a white pill with a 1.5px neutral-300 edge.",
+      "html": "<button class=\"ds-btn-quiet\">Cancel order</button>",
+      "css": ".ds-btn-quiet { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px; font: 600 0.9375rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); letter-spacing: -0.005em; white-space: nowrap; cursor: pointer; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease; background: #fff; color: var(--color-ink, #17201b); box-shadow: inset 0 0 0 1.5px var(--color-neutral-300, #bec5c1); } .ds-btn-quiet:hover { background: var(--color-neutral-50, #f6f8f7); box-shadow: inset 0 0 0 1.5px var(--color-neutral-400, #959e99); } .ds-btn-quiet:active { transform: scale(0.97); } .ds-btn-quiet:focus-visible { outline: 2px solid var(--color-forest-700, #2a4d36); outline-offset: 3px; }"
+    },
+    {
+      "name": "Glass Nav Pill",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "The floating 60px pill nav: glass on forest ground, solid forest-900 over light ground. Logo, therapy links, Upload Rx and Cart pills.",
+      "html": "<div class=\"ds-ground\"><nav class=\"ds-nav\" aria-label=\"Main\"><a class=\"ds-brand\" href=\"#\"><svg width=\"40\" height=\"11\" viewBox=\"0 0 360 96\" aria-hidden=\"true\" style=\"fill:#7fd3a6;overflow:visible\"><path d=\"M 8 90 C 95 40, 225 6, 300 10 C 330 12, 352 30, 344 58 C 334 44, 318 34, 294 32 C 215 28, 110 54, 8 90 Z\"/><path d=\"M 170 62 C 215 44, 262 36, 286 38 C 296 40, 300 48, 296 58 C 288 50, 274 46, 254 47 C 222 50, 196 56, 170 62 Z\"/></svg><span>AARVION</span></a><a class=\"ds-nav-link\" href=\"#\">Cardiology</a><a class=\"ds-nav-link\" href=\"#\">Eye care</a><span class=\"ds-nav-end\"><a class=\"ds-nav-pill\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V4.5M7.5 9 12 4.5 16.5 9\"/><path d=\"M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3\"/></svg><span>Upload Rx</span></a><a class=\"ds-nav-pill\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3.5 4.5h2l2.1 10.2a1.5 1.5 0 0 0 1.5 1.2h7.6a1.5 1.5 0 0 0 1.5-1.1L19.8 8H6.4\"/><circle cx=\"10\" cy=\"19.6\" r=\"1.1\"/><circle cx=\"17\" cy=\"19.6\" r=\"1.1\"/></svg><span>Cart</span><span style=\"opacity:.6\">·</span><span class=\"ds-count\">1</span></a></span></nav></div>",
+      "css": ".ds-ground { padding: 24px; background: radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px, var(--color-forest-800, #1f3d2b); border-radius: 16px; } .ds-nav { display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 8px 0 22px; border-radius: 999px; color: #fff; background: rgb(255 255 255 / 0.07); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15), inset 0 1px 0 rgb(255 255 255 / 0.12); -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%); } .ds-brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin-right: auto; color: #fff; text-decoration: none; font: 800 1.0625rem/1 Montserrat, 'Host Grotesk', sans-serif; letter-spacing: 0.06em; } .ds-nav-link, .ds-nav-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 999px; color: rgb(255 255 255 / 0.9); text-decoration: none; font: 500 0.9375rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); transition: background-color 180ms ease, transform 140ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-nav-end { display: flex; gap: 6px; margin-left: auto; } .ds-nav-pill { color: #fff; padding: 0 16px; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22); } .ds-count { font: 600 0.9375rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); font-variant-numeric: tabular-nums; } .ds-nav-link:hover, .ds-nav-pill:hover { background: rgb(255 255 255 / 0.1); } .ds-nav-pill:active { transform: scale(0.96); } .ds-nav a:focus-visible { outline: 2px solid var(--color-sand-200, #e8dcc4); outline-offset: 3px; }"
+    },
+    {
+      "name": "Search Pill with Strength Chips",
+      "kind": "input",
+      "refersTo": "search-pill",
+      "description": "The working search on forest ground: a 56px white pill, sand focus outline, mono strength chips that toggle to sand.",
+      "html": "<div class=\"ds-ground\"><label class=\"ds-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4.5 4.5\"/></svg><input type=\"search\" placeholder=\"Search brand or salt, e.g. Sacuwin\"></label><div class=\"ds-chips\"><span>Strength</span><button class=\"ds-chip\" aria-pressed=\"false\">50</button><button class=\"ds-chip\" aria-pressed=\"true\">100</button><button class=\"ds-chip\" aria-pressed=\"false\">200</button></div></div>",
+      "css": ".ds-ground { padding: 28px; background: radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px, var(--color-forest-800, #1f3d2b); border-radius: 16px; } .ds-search { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px 0 20px; border-radius: 999px; background: #fff; color: var(--color-forest-700, #2a4d36); box-shadow: 0 12px 28px -14px rgb(5 15 10 / 0.6); } .ds-search:focus-within { outline: 2px solid var(--color-sand-200, #e8dcc4); outline-offset: 3px; } .ds-search input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; outline: none; font: 400 1rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-ink, #17201b); caret-color: var(--color-forest-600, #376145); } .ds-search input::placeholder { color: var(--color-neutral-500, #6b7570); } .ds-chips { display: flex; align-items: center; gap: 6px; margin-top: 10px; padding-left: 16px; font: 400 0.8125rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-text-on-dark-muted, #c9d5cd); } .ds-chips span { margin-right: 4px; } .ds-chip { height: 32px; min-width: 52px; padding: 0 14px; border: 0; border-radius: 999px; cursor: pointer; background: rgb(255 255 255 / 0.06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.24); color: #fff; font: 600 0.8125rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease; } .ds-chip:hover:not([aria-pressed=\"true\"]) { background: rgb(255 255 255 / 0.12); } .ds-chip:active { transform: scale(0.95); } .ds-chip[aria-pressed=\"true\"] { background: var(--color-sand-200, #e8dcc4); color: var(--color-forest-900, #172f21); box-shadow: none; } .ds-chip:focus-visible { outline: 2px solid var(--color-sand-200, #e8dcc4); outline-offset: 3px; }"
+    },
+    {
+      "name": "Foil Pocket with Stamp Price",
+      "kind": "card",
+      "refersTo": "pocket",
+      "description": "The repeatable product unit: the pack under its dome on the foil print field, name with the Rx badge, salt line, then the dot-matrix stamp pair (struck MRP above the price) and Add to cart. Foil is the shipped raster; flat foil-200 shows if the asset path does not resolve.",
+      "html": "<article class=\"ds-pocket\"><div class=\"ds-dome\"><img src=\"design/prototype/assets/products/sacuwin-100.webp\" alt=\"Sacuwin 100 carton and blister strip\"></div><div class=\"ds-pocket-body\"><p class=\"ds-name\"><span>Sacuwin 100</span><abbr class=\"ds-rx\" title=\"Prescription required\">Rx</abbr></p><p class=\"ds-salt\">Sacubitril 49 mg + Valsartan 51 mg · 14 tablets</p><p class=\"ds-stamp\"><s class=\"ds-mrp\"><span class=\"ds-dm\" style=\"--pitch:1.2px\">MRP ₹407</span></s><span class=\"ds-price\"><span class=\"ds-dm\" style=\"--pitch:2.4px\">₹387</span></span></p><button class=\"ds-add\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5.5v13M5.5 12h13\"/></svg><span>Add to cart</span></button></div></article>",
+      "css": ".ds-pocket { width: 240px; padding: 12px 12px 16px; border-radius: 22px; color: var(--color-ink, #17201b); background: url(\"design/prototype/assets/foil/foil-knurl-print-1x.webp\") 0 0 / 140px 120px, url(\"design/prototype/assets/foil/foil-plate.webp\") 0 0 / 1440px 360px, var(--color-foil-200, #e2e6e4); box-shadow: 0 12px 18px -12px rgb(9 22 15 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(40 50 45 / 0.12); display: grid; gap: 14px; transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-pocket:has(button:active) { transform: scale(0.97); } .ds-dome { display: grid; place-items: center; height: 188px; border-radius: 16px; background: url(\"design/prototype/assets/foil/dome-floor.webp\") 0 0 / 100% 100%, var(--color-foil-100, #eef1f0); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -2px 6px rgb(60 70 65 / 0.16); transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-pocket:hover .ds-dome { transform: translateY(-3px); } .ds-dome img { max-height: 160px; max-width: 82%; filter: drop-shadow(0 6px 7px rgb(20 32 26 / 0.22)); } .ds-pocket-body { display: flex; flex-direction: column; gap: 4px; padding: 0 4px; } .ds-pocket p { margin: 0; } .ds-name { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 600 1.1875rem/1.2 var(--font-display, \"Host Grotesk\", \"Geist\", ui-sans-serif, sans-serif); letter-spacing: -0.012em; } .ds-rx { padding: 4px 5px 3px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px currentColor; font: 600 0.6875rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); letter-spacing: 0.02em; color: var(--color-forest-700, #2a4d36); text-decoration: none; } .ds-salt { font: 400 0.8125rem/1.45 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-neutral-800, #2a302d); } .ds-stamp { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 10px !important; font-family: var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); font-variant-numeric: tabular-nums; line-height: 1; } .ds-mrp { position: relative; text-decoration: none; font-size: 1.125rem; font-weight: 600; padding: 2px 0; } .ds-mrp::after { content: \"\"; position: absolute; left: -3px; right: -3px; top: 50%; height: 2px; margin-top: -1px; border-radius: 2px; background: var(--color-forest-600, #376145); } .ds-price { font-size: 2.125rem; font-weight: 600; letter-spacing: -0.02em; } .ds-dm { display: inline-block; -webkit-mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch); mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch); } .ds-add { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; margin-top: 12px; border: 0; border-radius: 999px; cursor: pointer; background: var(--color-forest-800, #1f3d2b); color: #fff; font: 600 0.875rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); transition: background-color 180ms ease; } .ds-add:hover { background: var(--color-forest-700, #2a4d36); } .ds-add:focus-visible { outline: 2px solid var(--color-forest-700, #2a4d36); outline-offset: 3px; }"
+    },
+    {
+      "name": "OTP Input",
+      "kind": "input",
+      "refersTo": "otp-box",
+      "description": "One real input (one-time-code, numeric) drawn as six mono boxes: filled boxes go forest-50, the active box carries a forest-600 edge, a 4px forest-100 halo and a blinking caret.",
+      "html": "<div class=\"ds-otp\"><input class=\"ds-otp-input\" type=\"text\" inputmode=\"numeric\" autocomplete=\"one-time-code\" maxlength=\"6\" aria-label=\"6-digit code\" value=\"482\"><div class=\"ds-otp-boxes\" aria-hidden=\"true\"><span class=\"ds-box is-filled\">4</span><span class=\"ds-box is-filled\">8</span><span class=\"ds-box is-filled\">2</span><span class=\"ds-box is-active\"></span><span class=\"ds-box\"></span><span class=\"ds-box\"></span></div></div>",
+      "css": ".ds-otp { position: relative; width: 100%; max-width: 380px; } .ds-otp-input { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; border: 0; background: transparent; color: transparent; caret-color: transparent; opacity: 0.01; font-size: 16px; cursor: text; } .ds-otp-boxes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(6px, 2vw, 10px); } .ds-box { display: grid; place-items: center; height: 60px; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1.5px var(--color-line-strong, #8a948f); font: 600 1.625rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); color: var(--color-ink, #17201b); transition: box-shadow 180ms ease, background-color 180ms ease; } .ds-box.is-filled { background: var(--color-forest-50, #f1f6f2); box-shadow: inset 0 0 0 1.5px var(--color-forest-600, #376145); } .ds-otp:focus-within .ds-box.is-active, .ds-box.is-active { background: #fff; box-shadow: inset 0 0 0 2px var(--color-forest-600, #376145), 0 0 0 4px var(--color-forest-100, #dfebe2); } .ds-box.is-active::after { content: \"\"; width: 2px; height: 26px; border-radius: 2px; background: var(--color-forest-600, #376145); animation: ds-caret 1s steps(1) infinite; } @keyframes ds-caret { 50% { opacity: 0; } } @media (prefers-reduced-motion: reduce) { .ds-box.is-active::after { animation: none; } }"
+    },
+    {
+      "name": "Status Tags",
+      "kind": "chip",
+      "refersTo": "tag-ok",
+      "description": "28px pills with a dot and words: ok, waiting, on hold, rejected, done. Colour never carries the status alone.",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-tag ds-ok\">Approved · valid until 10 May 2027</span><span class=\"ds-tag ds-wait\">Pharmacist check</span><span class=\"ds-tag ds-hold\">On hold</span><span class=\"ds-tag ds-bad\">Rejected</span><span class=\"ds-tag ds-done\">Delivered</span></div>",
+      "css": ".ds-tags { display: flex; flex-wrap: wrap; gap: 8px; } .ds-tag { display: inline-flex; align-items: center; gap: 7px; min-height: 28px; padding: 4px 11px 4px 9px; border-radius: 999px; font: 600 0.8125rem/1.25 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); } .ds-tag::before { content: \"\"; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; } .ds-ok { background: var(--color-forest-50, #f1f6f2); color: var(--color-forest-700, #2a4d36); box-shadow: inset 0 0 0 1px var(--color-forest-100, #dfebe2); } .ds-wait { background: var(--color-sand-100, #f5eee1); color: #66511f; } .ds-hold { background: #fcefdc; color: #7f4500; } .ds-bad { background: #fcefee; color: #8c1d18; } .ds-done { background: var(--color-forest-800, #1f3d2b); color: #fff; } .ds-done::before { background: var(--color-leaf-300, #7fd3a6); }"
+    },
+    {
+      "name": "Receipt with Perforated Total",
+      "kind": "card",
+      "refersTo": "receipt",
+      "description": "The order summary on shipping-label paper: mono values, the discount and Free in forest-700, a dashed sand-400 perforation, then Total payable as a dot-matrix stamp with a sans comma.",
+      "html": "<section class=\"ds-receipt\"><h3>Order summary <span>3 packs</span></h3><dl><div><dt>MRP total</dt><dd>₹1<span class=\"ds-cm\">,</span>239</dd></div><div class=\"ds-off\"><dt>Aarvion discount<small>₹20 × 3 packs</small></dt><dd>−₹60</dd></div><div class=\"ds-free\"><dt>Delivery</dt><dd>Free</dd></div><div class=\"ds-total\"><dt>Total payable</dt><dd><span class=\"ds-dm\" style=\"--pitch:2.1px\">₹1<span class=\"ds-cm\">,</span>179</span></dd></div></dl><p class=\"ds-tax\">Inclusive of all taxes</p></section>",
+      "css": ".ds-receipt { display: grid; gap: 18px; width: 340px; padding: 24px; border-radius: 16px; background: var(--color-sand-50, #fbf8f2); color: var(--color-ink, #17201b); font-family: var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); } .ds-receipt h3 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; font: 600 1.25rem/1.3 var(--font-display, \"Host Grotesk\", \"Geist\", ui-sans-serif, sans-serif); letter-spacing: -0.01em; } .ds-receipt h3 span { font: 500 0.875rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); color: var(--color-neutral-600, #535c57); } .ds-receipt dl { display: grid; gap: 2px; margin: 0; } .ds-receipt dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 7px 0; } .ds-receipt dt { font-size: 0.9375rem; } .ds-receipt dt small { display: block; font-size: 0.8125rem; color: var(--color-neutral-600, #535c57); } .ds-receipt dd { margin: 0; font: 500 1rem/1.2 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-off dd { color: var(--color-forest-700, #2a4d36); } .ds-free dd { font-family: var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); font-weight: 600; color: var(--color-forest-700, #2a4d36); } .ds-receipt dl > .ds-total { align-items: center; margin-top: 10px; padding-top: 18px; border-top: 2px dashed var(--color-sand-400, #c8b085); } .ds-total dt { font: 600 1.125rem/1.3 var(--font-display, \"Host Grotesk\", \"Geist\", ui-sans-serif, sans-serif); } .ds-total dd { font: 600 1.875rem/1 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); letter-spacing: -0.02em; } .ds-cm { font-family: var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); font-weight: 600; margin-inline: 0.02em 0.04em; } .ds-dm { display: inline-block; -webkit-mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch); mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch); } .ds-tax { margin: -8px 0 0; text-align: right; font-size: 0.8125rem; color: var(--color-neutral-600, #535c57); }"
+    },
+    {
+      "name": "Order Timeline",
+      "kind": "custom",
+      "refersTo": "timeline-dot",
+      "description": "32px dots on a 2px rail that is dashed foil-400 while pending and solid forest-600 once done. The current step sits on a forest-50 card; a pending check shows a clock, never a tick.",
+      "html": "<ol class=\"ds-tl\"><li class=\"is-done\"><span class=\"ds-dot\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg></span><span class=\"ds-tl-body\"><b>Order placed</b><small>16 Nov, 10:42</small></span></li><li class=\"is-current\"><span class=\"ds-dot\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M12 7.5V12l3 2\"/></svg></span><span class=\"ds-tl-body\"><b>Pharmacist checking this order</b><small>Usually the same day</small></span></li><li><span class=\"ds-dot\"></span><span class=\"ds-tl-body\"><b>Packed</b></span></li><li><span class=\"ds-dot\"></span><span class=\"ds-tl-body\"><b>Shipped</b></span></li></ol>",
+      "css": ".ds-tl { list-style: none; margin: 0; padding: 0; display: grid; width: 340px; font-family: var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-ink, #17201b); } .ds-tl li { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 16px; padding-bottom: 22px; } .ds-tl li::before { content: \"\"; position: absolute; left: 15px; top: 34px; bottom: 4px; border-left: 2px dashed var(--color-foil-400, #b4bcb8); } .ds-tl li:last-child::before { display: none; } .ds-tl li.is-done::before { border-left: 2px solid var(--color-forest-600, #376145); } .ds-dot { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1.5px var(--color-neutral-300, #bec5c1); color: var(--color-neutral-500, #6b7570); } .ds-dot svg { width: 16px; height: 16px; stroke-width: 2.4; } .ds-dot:empty::after { content: \"\"; width: 8px; height: 8px; border-radius: 50%; background: var(--color-neutral-300, #bec5c1); } .is-done .ds-dot { background: var(--color-forest-700, #2a4d36); color: #fff; box-shadow: none; } .is-current .ds-dot { color: var(--color-forest-700, #2a4d36); box-shadow: inset 0 0 0 2px var(--color-forest-700, #2a4d36), 0 0 0 5px var(--color-forest-100, #dfebe2); } .ds-tl-body { display: grid; gap: 2px; padding-top: 5px; } .ds-tl-body b { font-weight: 600; line-height: 1.35; } .ds-tl-body small { font-size: 0.875rem; color: var(--color-neutral-600, #535c57); font-variant-numeric: tabular-nums; } .ds-tl li:not(.is-done):not(.is-current) b { font-weight: 500; color: var(--color-neutral-600, #535c57); } .is-current .ds-tl-body { padding: 10px 14px 12px; margin: -5px 0 0 -4px; border-radius: 14px; background: var(--color-forest-50, #f1f6f2); }"
+    },
+    {
+      "name": "Customer Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "One toast at a time, bottom-centre: forest-900, leaf-300 icon, optional sand Undo. Enters from below, pauses on hover and focus.",
+      "html": "<div class=\"ds-toast\" role=\"status\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 12.5 4.5 4.5L19 7.5\"/></svg><span>Sacuwin 100 removed from your cart</span><button class=\"ds-toast-btn\">Undo</button></div>",
+      "css": ".ds-toast { display: flex; align-items: center; gap: 14px; min-height: 52px; max-width: min(520px, 100%); padding: 6px 6px 6px 18px; border-radius: 16px; background: var(--color-forest-900, #172f21); color: #fff; font: 500 0.9375rem/1.4 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); box-shadow: 0 18px 36px -16px rgb(5 15 10 / 0.6); } .ds-toast > svg { color: var(--color-leaf-300, #7fd3a6); } .ds-toast span { flex: 1; padding: 8px 0; } .ds-toast-btn { min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; cursor: pointer; background: var(--color-sand-200, #e8dcc4); color: var(--color-forest-900, #172f21); font: 600 0.9375rem/1 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease; } .ds-toast-btn:hover { background: var(--color-sand-100, #f5eee1); } .ds-toast-btn:active { transform: scale(0.97); } .ds-toast-btn:focus-visible { outline: 2px solid var(--color-sand-200, #e8dcc4); outline-offset: 3px; }"
+    },
+    {
+      "name": "Admin Table with Status Chips",
+      "kind": "custom",
+      "refersTo": "admin-table-row",
+      "description": "Operate density: 46px rows on white with a sticky neutral-50 header, the id as a mono button, forest-50 hover, forest-100 current row, and chips that code status by shape as well as colour.",
+      "html": "<div class=\"ds-tbl-wrap\"><table class=\"ds-tbl\"><thead><tr><th>Order</th><th>Customer</th><th class=\"r\">Total</th><th>Rx</th><th>Status</th></tr></thead><tbody><tr><td><button class=\"ds-id\">AAR-2611-00485</button></td><td>Farhan Qureshi<span class=\"ds-sub\">Hyderabad 500034</span></td><td class=\"r\">₹189</td><td><span class=\"ds-chip ds-warn\">Awaiting review</span></td><td><span class=\"ds-chip ds-neutral\">Placed</span></td></tr><tr aria-current=\"true\"><td><button class=\"ds-id\">AAR-2611-00495</button></td><td>Imtiaz Ansari<span class=\"ds-sub\">Patna 800001</span></td><td class=\"r\">₹610</td><td><span class=\"ds-chip ds-ok\">Approved</span></td><td><span class=\"ds-chip ds-active\">Confirmed</span></td></tr><tr><td><button class=\"ds-id\">AAR-2611-00492</button></td><td>Nisha Verma<span class=\"ds-sub\">Bhopal 462016</span></td><td class=\"r\">₹378</td><td><span class=\"ds-chip ds-danger\">Rejected</span></td><td><span class=\"ds-chip ds-danger\">On hold</span></td></tr></tbody></table></div>",
+      "css": ".ds-tbl-wrap { background: #fff; border: 1px solid var(--color-neutral-200, #dadfdc); border-radius: 14px; overflow: auto; } .ds-tbl { width: 100%; border-collapse: collapse; font: 400 0.875rem/1.5 var(--font-sans, \"Geist\", ui-sans-serif, system-ui, sans-serif); color: var(--color-neutral-900, #1a1f1c); font-variant-numeric: tabular-nums; } .ds-tbl th { position: sticky; top: 0; text-align: left; padding: 0.625rem 0.75rem; background: var(--color-neutral-50, #f6f8f7); border-bottom: 1px solid var(--color-neutral-300, #bec5c1); font-size: 0.75rem; font-weight: 600; color: var(--color-neutral-600, #535c57); white-space: nowrap; } .ds-tbl td { height: 2.875rem; padding: 0 0.75rem; border-bottom: 1px solid var(--color-neutral-200, #dadfdc); white-space: nowrap; } .ds-tbl tbody tr:last-child td { border-bottom: 0; } .ds-tbl th:first-child, .ds-tbl td:first-child { padding-left: 1rem; } .ds-tbl .r { text-align: right; } .ds-tbl tbody tr { cursor: pointer; transition: background-color 120ms; } .ds-tbl tbody tr:hover { background: var(--color-forest-50, #f1f6f2); } .ds-tbl tbody tr[aria-current=\"true\"] { background: var(--color-forest-100, #dfebe2); } .ds-id { padding: 0; border: 0; background: none; cursor: pointer; font: 600 0.8125rem/1.2 var(--font-mono, \"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, monospace); letter-spacing: -0.01em; color: inherit; } .ds-id:hover { text-decoration: underline; text-underline-offset: 0.2em; } .ds-id:focus-visible { outline: 2px solid var(--color-forest-700, #2a4d36); outline-offset: 2px; border-radius: 3px; } .ds-sub { display: block; font-size: 0.75rem; color: var(--color-neutral-600, #535c57); } .ds-chip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.1875rem 0.5rem 0.1875rem 0.4375rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; line-height: 1.25; background: var(--color-neutral-100, #eceeed); color: var(--color-neutral-700, #3e4642); } .ds-chip::before { content: \"\"; width: 0.4375rem; height: 0.4375rem; border-radius: 50%; background: currentColor; opacity: 0.85; } .ds-ok { background: var(--color-forest-100, #dfebe2); color: var(--color-forest-800, #1f3d2b); } .ds-active { background: #e0f1e7; color: var(--color-forest-800, #1f3d2b); } .ds-active::before { border-radius: 1px; } .ds-warn { background: #fbf1d9; color: #6a4a00; } .ds-danger { background: #fbe9e6; color: #8c2a1d; } .ds-danger::before { border-radius: 1px; transform: rotate(45deg); } .ds-neutral::before { background: transparent; border: 1.5px solid currentColor; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Stamped Foil Strip",
+    "overview": "Aarvion sells its own prescription medicines, and the system is built from the objects a buyer in India already trusts to tell the truth about a price: the medicine pack, its silver blister strip, and the dot-matrix MRP inked on the carton. The persuasion surface puts the real packs in one continuous foil strip that rises out of a dotted forest field through white fog. Each pocket is the same unit and differs only in value. Every price appears as a pair: the printed MRP, struck through in green, above the Aarvion price stamped ₹20 lower. The stamp is the brand's voice. Everything else stays quiet so the stamp can be read.\n\nThe world has two registers. The **Persuade** register (the home page) is a scroll film on native scroll: five acts in which the headline lifts, the strip zooms, Sacuwin 100 flies through the screen, a page-sized MRP resolves dot by dot and is struck, and the bento of therapy areas arrives from depth. The **Operate** register (sign-in, cart, checkout, order, account and the staff admin) gives up the strip and the film. It keeps only what the work needs from the world: the forest band, the white work sheet rising out of it, shipping-label paper for receipts and slips, the stamp for totals and order numbers, the perforated rule, and small blister wells for product thumbnails. Admin is denser still: forest rail, neutral-50 ground, 46px rows, Geist Mono ids, and the perforation as its single signature.\n\nThe mood is calm, exact and physical. Colour lives on grounds and rules while text stays neutral. Materials are real rasters rendered from a physical model, not CSS imitations. Motion is cinematic on the home page and brief everywhere else. This is someone's heart or eye medicine, so nothing shouts, blinks for attention or invents urgency.",
+    "keyCharacteristics": [
+      "Deep forest field (#1F3D2B) with a 5px inkjet dot grain, fading through procedural fog into a clean white page.",
+      "One foil blister strip of identical pockets, built from procedural rasters: lit aluminium, diamond knurl, clear PVC domes and pressed perforations.",
+      "Every price is a stamp pair: the struck printed MRP above the price, in Geist Mono, dot-matrix at stamp sizes.",
+      "Host Grotesk display (600–700, tight tracking), Geist body, Geist Mono for every number, id and code. All three draw ₹.",
+      "Sand (#E8DCC4) is the one primary action on forest ground; forest-800 is the primary action on white.",
+      "Pill controls, a glass pill nav that turns solid over light ground, and soft forest-tinted shadows.",
+      "A scroll film driven by one rAF tick on native scroll, transform and opacity only, with a complete static composition under reduced motion.",
+      "Operate screens and admin borrow the world's details, never its spectacle."
+    ],
+    "rules": [
+      {
+        "name": "The Colour-on-Fields Rule",
+        "body": "Colour lives on grounds, fills and rules. Text is ink or neutral on light ground and white or on-dark-muted on forest. Green text is reserved for links, the discount row, \"Free\" and status inks.",
+        "section": "colors"
+      },
+      {
+        "name": "The Sand-on-Forest Rule",
+        "body": "On forest ground the one primary action is a sand-200 pill with forest-900 text. On white ground the primary action is a forest-800 pill with white text. Never put two primaries side by side.",
+        "section": "colors"
+      },
+      {
+        "name": "The Label Paper Rule",
+        "body": "Anything that is a printed document in the real flow (receipt, order slip, shipping label, Rx group head) sits on sand-50 paper with dashed sand-400 rules. Plain work surfaces stay white.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rupee-Safe Rule",
+        "body": "Every face must draw ₹. Host Grotesk, Geist and Geist Mono all do. Sora was dropped because it has no ₹; check any substitute before it ships.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono-Is-Data Rule",
+        "body": "Geist Mono sets numbers, prices, ids, codes, counts and step numbers, always with tabular figures. Names of people and products are never in mono.",
+        "section": "typography"
+      },
+      {
+        "name": "The Stamp Threshold Rule",
+        "body": "The dot-matrix mask is for stamp moments: the price pair in pockets, Total payable, the order number and empty counts. Running prices below about 24px on Operate screens stay solid Geist Mono for legibility.",
+        "section": "typography"
+      },
+      {
+        "name": "The Raster Foil Rule",
+        "body": "The strip, the fill and the domes are rasters from the physical model, never CSS gradients. Only small wells (132px and under) and step dots may imitate a blister with a radial gradient and the blister shadows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Print Field Rule",
+        "body": "No text sits on full-gain knurl. Text on foil uses the print field and neutral-800 for secondary lines.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Uniform Knurl Rule",
+        "body": "The knurl only ever scales uniformly. When Act 1's fill grows non-uniformly from the plate to the frame, its foil counter-scales so the diamond keeps its proportions, and the knurl stays baked into that one layer. Splitting it out turned the fill into brushed metal.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Perforation Rule",
+        "body": "When a divider means \"these belong to one strip, one document or one sequence\", it is dashed. When it only separates rows, it is a solid hairline.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Transform-and-Opacity Rule",
+        "body": "Scroll-driven and state motion moves only `transform` and `opacity`. If an effect needs anything else, it is drawn once into a raster or canvas and then moved.",
+        "section": "components"
+      },
+      {
+        "name": "The Static Composition Rule",
+        "body": "Every act and every animated component has a finished resting state that reads completely with motion off. Motion only travels between states that already make sense.",
+        "section": "components"
+      },
+      {
+        "name": "The Clock-Not-Tick Rule",
+        "body": "A pending or interrupted step shows a clock, never a check. A check means done.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** show every price as the pair: the struck printed MRP in forest-600 above the price, which is always MRP − ₹20 and never stored.",
+      "**Do** keep colour on fields, fills and rules, with text in ink, neutral-900, neutral-600 or white.",
+      "**Do** use one sand-200 pill as the primary action on forest ground and one forest-800 pill as the primary action on white.",
+      "**Do** set every number, price, id, code and count in Geist Mono with tabular figures, and set names in Host Grotesk or Geist.",
+      "**Do** use the dot-matrix stamp at stamp sizes, with a pitch between 1/12 and 1/22 of the font size, and keep the live text readable underneath.",
+      "**Do** put text on foil only over the print-field knurl, with secondary lines in neutral-800.",
+      "**Do** render new foil, dome or fog surfaces from `scripts/render_foil.py` (or the same model) and ship each raster with its provenance sidecar.",
+      "**Do** use the dashed perforation for strips, documents and sequences, and solid hairlines for plain row separation.",
+      "**Do** keep scroll motion on native scroll, in one rAF tick, on `transform` and `opacity`, with a complete static composition under reduced motion.",
+      "**Do** keep customer targets at 44px or more, inputs at 16px text, and status as a dot or shape plus words.",
+      "**Do** label synthetic people, orders and documents with an inline Example tag after the text it qualifies."
+    ],
+    "donts": [
+      "**Don't** use a face that lacks ₹; Sora was dropped for exactly this reason.",
+      "**Don't** put an eyebrow, kicker or status line above a heading; the status belongs in a tag, the timeline or the subline.",
+      "**Don't** render the foil strip, the fill or the domes with CSS gradients; only small wells and step dots may imitate a blister in CSS.",
+      "**Don't** scale the knurl non-uniformly or split it out of the growing fill.",
+      "**Don't** carry the foil strip or the scroll film into Operate screens; cart lines, checkout and admin take wells, stamps and the perforation, not pockets on a strip.",
+      "**Don't** use the dot-matrix mask on running prices under about 24px on Operate screens.",
+      "**Don't** add scroll-jacking, a smooth-scroll library or animation of layout properties.",
+      "**Don't** use hard offset shadows, gradient text or glyph icons; shadows are soft and forest-tinted, and icons are the SVG stroke set.",
+      "**Don't** show a check on a pending or interrupted step.",
+      "**Don't** set people's names in Geist Mono, even in admin tables and the audit trail."
+    ]
+  }
+}

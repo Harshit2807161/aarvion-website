@@ -1,0 +1,27 @@
+{
+  "prompt": "Procedural, not AI-generated: The fill's knurl overlay area-averaged to 1x for 1x screens (image-set); tile shown at 126px 108px. Rendered by scripts/render_foil.py (numpy heightfield, environment-lit), seed 2611, 126x108.",
+  "createdAt": "2026-11-16T14:44:44Z",
+  "origin": "procedural",
+  "aiGenerated": false,
+  "generator": "scripts/render_foil.py",
+  "command": ".tools/venv/bin/python -I scripts/render_foil.py",
+  "pixels": [
+    126,
+    108
+  ],
+  "alpha": true,
+  "encode": "cwebp -quiet -m 6 -lossless -z 9 -exact <master.png> -o foil-knurl-fill-1x.webp",
+  "seed": 2611,
+  "params": {
+    "a": 21,
+    "b": 18,
+    "cells": 12,
+    "amp": 3.2,
+    "soft": 0.75,
+    "jitter": 0.16,
+    "tilt": 0.14,
+    "base": 0.85,
+    "gain": 1.05,
+    "scale": "1x, 2x2 area average of foil-knurl-fill"
+  }
+}

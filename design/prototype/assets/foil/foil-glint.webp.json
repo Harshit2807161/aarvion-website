@@ -1,0 +1,20 @@
+{
+  "prompt": "Procedural, not AI-generated: Soft specular band with a hot core (white with alpha) that Act 1 slides across the foil with transform only. Rendered by scripts/render_foil.py (numpy heightfield, environment-lit), seed 2611, 384x576.",
+  "createdAt": "2026-11-16T14:44:50Z",
+  "origin": "procedural",
+  "aiGenerated": false,
+  "generator": "scripts/render_foil.py",
+  "command": ".tools/venv/bin/python -I scripts/render_foil.py",
+  "pixels": [
+    384,
+    576
+  ],
+  "alpha": true,
+  "encode": "cwebp -quiet -m 6 -q 70 -alpha_q 100 -exact -sharp_yuv <master.png> -o foil-glint.webp",
+  "seed": 2611,
+  "params": {
+    "w": 384,
+    "h": 576,
+    "lean": 22.0
+  }
+}

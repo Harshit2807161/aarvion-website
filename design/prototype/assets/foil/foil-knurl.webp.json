@@ -1,0 +1,26 @@
+{
+  "prompt": "Procedural, not AI-generated: Diamond knurl emboss as an exact-period light/shadow overlay (white and black with alpha) at 2x; tile shown at 140px 120px over foil-plate.webp. Rendered by scripts/render_foil.py (numpy heightfield, environment-lit), seed 2611, 280x240.",
+  "createdAt": "2026-11-16T14:44:42Z",
+  "origin": "procedural",
+  "aiGenerated": false,
+  "generator": "scripts/render_foil.py",
+  "command": ".tools/venv/bin/python -I scripts/render_foil.py",
+  "pixels": [
+    280,
+    240
+  ],
+  "alpha": true,
+  "encode": "cwebp -quiet -m 6 -lossless -z 9 -exact <master.png> -o foil-knurl.webp",
+  "seed": 2611,
+  "params": {
+    "a": 14,
+    "b": 12,
+    "cells": 20,
+    "amp": 2.3,
+    "soft": 0.5,
+    "jitter": 0.16,
+    "tilt": 0.14,
+    "base": 0.855,
+    "gain": 0.82
+  }
+}

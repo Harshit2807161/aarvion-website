@@ -1,0 +1,16 @@
+{
+  "prompt": "Sourced, not generated: the 745x835 Sacuwin 100 cut-out (sacuwin-100-lg.webp, from owner photo assets/products/original/sacuwin-100--1--sacuwin-100-2.webp) with a Gaussian blur of sigma 10 px in premultiplied alpha, on a canvas padded by 32 px per side so the blur is not clipped (809x899). Act 1's fly-through crossfades to it. WebP q80 with alpha.",
+  "createdAt": "2026-11-16T15:42:26Z",
+  "origin": "sourced",
+  "aiGenerated": false,
+  "source": "assets/products/original/sacuwin-100--1--sacuwin-100-2.webp",
+  "generator": "scripts/make_flyer.py",
+  "pixels": [
+    809,
+    899
+  ],
+  "derivedFrom": "design/prototype/assets/products/sacuwin-100-lg.webp",
+  "blurSigma": 10.0,
+  "pad": 32,
+  "command": ".tools/venv/bin/python -I scripts/make_flyer.py --only blur"
+}
