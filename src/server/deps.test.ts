@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resetEnvForTests } from "./env.ts";
-import { getDeps, resetDepsForTests } from "./deps.ts";
+import { readOutbox } from "./providers/outbox.ts";
+import { getDeps, resetDepsForTests, setDepsForTests } from "./deps.ts";
 import { createFakePayments, signFakePayment } from "./providers/fake-payments.ts";
 import { createMemoryFiles } from "./providers/memory-files.ts";
 
@@ -44,6 +45,18 @@ describe("getDeps guard", () => {
   it("allows mocks in a production build with ALLOW_MOCKS_IN_PROD_BUILD=1", () => {
     setEnv({ NODE_ENV: "production", ALLOW_MOCKS_IN_PROD_BUILD: "1" });
     expect(() => getDeps()).not.toThrow();
+  });
+  it("still refuses mocks on VERCEL_ENV=production despite the override", () => {
+    setEnv({ VERCEL_ENV: "production", NODE_ENV: "production", ALLOW_MOCKS_IN_PROD_BUILD: "1" });
+    expect(() => getDeps()).toThrow(/mock providers are not allowed in production/i);
+  });
+  it("readOutbox throws in production", async () => {
+    setEnv({ VERCEL_ENV: "production" });
+    await expect(readOutbox("+919876543210")).rejects.toThrow(/not available in production/);
+  });
+  it("setDepsForTests overrides a provider", () => {
+    setDepsForTests({ now: () => new Date(0) });
+    expect(getDeps().now().getTime()).toBe(0);
   });
   it.each([
     ["SMS_PROVIDER", "msg91"],
