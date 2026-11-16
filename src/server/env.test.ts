@@ -11,7 +11,9 @@ describe("env", () => {
 
   it("does not throw on import when MONGODB_URI is missing", async () => {
     vi.stubEnv("MONGODB_URI", "");
-    await expect(import("./env")).resolves.toBeDefined();
+    const mod = await import("./env");
+    mod.resetEnvForTests();
+    expect(() => mod.getEnv()).not.toThrow();
   });
 
   it("getEnv() returns defaults", async () => {

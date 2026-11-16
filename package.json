@@ -15,9 +15,14 @@
     "test:unit": "vitest run --project unit",
     "test:int": "vitest run --project int",
     "pr-size": "node --experimental-strip-types --no-warnings scripts/pr-size.ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:up": "docker compose up -d --wait mongo",
+    "db:down": "docker compose down",
+    "db:indexes": "node --experimental-strip-types --no-warnings --env-file-if-exists=.env.local scripts/db-indexes.ts"
   },
   "dependencies": {
+    "@vercel/functions": "^3.11.3",
+    "mongodb": "^7.9.0",
     "next": "^16.4.6",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -31,6 +36,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.6",
     "happy-dom": "^21.0.4",
+    "mongodb-memory-server": "^11.3.0",
     "prettier": "^3.10.1",
     "typescript": "~6.0.3",
     "vitest": "^5.1.0"
