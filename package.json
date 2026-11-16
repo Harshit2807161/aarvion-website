@@ -16,6 +16,7 @@
     "test:int": "vitest run --project int",
     "test:e2e": "playwright test",
     "pr-size": "node --experimental-strip-types --no-warnings scripts/pr-size.ts",
+    "images:sync": "tsx scripts/sync-product-images.ts",
     "format": "prettier --write .",
     "db:up": "docker compose up -d --wait mongo",
     "db:down": "docker compose down",
