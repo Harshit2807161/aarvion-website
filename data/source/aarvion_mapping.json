@@ -1,0 +1,429 @@
+[
+ {
+  "category": "Cardiology",
+  "product": "Bemptor-R40 Tablets",
+  "composition": "Bempedoic Acid 180 mg + Rosuvastatin 40 mg",
+  "status": "exact",
+  "photo_brand": "Win2Age",
+  "photos": [
+   {
+    "name": "Bemptor-R40 (3).webp",
+    "id": "1eToLhOXJGjZ_73vjoC8yf_qUy2ZA32Aa"
+   },
+   {
+    "name": "Bemptor-R40.webp",
+    "id": "1-StnOcQssDh9y8Q6FJRMSKiMT0bOx2gL"
+   },
+   {
+    "name": "Bemptor-R40 (2).webp",
+    "id": "1OCOtVbxhcuDWHB56_Y8ad2kFLZvAwvYJ"
+   }
+  ],
+  "hero": "Bemptor-R40 (3).webp"
+ },
+ {
+  "category": "Cardiology",
+  "product": "Bemptor-180 Tablets",
+  "composition": "Bempedoic Acid 180 mg",
+  "status": "exact",
+  "photo_brand": "Win2Age",
+  "photos": [
+   {
+    "name": "Bemptor-180.webp",
+    "id": "1mFZ6viAZxzTveAj2DhwXUehntFh2NUdB"
+   },
+   {
+    "name": "Bemptor-180 (3).webp",
+    "id": "12vlN2QImZ4lLRobH0h9nPj4yOU-ykAuf"
+   },
+   {
+    "name": "Bemptor-180 (2).webp",
+    "id": "1ne2pxAtYZUfhstBoEWQ-ZblygbRRQq9K"
+   }
+  ],
+  "hero": "Bemptor-180.webp"
+ },
+ {
+  "category": "Cardiology",
+  "product": "Pitatab 2 & 4 Tablets",
+  "composition": "Pitavastatin 2 mg & 4 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Cardiology",
+  "product": "Pitatab-F Tablets",
+  "composition": "Pitavastatin 2 mg + Fenofibrate 67.5 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Cardiology",
+  "product": "Sacuwin 100 Tablets",
+  "composition": "Sacubitril 49 mg + Valsartan 51 mg",
+  "status": "exact",
+  "photo_brand": "Aarvion",
+  "photos": [
+   {
+    "name": "Sacuwin-100 (2).webp",
+    "id": "1JF3L9dh7N-8e69Hs7L92uZZPQ3iqpXfq"
+   },
+   {
+    "name": "Sacuwin-100 (3).webp",
+    "id": "1s85wmJiEWONkuDJhNfswJI_M2awoFQLN"
+   },
+   {
+    "name": "Sacuwin-100.webp",
+    "id": "164WZ2XLW9bOIHxMkKh9hzsYGUDRMuj99"
+   }
+  ],
+  "hero": "Sacuwin-100 (2).webp"
+ },
+ {
+  "category": "Cardiology",
+  "product": "Sacuwin 200 Tablets",
+  "composition": "Sacubitril 97 mg + Valsartan 103 mg",
+  "status": "exact",
+  "photo_brand": "Aarvion",
+  "photos": [
+   {
+    "name": "Sacuwin-200 (3).webp",
+    "id": "1KW_A6d693aFydD8vgBt0VmpIkkUFXwyG"
+   },
+   {
+    "name": "Sacuwin-200 (2).webp",
+    "id": "1vuv3UaFQJD4lhEfLzBf1V2rR5SE_LZRe"
+   },
+   {
+    "name": "Sacuwin-200.webp",
+    "id": "1VD2vkBwZz-P61iqcpsZxCQ6WmOVF69Hc"
+   }
+  ],
+  "hero": "Sacuwin-200 (3).webp"
+ },
+ {
+  "category": "Cardiology",
+  "product": "Sacuwin 50 Tablets",
+  "composition": "Sacubitril 24 mg + Valsartan 26 mg",
+  "status": "exact",
+  "photo_brand": "Aarvion",
+  "photos": [
+   {
+    "name": "Sacuwin-50 (2).webp",
+    "id": "1Fpkhbo7j1t93J8OycqkE-IwMN2sRECYe"
+   },
+   {
+    "name": "Sacuwin-50.webp",
+    "id": "1V4gy3XovGYMJ-TuhFAXOvev22F2U6hc_"
+   },
+   {
+    "name": "Preloton-D (3).webp",
+    "id": "1HD3RSGSuIcFYZtIDAqfvowiZ1i9E3w3c"
+   }
+  ],
+  "hero": "Sacuwin-50 (2).webp"
+ },
+ {
+  "category": "Gastroenterology",
+  "product": "Dexmore-60 Capsules",
+  "composition": "Dexlansoprazole 60 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Gastroenterology",
+  "product": "Qraft Oral Suspension (Sugar Free)",
+  "composition": "Sodium Alginate 250 mg + Sodium Bicarbonate 133.5 mg + Calcium Carbonate 80 mg per 5 ml",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Pain Management",
+  "product": "Fildol Capsules (struck through)",
+  "composition": "Flupirtine Maleate 100 mg",
+  "status": "discontinued (struck through on card)",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Natesure Forte Tablets",
+  "composition": "Nateglinide 60 mg + Metformin 500 mg + Voglibose 0.3 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Natesure Plus Tablets",
+  "composition": "Nateglinide 60 mg + Metformin 500 mg + Voglibose 0.2 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Natesure-M 60 Tablets",
+  "composition": "Nateglinide 60 mg + Metformin 500 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Istaglip D 10/100 Tablets",
+  "composition": "Dapagliflozin 10 mg + Sitagliptin 100 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Istaglip 50 & 100 Tablets",
+  "composition": "Sitagliptin 50 mg & 100 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Istaglip M 50/500 & 50/1000 Tablets",
+  "composition": "Sitagliptin 50 mg + Metformin 500 mg & 1000 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Linasure-M 2.5/500 Tablets",
+  "composition": "Linagliptin 2.5 mg + Metformin 500 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Linasure-5 Tablets",
+  "composition": "Linagliptin 5 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Lobemed Tablets",
+  "composition": "Lobeglitazone 0.5 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Qdapa-10 Tablets",
+  "composition": "Dapagliflozin 10 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Vildage-M 50/500 & 50/1000 Tablets",
+  "composition": "Vildagliptin 50 mg + Metformin 500 mg & 1000 mg",
+  "status": "partial: 50/500 only",
+  "photo_brand": "Win2Age",
+  "photos": [
+   {
+    "name": "Vildage-500.webp",
+    "id": "1e7RN560lah_B5_Qu5DnLe1Q-ztzbnHsa"
+   },
+   {
+    "name": "Vildage-500 (3).webp",
+    "id": "14zzYOwVvAyUE62L7WsuNspayxHjakQZj"
+   },
+   {
+    "name": "Vildage-500 (2).webp",
+    "id": "1-rj64mrbcobcu45xfi4rQ4cOkF1PTtiS"
+   }
+  ],
+  "hero": "Vildage-500.webp"
+ },
+ {
+  "category": "Diabetology",
+  "product": "Vgnorm 0.2 & 0.3 Tablets",
+  "composition": "Voglibose 0.2 mg & 0.3 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Diabetology",
+  "product": "Glyciwin-M1 & M2 Tablets",
+  "composition": "Glimepiride 1 mg & 2 mg + Metformin 500 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Orthopaedics",
+  "product": "Qcerin-50 Capsules",
+  "composition": "Diacerein 50 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Ophthalmology",
+  "product": "Hyloage-PG Eye Drops",
+  "composition": "Sodium Hyaluronate 0.15% + Polyethylene Glycol 400 0.4% + Propylene Glycol 0.3%",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Ophthalmology",
+  "product": "Hyloage Eye Drops",
+  "composition": "Sodium Hyaluronate 0.1% + Stabilized Oxychloro Complex 0.005%",
+  "status": "exact",
+  "photo_brand": "Win2Age",
+  "photos": [
+   {
+    "name": "Hyloage (3).webp",
+    "id": "1BLmeMLTyNcKV9swS7rUCFZlPEgd7BSVj"
+   },
+   {
+    "name": "Hyloage (2).webp",
+    "id": "1G-1lw6KxrKPS6RgCP7EBYE_lUm235-Ox"
+   },
+   {
+    "name": "Hyloage.webp",
+    "id": "1-oRM4rbLsR8rjRvYPFxj-EoDBhsI86VZ"
+   }
+  ],
+  "hero": "Hyloage (3).webp"
+ },
+ {
+  "category": "Ophthalmology",
+  "product": "Sysnet Ultra Eye Drops",
+  "composition": "Polyethylene Glycol 400 0.4% + Propylene Glycol 0.3% + SODC 0.005%",
+  "status": "exact",
+  "photo_brand": "Win2Age",
+  "photos": [
+   {
+    "name": "Sysnet.webp",
+    "id": "1fHty7TGFvGfvrE_NCJJsdjxkWael2oy0"
+   },
+   {
+    "name": "Sysnet (3).webp",
+    "id": "1xGTgE95dtSO0P2nli_AEXzeJDBf7HXda"
+   },
+   {
+    "name": "Sysnet (2).webp",
+    "id": "1NLLNZ85ebNsRb_fYSX6qa3trxZ9x8PI2"
+   }
+  ],
+  "hero": "Sysnet.webp"
+ },
+ {
+  "category": "Ophthalmology",
+  "product": "Caftop Eye Drops",
+  "composition": "Alcaftadine 0.25% (2.5 mg) + Benzalkonium Chloride 0.1 mg",
+  "status": "exact name+composition; no Win2Age mark visible",
+  "photo_brand": "unclear (made by Appasamy Ocular)",
+  "photos": [
+   {
+    "name": "Caftop.webp",
+    "id": "1jlccCGjfVHYUd6al0XvN8sOwqxIB14t_"
+   },
+   {
+    "name": "Caftop (2).webp",
+    "id": "1EpV1S0URZ5EfQLkGC740-Tu2_06mn8S6"
+   },
+   {
+    "name": "Caftop (3).webp",
+    "id": "1DrPflfaX_Z75Rhky6CKPfyFAg9ZvcI2f"
+   }
+  ],
+  "hero": "Caftop.webp"
+ },
+ {
+  "category": "Ophthalmology",
+  "product": "Oloage KT Eye Drops",
+  "composition": "Ketorolac Tromethamine 0.4% + Olopatadine 0.1%",
+  "status": "exact",
+  "photo_brand": "Win2Age",
+  "photos": [
+   {
+    "name": "Oloage- Kt (3).webp",
+    "id": "1BhqbxMWCqsOs_yTbWPx3zM1YWmYN_1qh"
+   },
+   {
+    "name": "Oloage- Kt (2).webp",
+    "id": "1Z__RCH7zvS49mkA25R7cWEmGKyneqpQa"
+   },
+   {
+    "name": "Oloage- Kt.webp",
+    "id": "1tllFdWcCN1DABXU704Df9JApaTkqamd_"
+   }
+  ],
+  "hero": "Oloage- Kt (3).webp"
+ },
+ {
+  "category": "Respiratory",
+  "product": "Mucohelp Tablets",
+  "composition": "Ambroxol 75 mg Controlled Release",
+  "status": "probable: same composition, product name not visible",
+  "photo_brand": "Win2Age",
+  "photos": [
+   {
+    "name": "38.webp",
+    "id": "1B8C047tZNjsTEq05RzpT5Ovk0ellsfFB"
+   },
+   {
+    "name": "38 (2).webp",
+    "id": "1tcUoZTDabPS8nGIt-5MD0i1N2mfdzvZe"
+   }
+  ],
+  "hero": "38.webp"
+ },
+ {
+  "category": "Urology",
+  "product": "Silonice 8 Capsules",
+  "composition": "Silodosin 8 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ },
+ {
+  "category": "Urology",
+  "product": "Silonice D8 Capsules",
+  "composition": "Silodosin 8 mg + Dutasteride 0.5 mg",
+  "status": "no photo",
+  "photo_brand": null,
+  "photos": [],
+  "hero": null
+ }
+]

@@ -1,0 +1,188 @@
+<title>Aarvion Style Round 1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Figtree:wght@400;600;700;800&family=Noto+Sans:wght@400;500;600&family=Sora:wght@400;600;700&family=Manrope:wght@500;700;800&family=Montserrat:wght@800&display=swap">
+<style>
+/* Layout: a quiet neutral review sheet; each option is a self-contained light "site sample" card so the greens are judged on their own. */
+:root{
+  --bg:#F6F7F6; --panel:#FFFFFF; --ink:#18201C; --ink-2:#56605B; --line:#E1E5E2; --chip:#EEF2EF; --focus:#2E7D5B;
+  --f-ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111614;--panel:#1A201D;--ink:#E8EEEA;--ink-2:#A3AEA8;--line:#2B332F;--chip:#232B27;--focus:#7FD3A6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111614;--panel:#1A201D;--ink:#E8EEEA;--ink-2:#A3AEA8;--line:#2B332F;--chip:#232B27;--focus:#7FD3A6;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto;padding-block:40px 80px}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.15;margin:0 0 10px;letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:22px;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.lede{color:var(--ink-2);max-width:68ch;margin:0}
+section{margin-top:56px;display:grid;gap:18px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 20px;border-top:1px solid var(--line);padding-top:22px}
+.sec-head p{margin:0;color:var(--ink-2);max-width:70ch}
+.tag{display:inline-block;font:600 11px/1 var(--f-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);background:var(--chip);border-radius:999px;padding:6px 10px}
+.reply{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;margin-top:22px}
+.reply code{font:500 14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--chip);padding:2px 6px;border-radius:6px}
+.row{display:grid;gap:14px}
+.row-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.row-head h3{margin:0;font-size:17px}
+.sw{display:flex;gap:6px;flex-wrap:wrap}
+.sw span{width:26px;height:26px;border-radius:7px;border:1px solid rgba(0,0,0,.08)}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:980px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+.opt-label{font:600 13px/1.3 var(--f-ui);color:var(--ink);display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}
+.opt-label small{font-weight:500;color:var(--ink-2)}
+/* ---- site sample card (always light: it shows the real site) ---- */
+.mock{--fh:"Inter",sans-serif;--fb:"Inter",sans-serif;background:var(--m-bg);border-radius:16px;border:1px solid var(--m-border);overflow:hidden;color:var(--m-body);font-family:var(--fb);color-scheme:light}
+.m-nav{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--m-surface);border-bottom:1px solid var(--m-border);font-size:12px;color:var(--m-muted)}
+.m-nav svg{height:22px;width:auto;flex:none}
+.m-nav .sp{flex:1}
+.m-nav .cart{font-weight:600;color:var(--m-primary)}
+.m-hero{padding:22px 18px 18px;background:var(--m-tint);display:grid;gap:10px}
+.m-eyebrow{font:600 10.5px/1 var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--m-primary)}
+.m-hero h4{margin:0;font-family:var(--fh);font-weight:var(--fhw,700);font-size:23px;line-height:1.15;color:var(--m-h);letter-spacing:var(--fhls,-.01em);text-wrap:balance}
+.m-hero h4 em{font-style:normal;color:var(--m-em)}
+.m-hero p{margin:0;font-size:13.5px;line-height:1.5;color:var(--m-body)}
+.m-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.m-btn{font:600 12.5px/1 var(--fb);border-radius:999px;padding:10px 14px;border:1.5px solid var(--m-primary)}
+.m-btn.p{background:var(--m-primary);color:#fff}
+.m-btn.s{background:transparent;color:var(--m-primary)}
+.m-card{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:center;margin:14px;padding:12px;background:var(--m-surface);border:1px solid var(--m-border);border-radius:12px}
+.m-card img{width:96px;height:96px;object-fit:contain;background:#fff;border-radius:8px}
+.m-card .info{display:grid;gap:4px;min-width:0}
+.m-rx{justify-self:start;font:700 10px/1 var(--fb);letter-spacing:.06em;color:var(--m-deep);background:var(--m-tint);border:1px solid var(--m-border);border-radius:6px;padding:4px 6px}
+.m-name{font-family:var(--fh);font-weight:var(--fhw,700);font-size:16px;color:var(--m-h)}
+.m-comp{font-size:12px;color:var(--m-muted)}
+.m-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.m-price s{font-size:12px;color:var(--m-muted)}
+.m-price strong{font-size:17px;color:var(--m-price)}
+.m-off{font:700 10.5px/1 var(--fb);color:var(--m-deep);background:var(--m-chip);border-radius:999px;padding:4px 7px}
+.m-add{justify-self:start;margin-top:4px;font:600 12px/1 var(--fb);background:var(--m-primary);color:#fff;border:0;border-radius:999px;padding:9px 13px}
+.m-meta{padding:0 14px 12px;font-size:11.5px;color:var(--m-muted)}
+.specimen{padding:12px 16px 14px;border-top:1px solid var(--m-border);background:var(--m-surface);display:grid;gap:2px}
+.specimen .big{font-family:var(--fh);font-weight:var(--fhw,700);font-size:28px;color:var(--m-h);line-height:1.1}
+.specimen .small{font-size:12.5px;color:var(--m-muted)}
+/* logo + banners */
+.logo-tile{border-radius:14px;border:1px solid var(--line);padding:22px;display:grid;place-items:center;min-height:150px}
+.logo-tile svg{width:100%;max-width:440px;height:auto}
+.logo-tile.dark{background:#14432F;border-color:#14432F}
+.logo-tile.light{background:#fff}
+.icon-row{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
+figure{margin:0;display:grid;gap:8px}
+figure img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);aspect-ratio:21/9;object-fit:cover;background:#E9EFEA}
+figcaption{font-size:13px;color:var(--ink-2)}
+.hero-demo{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);color-scheme:light}
+.hero-demo img{display:block;width:100%;height:auto;aspect-ratio:21/9;object-fit:cover}
+.hero-demo .copy{position:absolute;inset:0 auto 0 0;width:min(46%,520px);padding:clamp(14px,4vw,48px);display:grid;align-content:center;gap:clamp(6px,1.2vw,14px)}
+.hero-demo .copy span{font:600 clamp(9px,1vw,12px)/1 "Inter",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#2E7D5B}
+.hero-demo .copy h3{margin:0;font:700 clamp(17px,3.2vw,40px)/1.1 "Inter",sans-serif;color:#14432F;letter-spacing:-.02em;text-wrap:balance}
+.hero-demo .copy p{margin:0;font:400 clamp(11px,1.3vw,16px)/1.45 "Inter",sans-serif;color:#2A3A31}
+.hero-demo .copy b{justify-self:start;font:600 clamp(10px,1.1vw,14px)/1 "Inter",sans-serif;background:#2E7D5B;color:#fff;border-radius:999px;padding:clamp(7px,1vw,12px) clamp(10px,1.4vw,18px)}
+@media (max-width:640px){.hero-demo .copy p{display:none}}
+.col-head{font:600 13px/1.3 var(--f-ui);color:var(--ink-2)}
+.dir{display:grid;gap:10px}
+.dir h3{margin:0;font-size:16px}
+.note{font-size:13.5px;color:var(--ink-2);margin:0;max-width:80ch}
+.pick{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--focus);border-radius:10px;padding:12px 14px;font-size:14px}
+</style>
+
+<div class="wrap">
+  <span class="tag">Aarvion · Stage 2 · round 1 of the style guide</span>
+  <h1>Pick a direction for the Aarvion website</h1>
+  <p class="lede">Each section shows the same small slice of the site (header, hero, a product card) so only one thing changes at a time. Prices are real: Sacuwin 100 has an MRP of ₹407 on the pack, so it sells for ₹387.</p>
+  <div class="reply">
+    <strong>How to reply</strong>
+    <span>One pick per section is enough, e.g. <code>Palette A · Text 1 · Fonts 3 · Logo green · Banner D1 with GPT</code>. Mix and match, or say what to change.</span>
+  </div>
+
+  <section id="palettes">
+    <div class="sec-head"><h2>1. Colour palette × text colour</h2><p>Three green-and-white palettes. Each row shows your "font green" question three ways: green headings, dark-green text everywhere, or green only on buttons and prices.</p></div>
+    <div id="palette-rows" class="row" style="gap:34px"></div>
+  </section>
+
+  <section id="type">
+    <div class="sec-head"><h2>2. Fonts</h2><p>Same sample in Palette A with green headings. The specimen line checks the rupee sign renders in each font.</p></div>
+    <div id="type-grid" class="grid2"></div>
+  </section>
+
+  <section id="logo">
+    <div class="sec-head"><h2>3. Logo, redrawn from the pack</h2><p>The swoosh is traced from the Sacuwin pack. The wordmark is set in a heavy wide sans for now and will be converted to outlines once approved.</p></div>
+    <div class="grid3">
+      <div><div class="opt-label">Pack colours <small>green swoosh, navy wordmark</small></div><div class="logo-tile light" id="logo-pack"></div></div>
+      <div><div class="opt-label">All green <small>fits the new palette</small></div><div class="logo-tile light" id="logo-green"></div></div>
+      <div><div class="opt-label">Reversed + app icon <small>for footer and favicon</small></div><div class="logo-tile dark"><div class="icon-row" id="logo-rev"></div></div></div>
+    </div>
+  </section>
+
+  <section id="banners">
+    <div class="sec-head"><h2>4. Banner direction and image model</h2><p>Scenes are AI-generated; the Sacuwin packs are the real photos placed on top, because AI redraws packaging text wrongly. Headlines stay as live text, never baked into the image.</p></div>
+    <div class="hero-demo">
+      <img src="img/d1-pedestal--gpt--with-packs.webp" alt="Sacuwin 200 and Sacuwin 100 packs on sage and white pedestals in front of misty green hills" width="1400" height="600">
+      <div class="copy"><span>Free delivery across India</span><h3>Genuine medicines, ₹20 below MRP</h3><p>Upload your prescription, our pharmacist checks it, and we deliver to your door.</p><b>Upload prescription</b></div>
+    </div>
+    <p class="note">Above: how a hero looks with live text over direction D1. Below: the same three prompts through two models, both run in Figma. (Gemini via Composio was switched off on Composio's side, so Figma's Gemini model stands in.)</p>
+    <div class="grid2" style="align-items:end"><div class="col-head">Gemini 3.1 Flash Image</div><div class="col-head">GPT Image 2.5</div></div>
+    <div class="dir"><h3>D1 · Sage pedestals in a misty landscape</h3><div class="grid2">
+      <figure><img src="img/d1-pedestal--gemini--with-packs.webp" alt="Gemini: soft minimal pedestals with floating leaves" loading="lazy" width="1400" height="594"><figcaption>Softer and flatter, more illustration-like.</figcaption></figure>
+      <figure><img src="img/d1-pedestal--gpt--with-packs.webp" alt="GPT Image: photoreal pedestals, hills and leaves" loading="lazy" width="1400" height="600"><figcaption>Photoreal depth; leaves frame the packs.</figcaption></figure>
+    </div></div>
+    <div class="dir"><h3>D2 · Clean studio plinth with leaf shadows</h3><div class="grid2">
+      <figure><img src="img/d2-studio--gemini--with-packs.webp" alt="Gemini: mint studio sweep with plinth" loading="lazy" width="1400" height="594"><figcaption>Mint wash, very calm.</figcaption></figure>
+      <figure><img src="img/d2-studio--gpt--with-packs.webp" alt="GPT Image: white studio with glossy floor" loading="lazy" width="1400" height="600"><figcaption>Brighter white, glossy floor.</figcaption></figure>
+    </div></div>
+    <div class="dir"><h3>D3 · Abstract leaves and molecules (no packs)</h3><div class="grid2">
+      <figure><img src="img/d3-molecular--gemini.webp" alt="Gemini: frosted glass leaves with molecule chain" loading="lazy" width="1400" height="594"><figcaption>Stylised glass leaves; good for category headers.</figcaption></figure>
+      <figure><img src="img/d3-molecular--gpt.webp" alt="GPT Image: photoreal leaves with glassy molecule spheres" loading="lazy" width="1400" height="600"><figcaption>Photoreal leaves with droplets.</figcaption></figure>
+    </div></div>
+    <div class="pick"><strong>My pick:</strong> D1 with GPT Image 2.5 for the home hero (it carries the "calm, natural, trustworthy" feel and shows the real packs), D2 for product-range banners, D3 for therapy-area headers.</div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>What happens next</h2><p>Once you pick, I build style guide v1: full colour scales, type scale, spacing, buttons, inputs, the OTP field, product card, cart line and Rx badge. Then high-fidelity page mockups for your approval before any site code.</p></div>
+  </section>
+</div>
+
+<script>
+const SW_OUT="M 8 90 C 95 40, 225 6, 300 10 C 330 12, 352 30, 344 58 C 334 44, 318 34, 294 32 C 215 28, 110 54, 8 90 Z";
+const SW_IN="M 170 62 C 215 44, 262 36, 286 38 C 296 40, 300 48, 296 58 C 288 50, 274 46, 254 47 C 222 50, 196 56, 170 62 Z";
+const logo=(sw,word,label="Aarvion Pharmaceuticals")=>`<svg viewBox="0 0 1000 230" role="img" aria-label="${label}"><g transform="translate(18,6) scale(1.05)" fill="${sw}"><path d="${SW_OUT}"/><path d="${SW_IN}"/></g><text x="10" y="200" font-family="Montserrat,'Arial Black',Arial,sans-serif" font-weight="800" font-size="84" letter-spacing="1.5" fill="${word}">AARVION</text><text x="408" y="200" font-family="Montserrat,'Arial Black',Arial,sans-serif" font-weight="800" font-size="84" letter-spacing="1.5" fill="${word}">PHARMACEUTICALS</text></svg>`;
+const icon=(bg,sw,fg)=>`<svg viewBox="0 0 120 120" width="72" height="72" role="img" aria-label="Aarvion app icon"><rect width="120" height="120" rx="28" fill="${bg}"/><g transform="translate(12,30) scale(0.27)" fill="${sw}"><path d="${SW_OUT}"/><path d="${SW_IN}"/></g><text x="60" y="96" text-anchor="middle" font-family="Montserrat,'Arial Black',Arial,sans-serif" font-weight="800" font-size="34" fill="${fg}">A</text></svg>`;
+document.getElementById("logo-pack").innerHTML=logo("#58BC88","#2D5A86");
+document.getElementById("logo-green").innerHTML=logo("#3FA36F","#14432F");
+document.getElementById("logo-rev").innerHTML=`<div style="width:min(300px,100%)">${logo("#7FD3A6","#FFFFFF")}</div>${icon("#FFFFFF","#3FA36F","#14432F")}${icon("#2E7D5B","#C9F0DA","#FFFFFF")}`;
+
+const PAL={
+ A:{name:"A · Sage mist",src:"from the pixel77 green sites",bg:"#F4F8F2",surface:"#FFFFFF",tint:"#E3F1E6",primary:"#2E7D5B",deep:"#14432F",chip:"#E6F2B8",textG:"#1C2A22",mutedG:"#55665C",border:"#DCE7DD",sw:["#F4F8F2","#E3F1E6","#9BB59A","#2E7D5B","#14432F","#C6DD40"]},
+ B:{name:"B · Pharmacy fresh",src:"ui-ux-pro-max pharmacy palette",bg:"#F0FDF4",surface:"#FFFFFF",tint:"#DCFCE7",primary:"#15803D",deep:"#14532D",chip:"#BBF7D0",textG:"#0F2A1B",mutedG:"#4A6355",border:"#BBF7D0",sw:["#F0FDF4","#DCFCE7","#86EFAC","#15803D","#14532D","#22C55E"]},
+ C:{name:"C · Deep forest",src:"calm, premium, after pixel77 #6",bg:"#FFFFFF",surface:"#F5F8F6",tint:"#E8F0EB",primary:"#1C443C",deep:"#042C23",chip:"#D7EBDD",textG:"#10201B",mutedG:"#52645C",border:"#DDE6E1",sw:["#FFFFFF","#E8F0EB","#8FB3A4","#1C443C","#042C23","#3E8E6E"]},
+};
+const TREAT={
+ 1:{name:"Text 1 · Green headings",h:p=>p.deep,body:()=>"#1E2421",muted:()=>"#5E6662",em:p=>p.primary,price:p=>p.deep},
+ 2:{name:"Text 2 · Dark-green text everywhere",h:p=>p.deep,body:p=>p.textG,muted:p=>p.mutedG,em:p=>p.primary,price:p=>p.deep},
+ 3:{name:"Text 3 · Green accents only",h:()=>"#15191A",body:()=>"#2A2F2C",muted:()=>"#646B67",em:p=>p.primary,price:p=>p.primary},
+};
+function lum(hex){const c=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+function contrast(a,b){const [x,y]=[lum(a),lum(b)].sort((m,n)=>n-m);return (x+.05)/(y+.05)}
+function mock(p,t,fontVars="",specimen=""){
+  const T=TREAT[t];
+  const style=`--m-bg:${p.bg};--m-surface:${p.surface};--m-tint:${p.tint};--m-primary:${p.primary};--m-deep:${p.deep};--m-chip:${p.chip};--m-border:${p.border};--m-h:${T.h(p)};--m-body:${T.body(p)};--m-muted:${T.muted(p)};--m-em:${T.em(p)};--m-price:${T.price(p)};${fontVars}`;
+  const cr=contrast("#FFFFFF",p.primary);
+  return `<div class="mock" style="${style}">
+   <div class="m-nav">${logo(p.primary,p.deep)}<span class="sp"></span><span>Medicines</span><span>Upload Rx</span><span class="cart">Cart · 1</span></div>
+   <div class="m-hero"><span class="m-eyebrow">Free delivery across India</span><h4>Genuine Aarvion medicines, <em>₹20 below MRP</em></h4><p>Upload your prescription, our pharmacist checks it, and we deliver to your door.</p><div class="m-btns"><span class="m-btn p">Upload prescription</span><span class="m-btn s">Browse medicines</span></div></div>
+   <div class="m-card"><img src="img/sacuwin-100.webp" alt="Sacuwin 100 pack" width="96" height="96"><div class="info"><span class="m-rx">Rx</span><span class="m-name">Sacuwin 100</span><span class="m-comp">Sacubitril 49 mg + Valsartan 51 mg · 14 tablets</span><div class="m-price"><s>MRP ₹407</s><strong>₹387</strong><span class="m-off">₹20 off</span></div><span class="m-add">Add to cart</span></div></div>
+   ${specimen||`<div class="m-meta">White text on buttons: ${cr.toFixed(1)}:1 · ${cr>=4.5?"passes AA":"fails AA"}</div>`}
+  </div>`;
+}
+document.getElementById("palette-rows").innerHTML=Object.entries(PAL).map(([k,p])=>`
+  <div class="row"><div class="row-head"><h3>${p.name}</h3><div class="sw">${p.sw.map(c=>`<span style="background:${c}" title="${c}"></span>`).join("")}</div><small style="color:var(--ink-2)">${p.src}</small></div>
+  <div class="grid3">${[1,2,3].map(t=>`<div><div class="opt-label">${TREAT[t].name}</div>${mock(p,t)}</div>`).join("")}</div></div>`).join("");
+const FONTS=[
+ {n:"Fonts 1 · Playfair Display + Inter",s:"qtways' pairing: serif headings, editorial feel",v:`--fh:"Playfair Display",Georgia,serif;--fb:"Inter",system-ui,sans-serif;--fhw:700;--fhls:0`},
+ {n:"Fonts 2 · Figtree + Noto Sans",s:"'Medical clean': friendly, very legible",v:`--fh:"Figtree",system-ui,sans-serif;--fb:"Noto Sans",system-ui,sans-serif;--fhw:800;--fhls:-.015em`},
+ {n:"Fonts 3 · Sora + Inter",s:"modern geometric, like the Steris shop",v:`--fh:"Sora",system-ui,sans-serif;--fb:"Inter",system-ui,sans-serif;--fhw:700;--fhls:-.02em`},
+ {n:"Fonts 4 · Manrope + Inter",s:"crisp tech-modern, two-tone headings",v:`--fh:"Manrope",system-ui,sans-serif;--fb:"Inter",system-ui,sans-serif;--fhw:800;--fhls:-.025em`},
+];
+document.getElementById("type-grid").innerHTML=FONTS.map(f=>`<div><div class="opt-label">${f.n}<small>${f.s}</small></div>${mock(PAL.A,1,f.v,`<div class="specimen"><span class="big">₹387 · Aa Gg 0123</span><span class="small">Body: Sacubitril 49 mg + Valsartan 51 mg. Inclusive of all taxes. ₹1,234.50</span></div>`)}</div>`).join("");
+</script>
