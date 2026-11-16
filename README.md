@@ -24,5 +24,6 @@ Requires Node 24 (`.nvmrc`) and pnpm 12. Copy `.env.example` to `.env.local`.
 - `pnpm lint`, `pnpm typecheck`, `pnpm format`
 - `pnpm test:unit`: Vitest `unit` (node, `src/server/**` and `scripts/**`) and `ui` (happy-dom, `src/**/*.test.tsx`) projects
 - `pnpm test:int`: Vitest `int` project (node, `tests/int/**/*.test.ts`)
+- `pnpm db:up && pnpm db:indexes && pnpm seed`: start Mongo, create indexes, seed the catalogue (insert-only, safe to re-run)
 
 Stack decisions: `docs/decisions/stack.md`.
