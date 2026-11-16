@@ -10,6 +10,8 @@ export const DEFAULT_EXCLUDES = [
   "**/*.webp",
   "**/*.png",
   "**/*.svg",
+  "docs/superpowers/**",
+  "docs/decisions/**",
 ];
 
 const GENERATED_MARKER = "@generated shadcn";

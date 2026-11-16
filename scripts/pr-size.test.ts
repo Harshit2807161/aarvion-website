@@ -13,6 +13,8 @@ describe("countChangedLines", () => {
       "0\t0\tpublic/a.webp",
       "7\t7\tsrc/img/b.png",
       "40\t2\tpublic/icons/c.svg",
+      "600\t0\tdocs/superpowers/plans/p.md",
+      "80\t0\tdocs/decisions/0001-x.md",
       "4\t1\tsrc/keep.ts",
     ].join("\n");
     expect(countChangedLines(numstat, DEFAULT_EXCLUDES)).toBe(5);
