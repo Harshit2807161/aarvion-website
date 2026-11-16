@@ -158,10 +158,37 @@ describe("POST /api/auth/logout", () => {
       .find({ action: "auth.logout" })
       .toArray();
     expect(entries).toHaveLength(1);
+    const user = await (await getDb()).collection<UserDoc>(USERS_COLLECTION).findOne({});
     expect(entries[0]).toMatchObject({
-      actor: { type: "user", role: "customer" },
+      actor: { type: "user", userId: user!._id, role: "customer" },
       at: clock.now(),
     });
+  });
+
+  it("revokes the session before it writes the audit row, and even when that write fails", async () => {
+    const token = await loginCustomer();
+    let sessionsAtAudit = -1;
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { Collection } = await import("mongodb");
+    const real = Collection.prototype.insertOne;
+    const spy = vi.spyOn(Collection.prototype, "insertOne").mockImplementation(async function (
+      this: InstanceType<typeof Collection>,
+      ...args: Parameters<typeof real>
+    ) {
+      if (this.collectionName === AUDIT) {
+        sessionsAtAudit = await (await getDb()).collection(SESSIONS_COLLECTION).countDocuments();
+        throw new Error("audit down");
+      }
+      return real.apply(this, args);
+    } as typeof real);
+    try {
+      expect((await logout(token)).status).toBe(204);
+    } finally {
+      spy.mockRestore();
+      errorSpy.mockRestore();
+    }
+    expect(sessionsAtAudit).toBe(0);
+    expect((await me(token)).status).toBe(401);
   });
 });
 
@@ -212,6 +239,18 @@ describe("guards", () => {
       .collection<UserDoc>(USERS_COLLECTION)
       .updateOne({ _id: user._id }, { $set: { role: "customer" } });
     await expect(requireRole(req(s.token), ["admin"])).rejects.toMatchObject({ status: 403 });
+  });
+
+  it("concurrent resolveSession calls both succeed and exactly one slides the session", async () => {
+    const user = await insertUser("customer");
+    const { token } = await createSession(user, clock.now());
+    clock.advance(5 * MIN); // due for a touch
+    const results = await Promise.all(
+      Array.from({ length: 4 }, () => resolveSession(token, clock.now())),
+    );
+    expect(results.every((r) => r !== null)).toBe(true);
+    expect(results.filter((r) => r!.refreshed)).toHaveLength(1);
+    expect(results[0]!.session.userId).toEqual(user._id);
   });
 
   it("a session revoked between read and touch is never valid", async () => {

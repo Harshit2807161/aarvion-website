@@ -12,6 +12,10 @@ export const POST = withErrors(async (req) => {
   assertSameOrigin(req);
   const now = getDeps().now();
   const auth = await getAuth(req, now);
+  // Revoke first, even when the user lookup failed: any presented token is dropped, and a
+  // failing audit write can never leave the session alive.
+  const token = readSessionToken(req);
+  if (token) await revokeSession(token);
   if (auth) {
     try {
       await appendAudit({
@@ -23,9 +27,6 @@ export const POST = withErrors(async (req) => {
       console.error("audit write failed", err instanceof Error ? err.name : "unknown");
     }
   }
-  // Revoke even when the user lookup failed: any presented token is dropped.
-  const token = readSessionToken(req);
-  if (token) await revokeSession(token);
   return new Response(null, {
     status: 204,
     headers: { "Cache-Control": "no-store", "Set-Cookie": clearSessionCookieHeader() },
