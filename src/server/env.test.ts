@@ -43,3 +43,28 @@ describe("env", () => {
     expect(getEnv().MONGODB_DB).toBe("second");
   });
 });
+
+describe("requireEnv", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("throws an EnvError naming the key when unset", async () => {
+    vi.stubEnv("OTP_PEPPER", "");
+    const { requireEnv, resetEnvForTests, EnvError } = await import("./env");
+    resetEnvForTests();
+    expect(() => requireEnv("OTP_PEPPER")).toThrow(/OTP_PEPPER/);
+    expect(() => requireEnv("OTP_PEPPER")).toThrow(EnvError);
+  });
+
+  it("returns the value when set", async () => {
+    vi.stubEnv("OTP_PEPPER", "z".repeat(40));
+    const { requireEnv, resetEnvForTests } = await import("./env");
+    resetEnvForTests();
+    expect(requireEnv("OTP_PEPPER")).toBe("z".repeat(40));
+  });
+});

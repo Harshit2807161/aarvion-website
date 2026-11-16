@@ -15,6 +15,7 @@ const schema = z.object({
   EMAIL_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "resend"]).default("mock")),
   PAYMENTS_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["fake", "razorpay"]).default("fake")),
   FILE_STORE: z.preprocess(emptyToUndefined, z.enum(["memory", "local", "blob"]).default("memory")),
+  OTP_PEPPER: z.preprocess(emptyToUndefined, z.string().min(32).optional()),
   ALLOW_MOCKS_IN_PROD_BUILD: z.preprocess(emptyToUndefined, z.literal("1").optional()),
 });
 
@@ -43,4 +44,13 @@ export function getEnv(): Env {
 
 export function resetEnvForTests(): void {
   cached = undefined;
+}
+
+/** Returns a required variable or throws an EnvError naming it. */
+export function requireEnv<K extends keyof Env>(key: K): NonNullable<Env[K]> {
+  const value = getEnv()[key];
+  if (value === undefined || value === null) {
+    throw new EnvError(`Missing required environment variable ${key}`);
+  }
+  return value as NonNullable<Env[K]>;
 }

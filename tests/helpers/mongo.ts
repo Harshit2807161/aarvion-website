@@ -1,5 +1,5 @@
 import { MongoMemoryReplSet } from "mongodb-memory-server";
-import { closeMongo } from "../../src/server/db/client";
+import { closeMongo, getDb } from "../../src/server/db/client";
 import { resetEnvForTests } from "../../src/server/env";
 
 let replSet: MongoMemoryReplSet | undefined;
@@ -20,4 +20,10 @@ export async function stopMemoryReplSet(): Promise<void> {
   replSet = undefined;
   delete process.env.MONGODB_URI;
   resetEnvForTests();
+}
+
+/** Empties the named collections (for int tests that need a clean slate per case). */
+export async function clearCollections(...names: string[]): Promise<void> {
+  const db = await getDb();
+  await Promise.all(names.map((n) => db.collection(n).deleteMany({})));
 }
