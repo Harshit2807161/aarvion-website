@@ -1,0 +1,24 @@
+# deps / build
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+next-env.d.ts
+# env
+.env
+.env.*
+!.env.example
+# local tooling
+.tools/
+.DS_Store
+# impeccable runtime (surfaces/, config.json, design.json stay tracked)
+.impeccable/mocks/
+.impeccable/review/
+.impeccable/tmp/
+.impeccable/build/
+.impeccable/config.local.json
+# large generation sources (webp derivatives are tracked)
+assets/banners/**/*.png
