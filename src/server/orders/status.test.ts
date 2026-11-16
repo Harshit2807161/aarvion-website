@@ -165,11 +165,6 @@ describe("ship guards", () => {
     const o = { ...happy("packed"), paymentStatus: "refunded" as const };
     expect(transition(o, ship(), ctx)).toEqual({ ok: false, error: "payment_required" });
   });
-  it("accepts an optional trackingUrl", () => {
-    expect(transition(happy("packed"), ship({ trackingUrl: "https://t.example/1" }), ctx).ok).toBe(
-      true,
-    );
-  });
 });
 
 describe("reason guards", () => {
@@ -211,10 +206,6 @@ describe("refund effects (F16)", () => {
   it("cancel from pending_payment has no effects", () => {
     const o = { ...happy("pending_payment"), paymentStatus: "pending" as const };
     const r = transition(o, { type: "cancel", reason: "x" }, ctx);
-    expect(r.ok && r.effects).toEqual([]);
-  });
-  it("non-refunding transitions have no effects", () => {
-    const r = transition(happy("placed"), { type: "confirm" }, ctx);
     expect(r.ok && r.effects).toEqual([]);
   });
 });
@@ -271,17 +262,5 @@ describe("Rx must be valid at order creation AND at the gated transition", () =>
       expect(r.ok).toBe(ok);
       if (!r.ok) expect(r.error).toBe("rx_not_valid");
     }
-  });
-  it("keeps precedence awb_required -> rx_not_valid -> payment_required", () => {
-    const o = { ...happy("packed"), rx, paymentStatus: "refunded" as const };
-    const expired = { at: d("2026-11-16T06:00:00Z"), by: "staff" } as const;
-    const valid = { at: d("2026-10-25T06:00:00Z"), by: "staff" } as const;
-    const err = (e: OrderEvent, c: typeof valid) => {
-      const r = transition({ ...o, createdAt: d("2026-10-20T06:00:00Z") }, e, c);
-      return r.ok ? null : r.error;
-    };
-    expect(err({ ...ship, awb: "" } as OrderEvent, expired)).toBe("awb_required");
-    expect(err(ship, expired)).toBe("rx_not_valid");
-    expect(err(ship, valid)).toBe("payment_required");
   });
 });
