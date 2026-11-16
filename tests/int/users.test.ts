@@ -28,6 +28,15 @@ const phone = { channel: "phone", value: "+919876543210" } as const;
 const email = { channel: "email", value: "a@example.com" } as const;
 
 describe("findOrCreateUserByIdentifier", () => {
+  it("rejects a channel outside the fixed table and creates nothing", async () => {
+    for (const channel of ["role", "$where", "__proto__"]) {
+      await expect(
+        findOrCreateUserByIdentifier({ channel, value: "x" } as never, T),
+      ).rejects.toThrow("unsupported channel");
+    }
+    expect(await (await getDb()).collection(USERS_COLLECTION).countDocuments()).toBe(0);
+  });
+
   it.each([
     ["phone", phone, "phoneVerifiedAt"],
     ["email", email, "emailVerifiedAt"],

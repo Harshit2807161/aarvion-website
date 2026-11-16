@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import type { ObjectId } from "mongodb";
 import { getDb } from "../db/client.ts";
 import { registerIndexes } from "../db/indexes.ts";
-import type { Role, UserDoc } from "./users.ts";
+import { STAFF_ROLES, type Role, type UserDoc } from "./users.ts";
 
 export const SESSIONS_COLLECTION = "sessions";
 
@@ -13,8 +13,9 @@ registerIndexes(SESSIONS_COLLECTION, [
 
 export type SessionKind = "customer" | "staff";
 
+/** Fails closed: only an explicit staff role gets the staff (short, absolute-capped) policy. */
 export function sessionKindForRole(role: Role): SessionKind {
-  return role === "customer" ? "customer" : "staff";
+  return (STAFF_ROLES as readonly string[]).includes(role) ? "staff" : "customer";
 }
 
 export const SESSION_POLICY = {

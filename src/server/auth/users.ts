@@ -47,16 +47,22 @@ async function users() {
   return (await getDb()).collection<UserDoc>(USERS_COLLECTION);
 }
 
+/** Fixed channel -> user field tables: the caller's string is never used as a field name. */
+const IDENTIFIER_FIELD = { phone: "phone", email: "email" } as const;
+const VERIFIED_FIELD = { phone: "phoneVerifiedAt", email: "emailVerifiedAt" } as const;
+
 /** Atomic find-or-create keyed on the verified identifier; first verification time is kept. */
 export async function findOrCreateUserByIdentifier(
   id: Identifier,
   now: Date,
 ): Promise<{ user: UserDoc; created: boolean }> {
   const col = await users();
-  const verifiedField = id.channel === "phone" ? "phoneVerifiedAt" : "emailVerifiedAt";
+  if (!Object.hasOwn(IDENTIFIER_FIELD, id.channel)) throw new Error("unsupported channel");
+  const field = IDENTIFIER_FIELD[id.channel];
+  const verifiedField = VERIFIED_FIELD[id.channel];
   const run = () =>
     col.findOneAndUpdate(
-      { [id.channel]: id.value },
+      { [field]: id.value },
       {
         $setOnInsert: { role: "customer", createdAt: now },
         $min: { [verifiedField]: now },
