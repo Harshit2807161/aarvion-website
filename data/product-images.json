@@ -1,0 +1,304 @@
+{
+  "bemptor-r40": {
+    "photos": [
+      {
+        "src": "/products/bemptor-r40/8657f2a7.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/bemptor-r40--1--bemptor-r40-3.webp"
+      },
+      {
+        "src": "/products/bemptor-r40/a9530ed0.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/bemptor-r40--2--bemptor-r40.webp"
+      },
+      {
+        "src": "/products/bemptor-r40/0c93fa0f.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/bemptor-r40--3--bemptor-r40-2.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/bemptor-r40/cutout-9f70c96b.webp",
+      "width": 762,
+      "height": 613,
+      "from": "assets/products/cutout/bemptor-r40.webp"
+    }
+  },
+  "bemptor-180": {
+    "photos": [
+      {
+        "src": "/products/bemptor-180/a2a4c365.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/bemptor-180--1--bemptor-180.webp"
+      },
+      {
+        "src": "/products/bemptor-180/32ccf3df.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/bemptor-180--2--bemptor-180-3.webp"
+      },
+      {
+        "src": "/products/bemptor-180/42c1a7f2.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/bemptor-180--3--bemptor-180-2.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/bemptor-180/cutout-0ab4592a.webp",
+      "width": 815,
+      "height": 695,
+      "from": "assets/products/cutout/bemptor-180.webp"
+    }
+  },
+  "sacuwin-100": {
+    "photos": [
+      {
+        "src": "/products/sacuwin-100/fae06596.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-100--1--sacuwin-100-2.webp"
+      },
+      {
+        "src": "/products/sacuwin-100/d398cbca.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-100--2--sacuwin-100-3.webp"
+      },
+      {
+        "src": "/products/sacuwin-100/913f2a1f.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-100--3--sacuwin-100.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/sacuwin-100/cutout-d9a51933.webp",
+      "width": 745,
+      "height": 835,
+      "from": "assets/products/cutout/sacuwin-100.webp"
+    }
+  },
+  "sacuwin-200": {
+    "photos": [
+      {
+        "src": "/products/sacuwin-200/32a3d032.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-200--1--sacuwin-200-3.webp"
+      },
+      {
+        "src": "/products/sacuwin-200/3a9b591b.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-200--2--sacuwin-200-2.webp"
+      },
+      {
+        "src": "/products/sacuwin-200/2f8ed7d7.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-200--3--sacuwin-200.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/sacuwin-200/cutout-8555713f.webp",
+      "width": 585,
+      "height": 886,
+      "from": "assets/products/cutout/sacuwin-200.webp"
+    }
+  },
+  "sacuwin-50": {
+    "photos": [
+      {
+        "src": "/products/sacuwin-50/3771d974.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-50--1--sacuwin-50-2.webp"
+      },
+      {
+        "src": "/products/sacuwin-50/ba728ccc.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-50--2--sacuwin-50.webp"
+      },
+      {
+        "src": "/products/sacuwin-50/c5d5bc26.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sacuwin-50--3--preloton-d-3.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/sacuwin-50/cutout-dfcb3f56.webp",
+      "width": 727,
+      "height": 828,
+      "from": "assets/products/cutout/sacuwin-50.webp"
+    }
+  },
+  "vildage-m-50-500": {
+    "photos": [
+      {
+        "src": "/products/vildage-m-50-500/65be6b30.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/vildage-m-50-500--1--vildage-500.webp"
+      },
+      {
+        "src": "/products/vildage-m-50-500/b1cb18f7.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/vildage-m-50-500--2--vildage-500-3.webp"
+      },
+      {
+        "src": "/products/vildage-m-50-500/fe531837.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/vildage-m-50-500--3--vildage-500-2.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/vildage-m-50-500/cutout-6a1fdaae.webp",
+      "width": 348,
+      "height": 583,
+      "from": "assets/products/cutout/vildage-m-50-500.webp"
+    }
+  },
+  "hyloage": {
+    "photos": [
+      {
+        "src": "/products/hyloage/0b17dcc0.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/hyloage--1--hyloage-3.webp"
+      },
+      {
+        "src": "/products/hyloage/fc9ecd01.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/hyloage--2--hyloage-2.webp"
+      },
+      {
+        "src": "/products/hyloage/d4c2fee8.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/hyloage--3--hyloage.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/hyloage/cutout-af065dde.webp",
+      "width": 888,
+      "height": 733,
+      "from": "assets/products/cutout/hyloage.webp"
+    }
+  },
+  "sysnet-ultra": {
+    "photos": [
+      {
+        "src": "/products/sysnet-ultra/ef837e4b.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sysnet-ultra--1--sysnet.webp"
+      },
+      {
+        "src": "/products/sysnet-ultra/630b8ae0.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sysnet-ultra--2--sysnet-3.webp"
+      },
+      {
+        "src": "/products/sysnet-ultra/c7ee3eaa.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/sysnet-ultra--3--sysnet-2.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/sysnet-ultra/cutout-775732dd.webp",
+      "width": 657,
+      "height": 720,
+      "from": "assets/products/cutout/sysnet-ultra.webp"
+    }
+  },
+  "caftop": {
+    "photos": [
+      {
+        "src": "/products/caftop/01d64b76.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/caftop--1--caftop.webp"
+      },
+      {
+        "src": "/products/caftop/305dfee4.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/caftop--2--caftop-2.webp"
+      },
+      {
+        "src": "/products/caftop/f5cf0479.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/caftop--3--caftop-3.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/caftop/cutout-b7579b94.webp",
+      "width": 552,
+      "height": 744,
+      "from": "assets/products/cutout/caftop.webp"
+    }
+  },
+  "oloage-kt": {
+    "photos": [
+      {
+        "src": "/products/oloage-kt/bbf57a70.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/oloage-kt--1--oloage-kt-3.webp"
+      },
+      {
+        "src": "/products/oloage-kt/acc74404.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/oloage-kt--2--oloage-kt-2.webp"
+      },
+      {
+        "src": "/products/oloage-kt/e4e589ed.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/oloage-kt--3--oloage-kt.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/oloage-kt/cutout-ce5d8262.webp",
+      "width": 721,
+      "height": 737,
+      "from": "assets/products/cutout/oloage-kt.webp"
+    }
+  },
+  "mucohelp": {
+    "photos": [
+      {
+        "src": "/products/mucohelp/18c4ee1e.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/mucohelp--1--38.webp"
+      },
+      {
+        "src": "/products/mucohelp/f8a9b3ba.webp",
+        "width": 1000,
+        "height": 1000,
+        "from": "assets/products/original/mucohelp--2--38-2.webp"
+      }
+    ],
+    "cutout": {
+      "src": "/products/mucohelp/cutout-0eb9b25c.webp",
+      "width": 782,
+      "height": 647,
+      "from": "assets/products/cutout/mucohelp.webp"
+    }
+  }
+}
