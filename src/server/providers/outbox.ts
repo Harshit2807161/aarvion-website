@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { getDb } from "../db/client.ts";
 import { registerIndexes } from "../db/indexes.ts";
-import { getEnv } from "../env.ts";
+import { isMockForbidden } from "./guard.ts";
 
 export const OUTBOX_COLLECTION = "dev_outbox";
 const TTL_MS = 24 * 60 * 60 * 1000;
@@ -41,7 +41,7 @@ export async function writeOutbox(
 
 /** Dev and test only: reads messages the mock providers captured. */
 export async function readOutbox(to: string): Promise<OutboxMessage[]> {
-  if (getEnv().VERCEL_ENV === "production") {
+  if (isMockForbidden()) {
     throw new Error("readOutbox is not available in production");
   }
   const db = await getDb();

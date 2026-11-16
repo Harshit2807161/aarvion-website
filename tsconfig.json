@@ -25,6 +25,7 @@
     "tests/**/*.ts",
     "*.ts",
     "scripts/**/*.ts",
+    "e2e/**/*.ts",
     "*.mts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"

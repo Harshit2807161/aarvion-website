@@ -1,4 +1,5 @@
 import { getEnv } from "./env.ts";
+import { isMockForbidden } from "./providers/guard.ts";
 import { createFakePayments } from "./providers/fake-payments.ts";
 import { createMemoryFiles } from "./providers/memory-files.ts";
 import { mockEmail } from "./providers/mock-email.ts";
@@ -18,10 +19,7 @@ function build(): Deps {
     env.EMAIL_PROVIDER === "mock" ||
     env.PAYMENTS_PROVIDER === "fake" ||
     env.FILE_STORE === "memory";
-  const prod =
-    env.VERCEL_ENV === "production" ||
-    (env.NODE_ENV === "production" && env.ALLOW_MOCKS_IN_PROD_BUILD !== "1");
-  if (usesMocks && prod) {
+  if (usesMocks && isMockForbidden()) {
     throw new Error(
       "Mock providers are not allowed in production: set SMS_PROVIDER, EMAIL_PROVIDER, PAYMENTS_PROVIDER and FILE_STORE to real providers.",
     );
