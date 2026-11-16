@@ -6,7 +6,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { CATEGORIES_COLLECTION, PRODUCTS_COLLECTION } from "@/server/catalogue/collections";
 import { CATEGORY_LIST } from "@/server/catalogue/categories";
 import { DEFAULT_MRP_PAISE } from "@/server/catalogue/pricing";
-import { CatalogueJson, type Product } from "@/server/catalogue/schema";
+import { CatalogueJson, Product } from "@/server/catalogue/schema";
 import { seedCatalogue, toProductDoc } from "@/server/catalogue/seed";
 import { getDb } from "@/server/db/client";
 import { ensureIndexes } from "@/server/db/indexes";
@@ -48,6 +48,17 @@ describe("seedCatalogue", () => {
     });
     expect(await db.collection(CATEGORIES_COLLECTION).countDocuments()).toBe(8);
     expect(await db.collection(PRODUCTS_COLLECTION).countDocuments()).toBe(11);
+  });
+
+  it("stores only Product keys", async () => {
+    const db = await getDb();
+    await seedCatalogue(db, { categories: CATEGORY_LIST, products: products() }, now);
+    const docs = await db.collection(PRODUCTS_COLLECTION).find().toArray();
+    expect(docs).toHaveLength(11);
+    for (const { _id, ...doc } of docs) {
+      expect(_id).toBeDefined();
+      expect(Object.keys(doc).sort()).toEqual(Object.keys(Product.shape).sort());
+    }
   });
 
   it("never overwrites admin edits on a re-run", async () => {

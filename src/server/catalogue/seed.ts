@@ -9,10 +9,10 @@ export function toProductDoc(
   defaultMrpPaise: number,
   now: Date,
 ): Product {
-  const hero = images.photos.find((ph) => ph.from === p.heroImage);
-  if (!hero) throw new Error(`${p.slug}: hero image ${p.heroImage} is not in the image manifest`);
+  const { notes, mrpPaise, heroImage, ...rest } = p;
+  const hero = images.photos.find((ph) => ph.from === heroImage);
+  if (!hero) throw new Error(`${p.slug}: hero image ${heroImage} is not in the image manifest`);
   const ordered = [hero, ...images.photos.filter((ph) => ph !== hero)];
-  const { notes, mrpPaise, ...rest } = p;
   return {
     ...rest,
     mrpPaise: mrpPaise ?? defaultMrpPaise,

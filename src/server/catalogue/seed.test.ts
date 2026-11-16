@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 import type { ImageManifest } from "../../../scripts/sync-product-images.ts";
 import { DEFAULT_MRP_PAISE } from "./pricing.ts";
 import { CatalogueJson, Product, type ProductJson } from "./schema.ts";
+
+const PRODUCT_KEYS = Object.keys(Product.shape).sort();
 import { toProductDoc } from "./seed.ts";
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), "../../../..");
@@ -63,6 +65,14 @@ describe("toProductDoc", () => {
     expect(() => toProductDoc(p, manifest["sacuwin-50"]!, DEFAULT_MRP_PAISE, now)).toThrow(
       /sacuwin-50/,
     );
+  });
+
+  it("emits exactly the Product keys (no source-only fields such as heroImage)", () => {
+    for (const p of catalogue.products) {
+      const doc = toProductDoc(p, manifest[p.slug]!, catalogue.defaultMrpPaise, now);
+      expect(doc, p.slug).not.toHaveProperty("heroImage");
+      expect(Object.keys(doc).sort(), p.slug).toEqual(PRODUCT_KEYS);
+    }
   });
 
   it("produces valid documents for all 11 products", () => {
