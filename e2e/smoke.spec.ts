@@ -8,5 +8,5 @@ test("home page renders the brand", async ({ page }) => {
 test("health endpoint is ok", async ({ request }) => {
   const res = await request.get("/api/health");
   expect(res.status()).toBe(200);
-  expect(await res.json()).toMatchObject({ status: "ok", db: "skipped" });
+  expect(await res.json()).toMatchObject({ status: "ok", db: "ok" });
 });

@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { defineConfig } from "@playwright/test";
 
 const PORT = 3100;
@@ -16,7 +17,11 @@ export default defineConfig({
     timeout: 240_000,
     env: {
       PORT: String(PORT),
-      MONGODB_URI: "",
+      MONGODB_URI:
+        process.env.MONGODB_URI ??
+        "mongodb://localhost:27017/?replicaSet=rs0&directConnection=true",
+      MONGODB_DB: "aarvion_e2e",
+      OTP_PEPPER: randomBytes(32).toString("hex"),
       ALLOW_MOCKS_IN_PROD_BUILD: "1",
     },
   },
