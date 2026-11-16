@@ -1,0 +1,53 @@
+name: PR guards
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            refactor
+            test
+            docs
+            chore
+            perf
+            ci
+            build
+
+  branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          if [[ "$BRANCH" =~ ^dependabot/ ]] || [[ "$BRANCH" =~ ^(feat|fix|chore|ci|test|docs|refactor|perf|build)/[a-z0-9-]+$ ]]; then
+            echo "Branch name OK: $BRANCH"
+          else
+            echo "::error::Branch '$BRANCH' must match type/short-description (types: feat|fix|chore|ci|test|docs|refactor|perf|build; lowercase letters, digits, hyphens)."
+            exit 1
+          fi
+
+  pr-size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node --experimental-strip-types scripts/pr-size.ts "origin/${{ github.base_ref }}"
