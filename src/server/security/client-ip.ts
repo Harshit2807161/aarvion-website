@@ -14,9 +14,14 @@ export function clientIp(req: Request): string {
 export function ipBucket(ip: string): string {
   if (isIPv4(ip)) return ip;
   if (!isIPv6(ip)) return "unknown";
-  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(ip);
-  if (mapped && isIPv4(mapped[1]!)) return mapped[1]!;
-  return `${expandIPv6(ip).slice(0, 4).join(":")}::/64`;
+  const hextets = expandIPv6(ip);
+  // ::ffff:a.b.c.d in any spelling (dotted, hex, long form) is IPv4: one bucket per client.
+  if (hextets.slice(0, 5).every((h) => h === "0") && hextets[5] === "ffff") {
+    const hi = parseInt(hextets[6]!, 16);
+    const lo = parseInt(hextets[7]!, 16);
+    return `${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`;
+  }
+  return `${hextets.slice(0, 4).join(":")}::/64`;
 }
 
 /** Expands a valid IPv6 address to 8 lowercase hextets without leading zeros. */
