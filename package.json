@@ -19,7 +19,7 @@
     "format": "prettier --write .",
     "db:up": "docker compose up -d --wait mongo",
     "db:down": "docker compose down",
-    "db:indexes": "node --experimental-strip-types --no-warnings --env-file-if-exists=.env.local scripts/db-indexes.ts"
+    "db:indexes": "tsx --env-file-if-exists=.env.local scripts/db-indexes.ts"
   },
   "dependencies": {
     "@vercel/functions": "^3.11.3",
@@ -40,6 +40,7 @@
     "happy-dom": "^21.0.4",
     "mongodb-memory-server": "^11.3.0",
     "prettier": "^3.10.1",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "vitest": "^5.1.0"
   }
