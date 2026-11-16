@@ -1,9 +1,9 @@
-import type { SessionKind } from "./sessions.ts";
+import { SESSION_POLICY, type SessionKind } from "./sessions.ts";
 
 export const SESSION_COOKIE = "__Host-aarv_sid";
 
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
-const CUSTOMER_MAX_AGE_SEC = 2_592_000;
+const CUSTOMER_MAX_AGE_SEC = SESSION_POLICY.customer.idleMs / 1000;
 
 /** The session token from the Cookie header, or null unless it is exactly 43 base64url chars. */
 export function readSessionToken(req: Request): string | null {
