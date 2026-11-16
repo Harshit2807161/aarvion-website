@@ -13,7 +13,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@500;600&family=Geist:wght@400;500;600&family=Host+Grotesk:wght@600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&text=AARVIONPHMCEUTLS&display=swap">
 <link rel="stylesheet" href="../css/flows.css">
+<link rel="stylesheet" href="../css/store.css">
 <script>document.documentElement.classList.add("js")</script>
+<script src="../js/catalogue.js" defer></script>
+<script src="../js/store.js" defer></script>
 <script src="../js/flows.js" defer></script>
 </head>
 <body data-page="checkout">
@@ -54,34 +57,14 @@
   <symbol id="i-swoosh" viewBox="0 0 360 96"><path d="M 8 90 C 95 40, 225 6, 300 10 C 330 12, 352 30, 344 58 C 334 44, 318 34, 294 32 C 215 28, 110 54, 8 90 Z"/><path d="M 170 62 C 215 44, 262 36, 286 38 C 296 40, 300 48, 296 58 C 288 50, 274 46, 254 47 C 222 50, 196 56, 170 62 Z"/></symbol>
 </svg>
 <a class="skip" href="#main">Skip to content</a>
-<header class="nav-wrap">
-  <nav class="nav" aria-label="Main">
+<!-- chrome:head -->
+<header class="store-head store-head--reduced">
+  <div class="wrap sh-row">
     <a class="brand" href="../index.html" aria-label="Aarvion Pharmaceuticals, home"><svg class="brand-mark" aria-hidden="true"><use href="#i-swoosh"/></svg><span class="brand-word">AARVION</span></a>
-    <ul class="nav-links">
-      <li><a href="../index.html#cardiology">Cardiology</a></li>
-      <li><a href="../index.html#diabetology">Diabetology</a></li>
-      <li><a href="../index.html#eye-care">Eye care</a></li>
-      <li><a href="../index.html#respiratory">Respiratory</a></li>
-    </ul>
-    <div class="nav-end">
-      <a class="nav-pill nav-rx" href="account.html#prescriptions"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg><span>Upload Rx</span></a>
-      <a class="nav-pill nav-acct" href="login.html" data-acct aria-label="Sign in"><span class="acct-dot" aria-hidden="true"></span><svg class="i acct-icon" aria-hidden="true"><use href="#i-user"/></svg><span class="acct-label">Sign in</span></a>
-      <a class="nav-pill nav-cart" href="cart.html" data-cart-open aria-label="Cart, 0 packs"><svg class="i" aria-hidden="true"><use href="#i-cart"/></svg><span class="cart-label">Cart</span><span class="cart-dot" aria-hidden="true">·</span><span class="cart-count mono" aria-hidden="true">0</span></a>
-      <button class="nav-icon nav-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><svg class="i i-open" aria-hidden="true"><use href="#i-menu"/></svg><svg class="i i-shut" aria-hidden="true"><use href="#i-close"/></svg></button>
-    </div>
-    <div class="menu" id="menu">
-      <ul>
-        <li><a href="../index.html#cardiology">Cardiology</a></li>
-        <li><a href="../index.html#diabetology">Diabetology</a></li>
-        <li><a href="../index.html#eye-care">Eye care</a></li>
-        <li><a href="../index.html#respiratory">Respiratory</a></li>
-        <li><a href="account.html#orders">Your orders</a></li>
-        <li><a href="account.html">Your account</a></li>
-      </ul>
-      <a class="btn btn-sand" href="account.html#prescriptions"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg><span>Upload prescription</span></a>
-    </div>
-  </nav>
+    <p class="sh-secure"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg><span>Secure checkout</span></p>
+  </div>
 </header>
+<!-- /chrome:head -->
 <main id="main">
   <section class="band" aria-labelledby="co-title">
     <div class="wrap band-in">
@@ -237,33 +220,72 @@
     </div>
   </div>
 </main>
-<footer class="foot" data-ground="forest">
-  <div class="wrap foot-grid">
+<!-- chrome:foot -->
+<footer class="foot" id="contact">
+  <div class="wrap foot-top">
     <div class="foot-brand">
       <p class="foot-logo"><svg class="brand-mark" aria-hidden="true"><use href="#i-swoosh"/></svg><span class="brand-word">AARVION</span><span class="brand-sub">PHARMACEUTICALS</span></p>
-      <address>Plot No. 70, Second Floor, Functional Industrial Estate,<br>Patparganj, New Delhi 110092</address>
-      <p class="foot-rule">Prescription medicines are dispensed only against a valid prescription.</p>
+      <p class="foot-about">Aarvion’s own prescription medicines, sold by Aarvion. A pharmacist checks every prescription before an order is packed.</p>
     </div>
-    <nav class="foot-nav" aria-label="Footer">
+    <nav class="foot-col" aria-labelledby="f-shop">
+      <h2 class="foot-h" id="f-shop">Shop by category</h2>
       <ul>
+        <li><a href="../index.html#heart-care">Heart care</a></li>
+        <li><a href="../index.html#diabetes-care">Diabetes care</a></li>
+        <li><a href="../index.html#eye-care">Eye care</a></li>
+        <li><a href="../index.html#respiratory-care">Respiratory care</a></li>
         <li><a href="../index.html#medicines">All medicines</a></li>
-        <li><a href="../index.html#how">How ordering works</a></li>
-        <li><a href="account.html#orders">Your orders</a></li>
-        <li><a href="account.html#prescriptions">Your prescriptions</a></li>
       </ul>
     </nav>
-    <dl class="foot-legal">
+    <nav class="foot-col" aria-labelledby="f-help">
+      <h2 class="foot-h" id="f-help">Help and policies</h2>
+      <ul>
+        <li><a href="../index.html#how">How ordering works</a></li>
+        <li><a href="../index.html#questions">Questions</a></li>
+        <li><a href="account.html#orders">Track an order</a></li>
+        <li><a href="../index.html#faq-returns">Cancellation and returns</a></li>
+        <li><span class="foot-tba">Privacy policy<span class="tba">To be added</span></span></li>
+        <li><span class="foot-tba">Terms of use<span class="tba">To be added</span></span></li>
+      </ul>
+    </nav>
+    <nav class="foot-col" aria-labelledby="f-company">
+      <h2 class="foot-h" id="f-company">Company</h2>
+      <ul>
+        <li><span class="foot-tba">About Aarvion<span class="tba">To be added</span></span></li>
+        <li><a href="../index.html#faq-win2age">Why some packs say Win2Age</a></li>
+        <li><a href="account.html">Your account</a></li>
+      </ul>
+    </nav>
+    <div class="foot-col">
+      <h2 class="foot-h">Contact</h2>
+      <address>Aarvion Pharmaceuticals<br>Plot No. 70, Second Floor,<br>Functional Industrial Estate,<br>Patparganj, New Delhi 110092</address>
+      <dl class="foot-dl">
+        <div><dt>Phone</dt><dd>To be added</dd></div>
+        <div><dt>Email</dt><dd>To be added</dd></div>
+      </dl>
+    </div>
+  </div>
+  <div class="wrap foot-legal">
+    <h2 class="sr-only">Licences and legal details</h2>
+    <dl class="foot-dl">
       <div><dt>Drug licence no.</dt><dd>To be added</dd></div>
       <div><dt>Registered pharmacist</dt><dd>To be added</dd></div>
       <div><dt>Grievance officer</dt><dd>To be added</dd></div>
       <div><dt>GSTIN</dt><dd>To be added</dd></div>
     </dl>
   </div>
+  <div class="wrap foot-pay">
+    <p class="foot-pay-label">Pay with</p>
+    <ul class="pay"><li>UPI</li><li>Cards</li><li>Netbanking</li></ul>
+    <p>through Razorpay, or</p>
+    <ul class="pay"><li>Cash on delivery</li></ul>
+  </div>
   <div class="wrap foot-base">
-    <p>© 2026 Aarvion Pharmaceuticals</p>
+    <p>© 2026 Aarvion Pharmaceuticals. Prescription medicines are dispensed only against a valid prescription.</p>
     <nav class="proto" aria-label="Prototype states for this page"><span class="proto-label">Prototype states</span><a href="checkout.html?state=checkout">Address</a><a href="checkout.html?state=checkout-errors">Address errors</a><a href="checkout.html?state=checkout-step-2">Prescription</a><a href="checkout.html?state=checkout-upload">Upload Rx</a><a href="checkout.html?state=checkout-step-3">Payment</a><a href="checkout.html?state=cod-disabled">COD unavailable</a><a href="checkout.html?state=checkout-review">Review</a></nav>
   </div>
 </footer>
+<!-- /chrome:foot -->
 <div class="sheet sheet--side" id="cart-drawer" data-sheet>
   <div class="sheet-scrim" data-sheet-close></div>
   <section class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title" tabindex="-1">

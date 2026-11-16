@@ -1,6 +1,6 @@
 ---
 name: Aarvion
-description: Aarvion's own prescription medicines at the printed MRP less ₹20, sold from one foil blister strip on a dotted forest field, with every price set as the dot-matrix stamp printed on the pack.
+description: A medicine store for Aarvion's own prescription medicines, in the format shoppers in India already know, whose shelf is a foil blister strip and whose every price is the dot-matrix stamp printed on the pack.
 colors:
   forest-50: "#f1f6f2"
   forest-100: "#dfebe2"
@@ -286,27 +286,37 @@ components:
   button-disabled:
     backgroundColor: "{colors.neutral-100}"
     textColor: "{colors.neutral-600}"
-  nav-bar:
+  announce-bar:
     backgroundColor: "{colors.forest-900}"
     textColor: "{colors.white}"
-    rounded: "{rounded.pill}"
-    padding: "0 8px 0 22px"
-    height: "60px"
-    width: "min(1100px, 100%)"
-  nav-pill:
-    textColor: "{colors.white}"
+    typography: "{typography.caption}"
+    height: "36px"
+  store-header:
+    backgroundColor: "{colors.white}"
+    textColor: "{colors.ink}"
+    height: "72px"
+    width: "min(1280px, 100% - 2 * gutter)"
+  category-link:
+    textColor: "{colors.neutral-800}"
     typography: "{typography.nav-link}"
     rounded: "{rounded.pill}"
-    padding: "0 16px"
+    padding: "0 14px"
+    height: "44px"
+  header-upload:
+    backgroundColor: "{colors.forest-800}"
+    textColor: "{colors.white}"
+    typography: "{typography.button}"
+    rounded: "{rounded.pill}"
+    padding: "0 18px 0 16px"
     height: "44px"
   search-pill:
     backgroundColor: "{colors.white}"
     textColor: "{colors.ink}"
     typography: "{typography.body}"
     rounded: "{rounded.pill}"
-    padding: "0 22px 0 20px"
-    height: "56px"
-    width: "min(540px, 100%)"
+    padding: "0 18px 0 16px"
+    height: "48px"
+    width: "min(640px, 100%)"
   search-suggestions:
     backgroundColor: "{colors.white}"
     textColor: "{colors.ink}"
@@ -316,14 +326,45 @@ components:
     backgroundColor: "{colors.forest-50}"
     rounded: "{rounded.md}"
   strength-chip:
-    textColor: "{colors.white}"
+    backgroundColor: "{colors.white}"
+    textColor: "{colors.ink}"
     typography: "{typography.mono-chip}"
     rounded: "{rounded.pill}"
     padding: "0 14px"
     height: "32px"
   strength-chip-pressed:
-    backgroundColor: "{colors.sand-200}"
-    textColor: "{colors.forest-900}"
+    backgroundColor: "{colors.forest-800}"
+    textColor: "{colors.white}"
+  banner:
+    backgroundColor: "{colors.forest-50}"
+    rounded: "{rounded.strip}"
+    width: "min(1280px, 100% - 2 * gutter)"
+    height: "420px"
+  quick-action:
+    backgroundColor: "{colors.white}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.lg}"
+    padding: "14px 14px 14px 16px"
+    height: "84px"
+  quick-action-primary:
+    backgroundColor: "{colors.forest-800}"
+    textColor: "{colors.white}"
+  trust-strip:
+    backgroundColor: "{colors.sand-50}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.lg}"
+    padding: "16px 0"
+  rail-strip:
+    backgroundColor: "{colors.foil-200}"
+    rounded: "{rounded.strip}"
+    padding: "2px 10px 4px"
+  percent-off:
+    backgroundColor: "{colors.forest-50}"
+    textColor: "{colors.forest-700}"
+    typography: "{typography.mono-chip}"
+    rounded: "{rounded.pill}"
+    padding: "0 7px"
+    height: "22px"
   foil-strip:
     backgroundColor: "{colors.foil-200}"
     textColor: "{colors.ink}"
@@ -543,25 +584,25 @@ components:
 
 **Creative North Star: "The Stamped Foil Strip"**
 
-Aarvion sells its own prescription medicines, and the system is built from the objects a buyer in India already trusts to tell the truth about a price: the medicine pack, its silver blister strip, and the dot-matrix MRP inked on the carton. The persuasion surface puts the real packs in one continuous foil strip that rises out of a dotted forest field through white fog. Each pocket is the same unit and differs only in value. Every price appears as a pair: the printed MRP, struck through in green, above the Aarvion price stamped ₹20 lower. The stamp is the brand's voice. Everything else stays quiet so the stamp can be read.
+Aarvion sells its own prescription medicines, and the system is built from the objects a buyer in India already trusts to tell the truth about a price: the medicine pack, its silver blister strip, and the dot-matrix MRP inked on the carton. The home page is laid out as an Indian medicine store (the format of 1mg, PharmEasy and Apollo Pharmacy): an announcement line, a sticky white store header with search, a rotating banner, quick actions, a trust strip, the category bento, rails of products, then the ordering film, questions, the close and a store footer. What makes it Aarvion's is the shelf: every product sits in the same foil blister pocket on a print-field strip, and every price is the pack's own dot-matrix stamp, the printed MRP struck in green above the price, with the store's % off beside it as a plain fact. The ₹20 is never a headline. Everything else stays quiet so the pack and its price can be read.
 
-The world has two registers. The **Persuade** register (the home page) is a scroll film on native scroll: five acts in which the headline lifts, the strip zooms, Sacuwin 100 flies through the screen, a page-sized MRP resolves dot by dot and is struck, and the bento of therapy areas arrives from depth. The **Operate** register (sign-in, cart, checkout, order, account and the staff admin) gives up the strip and the film. It keeps only what the work needs from the world: the forest band, the white work sheet rising out of it, shipping-label paper for receipts and slips, the stamp for totals and order numbers, the perforated rule, and small blister wells for product thumbnails. Admin is denser still: forest rail, neutral-50 ground, 46px rows, Geist Mono ids, and the perforation as its single signature.
+The world has two registers. The **Persuade** register (the home page) is a store with craft in its motion: banners that cross-fade on their own clock, a bento that rises from depth, rails that rise with parallax, a pinned ordering film (steps, a filling perforation, documents scaling in from depth) and a closing logo pan-in on forest. The **Operate** register (sign-in, cart, checkout, order, account and the staff admin) shares the store header and footer but gives up the strip and the film. It keeps only what the work needs from the world: the forest band, the white work sheet rising out of it, shipping-label paper for receipts and slips, the stamp for totals and order numbers, the perforated rule, and small blister wells for product thumbnails. Admin is denser still: forest rail, neutral-50 ground, 46px rows, Geist Mono ids, and the perforation as its single signature.
 
-The mood is calm, exact and physical. Colour lives on grounds and rules while text stays neutral. Materials are real rasters rendered from a physical model, not CSS imitations. Motion is cinematic on the home page and brief everywhere else. This is someone's heart or eye medicine, so nothing shouts, blinks for attention or invents urgency.
+The mood is calm, exact and physical. Colour lives on grounds and rules while text stays neutral. Materials are real rasters, rendered from a physical model or composited from the real pack photos, never CSS imitations. Motion is crafted on the home page and brief everywhere else. This is someone's heart or eye medicine, so nothing shouts, blinks for attention or invents urgency.
 
 **Key Characteristics:**
-- Deep forest field (#1F3D2B) with a 5px inkjet dot grain, fading through procedural fog into a clean white page.
-- One foil blister strip of identical pockets, built from procedural rasters: lit aluminium, diamond knurl, clear PVC domes and pressed perforations.
-- Every price is a stamp pair: the struck printed MRP above the price, in Geist Mono, dot-matrix at stamp sizes.
+- Store chrome: a forest-900 announcement line, a sticky white header (logo, wide search, Upload prescription, Sign in, Cart with count) over a category bar, and a forest-900 store footer.
+- Banners: generated scenes with the real pack cutouts composited onto them (scripts/composite_store_banners.py), live HTML copy on the left, rotating every 6s.
+- One foil blister pocket for every product, on print-field strips built from procedural rasters: lit aluminium, diamond knurl, clear PVC domes and pressed perforations.
+- Every price is a stamp pair: the struck printed MRP with a % off tag above the price, in Geist Mono, dot-matrix at stamp sizes.
 - Host Grotesk display (600–700, tight tracking), Geist body, Geist Mono for every number, id and code. All three draw ₹.
 - Sand (#E8DCC4) is the one primary action on forest ground; forest-800 is the primary action on white.
-- Pill controls, a glass pill nav that turns solid over light ground, and soft forest-tinted shadows.
-- A scroll film driven by one rAF tick on native scroll, transform and opacity only, with a complete static composition under reduced motion.
-- Operate screens and admin borrow the world's details, never its spectacle.
+- Pill controls, soft forest-tinted shadows, dashed perforation wherever things belong to one strip, document or sequence.
+- A scroll engine (one passive listener, one rAF tick, transform and opacity only) for the ordering film, the bento rise, the rail rise and the close, with a complete static composition under reduced motion.
 
 **Owner-pending (not final; do not treat as settled):**
-- **Sacuwin 100 hero photo.** The flyer comes from the 1000×1000 owner photo (745×835 matte). At rest on 2× screens it is drawn about 1.7× above its source and reads soft. A larger photo is the real fix.
-- **Real-device frame timing.** The film has only been measured in headless Chromium at 4× CPU throttle on the shipped build (p95 16.8 ms; 3.0% of frames over 17 ms across the film at 1440 and 3.7–4.1% at 390, and 17–18% in Act 1 with the scroll-0 warm-up included). A rAF log on a mid-range Android phone in Chrome and on a 2× Mac in Safari is still owed.
+- **Banner composites.** The four banners are generated scenes with the real pack cutouts placed by `scripts/composite_store_banners.py`. They read as one photograph at 1280px; the owner has not yet seen them, and the eye scene carries Win2Age-printed packs until Aarvion photos exist.
+- **Real-device frame timing.** The v2 store home has only been measured in headless Chromium at 4× CPU throttle (p95 16.7–16.8 ms; 1.4–1.5% of frames over 17 ms from the top to the end of the close, at 1440 and 390). A rAF log on a mid-range Android phone in Chrome and on a 2× Mac in Safari is still owed.
 - **Logo wordmark.** "AARVION" and "PHARMACEUTICALS" are live Montserrat 800 text beside the inline SVG swoosh (Google Fonts subset `text=AARVIONPHMCEUTLS`). The redrawn logo in `assets/brand/` is a draft awaiting the owner's approval, and its wordmark must be outlined to paths before it ships.
 
 ## Colors
@@ -569,23 +610,23 @@ The mood is calm, exact and physical. Colour lives on grounds and rules while te
 A green-and-white palette: forest grounds, white work surfaces, sand for paper and the primary on dark, silver foil for the material, and forest-tinted neutrals for all text.
 
 ### Primary
-- **Deep Forest Field** (#1f3d2b, forest-800): the brand ground. It fills the hero, the closing act, the Operate band behind every task page and the Cardiology bento tile, always with the 5px dot grain. On white it is the primary action fill (Add to cart, Checkout, admin primary) and the stamp colour for big counts.
-- **Night Forest** (#172f21, forest-900): the solid nav pill over light ground (at 92% alpha on home, 94% on flows), the footer, the admin rail, the phone menu and customer toasts. The theme colour of the browser chrome is forest-800.
+- **Deep Forest Field** (#1f3d2b, forest-800): the brand ground. It fills the closing act, the Operate band behind every task page, the Heart care bento tile and the "Order with a prescription" quick action, always with the 5px dot grain. On white it is the primary action fill (Upload prescription in the header, banner buttons, Add to cart, Checkout, admin primary), the cart count and the stamp colour for big counts.
+- **Night Forest** (#172f21, forest-900): the announcement line, the store footer, the admin rail and customer toasts. It is also the browser chrome's theme colour on the home page.
 - **Forest Shadow** (#0e1e15, forest-950): never a surface on the storefront. It tints every shadow and scrim, and it is the admin toast fill.
 - **Pine Ink** (#2a4d36, forest-700): links, focus ring on light ground, the Rx badge, icons in notes and boxes, the checked checkbox and radio, done timeline dots, and the current admin rail item.
 - **Strike Green** (#376145, forest-600): the strike across a printed MRP, the solid timeline rail, the selected option card edge, input focus edge and the caret.
-- **Mist Green** (#f1f6f2, forest-50) and **Pale Fern** (#dfebe2, forest-100): selected and hover fills (search option, account tab, admin row hover), the current timeline step's card, the success tag and the info note. forest-100 is also the 4px focus halo on inputs and OTP boxes, and the admin current row.
+- **Mist Green** (#f1f6f2, forest-50) and **Pale Fern** (#dfebe2, forest-100): selected and hover fills (search option, category link, account tab, admin row hover), the % off tag, the Sacuwin and eye-care banner cards on phones, the current timeline step's card, the success tag and the info note. forest-100 is also the 4px focus halo on inputs and OTP boxes, and the admin current row.
 - **Swoosh Leaf** (#7fd3a6, leaf-300 on dark; #3fa36f, leaf-500 on light): the logo swoosh only, plus icons inside dark toasts and the admin rail's current icon and badges. leaf-500 reaches only 3.1:1 on white, so it never carries text.
 
 ### Secondary
 - **Label Sand** (#e8dcc4, sand-200): the single primary action on forest ground (Upload prescription, the closing call to action, the skip link, the pressed strength chip, done checkout steps). It is also the focus ring on dark ground and the text-selection colour.
-- **Shipping-Label Paper** (#fbf8f2, sand-50): the paper of receipts, the order slip, the example shipping label, the Rx group head and the empty-cart tile.
+- **Shipping-Label Paper** (#fbf8f2, sand-50): the paper of receipts, the order slip, the example shipping label, the Rx group head, the empty-cart tile and the home's trust strip, whose promises are divided by dashed sand-400 perforations.
 - **Pale Sand** (#f5eee1, sand-100): the sand hover and the "waiting" tag ground.
 - **Perforation Sand** (#c8b085, sand-400): the 2px dashed rule above Total payable and the dashed rules inside labels and slips. sand-300 draws the ruled lines on the small Rx document icon.
 
 ### Tertiary
 - **Blister Aluminium** (foil-50 to foil-600, centred on #e2e6e4, foil-200): the material colour behind the foil rasters and their fallback fill. foil-400 is the dashed rail of pending timeline steps and the dashed border of the coming-soon tile; foil-500 is the perforation on paper (`--color-perforation`); foil-100 is the admin product-thumbnail ground.
-- **Inkjet Ink** (#17201b, ink): the colour of every stamp, product name and heading on light ground. **Faded Ink** (#4f5853, ink-muted) is the struck MRP in suggestion lists and on Operate line prices, and the faded MRP of the page-sized Act 2 stamp.
+- **Inkjet Ink** (#17201b, ink): the colour of every stamp, product name and heading on light ground. **Faded Ink** (#4f5853, ink-muted) is the struck MRP in suggestion lists and on Operate line prices.
 
 ### Neutral
 - **Forest-Tinted Black** (#1a1f1c, neutral-900): body text on white.
@@ -607,7 +648,7 @@ Ratios are WCAG 2.x, computed from the tokens; text on foil was measured from re
 - forest-700 on white 9.5:1, on forest-50 8.7:1, on forest-100 7.7:1; forest-800 on forest-100 9.7:1.
 - danger on white 6.5:1; danger-ink on danger-50 8.1:1; wait-ink on sand-100 6.6:1; hold-ink on hold-50 6.7:1; admin-warn-fg on admin-warn-bg 7.2:1; admin-danger-fg on admin-danger-bg 7.3:1.
 - Non-text: line-strong on white 3.1:1; sand-200 focus ring on forest-800 8.8:1; forest-700 focus ring on white 9.5:1; strike forest-600 on white 7.1:1.
-- On the foil print field (minimum over every instance, darkest glyph decile against the 40th-percentile texel): hero salt lines 8.9:1, "All 11" description 8.2:1, catalogue salt 8.0:1, Rx badge 6.2:1 (5.9:1 against the darker texels), struck MRP 11.7:1, stamp price 11.4:1.
+- On the foil print field (minimum over every instance, darkest glyph decile against the 40th-percentile texel): catalogue (rail) composition lines 8.0:1, Rx badge 6.2:1 (5.9:1 against the darker texels), struck MRP 11.7:1, stamp price 11.4:1 (measured on v1's strips, which share the rail's print field; the forest-50 % off tag is solid 8.7:1).
 
 ### Named Rules
 **The Colour-on-Fields Rule.** Colour lives on grounds, fills and rules. Text is ink or neutral on light ground and white or on-dark-muted on forest. Green text is reserved for links, the discount row, "Free" and status inks.
@@ -626,11 +667,12 @@ Ratios are WCAG 2.x, computed from the tokens; text on foil was measured from re
 **Character:** A wide, tight-set grotesk for headings next to a clean neutral sans, with a monospace that does the work of a pack printer: every figure, id and code is set in it. Weights loaded are Host Grotesk 600/700, Geist 400/500/600 and Geist Mono 500/600.
 
 ### Hierarchy
-- **Display XL** (Host Grotesk 700, clamp 2.5–5rem, line-height 1, -0.035em): the hero headline "Genuine medicines, ₹20 below MRP." and the closing headline, white on forest.
-- **Display L** (700, clamp 2.125–3.5rem, 1.04, -0.03em): section headings on the home page, the sign-in title and the Cardiology tile name. Balanced wrap.
+- **Display XL** (Host Grotesk 700, clamp 2.5–5rem, line-height 1, -0.035em): the closing headline, white on forest. No headline is led by the ₹20.
+- **Display L** (700, clamp 2.125–3.5rem, 1.04, -0.03em): "How ordering works", the sign-in title and the Heart care tile name. Balanced wrap.
+- **Banner title** (700, clamp 1.75–2.75rem, 1.06, -0.028em; 1.25rem on phone cards) over a Geist line (1–1.125rem, neutral-700). **Section title** (700, clamp 1.5–2rem, 1.1, -0.022em): Shop by category, the rail titles and Questions.
 - **Display M** (700, clamp 1.75–2.5rem, 1.08, -0.025em): the white title in the Operate band, bento tile names, the empty-cart heading and account tab headings.
 - **Title** (600, clamp 1.25–1.5rem, 1.2, -0.015em): fact terms, step headings, FAQ questions and checkout step headings.
-- **Name** (600, 1.1875rem, 1.2, -0.012em): product names in pockets and cart lines (1.125rem in hero pockets, 1.0625rem in compact lines). **Subhead** (600, 1.0625rem, 1.3) titles option cards, drop zones, Rx items and the receipt head.
+- **Name** (600, 1.1875rem, 1.2, -0.012em): product names in cart lines (1.0625rem in rail pockets and compact lines, 1rem in phone pockets). **Subhead** (600, 1.0625rem, 1.3) titles option cards, drop zones, Rx items and the receipt head.
 - **Lead** (Geist 400, clamp 1.0625–1.25rem, 1.5): sublines under display headings, muted. Pretty wrap.
 - **Body** (Geist 400, 1rem, 1.6): running text; 0.9375rem in boxes, notes and summaries; FAQ answers cap at 62ch.
 - **Body S / Caption** (0.875rem/1.5 and 0.8125rem/1.45): salts, hints, meta lines and timeline times.
@@ -643,7 +685,6 @@ Ratios are WCAG 2.x, computed from the tokens; text on foil was measured from re
 The stamp is the pack's inkjet print, rebuilt as type:
 - **Small and mid sizes** are live Geist Mono masked by a dot grid: `mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch)`. The text stays real, selectable and readable by screen readers.
 - **Pitch scales with size,** between about 1/12 and 1/22 of the font size (finer, relative to size, as figures grow): 1.2px on the 18px MRP, 1.9–2.1px on 26–30px totals, 2.2px on the order number, 2.4px on the 34px price, 3–3.6px on 52–72px empty-well counts, 4px on the 88px "11".
-- **Page-sized stamps** (Act 2's "MRP ₹407" and "₹387") are drawn to canvas: the glyphs are sampled once from Geist Mono 600 at 24px, and one dot is drawn per lit pixel, spread over five canvases (seeded, left-weighted) so the MRP resolves in waves. The live text stays in the DOM, hidden only while the film runs.
 - **The strike** across an MRP is a 2px forest-600 bar (3px past each end) on stamps, or a 1.5px forest-600 `line-through` on solid mono prices. Every struck MRP carries a visually hidden "Printed" and every price a hidden ", our price".
 - **Rupee grouping:** in mono figures the comma is set in Geist (`.cm`), so "₹1,179" never opens a tabular gap.
 
@@ -652,21 +693,21 @@ The stamp is the pack's inkjet print, rebuilt as type:
 
 **The Mono-Is-Data Rule.** Geist Mono sets numbers, prices, ids, codes, counts and step numbers, always with tabular figures. Names of people and products are never in mono.
 
-**The Stamp Threshold Rule.** The dot-matrix mask is for stamp moments: the price pair in pockets, Total payable, the order number and empty counts. Running prices below about 24px on Operate screens stay solid Geist Mono for legibility.
+**The Stamp Threshold Rule.** The dot-matrix mask is for stamp moments: the price pair in pockets (with the solid mono % off tag beside the MRP), Total payable, the order number and empty counts. Running prices below about 24px on Operate screens stay solid Geist Mono for legibility.
 
 ## Layout
 
 **Page grid.** One centred container, `min(75rem, 100% − 2 × gutter)`, with a fluid gutter (`spacing.gutter`, 16–40px). Section rhythm is `spacing.section` (80–144px) and the gap under a section heading is `spacing.heading` (32–48px). Spacing follows a 4px base (`--spacing: 0.25rem`, steps 1–32). Inside components the build uses 4px multiples and a few half-steps (6, 10, 14, 18, 22px) for optical fit.
 
-**Nav.** A floating pill, `min(1100px, 100%)` wide and 60px tall (56px at 880px and below), fixed 16px from the top (12px on Operate pages at 720px and below), centred inside the gutter. Operate pages reserve it with `--sticky-top: nav-top + nav-h + 20px`, which also sets `scroll-padding-top`.
+**Store chrome.** The chrome sits in one 1280 container on every page (customer pages keep their 1200 content column), so the header and footer never shift between pages. A 36px forest-900 announcement line (one cross-fading notice at a time at 720px and below), then the sticky white header: a 72px row (logo · search up to 640px · Upload prescription · Sign in · Cart) over a 44px category bar (Heart care · Diabetes care · Eye care · Respiratory care · All medicines) that sticks under it. `--hdr-h` (117px desktop) is what stays stuck; it sets `scroll-padding-top` and the Operate `--sticky-top`. At 1100px Sign in and Cart drop their labels; at 880px the header stacks into a 52px logo row (logo, Sign in, Cart with a badge count), a full-width search, and a category chip row that scrolls away with the page (`--hdr-h` 108px). Checkout keeps a reduced 72px (56px on phones) header: logo and a "Secure checkout" note.
 
-**Home (Persuade).** Acts are full-bleed stages. The hero is centred: headline, subline, then search beside the sand upload pill (stacked full-width at 720px and below), then the strip (1100px max, four equal columns). The bento is 4 columns × two 248px rows plus a full-width coming-soon row; at 880px it becomes 2 columns, with Cardiology, Eye care and Coming soon spanning both and Diabetology and Respiratory side by side. The catalogue strips are full-width rows of `--n` pockets (5 or 4), with Diabetology and Respiratory paired 2-up; rows fall to 2 columns at 880px and to 1 at 720px. On phones the hero strip scrolls horizontally: pockets 72vw wide, `scroll-snap-type: x mandatory`, start alignment, hidden scrollbar, `overscroll-behavior-x: contain`. The FAQ is a 4/8 split that stacks at 880px. The footer is 5/3/4 columns, 2 at 880px and 1 at 720px.
+**Home (Persuade, store format).** The container is 80rem (1280px) on the home and the section rhythm tightens to `--space-sec` (56–88px). Order: announcement, header, banner carousel (1280 × 420, 300px minimum height, 22px radius), quick actions (four cards, 2 × 2 at 1100px), trust strip (four promises, 2 × 2 at 1100px), Shop by category (the bento: 4 columns × two 216px rows plus a coming-soon row, 2 columns at 880px), product rails, How ordering works, Questions (4/8 split, stacked at 880px), the close and the store footer (brand + four columns, a legal row and a payments row; brand on its own row at 1100px, 2 columns at 720px). Rails: a head (section title, mono count, View all, arrow buttons only while the strip overflows) over a print-field strip as long as its pockets (248px each); the last, short rail carries a forest-50 "Looking for another Aarvion medicine?" card beside it. At 719px and below the banners become a scroll-snap row of 86%-wide cards (4:3 picture over the copy) with the next one peeking, and the rails bleed to the screen edge as scroll-snap rows of 45vw pockets with no arrows.
 
 **Operate shell.** A forest band (title, back link, subline, the checkout progress or order slip) is followed by a white work sheet, `min(1280px, 100%)` wide, that rises 56px into the band (32px on phones) with 24px top corners (22px on phones). The inner column matches the page container, with padding 44px top and 96px bottom. Cart, checkout and order use a list plus a 384px sticky aside (48px gap) that collapses to one column at 960px; checkout moves its summary above the steps there as a collapsible block. Account uses a 232px vertical tab column that turns into a horizontal scrolling pill row at 960px. Sign-in is a two-column intro and 460px card on the forest field, stacked at 960px. At 720px and below, the cart shows a bottom dock (total plus Checkout) once the receipt's button scrolls away.
 
 **Admin shell.** A 14.5rem forest-900 rail (3.75rem icon-only at 1100px and below) beside a stage with a 3.25rem sticky topbar and a page of `1.5rem 1.75rem 3rem` padding, 100rem max. The dashboard is a four-cell count strip over a 1.5fr/1fr body; the Rx review is a 1.1fr/1fr file viewer and decision panel. Both stack at 1100px. Tables scroll inside their wrapper, so the header stays visible. Desktop at 1280–1600 is primary; 768 is readable and nothing breaks at 390.
 
-**Breakpoints actually used** (max-width queries; Tailwind's sm/md/lg/xl at 40/48/64/80rem are declared in tokens but the build reads these): 400 (OTP and segmented control tighten), 560 (admin single column), 639 (drawers and dialogs become bottom sheets), 720 (phone layout), 767 (bento rows size to content), 880 (nav collapses to the menu), 960 (Operate single column), 1060 (nav links tighten), 1100 (admin rail collapses; Act 2 stamp widens), 1360 (admin table padding tightens). The site must work from 360px.
+**Breakpoints actually used** (max-width queries; Tailwind's sm/md/lg/xl at 40/48/64/80rem are declared in tokens but the build reads these): 400 (OTP and segmented control tighten), 560 (admin single column), 639 (drawers and dialogs become bottom sheets), 719 (banner cards, edge-to-edge rails, phone film), 720 (phone layout, one announcement at a time, footer in 2 columns), 880 (header stacks; bento in 2 columns), 960 (Operate single column), 1100 (header labels drop; quick actions and trust strip go 2 × 2; admin rail collapses), 1360 (admin table padding tightens). The site must work from 360px.
 
 ## Elevation & Depth
 
@@ -675,30 +716,29 @@ Depth is hybrid. The storefront's focal depth is **material**: foil, knurl and d
 ### Shadow Vocabulary
 - **xs** (`box-shadow: 0 1px 2px rgb(14 30 21 / 0.08)`): the pressed segment and switch knob in admin.
 - **sm** (`0 2px 6px -1px rgb(14 30 21 / 0.10), 0 1px 2px rgb(14 30 21 / 0.06)`): the segmented thumb, switch knob and drop-zone icon.
-- **md** (`0 10px 24px -8px rgb(14 30 21 / 0.18), 0 2px 6px -2px rgb(14 30 21 / 0.08)`): catalogue strips, the file chip, admin menus and toasts.
-- **lg** (`0 24px 48px -18px rgb(14 30 21 / 0.28), 0 6px 14px -6px rgb(14 30 21 / 0.12)`): the search suggestions, example documents, the feature pocket and the admin drawer and dialog.
-- **strip** (`0 12px 18px -12px rgb(9 22 15 / 0.42)`), with `inset 0 1px 0 rgb(255 255 255 / 0.85)` and `inset 0 -1px 0 rgb(40 50 45 / 0.12)`: the hero foil strip's lift and lit edges.
+- **md** (`0 10px 24px -8px rgb(14 30 21 / 0.18), 0 2px 6px -2px rgb(14 30 21 / 0.08)`): the rail strips, the file chip, admin menus and toasts.
+- **lg** (`0 24px 48px -18px rgb(14 30 21 / 0.28), 0 6px 14px -6px rgb(14 30 21 / 0.12)`): the search suggestion panel, example documents and the admin drawer and dialog.
+- **strip** (`0 12px 18px -12px rgb(9 22 15 / 0.42)`), with `inset 0 1px 0 rgb(255 255 255 / 0.85)` and `inset 0 -1px 0 rgb(40 50 45 / 0.12)`: a foil strip's lift and lit edges (the rail strips use shadow md with the same lit edges).
 - **blister** (`0 6px 10px -4px rgb(14 30 21 / 0.28), 0 1px 1px rgb(14 30 21 / 0.18)`) with **inset-blister** (`inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -2px 6px rgb(60 70 65 / 0.16)`): small product wells on Operate screens.
-- **pressed** (`inset 0 3px 10px rgb(40 50 45 / 0.28), inset 0 1px 2px rgb(40 50 45 / 0.25)`): an opened hero pocket's dome floor.
+- **pressed** (`inset 0 3px 10px rgb(40 50 45 / 0.28), inset 0 1px 2px rgb(40 50 45 / 0.25)`): a pressed dome floor (v1's opened hero pocket; kept as a token).
 - **sheet** (`0 30px 60px -20px rgb(5 15 10 / 0.45), 0 8px 20px -10px rgb(5 15 10 / 0.3)`): drawers, dialogs and bottom sheets; the sign-in card uses `0 30px 60px -30px rgb(5 15 10 / 0.6), 0 8px 18px -10px rgb(5 15 10 / 0.35)`.
 - **on forest** (`0 12px 28px -14px rgb(5 15 10 / 0.6)` under the search pill; `0 14px 30px -14px rgb(14 30 21 / 0.55)` under the solid nav; `0 18px 36px -16px rgb(5 15 10 / 0.6)` under toasts; `0 18px 30px -18px rgb(5 15 10 / 0.6)` under the order slip).
 
 ### Materials
-- **Foil body.** `foil-plate.webp` (2880×720 at 2×, shown at 1440×360, tileable): lit aluminium with rolling undulation, soft crumple and specular roll highlights, tinted slightly toward the forest. Act 1's full-frame fill uses `foil-fill.webp`, the same model 1.5× closer.
+- **Foil body.** `foil-plate.webp` (2880×720 at 2×, shown at 1440×360, tileable): lit aluminium with rolling undulation, soft crumple and specular roll highlights, tinted slightly toward the forest. (`foil-fill.webp`, the same model 1.5× closer, was v1 Act 1's full-frame fill; the store home no longer references it.)
 - **Knurl.** A diamond emboss rendered as its own exact-period light/shadow tile (`foil-knurl.webp`, 280×240 at 2×, shown at 140×120, with a 1× twin made by exact 2×2 averaging), layered over the plate through `image-set()`. Keeping it periodic lets it compress losslessly to a few KB. `--foil-plate` is the knurl over the body over a foil-200 fallback.
-- **Print field.** The same knurl at 0.32 gain (`foil-knurl-print*.webp`, `--foil-print`): real lidding foil is smooth where it is printed. It runs under every text block on foil. Hero and feature pockets switch to it by a static mask that starts 2px above the first line of text; catalogue strips and the Respiratory tile are print field throughout.
-- **Domes.** Clear PVC blister domes as alpha 9-slice images in `border-image` (slice 80 at 40px, the feature dome 90 at 45px), one per pocket aspect: hero 207×188, hero on phone 185×168, feature 120×220 and catalogue 118×216 (the phone's sideways pocket). Each carries a contact shadow, heat-seal band, crease, wall refraction, Fresnel reflection and rim light. The window highlight stays in the rim band, and the renderer fails if it veils the pack by more than 15% alpha (shipped: max 8.6%, mean 3.0%). The pack sits on `dome-floor.webp`, pressed foil.
-- **Glint.** `foil-glint.webp`, a soft specular band that Act 1 slides across the strip and the fill by transform alone.
-- **Field and fog.** The forest field is CSS: forest-800, a 5px grid of 0.8px white dots at 7.5% (7% on the tile), and a leaf-300 glow at 12–14% alpha from the top. The fog is `fog.webp`, a procedural 2400×760 white fog bank whose bottom 8% is opaque for a seamless hand-off to the white page; a second copy masked to the strip's ends and bottom edge sits in front of the strip.
-- **Glass.** The nav is white at 7% with `backdrop-filter: blur(18px) saturate(150%)` and a 1px white-15% inset edge. Over light ground a forest-900 layer fades in under it (240ms). Under `prefers-reduced-transparency` it is solid forest-900.
-- **Production.** Every foil, dome, glint and fog raster is procedural: `scripts/render_foil.py` (numpy heightfields lit as lacquered aluminium, seed 2611, Fourier-domain blurs so every tile is seamless, cwebp encode) and the fog generator. Product photos are sourced cut-outs (`make_cutouts.py`), and the flyer and its σ10 blurred twin come from `make_flyer.py`. Each shipping raster carries a `<file>.json` provenance sidecar (origin, generator, command, seed, pixels, encode). PNG masters live in `.tools/foil-png/`.
+- **Print field.** The same knurl at 0.32 gain (`foil-knurl-print*.webp`, `--foil-print`): real lidding foil is smooth where it is printed. It runs under every text block on foil: the rail strips and the Respiratory care tile are print field throughout.
+- **Domes.** Clear PVC blister domes as alpha 9-slice images in `border-image` (slice 80 at 40px, the feature dome 90 at 45px), one per pocket aspect: 207×188 (`dome-hero`, the rail pocket) and 185×168 (`dome-hero-m`, the phone rail pocket); `dome-feature` (120×220) and `dome-cat` (118×216) belonged to v1 and are no longer referenced. Each carries a contact shadow, heat-seal band, crease, wall refraction, Fresnel reflection and rim light. The window highlight stays in the rim band, and the renderer fails if it veils the pack by more than 15% alpha (shipped: max 8.6%, mean 3.0%). The pack sits on `dome-floor.webp`, pressed foil.
+- **Banners.** Four generated scenes (`assets/banners/store/`, GPT Image 2.5 via Figma; no products, text or logos in them) with the real pack cutouts composited by `scripts/composite_store_banners.py`: each pack stands on a pedestal with a tight contact line, a soft cast shadow thrown away from the scene's key light, a light wrap at its edge and a little haze when it sits farther back. Where a scene has dappled light (the eye scene), packs farther back stand at about 85% scale and every pack is relit by the scene's own light map (fine over broad luminance of the bare scene), scaled to its seat's light level, tinted by the air and softened to the scene's focus. Exported as 1792 and 1280 WebP desktop crops (about 3:1) and an 840 × 472 (16:9) phone crop framed on the packs, each with a `.json` provenance sidecar. Headlines are always live HTML.
+- **Field.** The forest field is CSS: forest-800, a 5px grid of 0.8px white dots at 7.5% (7% on tiles and the prescription quick action), and a leaf-300 glow at 12–14% alpha from the top. (`fog.webp` and `foil-glint.webp` belonged to v1's hero and are no longer referenced.)
+- **Production.** Every foil, dome, glint and fog raster is procedural: `scripts/render_foil.py` (numpy heightfields lit as lacquered aluminium, seed 2611, Fourier-domain blurs so every tile is seamless, cwebp encode) and the fog generator. Product photos are sourced cut-outs (`make_cutouts.py`); the banners are composited by `composite_store_banners.py`. (v1's flyer and its blurred twin, from `make_flyer.py`, are no longer referenced.) Each shipping raster carries a `<file>.json` provenance sidecar (origin, generator, command, seed, pixels, encode). PNG masters live in `.tools/foil-png/`.
 
 ### Named Rules
 **The Raster Foil Rule.** The strip, the fill and the domes are rasters from the physical model, never CSS gradients. Only small wells (132px and under) and step dots may imitate a blister with a radial gradient and the blister shadows.
 
 **The Print Field Rule.** No text sits on full-gain knurl. Text on foil uses the print field and neutral-800 for secondary lines.
 
-**The Uniform Knurl Rule.** The knurl only ever scales uniformly. When Act 1's fill grows non-uniformly from the plate to the frame, its foil counter-scales so the diamond keeps its proportions, and the knurl stays baked into that one layer. Splitting it out turned the fill into brushed metal.
+**The Uniform Knurl Rule.** The knurl only ever scales uniformly. Any foil that grows non-uniformly counter-scales its knurl so the diamond keeps its proportions (v1's Act 1 fill did; splitting the knurl out turned it into brushed metal). The store home has no growing fill.
 
 ## Shapes
 
@@ -726,31 +766,51 @@ Tactile pills that press.
 - **Press and focus:** `scale(0.97)` over 140ms on the strong ease-out. On customer surfaces hover rules apply only under `(hover: hover) and (pointer: fine)`, so touch never sticks in a hover state. Disabled is neutral-100 with neutral-600 text, no edge and a not-allowed cursor. Busy swaps the label for an 18px spinner and the busy text, and sets `aria-busy`.
 - **Link:** Geist 600 forest-700 with a forest-300 underline that darkens on hover; 44px tall when standalone.
 
-### Navigation
-- **Glass pill** on forest ground; solid forest-900 over light ground. The switch is driven by `data-ground` on each section and the scroll position.
-- **Contents:** logo lockup (40×11 swoosh plus the wordmark), four therapy links (44px, Geist 500, white at 90%, pill hover white 10%), then Upload Rx and Cart pills (44px, 1px white-22% inset edge). The cart count is mono, and it bumps (scale 1.35 over 260ms) or slides up (220ms) on change. Signed-in pages show a 32px sand avatar dot in the account pill.
-- **880px and below:** the links, the Upload Rx label and the cart label collapse. A 44px menu button opens a forest-900 panel (24px radius, 320px max) that scales from top-right (opacity 180ms, transform 220ms). Escape closes it and returns focus.
+### Store Header and Category Bar
+- **Announcement line:** forest-900, 36px, Geist 500 0.8125rem white at 92%, the three notices ("Free delivery across India", "Cash on delivery available", "A pharmacist checks every prescription") divided by 4px leaf-300 dots. At 720px and below one notice shows at a time, cross-fading every 5s (first notice only under reduced motion). No marquee.
+- **Header row:** white, 72px, sticky. Logo lockup (40×11 leaf-500 swoosh, forest-900 wordmark), the search, then Upload prescription (44px forest-800 pill, white Geist 600), Sign in and Cart (44px quiet pills, forest-700 icons, neutral-100 hover). The cart count is a 22px forest-800 pill with a white mono figure; it bumps (scale 1.35, 260ms) on change. Signed in, Sign in becomes a 28px sand initial and "Account". The header gains a soft shadow once it sticks (an IntersectionObserver on the announcement line, no scroll listener).
+- **Category bar:** 44px, hairlines above and below, sticky under the row on desktop. Links are Geist 500 0.9375rem neutral-800 with a forest-50 pill hover; "All medicines" is forest-700 600 with a chevron. On phones it is a row of 36px outlined chips (44px hit area) that starts on the search field's edge, runs off the screen edge, scrolls sideways (`scroll-padding-inline` the gutter) and scrolls away with the page.
+- **Names:** Heart care, Diabetes care, Eye care, Respiratory care. "Therapy area" is industry vocabulary; shoppers name the condition they manage (Apollo's norm). The names describe a category and make no therapeutic claim. Coming-soon categories follow the same rule (Digestive care, Bone and joint care, Urinary care).
+- **Checkout** keeps a reduced header: the logo and a "Secure checkout" note with a shield, no announcement, search or category bar; the band links back to the cart.
+- One source: `design/prototype/src/chrome.mjs` writes the chrome into the home and between the `<!-- chrome:* -->` markers of every customer page.
 
 ### Search with Suggestions
-A working combobox, not a decoration.
-- **Pill:** white, 56px (52px on phones), forest-700 search icon, placeholder neutral-500, caret forest-600. `focus-within` draws a 2px sand-200 outline at 3px offset.
-- **Strength chips** below it: 32px mono pills, white at 6% with a 24% edge; pressed, they turn sand-200 / forest-900. A `::before` extends the hit area. They filter by strength and toggle (`aria-pressed`).
-- **Suggestions:** a white panel opening just under the pill, 64px from its top (6px padding, 20px radius, shadow lg, `min(372px, 48vh)` tall, scrolls with contained overscroll). Each option is a 44px pack thumbnail, then the name (Host Grotesk 600 0.9375rem) and salt · pack (caption, two-line clamp), then the price column (struck MRP 0.75rem over the price 1rem, mono). Matches are highlighted with a sand-200 `mark`. The selected option is forest-50 with a 1px forest-200 inset edge.
-- **Behaviour:** `role="combobox"` with `aria-expanded`, `aria-controls` and `aria-activedescendant` on a `role="listbox"`; arrows move, Enter chooses the first or current, Escape closes and then clears. Choosing scrolls the product's pocket into view, outlines its dome (3px forest-600 at 4px offset) and focuses its cart control. Result counts are announced politely. The empty state names a brand and a salt to try.
+A working combobox, not a decoration, in the header on every customer page.
+- **Pill:** white, 48px, a 1px line-strong edge (3.1:1), forest-700 search icon, placeholder neutral-500 (4.8:1), caret forest-600, 16px text. Focus draws a 1.5px forest-600 edge with a 4px forest-100 halo.
+- **Panel:** focus opens a white panel 8px under the pill (20px radius, shadow lg). Its first row holds the **strength chips** (32px mono pills, white with a neutral-300 edge, pressed forest-800 / white, a `::before` extending the hit area; they filter by strength and toggle with `aria-pressed`), then a hint, or the suggestions once there is a query or a strength.
+- **Suggestions:** a listbox (`min(372px, 56vh)`, contained overscroll). Each option is a 44px pack thumbnail, the name (Host Grotesk 600 0.9375rem) and composition · pack (caption, two-line clamp), then the price column (struck MRP 0.75rem over the price 1rem, mono). Matches are highlighted with a sand-200 `mark`; the selected option is forest-50 with a 1px forest-200 inset edge.
+- **Behaviour:** `role="combobox"` with `aria-expanded`, `aria-controls` and `aria-activedescendant`; arrows move, Enter chooses the first or current, Escape closes and then clears. On the home page choosing scrolls the pocket into view (its rail too), outlines its dome (3px forest-600 at 4px offset) and focuses its cart control; on other pages it goes to `index.html#p-<slug>`, which does the same on arrival. Result counts are announced politely. The list comes from `js/catalogue.js`, generated from `data/products.json` by the build.
 
 ### Pocket (Product Card)
-The repeatable unit of the strip. Every pocket is the same object and differs only in value.
-- **Structure:** a dome (the pack photo on the dome floor under the clear dome) over a text block: name with the Rx badge at the end, salt line, pack line, then the stamp pair and the cart control.
-- **Dome size:** `--bh` is 188px (hero and catalogue), 168px for the hero on phones and 220px for the feature pocket. Stacked pockets get a dome 1.1× as wide as it is tall, centred, with the text aligned to it. The pack fills up to the inner wall less 4px (`max-height: bh − 28px`, `max-width: 82%`), about 75% of the dome width for near-square packs (portrait packs such as Sacuwin 200 reach about 57%).
-- **Sideways:** at a container width of 330px and up (a container query on the pocket), the dome takes a `minmax(112px, 38%)` column and the text sits right of it.
-- **Text on foil:** name Host Grotesk 600 (1.1875rem; 1.125rem in the hero), salt caption in neutral-800, pack caption in ink 500.
-- **States:** on fine-pointer hover the dome lifts 3px and its contact shadow fades in. Pressing scales the pocket to 0.97. A hero pocket is a button (`aria-expanded`): opening it sinks the pack 2px at scale 0.97, flattens the dome glare to 70%, presses the floor (pressed shadow) and reveals the cart control with an 8px rise. Only one hero pocket is open at a time.
-- **"All 11" pocket:** the same unit, holding a dot-matrix "11" (5.5rem, forest-800, 4px pitch) and an arrow that nudges 4px on hover.
-- **Operate wells:** cart lines, the drawer and admin use small wells instead (88px, 64px or 60px; 14px or 12px radius; radial blister gradient with the blister shadows), never the strip.
+The repeatable unit of the shelf. Every pocket is the same object and differs only in value.
+- **Structure:** a dome (the pack photo on the dome floor under the clear dome) over a text block: the name (with its strength) and the Rx badge at the end, the actives with their strengths (preservatives and salt forms dropped; at most two lines, three on phones; each strength is a non-breaking unit so a wrap or the clamp never cuts one; the full composition stays in the title and for screen readers), the pack ("Strip of 14 tablets", "10 ml bottle"), then the stamp pair with its % off tag and the cart control, pinned to the bottom so prices line up along a rail.
+- **Dome size:** `--bh` 188px in rails (150px on phones); the dome is 1.1× as wide as it is tall, centred, with the text aligned to it, using `dome-hero.webp` (`dome-hero-m.webp` on phones). The pack fills up to the inner wall less 4px (`max-height: bh − 28px`, `max-width: 82%`).
+- **Text on foil:** the label spans the pocket's full inner width (slightly wider than the dome); name Host Grotesk 600 1.0625rem (1rem on phones), composition caption in neutral-800 (0.75rem on phones), pack caption in ink 500.
+- **States:** on fine-pointer hover the dome lifts 3px and its contact shadow fades in. Pressing Add scales the pocket to 0.98. A pocket found by search gets the forest-600 outline on its dome.
+- **Operate wells:** cart lines, the drawer and admin use small wells instead (88px, 64px or 60px; 14px or 12px radius; radial blister gradient with the blister shadows), never the strip. The home's quick actions use the same 48px well for their icons.
+
+### Product Rail
+- One rail per condition with medicines: Heart care (5), Eye care (4), then Diabetes and respiratory care (2), each a section title with a mono count ("5 medicines", from the data).
+- **View all:** while a strip is longer than the page, a "View all N" button (`aria-expanded`, `aria-controls` the row) opens it in place into a wrapping sheet of the same pockets and turns into "Show fewer"; focus stays on the button. A rail that already shows every pocket offers no View all (its count says it is the whole category). It becomes a link once category pages exist.
+- The strip is a print-field foil strip (22px radius, shadow md with a lit top edge) as long as its pockets (248px each), pockets divided by pressed perforation slits. It scrolls with snap when it is longer than the page; then 44px arrow buttons page it (0.8 of its width) and disable at the ends. At 1440 every rail fits, so no arrows show.
+- Phones: the strip runs edge to edge, pockets 45vw (at least 164px) so two show with a peek of the third, aligned to the gutter; no arrows.
+- The short last rail carries a forest-50 card: "Looking for another Aarvion medicine?", with Search medicines and Contact us.
+- Rails rise into place on scroll at their own rate (80–110px), the parallax, under the scroll engine.
+
+### Banner Carousel
+- Four slides at the content width (1280 × 420, 300px minimum, 22px radius): Sacuwin 50, 100 and 200 (always first: Aarvion-printed packs lead), eye drops, prescription upload, free delivery. Each is a composited scene (see Materials) with a live heading (banner title), one line and one forest button on its calm left side.
+- **Desktop:** slides stack and cross-fade: the incoming slide fades in over 700ms on ease-out above the outgoing one, its picture settles from 1.035, its copy rises 10px in a 60ms stagger. Transform and opacity only. Inactive slides are `inert`.
+- **Phones (719px and below):** a native scroll-snap row of 86% cards (a 16:9 picture, 840 × 472 framed on the packs, over a tight copy panel: a 20px heading, the line, the 44px button 12px below; tinted grounds forest-50, forest-100, sand-50, sand-100), each as tall as its own copy (about 315–335px at 360–390), with the next card peeking; the first quick-action row stays fully on the first screen. The scroll position decides the current slide.
+- **Controls** below: pause/play (first, per the APG), previous, the dots, next; all 44px tall (dots 30px wide, the current one 44px). The current dot is a 28 × 8 track that fills forest-700 over 6s; its `animationend` advances the slide, so every hold pauses the clock where it stands.
+- **Autoplay** every 6s, held by hover, focus inside, touch (until 4s after release), a hidden tab or the banner leaving the screen, and stopped by the pause control. It never starts under reduced motion, where the pause control is hidden. The region is `aria-roledescription="carousel"`; slides are groups labelled "1 of 4"; the track is `aria-live="off"` while rotating and `polite` otherwise.
+- **LCP:** the first picture is eager with `fetchpriority="high"` and explicit dimensions (a `<source>` for the phone crop carries its own); the rest are lazy until the page has loaded.
+
+### Quick Actions and Trust Strip
+- **Quick actions:** four 84px cards in a row (2 × 2 at 1100px; on phones the icon sits above the text): Order with a prescription (forest-800 field with dot grain, a sand-200 well; it is the label of the file input, so it works without script), Search for a medicine (focuses the header search), Track an order, Contact us. White cards have a 1px neutral-200 edge, a 48px blister well with a forest-700 icon, a Host Grotesk 600 title, a caption and a chevron that nudges 3px on hover.
+- **Trust strip:** four promises on sand-50 paper, each a 28px stroke icon over or beside two lines (Genuine medicines · Pharmacist-checked · Free delivery · Cash on delivery), divided by 1.5px dashed sand-400 perforations. No numbers. 2 × 2 at 1100px.
 
 ### Stamp Price
-- **Pair:** the struck printed MRP (Geist Mono 600 1.125rem, dot pitch 1.2px, forest-600 strike bar) above the price (Geist Mono 600 2.125rem, -0.02em, pitch 2.4px), both ink, 4px apart, left-aligned.
-- **Print-in, once on load** (hero pockets only, staggered 150ms per pocket): the MRP inks in over 420ms in `steps(5)` from 450ms, the strike draws left to right over 300ms from 860ms, then the price stamps in from scale 1.16 with a fade over 260ms from 1120ms.
+- **Pair:** the struck printed MRP (Geist Mono 600 1.0625rem, dot pitch 1.2px, forest-600 strike bar) with its **% off tag** beside it (a 22px forest-50 pill, forest-700 Geist Mono 600 0.75rem, solid, `floor(2000 / MRP in paise × 100)`: a discount tag never rounds up), above the price (Geist Mono 600 2.125rem, -0.02em, pitch 2.4px; 1.75rem at pitch 2.1px on phones), ink, 4px apart, left-aligned. The ₹20 is an ordinary store discount here, never a slogan.
 - **Re-stamp:** on Operate screens Total payable re-stamps once whenever it changes, by WAAPI: scale 1.12 → 1 with opacity 0.35 → 1, 220ms, `cubic-bezier(0.23, 1, 0.32, 1)`. It cancels any running animation first, never fires on first render or an empty cart, and is opacity-only (160ms) under reduced motion.
 
 ### Rx Badge
@@ -818,19 +878,19 @@ Operate density with the world's details only.
 - **Confirm dialog:** native `<dialog>`, 14px radius, shadow lg, 30rem, scale 0.96 over 200ms, backdrop forest-950 at 40%. It restates every value entered and opens on "Go back".
 
 ### Scroll Film (Signature)
-The home page is a film in five acts on the browser's own scroll.
-- **Engine:** native scroll with no scroll-jacking and no smooth-scroll library. There is one passive scroll listener that marks the frame dirty and one `requestAnimationFrame` tick per frame. An IntersectionObserver (root margin 100%) switches acts on and off, and only live acts compute and carry `will-change`.
-- **Timeline:** each animated element declares `data-in="start end ease"` and/or `data-out` as fractions of its act's progress. The tick maps progress through cubic easings (`lin`, `out`, `in`, `io`) into the registered numeric properties `--ti` (arrival) and `--to` (exit), written to 4 decimals and only when changed. CSS turns them into `transform` and `opacity`, plus `scaleX` strikes and canvas opacity. Nothing animates layout, colour or filters.
-- **Pins:** a pinned act is `100lvh + pin` tall (100vh fallback) with a sticky 100lvh stage. Pins are 190 / 200 / 200 / 110lvh on desktop for the hero, stamp, steps and close acts, and 120 / 140 / 160 / 80lvh at 720px and below. Act 2 overlaps the hero's tail (-48lvh, -33lvh on phones) so no frame is an empty white field.
-- **Acts:** (1) the headline lifts and fades, the strip zooms 1.14× while the side pockets part, Sacuwin 100 lifts out of its pocket and flies through the screen (scale to about 3.2×, crossfading to its blurred twin from p .64 to .70), the foil fills the frame as the glint runs across, then the frame hands off to white; (2) a page-sized "MRP ₹407" resolves dot by dot, the strike draws, "₹387" stamps in at scale and both fly into the feature pocket; (3) the steps advance with a perforation that fills, and the example prescription, order log and shipping label scale in from depth; (4) bento tiles rise from 0.86 scale, staggered, and the catalogue strips rise with parallax; (5) the swoosh zooms out from 14× to its resting size on forest and the closing call to action fades up.
-- **Geometry:** measured once and on resize (debounced 120ms) with transforms switched off by a `measuring` class, so the flyer, fill and stamps know where their targets are.
-- **Static composition:** under `prefers-reduced-motion: reduce`, and without JavaScript, the `film` class is never added. Every act renders as a complete, readable static layout, the stamps do not print in, and the flyer images are never fetched.
+The store home keeps the v1 film's craft where the owner asked for it, on the browser's own scroll. v1's Acts 1 and 2 (the headline over the strip, Sacuwin 100 flying through the screen, the foil fill and the page-sized "MRP ₹407" stamp) are removed.
+- **Engine:** native scroll with no scroll-jacking and no smooth-scroll library. One passive scroll listener marks the frame dirty and one `requestAnimationFrame` tick per frame does the work. An IntersectionObserver (root margin 100%) switches acts on and off, and only live acts compute and carry `will-change`. The banner, the header's shadow and the rails' arrows run on their own events, never on this listener.
+- **Timeline:** each animated element declares `data-in="start end ease"` and/or `data-out` as fractions of its act's progress. The tick maps progress through cubic easings (`lin`, `out`, `in`, `io`) into the registered numeric properties `--ti` (arrival) and `--to` (exit), written to 4 decimals and only when changed. CSS turns them into `transform` and `opacity`. Nothing animates layout, colour or filters.
+- **Pins:** a pinned act is `100lvh + pin` tall (100vh fallback) with a sticky 100lvh stage under the sticky header (its content starts below `--hdr-h`). Pins are 200lvh for How ordering works and 110lvh for the close (160 / 80lvh at 719px and below).
+- **What moves:** (1) Shop by category: the bento tiles rise from 0.86 scale and 9vh, staggered; (2) the product rails rise at their own rate (80–110px), the parallax; (3) How ordering works: the steps advance with a perforation that fills, and the example prescription, order log and shipping label scale in from depth; (4) the close: the swoosh pans in from 14× to its resting size on forest and the call to action fades up.
+- **Captures:** `?p=<act>:<progress>` jumps to a frame (3 ordering, 4 category bento, 5 close; `.tools/acts.mjs`), and `?demo=states` shows a review frame (a pack in the cart, the banner stopped on slide 2, search open on "sacu").
+- **Static composition:** under `prefers-reduced-motion: reduce`, and without JavaScript, the `film` class is never added. Every section renders as a complete, readable static layout, the banner does not rotate and the announcement shows its first notice.
 
 ### Focus, Targets and Assistive Tech
-- **Focus ring:** 2px solid at 3px offset (6px radius), forest-700 on light ground and sand-200 on forest ground (scoped by `--focus` on forest sections, the nav, footer, band and toasts). Admin uses 2px at 2px offset. Mouse focus never shows a ring; `:focus-visible` always does.
+- **Focus ring:** 2px solid at 3px offset (6px radius), forest-700 on light ground and sand-200 on forest ground (scoped by `--focus` on forest sections, the announcement line, footer, band and toasts). Admin uses 2px at 2px offset. Mouse focus never shows a ring; `:focus-visible` always does.
 - **Targets:** customer controls are at least 44px (buttons 48 to 56px; 32px chips extend their hit area). Admin controls are 36px, or 30px for small ones, which is above the 24px WCAG 2.2 minimum for a desktop Operate tool.
 - **Announcements:** one polite live region per page announces cart changes, search result counts, toasts and busy states. Headings that receive focus after a route or step change use `tabindex="-1"` without a ring.
-- **Preferences:** `prefers-reduced-transparency` makes the nav solid; `prefers-contrast: more` darkens muted text to neutral-800 and strengthens card edges; `prefers-reduced-motion` gives the static film, opacity-only sheets and toasts, no OTP shake and no caret blink.
+- **Preferences:** `prefers-contrast: more` darkens muted text to neutral-800 and strengthens card and search edges; `prefers-reduced-motion` gives the static film, no banner autoplay, one announcement notice, opacity-only sheets and toasts, no OTP shake and no caret blink.
 - **Skip link:** a sand pill that drops in at the top left on focus ("Skip to medicines" on the home page).
 
 ### Named Rules
@@ -843,7 +903,7 @@ The home page is a film in five acts on the browser's own scroll.
 ## Do's and Don'ts
 
 ### Do:
-- **Do** show every price as the pair: the struck printed MRP in forest-600 above the price, which is always MRP − ₹20 and never stored.
+- **Do** show every price as the pair: the struck printed MRP in forest-600 with its % off tag, above the price, which is always MRP − ₹20 (% off = floor(2000 / MRP in paise × 100), never rounded up) and never stored.
 - **Do** keep colour on fields, fills and rules, with text in ink, neutral-900, neutral-600 or white.
 - **Do** use one sand-200 pill as the primary action on forest ground and one forest-800 pill as the primary action on white.
 - **Do** set every number, price, id, code and count in Geist Mono with tabular figures, and set names in Host Grotesk or Geist.
@@ -866,3 +926,6 @@ The home page is a film in five acts on the browser's own scroll.
 - **Don't** use hard offset shadows, gradient text or glyph icons; shadows are soft and forest-tinted, and icons are the SVG stroke set.
 - **Don't** show a check on a pending or interrupted step.
 - **Don't** set people's names in Geist Mono, even in admin tables and the audit trail.
+- **Don't** lead a headline, banner, section or meta title with the ₹20. It is a plain price fact in the stamp pair and the % off tag, nothing more.
+- **Don't** invent ratings, reviews, customer counts, "bestseller", "trending" or certifications, and don't use therapy-area words where a shopper reads: Heart care, Diabetes care, Eye care, Respiratory care.
+- **Don't** let a Win2Age-printed pack lead a banner; the lead banner shows Sacuwin, which carries Aarvion's print.
