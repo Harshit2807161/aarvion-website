@@ -91,6 +91,10 @@ describe("Product", () => {
     expect(Product.safeParse(doc()).success).toBe(true);
   });
 
+  it.each(["pack-back-panel", "default", "admin"])("accepts mrpSource %s", (mrpSource) => {
+    expect(Product.safeParse({ ...doc(), mrpSource }).success).toBe(true);
+  });
+
   it("rejects a non-hashed image src", () => {
     const d = doc();
     d.images[0]!.src = "/assets/x.webp";
