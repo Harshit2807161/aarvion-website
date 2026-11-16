@@ -1,9 +1,13 @@
-import { SESSION_POLICY, type SessionKind } from "./sessions.ts";
+import type { SessionKind } from "./sessions.ts";
 
 export const SESSION_COOKIE = "__Host-aarv_sid";
 
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
-const CUSTOMER_MAX_AGE_SEC = SESSION_POLICY.customer.idleMs / 1000;
+/**
+ * Mirrors SESSION_POLICY.customer.idleMs (a test pins the two together). Kept local so
+ * this module has no runtime import of sessions.ts (no cookie <-> sessions cycle).
+ */
+const CUSTOMER_MAX_AGE_SEC = 2_592_000;
 
 /** The session token from the Cookie header, or null unless it is exactly 43 base64url chars. */
 export function readSessionToken(req: Request): string | null {
