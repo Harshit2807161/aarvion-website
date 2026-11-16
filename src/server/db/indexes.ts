@@ -1,21 +1,33 @@
 import type { Db, IndexDescription } from "mongodb";
 
-const registry = new Map<string, IndexDescription[]>();
+export type NamedIndex = IndexDescription & { name: string };
+
+const registry = new Map<string, NamedIndex[]>();
 
 /** Modules register the indexes their collection needs; `ensureIndexes` applies them. */
-export function registerIndexes(collection: string, specs: IndexDescription[]): void {
-  registry.set(collection, [...(registry.get(collection) ?? []), ...specs]);
+export function registerIndexes(collection: string, specs: NamedIndex[]): void {
+  const current = registry.get(collection) ?? [];
+  const next = [...current];
+  for (const spec of specs) {
+    if (typeof spec.name !== "string" || spec.name === "") {
+      throw new Error(`Index on "${collection}" needs an explicit name`);
+    }
+    const prior = next.find((s) => s.name === spec.name);
+    if (!prior) {
+      next.push(spec);
+    } else if (JSON.stringify(prior) !== JSON.stringify(spec)) {
+      throw new Error(`Index "${spec.name}" is already registered on "${collection}"`);
+    }
+  }
+  registry.set(collection, next);
+}
+
+export function getRegisteredIndexes(collection: string): readonly NamedIndex[] {
+  return registry.get(collection) ?? [];
 }
 
 export function resetIndexRegistryForTests(): void {
   registry.clear();
-}
-
-function specName(spec: IndexDescription): string {
-  if (spec.name) return spec.name;
-  return Object.entries(spec.key as Record<string, unknown>)
-    .map(([k, v]) => `${k}_${v}`)
-    .join("_");
 }
 
 /** Idempotent and safe to run concurrently: only missing indexes are created. */
@@ -33,13 +45,11 @@ export async function ensureIndexes(db: Db): Promise<{ collection: string; creat
       // NamespaceNotFound: the collection does not exist yet; createIndexes will make it.
       if ((err as { code?: number }).code !== 26) throw err;
     }
-    const missing = specs.filter((s) => !existing.has(specName(s)));
+    const missing = specs.filter((s) => !existing.has(s.name));
     if (missing.length > 0) {
-      await db
-        .collection(collection)
-        .createIndexes(missing.map((s) => ({ ...s, name: specName(s) })));
+      await db.collection(collection).createIndexes(missing);
     }
-    results.push({ collection, created: missing.map(specName) });
+    results.push({ collection, created: missing.map((s) => s.name) });
   }
   return results;
 }
