@@ -67,6 +67,12 @@ it("maps roles to session kinds", () => {
   }
 });
 
+it("fails closed: only explicit staff roles map to staff, anything else to customer", () => {
+  for (const r of ["", "superuser", "Admin", undefined, null]) {
+    expect(sessionKindForRole(r as never)).toBe("customer");
+  }
+});
+
 describe("touch throttle", () => {
   it("touches at most once a minute", async () => {
     const { token } = await createSession(customer(), T);
