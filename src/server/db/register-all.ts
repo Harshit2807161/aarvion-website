@@ -3,3 +3,5 @@ import "../providers/outbox.ts";
 import "../catalogue/collections.ts";
 import "../security/rate-limit.ts";
 import "../auth/otp.ts";
+import "../auth/users.ts";
+import "../auth/sessions.ts";
