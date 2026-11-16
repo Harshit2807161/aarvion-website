@@ -83,7 +83,11 @@ export const ProductJson = z
     message: "heroImage must be one of images",
     path: ["heroImage"],
   })
-  .refine(rxRule, { message: rxMessage, path: ["rxRequired"] });
+  .refine(rxRule, { message: rxMessage, path: ["rxRequired"] })
+  .refine((p) => (p.mrpPaise === null) === (p.mrpSource === "default"), {
+    message: 'mrpPaise must be null exactly when mrpSource is "default"',
+    path: ["mrpSource"],
+  });
 export type ProductJson = z.infer<typeof ProductJson>;
 
 export const CatalogueJson = z
