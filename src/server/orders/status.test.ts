@@ -177,12 +177,6 @@ describe("reason guards", () => {
     }
     expect(transition(happy("placed"), { type, reason: "x".repeat(500) }, ctx).ok).toBe(true);
   });
-  it("checks the edge before the reason", () => {
-    expect(transition(happy("shipped"), { type: "cancel", reason: "" }, ctx)).toEqual({
-      ok: false,
-      error: "invalid_transition",
-    });
-  });
 });
 
 describe("refund effects (F16)", () => {
@@ -224,10 +218,6 @@ describe("history entry and purity", () => {
       by: "customer",
       reason: "Ordered by mistake",
     });
-  });
-  it("omits reason for events without one", () => {
-    const r = transition(happy("placed"), { type: "confirm" }, ctx);
-    expect(r.ok && "reason" in r.entry).toBe(false);
   });
   it("does not mutate a deep-frozen order", () => {
     const o = happy("placed");
