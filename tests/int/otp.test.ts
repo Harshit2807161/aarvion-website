@@ -52,8 +52,10 @@ describe("issueOtpChallenge", () => {
       consumedAt: null,
       challengeId: r.challengeId,
     });
-    expect(Object.values(doc!)).not.toContain(r.code);
-    expect(JSON.stringify(doc)).not.toContain(r.code);
+    const { _id, ...fields } = doc!;
+    expect(_id).toBe(identifierKey(id));
+    expect(Object.values(fields)).not.toContain(r.code);
+    expect(JSON.stringify(fields)).not.toContain(r.code);
   });
 
   it("enforces the resend cooldown, then replaces the challenge", async () => {
@@ -65,7 +67,12 @@ describe("issueOtpChallenge", () => {
     });
     const second = await issueOtpChallenge(id, at(30_000));
     expect(second.ok).toBe(true);
-    expect(await verifyOtpChallenge(id, first.code, at(30_001))).toMatchObject({ ok: false });
+    // The superseded code now faces the new challenge, so it is a mismatch (not "no challenge").
+    expect(second.ok && second.code !== first.code).toBe(true);
+    expect(await verifyOtpChallenge(id, first.code, at(30_001))).toEqual({
+      ok: false,
+      reason: "mismatch",
+    });
   });
 
   it("lets exactly one of two parallel issues win", async () => {
@@ -92,6 +99,18 @@ describe("verifyOtpChallenge", () => {
     }
     expect((await verifyOtpChallenge(id, code, at(1000))).ok).toBe(false);
     expect((await stored())!.attempts).toBe(5);
+  });
+
+  it("stops parallel wrong verifies at the five-attempt cap", async () => {
+    const { code } = await issue();
+    const wrong = code === "000000" ? "111111" : "000000";
+    const rs = await Promise.all(
+      Array.from({ length: 12 }, () => verifyOtpChallenge(id, wrong, at(1000))),
+    );
+    expect(rs.filter((r) => !r.ok && r.reason === "mismatch")).toHaveLength(5);
+    expect(rs.filter((r) => !r.ok && r.reason === "no_active_challenge")).toHaveLength(7);
+    expect((await stored())!.attempts).toBe(5);
+    expect((await verifyOtpChallenge(id, code, at(1000))).ok).toBe(false);
   });
 
   it("checks expiry in the query at the 5:00 boundary", async () => {
