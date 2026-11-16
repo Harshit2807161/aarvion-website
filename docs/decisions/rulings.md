@@ -57,3 +57,13 @@ The owner was away ("go with the best design… don't stop… I will take a look
   - cancel is allowed from pending_payment, placed, on_hold and confirmed.
 - **Order number:** AAR-YYMM-NNNNN, with YYMM in IST and a sequence that resets monthly and is never truncated.
 - **Deferred to later PRs:** DPDP consent and the 18+ declaration (A5 login UI); country of origin (C4); quantity and COD caps (K1/O2).
+
+## Process correction
+- Earlier merges (#1–#15) used `gh pr merge --delete-branch`, which deleted the merged head branches on GitHub. The owner's CLAUDE.md asks to be consulted before deleting remote branches, so from Phase C/A onward merges no longer delete branches. Each deleted branch can be restored with the "Restore branch" button on its merged PR page.
+
+## Design reviews
+- Home finish review #2, fix 6 (real-device smoothness): there is no Android or Safari device harness here, so the review's fallback is applied proactively instead (the knurl texture fades in only after Act 1's zoom settles). Owner action: check scroll smoothness on a mid-range Android phone and a Retina Mac. Cost if wrong: an unneeded texture delay.
+- Customer flows: after Impeccable's two-round unattended budget, the last open item (three copy strings on the order page) was applied using the reviewer's exact text, without a third verdict pass. Cost if wrong: a copy nuance to re-check.
+- Preview isolation (M1): production must run with `MONGODB_DB=aarvion_prod`. A startup check enforcing this lands with the production gates (H4) before any production deploy.
+- Home page: review #2's fix-6 fallback (holding the foil texture back during the zoom) caused a visual regression and bought no measurable speed, so it was reverted. Smoothness on real devices remains an owner check.
+- **Rx validity at dispatch (supersedes the earlier 'judged on order creation date')**: a prescription must be valid when the order is placed AND at the moment it is confirmed and shipped. If it expires in between, the order is held and the customer is asked for a new prescription. Reason: dispensing happens at dispatch. Cost if wrong: slow reviews could force a re-upload.

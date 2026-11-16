@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Checkout · Aarvion Pharmaceuticals</title>
+<meta name="description" content="Choose an address, add your prescription, pick how to pay and place your order.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1f3d2b">
+<link rel="icon" href="../assets/brand/aarvion-icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@500;600&family=Geist:wght@400;500;600&family=Host+Grotesk:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&text=AARVIONPHMCEUTLS&display=swap">
+<link rel="stylesheet" href="../css/flows.css">
+<script>document.documentElement.classList.add("js")</script>
+<script src="../js/flows.js" defer></script>
+</head>
+<body data-page="checkout">
+<svg width="0" height="0" class="sprite" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4.5M7.5 9 12 4.5 16.5 9"/><path d="M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3.5 4.5h2l2.1 10.2a1.5 1.5 0 0 0 1.5 1.2h7.6a1.5 1.5 0 0 0 1.5-1.1L19.8 8H6.4"/><circle cx="10" cy="19.6" r="1.1"/><circle cx="17" cy="19.6" r="1.1"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8.5h16M4 15.5h16"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5.5 12h13"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9.5 6 6 6-6"/></symbol>
+  <symbol id="i-go" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 19.5c1.2-3.3 3.9-5 7-5s5.8 1.7 7 5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V5.2c0-.4.3-.7.7-.7h3.6c.4 0 .7.3.7.7V7M6.5 7l.8 11.3c.1.9.8 1.7 1.8 1.7h5.8c.9 0 1.7-.8 1.8-1.7L17.5 7"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.3v.2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.7v.2"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.5c0-1.1.9-2 2-2h1.8l1.4-2h5.6l1.4 2H18c1.1 0 2 .9 2 2V17c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2z"/><circle cx="12" cy="12.6" r="3.3"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3.5H7.5c-1.1 0-2 .9-2 2v13c0 1.1.9 2 2 2h9c1.1 0 2-.9 2-2V8z"/><path d="M14 3.5V8h4.5M9 13h6M9 16.5h4"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M3.5 16.5V7c0-.6.4-1 1-1h8.5c.6 0 1 .4 1 1v9.5M14 9.5h3.4l3.1 3.6v3.4h-1.7M8.6 16.5h6.8"/><circle cx="6.8" cy="16.8" r="1.8"/><circle cx="17" cy="16.8" r="1.8"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 20.5s6.5-5.6 6.5-10.5a6.5 6.5 0 0 0-13 0c0 4.9 6.5 10.5 6.5 10.5z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M3.5 10h17M7 14.5h3"/></symbol>
+  <symbol id="i-cash" viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="11" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M6.5 9.5v.2M17.5 14.3v.2"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4.5V15M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19.5h14"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M13.5 5.5h5v5M18.5 5.5l-8 8M16.5 13.5v4c0 .6-.4 1-1 1h-9c-.6 0-1-.4-1-1v-9c0-.6.4-1 1-1h4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5l6.5 2.5v5.5c0 4-2.8 7.4-6.5 9-3.7-1.6-6.5-5-6.5-9V6z"/><path d="m9.2 12 2 2 3.8-3.8"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M14 4.5h3.5c.8 0 1.5.7 1.5 1.5v12c0 .8-.7 1.5-1.5 1.5H14M10 8l-4 4 4 4M6 12h9"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M4 7.5 12 3.5l8 4v9l-8 4-8-4z"/><path d="m4 7.5 8 4 8-4M12 11.5v9"/></symbol>
+  <symbol id="i-pharm" viewBox="0 0 24 24"><path d="M9 4.5h6v2.5H9z"/><path d="M15 5.5h2c.8 0 1.5.7 1.5 1.5v12c0 .8-.7 1.5-1.5 1.5H7c-.8 0-1.5-.7-1.5-1.5V7c0-.8.7-1.5 1.5-1.5h2"/><path d="m9 13.5 2 2 4-4"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4h-4"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="3.5" width="10" height="17" rx="2.2"/><path d="M11 17.5h2"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-hold" viewBox="0 0 24 24"><path d="M10 8v8M14 8v8"/></symbol>
+  <symbol id="i-swoosh" viewBox="0 0 360 96"><path d="M 8 90 C 95 40, 225 6, 300 10 C 330 12, 352 30, 344 58 C 334 44, 318 34, 294 32 C 215 28, 110 54, 8 90 Z"/><path d="M 170 62 C 215 44, 262 36, 286 38 C 296 40, 300 48, 296 58 C 288 50, 274 46, 254 47 C 222 50, 196 56, 170 62 Z"/></symbol>
+</svg>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav-wrap">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="../index.html" aria-label="Aarvion Pharmaceuticals, home"><svg class="brand-mark" aria-hidden="true"><use href="#i-swoosh"/></svg><span class="brand-word">AARVION</span></a>
+    <ul class="nav-links">
+      <li><a href="../index.html#cardiology">Cardiology</a></li>
+      <li><a href="../index.html#diabetology">Diabetology</a></li>
+      <li><a href="../index.html#eye-care">Eye care</a></li>
+      <li><a href="../index.html#respiratory">Respiratory</a></li>
+    </ul>
+    <div class="nav-end">
+      <a class="nav-pill nav-rx" href="account.html#prescriptions"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg><span>Upload Rx</span></a>
+      <a class="nav-pill nav-acct" href="login.html" data-acct aria-label="Sign in"><span class="acct-dot" aria-hidden="true"></span><svg class="i acct-icon" aria-hidden="true"><use href="#i-user"/></svg><span class="acct-label">Sign in</span></a>
+      <a class="nav-pill nav-cart" href="cart.html" data-cart-open aria-label="Cart, 0 packs"><svg class="i" aria-hidden="true"><use href="#i-cart"/></svg><span class="cart-label">Cart</span><span class="cart-dot" aria-hidden="true">·</span><span class="cart-count mono" aria-hidden="true">0</span></a>
+      <button class="nav-icon nav-menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><svg class="i i-open" aria-hidden="true"><use href="#i-menu"/></svg><svg class="i i-shut" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="menu" id="menu">
+      <ul>
+        <li><a href="../index.html#cardiology">Cardiology</a></li>
+        <li><a href="../index.html#diabetology">Diabetology</a></li>
+        <li><a href="../index.html#eye-care">Eye care</a></li>
+        <li><a href="../index.html#respiratory">Respiratory</a></li>
+        <li><a href="account.html#orders">Your orders</a></li>
+        <li><a href="account.html">Your account</a></li>
+      </ul>
+      <a class="btn btn-sand" href="account.html#prescriptions"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg><span>Upload prescription</span></a>
+    </div>
+  </nav>
+</header>
+<main id="main">
+  <section class="band" aria-labelledby="co-title">
+    <div class="wrap band-in">
+      <a class="band-back" href="cart.html"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg><span>Back to cart</span></a>
+      <h1 class="band-title" id="co-title">Checkout</h1>
+      <ol class="prog" aria-label="Checkout steps">
+        <li class="prog-item is-current" data-prog="1"><button class="prog-step" type="button" data-goto="1" aria-current="step"><span class="prog-dot">1</span><span class="prog-label">Address</span></button></li>
+        <li class="prog-item" data-prog="2"><button class="prog-step" type="button" data-goto="2" disabled><span class="prog-dot">2</span><span class="prog-label">Prescription</span></button></li>
+        <li class="prog-item" data-prog="3"><button class="prog-step" type="button" data-goto="3" disabled><span class="prog-dot">3</span><span class="prog-label">Payment</span></button></li>
+        <li class="prog-item" data-prog="4"><button class="prog-step" type="button" data-goto="4" disabled><span class="prog-dot">4</span><span class="prog-label">Review</span></button></li>
+      </ol>
+    </div>
+  </section>
+  <div class="work">
+    <div class="work-in">
+      <div class="co-grid">
+        <div class="co-steps">
+
+          <section class="cstep is-current" data-cstep="1" aria-labelledby="s1-h">
+            <div class="cstep-head"><span class="cstep-num" aria-hidden="true">1</span><h2 id="s1-h" tabindex="-1">Delivery address</h2><button class="link" type="button" data-goto="1" data-edit hidden>Change<span class="sr-only"> delivery address</span></button></div>
+            <p class="cstep-summary" data-summary-text hidden></p>
+            <div class="cstep-body" data-body>
+              <fieldset class="opts opts--2" data-addr-list>
+                <legend class="sr-only">Saved addresses</legend>
+              </fieldset>
+              <button class="opt-add" type="button" data-addr-add aria-expanded="false" aria-controls="co-form"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span>Add a new address</span></button>
+              <form class="addr-form" id="co-form" data-addr-form data-v novalidate hidden>
+  <h3 class="h-sub" data-form-title tabindex="-1">New address</h3>
+  <div class="errsum" data-errsum tabindex="-1" hidden></div>
+  <div class="form-grid">
+    <div class="field"><label class="label" for="co-name">Full name</label><input class="input" id="co-name" name="name" autocomplete="name" required data-rule="name" data-msg-required="Enter the name of the person receiving the order."></div>
+    <div class="field"><label class="label" for="co-mobile">Mobile number</label><div class="input-wrap has-prefix"><span class="prefix" aria-hidden="true">+91</span><input class="input mono" id="co-mobile" name="mobile" type="tel" inputmode="numeric" autocomplete="tel-national" required data-rule="mobile" data-msg-required="Enter a mobile number the courier can call."></div></div>
+    <div class="field span-2"><label class="label" for="co-line1">Flat, house no., building</label><input class="input" id="co-line1" name="line1" autocomplete="address-line1" required data-msg-required="Enter the flat, house number or building."></div>
+    <div class="field span-2"><label class="label" for="co-line2">Area, street, sector</label><input class="input" id="co-line2" name="line2" autocomplete="address-line2" required data-msg-required="Enter the area, street or sector."></div>
+    <div class="field"><label class="label" for="co-landmark">Landmark <span class="opt-hint">(optional)</span></label><input class="input" id="co-landmark" name="landmark"></div>
+    <div class="field"><label class="label" for="co-pin">Pincode</label><input class="input mono" id="co-pin" name="pin" inputmode="numeric" autocomplete="postal-code" required data-rule="pincode" data-msg-required="Enter the 6-digit pincode." aria-describedby="co-pin-hint"><p class="hint" id="co-pin-hint">Delivery is free to any valid pincode in India.</p></div>
+    <div class="field"><label class="label" for="co-city">City or town</label><input class="input" id="co-city" name="city" autocomplete="address-level2" required data-msg-required="Enter the city or town."></div>
+    <div class="field"><label class="label" for="co-state">State or union territory</label><select class="select" id="co-state" name="state" autocomplete="address-level1" required data-msg-required="Choose the state or union territory."><option value="">Choose one</option><optgroup label="States"><option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option><option>Bihar</option><option>Chhattisgarh</option><option>Goa</option><option>Gujarat</option><option>Haryana</option><option>Himachal Pradesh</option><option>Jharkhand</option><option>Karnataka</option><option>Kerala</option><option>Madhya Pradesh</option><option>Maharashtra</option><option>Manipur</option><option>Meghalaya</option><option>Mizoram</option><option>Nagaland</option><option>Odisha</option><option>Punjab</option><option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option><option>Tripura</option><option>Uttar Pradesh</option><option>Uttarakhand</option><option>West Bengal</option></optgroup><optgroup label="Union territories"><option>Andaman and Nicobar Islands</option><option>Chandigarh</option><option>Dadra and Nagar Haveli and Daman and Diu</option><option>Delhi</option><option>Jammu and Kashmir</option><option>Ladakh</option><option>Lakshadweep</option><option>Puducherry</option></optgroup></select></div>
+    <label class="check span-2"><input class="check-input" type="checkbox" name="def" id="co-def"><span class="check-box" aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span><span class="check-text">Make this my default address</span></label>
+  </div>
+  <div class="cstep-actions"><button class="btn btn-forest" type="submit" data-addr-save>Save and deliver here</button><button class="btn btn-quiet" type="button" data-addr-cancel>Cancel</button></div>
+</form>
+              <div class="cstep-actions" data-step-actions><button class="btn btn-forest btn-lg" type="button" data-next="1">Deliver to this address</button></div>
+            </div>
+          </section>
+
+          <section class="cstep is-todo" data-cstep="2" aria-labelledby="s2-h">
+            <div class="cstep-head"><span class="cstep-num" aria-hidden="true">2</span><h2 id="s2-h" tabindex="-1">Prescription</h2><button class="link" type="button" data-goto="2" data-edit hidden>Change<span class="sr-only"> prescription</span></button></div>
+            <div class="cstep-summary" data-summary-text hidden></div>
+            <div class="cstep-body" data-body hidden>
+              <p class="cstep-lede">Your order has <b data-rx-count>2 prescription medicines</b>: <span data-rx-names></span>. A pharmacist checks that the prescription covers each one before we pack.</p>
+              <fieldset class="seg" style="--n:3" data-rx-mode>
+                <legend class="sr-only">Where is your prescription?</legend>
+                <input class="seg-input" type="radio" name="rxmode" id="rxm-saved" value="saved" checked>
+                <label class="seg-opt" for="rxm-saved">Saved</label>
+                <input class="seg-input" type="radio" name="rxmode" id="rxm-upload" value="upload">
+                <label class="seg-opt" for="rxm-upload">Upload new</label>
+                <input class="seg-input" type="radio" name="rxmode" id="rxm-past" value="past">
+                <label class="seg-opt" for="rxm-past">Past order</label>
+                <span class="seg-thumb" aria-hidden="true"></span>
+              </fieldset>
+
+              <div data-mode-panel="saved">
+                <fieldset class="opts">
+                  <legend class="sr-only">Your saved prescriptions</legend>
+                  <label class="opt opt-rx"><input class="opt-input" type="radio" name="rx" value="rx1" checked><span class="opt-radio" aria-hidden="true"></span><span class="rx-doc" aria-hidden="true"><span>Rx</span></span><span class="opt-body"><span class="opt-title">Priya Sharma</span><span class="opt-text">prescription-nov.jpg · uploaded 12 Nov 2026</span><span class="tag tag--ok">Approved · valid until 10 May 2027</span></span></label>
+                  <label class="opt opt-rx"><input class="opt-input" type="radio" name="rx" value="rx2"><span class="opt-radio" aria-hidden="true"></span><span class="rx-doc" aria-hidden="true"><span>Rx</span></span><span class="opt-body"><span class="opt-title">Rakesh Sharma</span><span class="opt-text">rx-eye-clinic.pdf · uploaded today</span><span class="tag tag--wait">Under review</span><span class="opt-why"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span>You can use it now. The pharmacist finishes the check with this order.</span></span></span></label>
+                  <label class="opt opt-rx"><input class="opt-input" type="radio" name="rx" value="rx5" disabled aria-describedby="rx5-why"><span class="opt-radio" aria-hidden="true"></span><span class="rx-doc" aria-hidden="true"><span>Rx</span></span><span class="opt-body"><span class="opt-title">Priya Sharma</span><span class="opt-text">prescription-old.jpg · uploaded today</span><span class="tag tag--bad">Rejected</span><span class="opt-why" id="rx5-why"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>The prescription is dated 2 Mar 2026, more than 6 months ago.</span></span></span></label>
+                  <label class="opt opt-rx"><input class="opt-input" type="radio" name="rx" value="rx3" disabled aria-describedby="rx3-why"><span class="opt-radio" aria-hidden="true"></span><span class="rx-doc" aria-hidden="true"><span>Rx</span></span><span class="opt-body"><span class="opt-title">Priya Sharma</span><span class="opt-text">IMG_2041.jpg · uploaded 28 Oct 2026</span><span class="tag tag--bad">Rejected</span><span class="opt-why" id="rx3-why"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>The doctor’s registration number isn’t readable.</span></span></span></label>
+                  <label class="opt opt-rx"><input class="opt-input" type="radio" name="rx" value="rx4" disabled aria-describedby="rx4-why"><span class="opt-radio" aria-hidden="true"></span><span class="rx-doc" aria-hidden="true"><span>Rx</span></span><span class="opt-body"><span class="opt-title">Priya Sharma</span><span class="opt-text">prescription-march.pdf · uploaded 2 Mar 2026</span><span class="tag tag--off">Expired on 28 Aug 2026</span><span class="opt-why" id="rx4-why"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span>Prescriptions stay valid for 6 months from their date.</span></span></span></label>
+                </fieldset>
+              </div>
+
+              <div class="form" data-mode-panel="upload" data-v hidden>
+                <div class="errsum" data-errsum tabindex="-1" hidden></div>
+                <div class="upl" data-upload>
+  <div class="drop" data-drop>
+    <span class="drop-icon"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg></span>
+    <p class="drop-title"><span class="t-fine">Drag your prescription here</span><span class="t-coarse">Add your prescription</span></p>
+    <p class="drop-hint">A clear photo or scan of the whole page. JPG, PNG, WebP or PDF, up to 8 MB.</p>
+    <div class="drop-actions">
+      <button class="btn btn-forest btn-sm" type="button" data-pick id="co-pick"><svg class="i" aria-hidden="true"><use href="#i-file"/></svg><span>Choose a file</span></button>
+      <button class="btn btn-quiet btn-sm t-coarse" type="button" data-camera><svg class="i" aria-hidden="true"><use href="#i-camera"/></svg><span>Take a photo</span></button>
+    </div>
+    <input type="file" data-file hidden accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf">
+    <input type="file" data-cam hidden accept="image/*" capture="environment">
+  </div>
+  <div class="file" data-file-card hidden></div>
+  <p class="field-err" data-upload-err hidden><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+</div>
+<div class="field">
+  <label class="label" for="co-patient">Patient’s name</label>
+  <input class="input" id="co-patient" name="patient" autocomplete="off" required data-rule="name" data-msg-required="Enter the patient’s name as written on the prescription." aria-describedby="co-patient-hint">
+  <p class="hint" id="co-patient-hint">As written on the prescription.</p>
+</div>
+<label class="check"><input class="check-input" type="checkbox" id="co-declare" required data-msg-required="Confirm the prescription is valid to continue."><span class="check-box" aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span><span class="check-text">This is a valid prescription from a registered doctor, written for the patient named above.</span></label>
+              </div>
+
+              <div data-mode-panel="past" hidden>
+                <fieldset class="opts">
+                  <legend class="sr-only">Prescriptions from past orders</legend>
+                  <label class="opt opt-rx"><input class="opt-input" type="radio" name="rxpast" value="AAR-2610-00017" checked><span class="opt-radio" aria-hidden="true"></span><span class="rx-doc" aria-hidden="true"><span>Rx</span></span><span class="opt-body"><span class="opt-title">From order <span class="mono">AAR-2610-00017</span></span><span class="opt-text">Rakesh Sharma · Bemptor-180, Vildage-M 50/500 · ordered 22 Oct 2026</span><span class="tag tag--ok">Approved · valid until 20 Apr 2027</span></span></label>
+                  <label class="opt opt-rx"><input class="opt-input" type="radio" name="rxpast" value="AAR-2604-00003" disabled aria-describedby="past2-why"><span class="opt-radio" aria-hidden="true"></span><span class="rx-doc" aria-hidden="true"><span>Rx</span></span><span class="opt-body"><span class="opt-title">From order <span class="mono">AAR-2604-00003</span></span><span class="opt-text">Priya Sharma · Sacuwin 50 · ordered 14 Apr 2026</span><span class="tag tag--off">Expired on 10 Oct 2026</span><span class="opt-why" id="past2-why"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span>Prescriptions stay valid for 6 months from their date.</span></span></span></label>
+                </fieldset>
+              </div>
+
+              <div class="cstep-actions"><button class="btn btn-forest btn-lg" type="button" data-next="2">Use this prescription</button></div>
+            </div>
+          </section>
+
+          <section class="cstep is-todo" data-cstep="3" aria-labelledby="s3-h">
+            <div class="cstep-head"><span class="cstep-num" aria-hidden="true">3</span><h2 id="s3-h" tabindex="-1">Payment</h2><button class="link" type="button" data-goto="3" data-edit hidden>Change<span class="sr-only"> payment</span></button></div>
+            <p class="cstep-summary" data-summary-text hidden></p>
+            <div class="cstep-body" data-body hidden>
+              <fieldset class="opts">
+                <legend class="sr-only">How do you want to pay?</legend>
+                <label class="opt"><input class="opt-input" type="radio" name="pay" value="online" checked><span class="opt-radio" aria-hidden="true"></span><span class="opt-body"><span class="opt-title"><svg class="i" aria-hidden="true"><use href="#i-card"/></svg>Pay online</span><span class="opt-text">UPI, debit or credit card, or netbanking, through Razorpay.</span><span class="opt-why"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg><span>If the pharmacist can’t approve your prescription, the full amount goes back to the account you paid from.</span></span></span></label>
+                <label class="opt" data-cod><input class="opt-input" type="radio" name="pay" value="cod" aria-describedby="cod-why"><span class="opt-radio" aria-hidden="true"></span><span class="opt-body"><span class="opt-title"><svg class="i" aria-hidden="true"><use href="#i-cash"/></svg>Cash on delivery</span><span class="opt-text">Pay in cash when the order reaches you. Available for orders up to ₹5,000.</span><span class="opt-why" id="cod-why" data-cod-why hidden><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>Not available for this order: its total is <b class="mono" data-total>₹0</b>, above the ₹5,000 limit. Pay online, or remove some packs.</span></span></span></label>
+              </fieldset>
+              <div class="cstep-actions"><button class="btn btn-forest btn-lg" type="button" data-next="3">Continue to review</button></div>
+            </div>
+          </section>
+
+          <section class="cstep is-todo" data-cstep="4" aria-labelledby="s4-h">
+            <div class="cstep-head"><span class="cstep-num" aria-hidden="true">4</span><h2 id="s4-h" tabindex="-1">Review and place order</h2></div>
+            <div class="cstep-body" data-body hidden>
+              <dl class="review">
+                <div class="review-row"><dt><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg>Deliver to</dt><dd data-rv="addr"></dd><dd class="review-act"><button class="link" type="button" data-goto="1">Change<span class="sr-only"> delivery address</span></button></dd></div>
+                <div class="review-row"><dt><svg class="i" aria-hidden="true"><use href="#i-file"/></svg>Prescription</dt><dd data-rv="rx"></dd><dd class="review-act"><button class="link" type="button" data-goto="2">Change<span class="sr-only"> prescription</span></button></dd></div>
+                <div class="review-row"><dt><svg class="i" aria-hidden="true"><use href="#i-card"/></svg>Payment</dt><dd data-rv="pay"></dd><dd class="review-act"><button class="link" type="button" data-goto="3">Change<span class="sr-only"> payment</span></button></dd></div>
+              </dl>
+              <div class="place">
+                <p class="place-total"><span>Total payable <small>Inclusive of all taxes · free delivery</small></span><b class="mono dm" data-total data-stamp>₹0</b></p>
+                <button class="btn btn-forest btn-lg btn-block" type="button" data-place>Place order</button>
+                <p class="xs muted">We confirm your order once a pharmacist has checked your prescription against this order. If it can’t be approved, we cancel the order and refund anything you paid.</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <aside class="co-aside" aria-label="Order summary">
+          <details class="co-sum" open>
+            <summary class="co-sum-toggle"><span>Order summary</span><b data-total>₹0</b><svg class="i" aria-hidden="true"><use href="#i-chev"/></svg></summary>
+            <div class="receipt">
+              <div class="co-items-head"><h2 class="h-sub"><span class="co-h-text">Order summary</span> <span class="xs muted mono" data-cart-packs></span></h2><button class="link" type="button" data-edit-cart aria-haspopup="dialog">Edit cart</button></div>
+              <ul class="lines lines--compact lines--static" data-cart-lines="static"></ul>
+              <div data-summary="full"></div>
+            </div>
+          </details>
+        </aside>
+      </div>
+    </div>
+  </div>
+</main>
+<footer class="foot" data-ground="forest">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <p class="foot-logo"><svg class="brand-mark" aria-hidden="true"><use href="#i-swoosh"/></svg><span class="brand-word">AARVION</span><span class="brand-sub">PHARMACEUTICALS</span></p>
+      <address>Plot No. 70, Second Floor, Functional Industrial Estate,<br>Patparganj, New Delhi 110092</address>
+      <p class="foot-rule">Prescription medicines are dispensed only against a valid prescription.</p>
+    </div>
+    <nav class="foot-nav" aria-label="Footer">
+      <ul>
+        <li><a href="../index.html#medicines">All medicines</a></li>
+        <li><a href="../index.html#how">How ordering works</a></li>
+        <li><a href="account.html#orders">Your orders</a></li>
+        <li><a href="account.html#prescriptions">Your prescriptions</a></li>
+      </ul>
+    </nav>
+    <dl class="foot-legal">
+      <div><dt>Drug licence no.</dt><dd>To be added</dd></div>
+      <div><dt>Registered pharmacist</dt><dd>To be added</dd></div>
+      <div><dt>Grievance officer</dt><dd>To be added</dd></div>
+      <div><dt>GSTIN</dt><dd>To be added</dd></div>
+    </dl>
+  </div>
+  <div class="wrap foot-base">
+    <p>© 2026 Aarvion Pharmaceuticals</p>
+    <nav class="proto" aria-label="Prototype states for this page"><span class="proto-label">Prototype states</span><a href="checkout.html?state=checkout">Address</a><a href="checkout.html?state=checkout-errors">Address errors</a><a href="checkout.html?state=checkout-step-2">Prescription</a><a href="checkout.html?state=checkout-upload">Upload Rx</a><a href="checkout.html?state=checkout-step-3">Payment</a><a href="checkout.html?state=cod-disabled">COD unavailable</a><a href="checkout.html?state=checkout-review">Review</a></nav>
+  </div>
+</footer>
+<div class="sheet sheet--side" id="cart-drawer" data-sheet>
+  <div class="sheet-scrim" data-sheet-close></div>
+  <section class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title" tabindex="-1">
+    <header class="sheet-head">
+      <span class="sheet-grip" aria-hidden="true"></span>
+      <h2 id="cart-drawer-title" tabindex="-1">Your cart <span class="num" data-cart-packs>0 packs</span></h2>
+      <button class="icon-btn" type="button" data-sheet-close aria-label="Close cart"><svg class="i" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="sheet-body">
+      <p class="note note--proto" data-seed-note hidden><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span>Prototype: two example medicines are in your cart so you can try checkout. <button class="link" type="button" data-cart-clear>Empty the cart</button></span></p>
+      <div data-cart-filled>
+        <ul class="lines lines--compact" data-cart-lines="compact"></ul>
+        <p class="note note--sand"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span>Every medicine here needs a valid prescription. You’ll add it at checkout, and a pharmacist checks it before we pack.</span></p>
+      </div>
+      <div class="empty empty--compact" data-cart-empty hidden>
+        <span class="well well--empty" aria-hidden="true"><span class="dm well-count">0</span></span>
+        <h3>Your cart is empty</h3>
+        <p>Find your medicine by brand or salt, then add it here.</p>
+        <div class="empty-actions"><a class="btn btn-forest" href="../index.html#medicines">Browse medicines</a></div>
+      </div>
+    </div>
+    <footer class="sheet-foot" data-cart-filled>
+      <div data-summary="mini"></div>
+      <div class="sheet-actions"><a class="btn btn-quiet" href="cart.html">View cart</a><a class="btn btn-forest" href="checkout.html" data-checkout>Checkout</a></div>
+    </footer>
+  </section>
+</div>
+<div class="sheet sheet--dialog" id="login-dialog" data-sheet>
+  <div class="sheet-scrim" data-sheet-close></div>
+  <section class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="dlg-title" tabindex="-1">
+    <header class="sheet-head">
+      <span class="sheet-grip" aria-hidden="true"></span>
+      <span class="dlg-brand" aria-hidden="true"><svg class="brand-mark" aria-hidden="true"><use href="#i-swoosh"/></svg></span>
+      <button class="icon-btn" type="button" data-sheet-close aria-label="Close sign in"><svg class="i" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="sheet-body"><div class="auth-card"><div class="auth" data-auth data-prefix="dlg">
+  <div class="auth-step" data-step="id">
+    <div class="auth-head">
+      <h2 id="dlg-title" tabindex="-1">Sign in or create an account</h2>
+      <p>We’ll send you a 6-digit code. There’s no password.</p>
+    </div>
+    <fieldset class="seg" style="--n:2">
+      <legend class="sr-only">Send the code to my</legend>
+      <input class="seg-input" type="radio" name="dlg-via" id="dlg-via-mobile" value="mobile" checked>
+      <label class="seg-opt" for="dlg-via-mobile"><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg>Mobile</label>
+      <input class="seg-input" type="radio" name="dlg-via" id="dlg-via-email" value="email">
+      <label class="seg-opt" for="dlg-via-email"><svg class="i" aria-hidden="true"><use href="#i-mail"/></svg>Email</label>
+      <span class="seg-thumb" aria-hidden="true"></span>
+    </fieldset>
+    <form class="form" data-id-form data-v novalidate>
+      <div class="field" data-via="mobile">
+        <label class="label" for="dlg-mobile">Mobile number</label>
+        <div class="input-wrap has-prefix"><span class="prefix" aria-hidden="true">+91</span><input class="input mono" id="dlg-mobile" name="mobile" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="98765 43210" required data-rule="mobile" data-msg-required="Enter your 10-digit mobile number." aria-describedby="dlg-mobile-hint"></div>
+        <p class="hint" id="dlg-mobile-hint">Indian mobile numbers (+91) only.</p>
+      </div>
+      <div class="field" data-via="email" hidden>
+        <label class="label" for="dlg-email">Email address</label>
+        <input class="input" id="dlg-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="name@example.com" required data-rule="email" data-msg-required="Enter your email address." disabled>
+      </div>
+      <button class="btn btn-forest btn-lg btn-block" type="submit" data-send>Send code</button>
+    </form>
+    <div class="auth-foot">
+      <p><svg class="i" aria-hidden="true"><use href="#i-cart"/></svg><span data-cart-keep>Your cart stays as it is when you sign in.</span></p>
+      <p><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg><span>We use your number or email to sign you in and to send updates about your orders.</span></p>
+    </div>
+  </div>
+
+  <div class="auth-step" data-step="code" hidden>
+    <div class="auth-head">
+      <h2 tabindex="-1">Enter the code</h2>
+      <p class="auth-sent"><span>We sent a 6-digit code to <b data-sent-to>+91 98765 43210</b>.</span> <button type="button" class="link" data-change>Change</button></p>
+    </div>
+    <form class="form" data-code-form novalidate>
+      <div class="field">
+        <label class="label" for="dlg-otp">6-digit code</label>
+        <div class="otp" data-otp>
+          <input class="otp-input" id="dlg-otp" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" spellcheck="false" aria-describedby="dlg-otp-hint">
+          <div class="otp-boxes" aria-hidden="true"><span class="otp-box"></span><span class="otp-box"></span><span class="otp-box"></span><span class="otp-box"></span><span class="otp-box"></span><span class="otp-box"></span></div>
+        </div>
+        <p class="hint" id="dlg-otp-hint">The code works for 5 minutes. You can paste it.</p>
+        <p class="auth-alert" id="dlg-otp-err" data-otp-alert hidden><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+      </div>
+      <div class="otp-meta">
+        <span class="otp-timer" data-timer>Resend code in <span class="mono" data-left>0:30</span></span>
+        <button type="button" class="link" data-resend hidden>Send a new code</button>
+      </div>
+      <button class="btn btn-forest btn-lg btn-block" type="submit" data-verify>Verify and sign in</button>
+      <button class="btn btn-forest btn-lg btn-block" type="button" data-resend-main hidden>Send a new code</button>
+      <p class="demo-note"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span>Prototype: use <b>123456</b></span></p>
+    </form>
+  </div>
+
+  <div class="auth-step" data-step="profile" hidden>
+    <div class="auth-head">
+      <h2 tabindex="-1">Create your account</h2>
+      <p><b data-sent-to>+91 98765 43210</b> is verified. One more step and you’re in.</p>
+    </div>
+    <form class="form" data-profile-form data-v novalidate>
+      <div class="field">
+        <label class="label" for="dlg-name">Full name</label>
+        <input class="input" id="dlg-name" name="name" autocomplete="name" required data-rule="name" data-msg-required="Enter your full name.">
+      </div>
+      <div>
+        <label class="check"><input class="check-input" type="checkbox" id="dlg-adult" required data-msg-required="Confirm that you are 18 or older to create an account."><span class="check-box" aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span><span class="check-text">I am 18 or older</span></label>
+        <label class="check"><input class="check-input" type="checkbox" id="dlg-news"><span class="check-box" aria-hidden="true"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span><span class="check-text">Tell me about new Aarvion medicines<small>Optional. By SMS and email. Change it any time in your account.</small></span></label>
+      </div>
+      <p class="xs muted">By creating an account you agree to the Terms of use and the Privacy policy.</p>
+      <button class="btn btn-forest btn-lg btn-block" type="submit">Create account</button>
+    </form>
+  </div>
+
+  <div class="auth-step" data-step="done" hidden>
+    <div class="auth-done">
+      <span class="done-mark"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span>
+      <h2 tabindex="-1">You’re signed in</h2>
+      <p class="muted" data-done-text>One moment…</p>
+    </div>
+  </div>
+</div></div></div>
+  </section>
+</div>
+<div class="toasts" data-toasts></div>
+<p class="sr-only" id="live" aria-live="polite"></p>
+</body>
+</html>

@@ -1,0 +1,4 @@
+{
+  "prompt": "Procedural, not AI-generated: white fog bank, 2400x760 RGBA WebP q72. Alpha = smoothstep of a vertical ramp (fog climbs higher toward the left and right edges) plus four octaves of bicubic-upscaled, Gaussian-blurred value noise (cells 6x3, 13x5, 28x9, 60x18; blur 220/120/60/28px; seed 26), Gaussian blur 22px, bottom 8% forced opaque for a seamless hand-off to the white page. Rendered with Python PIL by the prototype builder on 2026-11-16.",
+  "createdAt": "2026-11-16T13:25:57.837Z"
+}

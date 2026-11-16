@@ -1,0 +1,12 @@
+{
+  "prompt": "Sourced, not generated: owner-supplied product photo assets/products/original/sacuwin-100--1--sacuwin-100-2.webp, white backdrop removed by scripts/make_flyer.py (edge flood-fill, 1 px erode, 1 px feather) and cropped to its alpha bounds at full source resolution, 745x835, no resampling. WebP q90 with alpha.",
+  "createdAt": "2026-11-16T14:33:08Z",
+  "origin": "sourced",
+  "aiGenerated": false,
+  "source": "assets/products/original/sacuwin-100--1--sacuwin-100-2.webp",
+  "generator": "scripts/make_flyer.py",
+  "pixels": [
+    745,
+    835
+  ]
+}

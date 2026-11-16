@@ -38,5 +38,13 @@ FIRST VIEWPORT: (desktop 1440 × 900)
 - From the fog at the lower third rises one foil strip of 4 pockets: Sacuwin 50 / 100 / 200 as real pack cutouts, each with a dot-matrix stamp (MRP struck, new price), plus a 4th pocket "All 11 medicines →".
 - On mobile the strip scrolls horizontally with snap.
 - Signature interaction: on load the stamps print in once (dots resolve, strike draws across the MRP, the new price stamps). Pressing a pocket depresses the foil and reveals Add to cart.
+MOTION GRAMMAR (owner request 2026-11-16: "scrolling animations like Apple's website, elements zooming in and through the screen; a $10,000 website, raise the bar"):
+- The page is a scroll-driven film in five pinned acts on native scroll (no scroll-jacking, no smooth-scroll library). Progress drives transforms and opacity only.
+- Act 1, hero (about 220vh pinned): the headline lifts and fades while the foil strip zooms toward the viewer. The Sacuwin 100 pocket flies forward through the screen as the other pockets part sideways, and the foil fills the frame and hands off to white.
+- Act 2, the stamp (about 200vh pinned): a viewport-sized dot-matrix "MRP ₹407" resolves dot by dot, the strike draws across, "₹387" stamps in at huge scale, then shrinks and flies into its product pocket.
+- Act 3, ordering (sticky steps): Rx sheet, pharmacist check and parcel each scale in from depth as their step becomes active.
+- Act 4: the bento therapy tiles arrive from depth (scale 0.86 to 1, staggered by scroll). Product pockets rise with parallax.
+- Act 5, close: zoom out to the swoosh on forest with the final call to action.
+- Mobile keeps the acts with shorter pins. prefers-reduced-motion renders every act as a static, complete composition.
 FORM: The Strip, my grounded list #1 (Impeccable's pick card; the roll assigned #4, The Leaflet). seed:26efee81f47ef0ec
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
