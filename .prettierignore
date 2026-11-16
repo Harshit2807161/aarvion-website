@@ -1,0 +1,11 @@
+.next
+node_modules
+pnpm-lock.yaml
+assets
+data
+.impeccable
+.superpowers
+docs
+PRODUCT.md
+README.md
+scripts
