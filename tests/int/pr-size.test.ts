@@ -54,12 +54,16 @@ describe("pr-size CLI", () => {
     expect(runCli().status).toBe(0);
   });
 
-  it("ignores lockfile, data and generated shadcn files", () => {
+  it("ignores lockfile, data, planning docs and generated shadcn files", () => {
     mkdirSync(join(dir, "data"));
     mkdirSync(join(dir, "ui"));
+    mkdirSync(join(dir, "docs/superpowers"), { recursive: true });
+    mkdirSync(join(dir, "docs/decisions"), { recursive: true });
     writeFileSync(join(dir, "pnpm-lock.yaml"), lines(900));
     writeFileSync(join(dir, "data/p.json"), lines(900));
     writeFileSync(join(dir, "ui/button.tsx"), "// @generated shadcn\n" + lines(900));
+    writeFileSync(join(dir, "docs/superpowers/plan.md"), lines(900));
+    writeFileSync(join(dir, "docs/decisions/0001.md"), lines(900));
     writeFileSync(join(dir, "small.ts"), lines(3));
     git("add", ".");
     git("commit", "-q", "-m", "mixed");
