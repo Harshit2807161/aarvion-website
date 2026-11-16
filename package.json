@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run --project unit",
+    "test:unit": "vitest run --project unit --project ui",
     "test:int": "vitest run --project int",
     "test:e2e": "playwright test",
     "pr-size": "node --experimental-strip-types --no-warnings scripts/pr-size.ts",

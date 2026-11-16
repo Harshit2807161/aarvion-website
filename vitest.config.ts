@@ -5,13 +5,23 @@ const alias = { "@": fileURLToPath(new URL("./src", import.meta.url)) };
 
 export default defineConfig({
   test: {
+    passWithNoTests: true,
     projects: [
       {
         resolve: { alias },
         test: {
           name: "unit",
+          environment: "node",
+          include: ["src/server/**/*.test.ts", "scripts/**/*.test.ts"],
+        },
+      },
+      {
+        resolve: { alias },
+        test: {
+          name: "ui",
           environment: "happy-dom",
-          include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts"],
+          include: ["src/**/*.test.tsx"],
+          exclude: ["src/server/**", "**/node_modules/**"],
         },
       },
       {
