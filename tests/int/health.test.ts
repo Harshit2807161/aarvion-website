@@ -48,6 +48,14 @@ describe("GET /api/health without a database", () => {
     expect((await res.json()).db).toBe("skipped");
   });
 
+  it("returns 503 db unconfigured when the database name is aarvion_prod (widened guard)", async () => {
+    vi.stubEnv("MONGODB_DB", "aarvion_prod");
+    resetEnvForTests();
+    const res = await GET();
+    expect(res.status).toBe(503);
+    expect((await res.json()).db).toBe("unconfigured");
+  });
+
   it("returns 503 misconfigured on invalid env without leaking values", async () => {
     vi.stubEnv("VERCEL_ENV", "super-secret-value");
     resetEnvForTests();

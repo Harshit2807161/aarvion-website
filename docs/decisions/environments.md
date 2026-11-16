@@ -20,12 +20,13 @@ mock-enabled deploy on the production database would expose real customers.
 
 ## Enforcement status
 
-These rules are documentation only today. `isMockForbidden()` decides from
-deployment flags alone and does not look at the database. Enforcement lands in the
-auth phase, in the PR that adds the dev outbox page:
+Enforced. `isMockForbidden()` refuses mocks, and dev-only routes 404, when any of these hold:
 
-- `isMockForbidden()` also refuses when mocks are allowed in a production build and
-  the database name equals the production database name, with a unit test.
-- Every dev-only route calls `isMockForbidden()` and returns `notFound()` when true.
+- `VERCEL_ENV=production`;
+- a production build without `ALLOW_MOCKS_IN_PROD_BUILD=1`;
+- `MONGODB_DB`, or the database in the `MONGODB_URI` path, equals `aarvion_prod` (case-insensitive).
+
+Production therefore sets `MONGODB_DB=aarvion_prod`. Every dev-only route calls
+`requireDevRoute()` (`src/server/dev-only.ts`), which calls `notFound()` when the guard refuses.
 
 - `__Host-aarv_sid` requires `Secure`: on plain http it works on `http://localhost` in Chrome and Firefox, but not in Safari or on LAN or `*.test` hosts, so use `localhost` or https for local dev.
