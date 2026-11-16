@@ -107,6 +107,7 @@ describe("verifyOtpChallenge", () => {
     const rs = await Promise.all(
       Array.from({ length: 12 }, () => verifyOtpChallenge(id, wrong, at(1000))),
     );
+    expect(rs.some((r) => r.ok)).toBe(false);
     expect(rs.filter((r) => !r.ok && r.reason === "mismatch")).toHaveLength(5);
     expect(rs.filter((r) => !r.ok && r.reason === "no_active_challenge")).toHaveLength(7);
     expect((await stored())!.attempts).toBe(5);
