@@ -84,8 +84,15 @@ describe("POST /api/auth/otp/verify", () => {
     );
     expect(await count(USERS_COLLECTION)).toBe(1);
     expect(await count(SESSIONS_COLLECTION)).toBe(1);
-    expect(JSON.stringify(body)).not.toContain(sessionTokenFrom(res)!);
-    expect(JSON.stringify(body)).not.toContain(code);
+  });
+
+  it("never returns the session token or the code in the body", async () => {
+    const code = await sendAndRead();
+    const res = await verify(code);
+    const token = sessionTokenFrom(res)!;
+    const text = await res.text();
+    expect(text).not.toContain(token);
+    expect(text).not.toContain(code);
   });
 
   it("a second login is not a new user and keeps the id", async () => {
@@ -176,6 +183,17 @@ describe("POST /api/auth/otp/verify", () => {
     expect((await verify(code)).status).toBe(200);
   });
 
+  it("a different identifier is unaffected by another's lockout", async () => {
+    for (let n = 0; n < 10; n++) {
+      if (n % 5 === 0) await sendAndRead();
+      await verify("000000");
+      if (n % 5 === 4) clock.advance(31_000);
+    }
+    const other = "+919812345678";
+    const code = await sendAndRead(other);
+    expect((await verify(code, undefined, other)).status).toBe(200);
+  });
+
   it("fixation: an existing cookie's session is revoked and a fresh token is issued", async () => {
     const db = await getDb();
     const other = await db.collection<UserDoc>(USERS_COLLECTION).insertOne({
@@ -262,6 +280,12 @@ describe("POST /api/auth/otp/verify", () => {
     expect(bad.status).toBe(400);
     expect(await bad.json()).toEqual({ error: "invalid_request" });
     expect((await verify("123456", { contentType: "text/plain" })).status).toBe(415);
+  });
+
+  it("400 invalid_code for an unparseable identifier", async () => {
+    const res = await verify("123456", undefined, "5876543210");
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "invalid_code" });
   });
 
   it("never logs the code or the session token", async () => {
