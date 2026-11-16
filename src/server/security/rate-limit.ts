@@ -66,6 +66,11 @@ export async function hitRateLimit(i: RateLimitInput): Promise<RateLimitResult> 
   };
 }
 
+/** Drops the key's window, so the next hit starts a fresh one at 1. A missing key is a no-op. */
+export async function resetRateLimit(key: string): Promise<void> {
+  await (await getDb()).collection<RateDoc>(RATE_LIMITS_COLLECTION).deleteOne({ _id: key });
+}
+
 /** Read-only: never writes. A missing or expired window counts as 0. */
 export async function peekRateLimit(i: RateLimitInput): Promise<RateLimitResult> {
   const col = (await getDb()).collection<RateDoc>(RATE_LIMITS_COLLECTION);

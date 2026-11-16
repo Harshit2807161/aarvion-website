@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as SEND } from "@/app/api/auth/otp/send/route";
 import { POST as VERIFY } from "@/app/api/auth/otp/verify/route";
+import { verifyOtpAndLogin } from "@/server/auth/login";
 import { OTP_COLLECTION } from "@/server/auth/otp";
 import {
   SESSIONS_COLLECTION,
@@ -10,7 +11,7 @@ import {
 } from "@/server/auth/sessions";
 import { USERS_COLLECTION, type UserDoc } from "@/server/auth/users";
 import { getDb } from "@/server/db/client";
-import { resetDepsForTests } from "@/server/deps";
+import { resetDepsForTests, setDepsForTests } from "@/server/deps";
 import "@/server/db/register-all.ts";
 import { resetEnvForTests } from "@/server/env";
 import { OUTBOX_COLLECTION } from "@/server/providers/outbox";
@@ -56,11 +57,20 @@ const verify = (code: string, opts?: Parameters<typeof jsonPost>[2], identifier 
   VERIFY(jsonPost(PATH, { channel: "phone", identifier, code }, opts));
 const count = async (name: string) => (await getDb()).collection(name).countDocuments();
 const WRONG = (right: string) => (right === "000000" ? "111111" : "000000");
+/** Whole-token match, so a code that happens to sit inside a hex hash or a phone is not a hit. */
+const holds = (text: string, code: string) => new RegExp(`\\b${code}\\b`).test(text);
 
 /** Sends and returns the delivered code. */
 async function sendAndRead(identifier = PHONE): Promise<string> {
   expect((await send(identifier)).status).toBe(200);
   return lastOtpCode(identifier);
+}
+
+/** The identifier's failed-verify count (0 when it has no window). */
+async function failCount(identifier = PHONE): Promise<number> {
+  const col = (await getDb()).collection<{ _id: string; count: number }>(RATE_LIMITS_COLLECTION);
+  const doc = await col.findOne({ _id: `otp-verify-fail:phone:${identifier}` });
+  return doc?.count ?? 0;
 }
 
 describe("POST /api/auth/otp/verify", () => {
@@ -192,6 +202,182 @@ describe("POST /api/auth/otp/verify", () => {
     const other = "+919812345678";
     const code = await sendAndRead(other);
     expect((await verify(code, undefined, other)).status).toBe(200);
+  });
+
+  it("verifies with no challenge never count toward the lockout", async () => {
+    // Before the fix, 10 of these locked the number out of login for 24 h without a single SMS.
+    for (let n = 0; n < 10; n++) {
+      const res = await verify("123456");
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({ error: "invalid_code" });
+    }
+    expect(await failCount()).toBe(0);
+    const code = await sendAndRead();
+    expect((await verify(code)).status).toBe(200);
+  });
+
+  it("verifies against an expired, consumed or cancelled challenge do not count either", async () => {
+    let code = await sendAndRead();
+    clock.advance(300_000);
+    for (let n = 0; n < 3; n++) expect((await verify(code)).status).toBe(400);
+    expect(await failCount()).toBe(0);
+
+    code = await sendAndRead();
+    expect((await verify(code)).status).toBe(200);
+    for (let n = 0; n < 3; n++) expect((await verify(code)).status).toBe(400);
+    expect(await failCount()).toBe(0);
+
+    // A failed delivery cancels (deletes) the challenge.
+    clock.advance(31_000);
+    setDepsForTests({
+      sms: {
+        send: async () => {
+          throw new Error("provider down");
+        },
+      },
+    });
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      expect((await send()).status).toBe(503);
+    } finally {
+      err.mockRestore();
+    }
+    for (let n = 0; n < 3; n++) expect((await verify(code)).status).toBe(400);
+    expect(await failCount()).toBe(0);
+  });
+
+  it("a successful login clears the identifier's failure counter", async () => {
+    let code = await sendAndRead();
+    for (let n = 0; n < 4; n++) expect((await verify(WRONG(code))).status).toBe(400);
+    expect(await failCount()).toBe(4);
+    expect((await verify(code)).status).toBe(200);
+    expect(await failCount()).toBe(0);
+
+    // 9 more mismatches: 13 in all without the reset, which would lock at the 11th.
+    clock.advance(31_000);
+    code = await sendAndRead();
+    for (let n = 0; n < 5; n++) expect((await verify(WRONG(code))).status).toBe(400);
+    clock.advance(31_000);
+    code = await sendAndRead();
+    for (let n = 0; n < 4; n++) expect((await verify(WRONG(code))).status).toBe(400);
+    expect(await failCount()).toBe(9);
+    expect((await verify(code)).status).toBe(200);
+  });
+
+  it("limits verify to 60 per IP per hour, checked before the challenge is read", async () => {
+    const ip = "203.0.113.9";
+    const code = await sendAndRead();
+    for (let n = 0; n < 60; n++) {
+      const other = `+9198000000${String(n).padStart(2, "0")}`;
+      expect((await verify("123456", { ip }, other)).status).toBe(400);
+    }
+
+    const { Collection } = await import("mongodb");
+    const spies = [
+      vi.spyOn(Collection.prototype, "findOne"),
+      vi.spyOn(Collection.prototype, "findOneAndUpdate"),
+      vi.spyOn(Collection.prototype, "updateOne"),
+    ];
+    let res: Response;
+    let touched: string[];
+    try {
+      res = await verify(code, { ip });
+    } finally {
+      // Read before restoring: mockRestore also clears the recorded calls.
+      touched = spies.flatMap((s) =>
+        s.mock.contexts.map((c) => (c as InstanceType<typeof Collection>).collectionName),
+      );
+      for (const s of spies) s.mockRestore();
+    }
+    expect(touched).toContain(RATE_LIMITS_COLLECTION);
+    expect(touched).not.toContain(OTP_COLLECTION);
+
+    expect(res.status).toBe(429);
+    const body = (await res.json()) as { error: string; retryAfterSec: number };
+    expect(body).toEqual({ error: "rate_limited", retryAfterSec: expect.any(Number) });
+    expect(body.retryAfterSec).toBeGreaterThan(0);
+    expect(res.headers.get("retry-after")).toBe(String(body.retryAfterSec));
+    expect(res.headers.get("set-cookie")).toBeNull();
+    const doc = await (await getDb()).collection<{ attempts: number }>(OTP_COLLECTION).findOne({});
+    expect(doc?.attempts).toBe(0);
+
+    // The limit is per IP: the same code still works from another address.
+    expect((await verify(code, { ip: "203.0.113.11" })).status).toBe(200);
+  });
+
+  it("never puts the code in a thrown error, a response or a log line", async () => {
+    const code = await sendAndRead();
+    const { Collection } = await import("mongodb");
+    const realUpdate = Collection.prototype.updateOne;
+    const realInsert = Collection.prototype.insertOne;
+    // A driver error that echoes its command, as E11000 does: it carries the code only if
+    // the code ever reaches the database.
+    const echo = (op: string, args: unknown[]) =>
+      new Error(`${op} failed: ${JSON.stringify(args)}`);
+    const logs = (["log", "error", "warn", "info"] as const).map((m) =>
+      vi.spyOn(console, m).mockImplementation(() => {}),
+    );
+    const texts: string[] = [];
+    let logged: string[] = [];
+    let thrown: unknown;
+    try {
+      texts.push(await (await verify(WRONG(code))).text());
+      texts.push(await (await verify(code, undefined, "+919812345678")).text());
+
+      // The single-use flip fails after the right code matched: 500 through the route, and a
+      // thrown error from the login function itself.
+      const flip = vi.spyOn(Collection.prototype, "updateOne").mockImplementation(function (
+        this: InstanceType<typeof Collection>,
+        ...args: Parameters<typeof realUpdate>
+      ) {
+        if (this.collectionName === OTP_COLLECTION) return Promise.reject(echo("updateOne", args));
+        return realUpdate.apply(this, args);
+      } as typeof realUpdate);
+      try {
+        const res = await verify(code);
+        expect(res.status).toBe(500);
+        texts.push(await res.text());
+        thrown = await verifyOtpAndLogin({
+          channel: "phone",
+          identifier: PHONE,
+          code,
+          ipBucket: "203.0.113.10",
+          existingToken: null,
+          now: clock.now(),
+        }).catch((e: unknown) => e);
+      } finally {
+        flip.mockRestore();
+      }
+
+      // F7: the audit write fails on a successful login, which logs.
+      const audit = vi.spyOn(Collection.prototype, "insertOne").mockImplementation(function (
+        this: InstanceType<typeof Collection>,
+        ...args: Parameters<typeof realInsert>
+      ) {
+        if (this.collectionName === "audit_logs") return Promise.reject(echo("insertOne", args));
+        return realInsert.apply(this, args);
+      } as typeof realInsert);
+      try {
+        const res = await verify(code);
+        expect(res.status).toBe(200);
+        texts.push(await res.text(), res.headers.get("set-cookie") ?? "");
+      } finally {
+        audit.mockRestore();
+      }
+    } finally {
+      logged = logs.map((l) => JSON.stringify(l.mock.calls));
+      for (const l of logs) l.mockRestore();
+    }
+
+    expect(thrown).toBeInstanceOf(Error);
+    const e = thrown as Error;
+    expect(e.message).toContain("updateOne failed");
+    for (const t of [e.message, String(e), e.stack ?? ""]) expect(holds(t, code)).toBe(false);
+    for (const t of texts) expect(holds(t, code)).toBe(false);
+    // console.error ran on both failure paths (withErrors and the F7 audit catch).
+    expect(logged[1]).toContain("route error");
+    expect(logged[1]).toContain("audit write failed");
+    for (const l of logged) expect(l).not.toContain(code);
   });
 
   it("fixation: an existing cookie's session is revoked and a fresh token is issued", async () => {
