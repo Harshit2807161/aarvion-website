@@ -38,9 +38,14 @@ describe("ProductJson", () => {
     ).toBe(true);
   });
 
+  it("rejects an extra key with an unrecognized_keys issue", () => {
+    const r = ProductJson.safeParse({ ...sacuwin(), price: 26100 });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues.map((i) => i.code)).toContain("unrecognized_keys");
+  });
+
   it.each([
     ["mrp below minimum", { mrpPaise: 2099 }, "mrpPaise"],
-    ["extra key", { price: 26100 }, ""],
     ["hero not in images", { heroImage: "assets/products/original/nope.webp" }, "heroImage"],
     ["H without rx", { schedule: "H", rxRequired: false }, "rxRequired"],
     ["H1 without rx", { schedule: "H1", rxRequired: false }, "rxRequired"],
