@@ -134,6 +134,37 @@ describe("POST /api/auth/otp/send", () => {
     expect(await readOutbox(PHONE)).toHaveLength(1);
   });
 
+  it("a cooldown response spends neither the identifier counter nor the IP counter", async () => {
+    expect((await sendPhone()).status).toBe(200);
+    clock.advance(10_000);
+    expect((await sendPhone()).status).toBe(429);
+    const col = (await getDb()).collection<{ _id: string; count: number }>(RATE_LIMITS_COLLECTION);
+    const ipDocs = await col.find({ _id: { $regex: "^otp-send:ip:" } }).toArray();
+    expect(ipDocs).toHaveLength(1);
+    expect(ipDocs[0]!.count).toBe(1);
+    expect((await col.findOne({ _id: `otp-send:id:phone:${PHONE}` }))?.count).toBe(1);
+  });
+
+  it("evaluates the per-IP limit before the per-identifier one, so a blocked IP cannot spend a victim's budget", async () => {
+    for (let n = 0; n < 20; n++) {
+      const res = await sendPhone(`+9198765432${String(n).padStart(2, "0")}`, {
+        ip: "203.0.113.9",
+      });
+      expect(res.status).toBe(200);
+    }
+    const victim = "+919812345678";
+    const res = await sendPhone(victim, { ip: "203.0.113.9" });
+    expect(res.status).toBe(429);
+    expect((await res.json()).error).toBe("rate_limited");
+    const doc = await (
+      await getDb()
+    )
+      .collection(RATE_LIMITS_COLLECTION)
+      .findOne({ _id: `otp-send:id:phone:${victim}` as never });
+    expect(doc).toBeNull();
+    expect(await readOutbox(victim)).toHaveLength(0);
+  });
+
   it("limits to 3 per identifier per 10 minutes", async () => {
     for (const offset of [0, 31_000, 31_000]) {
       clock.advance(offset);
