@@ -243,3 +243,30 @@ describe("history entry and purity", () => {
     expect(o.status).toBe("placed");
   });
 });
+
+describe("Rx validity is judged on order.createdAt, never on now", () => {
+  // Rx dated 1 May 2026 IST expires 1 Nov 2026 IST (exclusive).
+  const rxMay = {
+    status: "approved" as const,
+    rxDate: d("2026-04-30T18:30:00Z"),
+    validUntil: null,
+  };
+  it("confirm succeeds when the Rx was valid at creation but is expired today", () => {
+    const o = { ...happy("placed"), createdAt: d("2026-10-20T06:00:00Z"), rx: rxMay };
+    const today = { at: d("2026-11-16T06:00:00Z"), by: "staff" } as const;
+    expect(transition(o, { type: "confirm" }, today).ok).toBe(true);
+  });
+  it("ship succeeds when the Rx was valid at creation but is expired today", () => {
+    const o = { ...happy("packed"), createdAt: d("2026-10-20T06:00:00Z"), rx: rxMay };
+    const today = { at: d("2026-11-16T06:00:00Z"), by: "staff" } as const;
+    expect(transition(o, { type: "ship", awb: "A1", courier: "C" }, today).ok).toBe(true);
+  });
+  it("confirm fails when the Rx had already expired at creation, even if ctx.at is earlier", () => {
+    const o = { ...happy("placed"), createdAt: d("2026-11-16T06:00:00Z"), rx: rxMay };
+    const earlier = { at: d("2026-10-01T06:00:00Z"), by: "staff" } as const;
+    expect(transition(o, { type: "confirm" }, earlier)).toEqual({
+      ok: false,
+      error: "rx_not_valid",
+    });
+  });
+});
