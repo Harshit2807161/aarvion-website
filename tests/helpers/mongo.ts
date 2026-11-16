@@ -7,7 +7,11 @@ let replSet: MongoMemoryReplSet | undefined;
 /** Starts a 1-member in-memory replica set, points MONGODB_URI at it and resets cached state. */
 export async function startMemoryReplSet(): Promise<string> {
   await closeMongo();
-  replSet = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+  // TTL monitor off: tests use fixed past clocks, which the background TTL sweep would otherwise delete.
+  replSet = await MongoMemoryReplSet.create({
+    replSet: { count: 1 },
+    instanceOpts: [{ args: ["--setParameter", "ttlMonitorEnabled=false"] }],
+  });
   const uri = replSet.getUri();
   process.env.MONGODB_URI = uri;
   resetEnvForTests();
