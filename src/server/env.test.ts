@@ -67,4 +67,12 @@ describe("requireEnv", () => {
     resetEnvForTests();
     expect(requireEnv("OTP_PEPPER")).toBe("z".repeat(40));
   });
+
+  it("throws naming OTP_PEPPER when it is shorter than 32 characters", async () => {
+    vi.stubEnv("OTP_PEPPER", "x".repeat(31));
+    const { requireEnv, getEnv, resetEnvForTests } = await import("./env");
+    resetEnvForTests();
+    expect(() => requireEnv("OTP_PEPPER")).toThrow(/OTP_PEPPER/);
+    expect(() => getEnv()).toThrow(/OTP_PEPPER/);
+  });
 });

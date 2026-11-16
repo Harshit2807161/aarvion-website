@@ -25,6 +25,12 @@ describe("normalizeEmail", () => {
   it("keeps plus-addressing", () => {
     expect(normalizeEmail("asha+rx@example.com")).toBe("asha+rx@example.com");
   });
+  it("accepts an address of exactly 254 characters", () => {
+    const domain = `${"b".repeat(63)}.${"c".repeat(63)}.${"d".repeat(57)}.com`;
+    const addr = `${"a".repeat(64)}@${domain}`;
+    expect(addr).toHaveLength(254);
+    expect(normalizeEmail(addr)).toBe(addr);
+  });
   it("rejects invalid or overlong addresses", () => {
     expect(normalizeEmail("not-an-email")).toBeNull();
     expect(normalizeEmail("a@localhost")).toBeNull();
