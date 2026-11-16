@@ -5,6 +5,7 @@ import {
   readSessionToken,
   sessionCookieHeader,
 } from "./cookie.ts";
+import { SESSION_POLICY } from "./sessions.ts";
 
 const TOKEN = "A".repeat(43);
 const req = (cookie?: string) =>
@@ -53,4 +54,9 @@ describe("readSessionToken", () => {
   it("returns null without a Cookie header", () => {
     expect(readSessionToken(req())).toBeNull();
   });
+});
+
+it("customer cookie Max-Age matches the customer session idle window", () => {
+  const max = /Max-Age=(\d+)/.exec(sessionCookieHeader(TOKEN, "customer"))![1];
+  expect(Number(max) * 1000).toBe(SESSION_POLICY.customer.idleMs);
 });

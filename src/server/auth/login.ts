@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { appendAudit } from "../audit.ts";
 import { getDeps } from "../deps.ts";
 import { hitRateLimit, peekRateLimit } from "../security/rate-limit.ts";
 import { normalizeIdentifier, identifierKey, type Channel } from "./identifier.ts";
@@ -137,6 +138,17 @@ export async function verifyOtpAndLogin(i: {
   const { user, created } = await findOrCreateUserByIdentifier(id, i.now);
   if (i.existingToken) await revokeSession(i.existingToken);
   const { token } = await createSession(user, i.now);
+  // F7: the audit trail must not be able to break a login that already succeeded.
+  try {
+    await appendAudit({
+      at: i.now,
+      action: "auth.login",
+      actor: { type: "user", userId: user._id, role: user.role },
+      meta: { channel: id.channel, isNewUser: created },
+    });
+  } catch (err) {
+    console.error("audit write failed", err instanceof Error ? err.name : "unknown");
+  }
   return {
     ok: true,
     user: toPublicUser(user),

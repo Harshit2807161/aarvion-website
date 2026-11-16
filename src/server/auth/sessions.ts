@@ -108,7 +108,15 @@ export async function resolveSession(
     { _id, lastSeenAt: session.lastSeenAt },
     { $set: { lastSeenAt: next.lastSeenAt, idleExpiresAt, expiresAt: next.expiresAt } },
   );
-  return { session: next, refreshed: res.modifiedCount === 1 };
+  if (res.modifiedCount === 1) return { session: next, refreshed: true };
+  // Nothing matched: the session was revoked, or another request touched it first.
+  // Re-read so a revoked session is never reported valid.
+  const current = await col.findOne({ _id });
+  if (!current) return null;
+  const stillValid =
+    now < current.idleExpiresAt &&
+    (current.absoluteExpiresAt === null || now < current.absoluteExpiresAt);
+  return stillValid ? { session: current, refreshed: false } : null;
 }
 
 export async function revokeSession(token: string): Promise<void> {

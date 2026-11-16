@@ -5,3 +5,4 @@ import "../security/rate-limit.ts";
 import "../auth/otp.ts";
 import "../auth/users.ts";
 import "../auth/sessions.ts";
+import "../audit.ts";
