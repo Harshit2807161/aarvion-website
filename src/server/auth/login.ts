@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { appendAudit } from "../audit.ts";
 import { getDeps } from "../deps.ts";
-import { hitRateLimit, peekRateLimit } from "../security/rate-limit.ts";
+import { hitRateLimit, peekRateLimit, resetRateLimit } from "../security/rate-limit.ts";
 import { normalizeIdentifier, identifierKey, type Channel } from "./identifier.ts";
 import {
   OTP_TTL_MS,
@@ -99,30 +99,45 @@ export const VerifyOtpBody = SendOtpBody.extend({ code: z.string().max(16) });
 
 /**
  * Known risk (F11): the cap is keyed by identifier alone, so a third party who
- * knows a phone or email can lock that user out of login for 24 h.
+ * knows a phone or email can lock that user out of login for 24 h. Only a code
+ * mismatch against a live challenge counts, so each lockout costs the attacker
+ * real OTP sends, which the send limits throttle.
  */
 export const OTP_VERIFY_FAILURE_LIMIT = { limit: 10, windowMs: 86_400_000 } as const;
+
+/** Every verify request with a well-formed identifier counts, whatever its outcome. */
+export const OTP_VERIFY_IP_LIMIT = { limit: 60, windowMs: 3_600_000 } as const;
 
 export type VerifyOtpResult =
   | { ok: true; user: PublicUser; isNewUser: boolean; token: string; kind: SessionKind }
   | { ok: false; error: "invalid_code" }
-  | { ok: false; error: "too_many_attempts"; retryAfterSec: number };
+  | { ok: false; error: "too_many_attempts" | "rate_limited"; retryAfterSec: number };
 
 /**
- * Order is fixed: normalise, failure cap (peek), verify the challenge, find or
- * create the user, revoke any presented session (anti-fixation), create a fresh
- * session. Every failure reason collapses to invalid_code; the code and the
- * token are never logged or returned.
+ * Order is fixed: normalise, per-IP limit, failure cap (peek), verify the
+ * challenge, find or create the user, revoke any presented session
+ * (anti-fixation), create a fresh session, clear the failure counter. Every
+ * failure reason collapses to invalid_code, but only a mismatch counts toward
+ * the cap: a verify with no live challenge cannot guess anything. The code and
+ * the token are never logged or returned.
  */
 export async function verifyOtpAndLogin(i: {
   channel: Channel;
   identifier: string;
   code: string;
+  ipBucket: string;
   existingToken: string | null;
   now: Date;
 }): Promise<VerifyOtpResult> {
   const id = normalizeIdentifier(i.channel, i.identifier);
   if (!id) return { ok: false, error: "invalid_code" };
+
+  const ip = await hitRateLimit({
+    key: `otp-verify:ip:${i.ipBucket}`,
+    ...OTP_VERIFY_IP_LIMIT,
+    now: i.now,
+  });
+  if (!ip.allowed) return { ok: false, error: "rate_limited", retryAfterSec: ip.retryAfterSec };
 
   const failureKey = `otp-verify-fail:${identifierKey(id)}`;
   const cap = await peekRateLimit({ key: failureKey, ...OTP_VERIFY_FAILURE_LIMIT, now: i.now });
@@ -131,13 +146,16 @@ export async function verifyOtpAndLogin(i: {
 
   const verified = await verifyOtpChallenge(id, i.code, i.now);
   if (!verified.ok) {
-    await hitRateLimit({ key: failureKey, ...OTP_VERIFY_FAILURE_LIMIT, now: i.now });
+    if (verified.reason === "mismatch") {
+      await hitRateLimit({ key: failureKey, ...OTP_VERIFY_FAILURE_LIMIT, now: i.now });
+    }
     return { ok: false, error: "invalid_code" };
   }
 
   const { user, created } = await findOrCreateUserByIdentifier(id, i.now);
   if (i.existingToken) await revokeSession(i.existingToken);
   const { token } = await createSession(user, i.now);
+  await resetRateLimit(failureKey);
   // F7: the audit trail must not be able to break a login that already succeeded.
   try {
     await appendAudit({

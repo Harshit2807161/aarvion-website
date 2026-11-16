@@ -3,6 +3,7 @@ import { VerifyOtpBody, verifyOtpAndLogin } from "@/server/auth/login";
 import { getDeps } from "@/server/deps";
 import { HttpError, jsonResponse, readJson, withErrors } from "@/server/http";
 import { assertSameOrigin } from "@/server/security/origin";
+import { clientIp, ipBucket } from "@/server/security/client-ip";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export const POST = withErrors(async (req) => {
     channel: body.channel,
     identifier: body.identifier,
     code: body.code,
+    ipBucket: ipBucket(clientIp(req)),
     existingToken: readSessionToken(req),
     now: getDeps().now(),
   });
@@ -22,8 +24,11 @@ export const POST = withErrors(async (req) => {
       { headers: { "Set-Cookie": sessionCookieHeader(result.token, result.kind) } },
     );
   }
-  if (result.error === "too_many_attempts") {
-    throw new HttpError(429, "too_many_attempts", result.retryAfterSec);
+  switch (result.error) {
+    case "too_many_attempts":
+    case "rate_limited":
+      throw new HttpError(429, result.error, result.retryAfterSec);
+    case "invalid_code":
+      throw new HttpError(400, "invalid_code");
   }
-  throw new HttpError(400, "invalid_code");
 });

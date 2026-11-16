@@ -2,7 +2,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { getDb } from "@/server/db/client";
 import { ensureIndexes } from "@/server/db/indexes";
 import "@/server/db/register-all";
-import { RATE_LIMITS_COLLECTION, hitRateLimit, peekRateLimit } from "@/server/security/rate-limit";
+import {
+  RATE_LIMITS_COLLECTION,
+  hitRateLimit,
+  peekRateLimit,
+  resetRateLimit,
+} from "@/server/security/rate-limit";
 import { startMemoryReplSet, stopMemoryReplSet } from "../helpers/mongo";
 
 beforeAll(async () => {
@@ -87,6 +92,25 @@ describe("peekRateLimit", () => {
       count: 0,
       allowed: true,
     });
+  });
+});
+
+describe("resetRateLimit", () => {
+  it("drops the window so the next hit starts again at 1, and leaves other keys alone", async () => {
+    const i = { key: "r", limit: 2, windowMs, now: T };
+    for (let n = 0; n < 3; n++) await hitRateLimit(i);
+    await hitRateLimit({ ...i, key: "r2" });
+    expect((await peekRateLimit(i)).allowed).toBe(false);
+    await resetRateLimit("r");
+    expect(await peekRateLimit(i)).toMatchObject({ count: 0, allowed: true });
+    expect(await hitRateLimit(i)).toMatchObject({ count: 1, allowed: true });
+    expect(await peekRateLimit({ ...i, key: "r2" })).toMatchObject({ count: 1 });
+  });
+
+  it("is a no-op for a key with no window", async () => {
+    await expect(resetRateLimit("never-hit")).resolves.toBeUndefined();
+    const db = await getDb();
+    expect(await db.collection(RATE_LIMITS_COLLECTION).countDocuments()).toBe(0);
   });
 });
 
