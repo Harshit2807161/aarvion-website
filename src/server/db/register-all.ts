@@ -1,3 +1,4 @@
 // Import every module that calls registerIndexes, so scripts can ensure all indexes.
 import "../providers/outbox.ts";
 import "../catalogue/collections.ts";
+import "../security/rate-limit.ts";
