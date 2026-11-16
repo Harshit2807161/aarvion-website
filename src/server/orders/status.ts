@@ -19,7 +19,7 @@ export type Actor = "customer" | "staff" | "system";
 
 export type OrderForTransition = {
   status: OrderStatus;
-  /** The order date; Rx validity is judged on this instant. */
+  /** The order date; confirm and ship require the Rx valid at this instant and at `ctx.at`. */
   createdAt: Date;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
@@ -62,7 +62,9 @@ export function initialStatus(method: PaymentMethod): OrderStatus {
  * executes the refund, the prepaid order is `refunded` and `confirm` fails with
  * `payment_required`, so such an order can only leave `on_hold` via `cancel`.
  * It can resume only if a later order phase defers executing the refund while
- * the order is on hold.
+ * the order is on hold. Separately, an Rx valid at order creation but expired by
+ * confirm/ship time fails `rx_not_valid`; the admin then holds the order and asks
+ * the customer for a new Rx.
  */
 export const ORDER_EDGES: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
   pending_payment: ["placed", "cancelled"],
@@ -90,14 +92,23 @@ const validReason = (reason: string): boolean => {
   return n >= 1 && n <= 500;
 };
 
-function guard(order: Readonly<OrderForTransition>, event: OrderEvent): TransitionErrorCode | null {
+function guard(
+  order: Readonly<OrderForTransition>,
+  event: OrderEvent,
+  at: Date,
+): TransitionErrorCode | null {
   switch (event.type) {
     case "confirm":
     case "ship": {
       if (event.type === "ship" && (!event.awb.trim() || !event.courier.trim())) {
         return "awb_required";
       }
-      if (!isRxValidOn(order.rx, order.createdAt)) return "rx_not_valid";
+      // Compliance: dispensing happens at dispatch, so an expired Rx cannot
+      // authorise it. The Rx must be valid at order creation AND at the time of
+      // this gated transition (`at`).
+      if (!isRxValidOn(order.rx, order.createdAt) || !isRxValidOn(order.rx, at)) {
+        return "rx_not_valid";
+      }
       if (order.paymentMethod !== "cod" && order.paymentStatus !== "paid") {
         return "payment_required";
       }
@@ -119,7 +130,7 @@ export function transition(
   const to = TARGET[event.type];
   if (!ORDER_EDGES[order.status].includes(to)) return { ok: false, error: "invalid_transition" };
 
-  const error = guard(order, event);
+  const error = guard(order, event, ctx.at);
   if (error) return { ok: false, error };
 
   const entry: StatusHistoryEntry = { from: order.status, to, at: ctx.at, by: ctx.by };

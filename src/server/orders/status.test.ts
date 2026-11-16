@@ -97,7 +97,7 @@ describe("confirm guards", () => {
     };
     expect(transition(o, confirm, ctx)).toEqual({ ok: false, error: "rx_not_valid" });
   });
-  it("judges validity on the order date, not ctx.at", () => {
+  it("rejects an Rx valid at order creation but expired at ctx.at", () => {
     const o = {
       ...happy("placed"),
       createdAt: d("2026-11-10T06:00:00Z"),
@@ -107,7 +107,11 @@ describe("confirm guards", () => {
         validUntil: d("2026-11-12T00:00:00Z"),
       },
     };
-    expect(transition(o, confirm, { at: d("2026-11-20T06:00:00Z"), by: "staff" }).ok).toBe(true);
+    expect(transition(o, confirm, { at: d("2026-11-20T06:00:00Z"), by: "staff" })).toEqual({
+      ok: false,
+      error: "rx_not_valid",
+    });
+    expect(transition(o, confirm, { at: d("2026-11-11T06:00:00Z"), by: "staff" }).ok).toBe(true);
   });
   it("allows COD with pending payment", () => {
     const o = {
@@ -241,5 +245,61 @@ describe("history entry and purity", () => {
     Object.freeze(o.createdAt);
     expect(() => transition(o, { type: "confirm" }, ctx)).not.toThrow();
     expect(o.status).toBe("placed");
+  });
+});
+
+describe("Rx must be valid at order creation AND at the gated transition", () => {
+  // Rx dated 1 May 2026 IST expires 1 Nov 2026 IST (exclusive).
+  const rxMay = {
+    status: "approved" as const,
+    rxDate: d("2026-04-30T18:30:00Z"),
+    validUntil: null,
+  };
+  const created = d("2026-10-20T06:00:00Z");
+  const validNow = { at: d("2026-10-25T06:00:00Z"), by: "staff" } as const;
+  const expiredNow = { at: d("2026-11-16T06:00:00Z"), by: "staff" } as const;
+  const ship: OrderEvent = { type: "ship", awb: "A1", courier: "C" };
+
+  it("confirm and ship succeed when valid at creation and at ctx.at", () => {
+    const placed = { ...happy("placed"), createdAt: created, rx: rxMay };
+    const packed = { ...happy("packed"), createdAt: created, rx: rxMay };
+    expect(transition(placed, { type: "confirm" }, validNow).ok).toBe(true);
+    expect(transition(packed, ship, validNow).ok).toBe(true);
+  });
+  it("confirm fails when valid at creation but expired at ctx.at", () => {
+    const o = { ...happy("placed"), createdAt: created, rx: rxMay };
+    expect(transition(o, { type: "confirm" }, expiredNow)).toEqual({
+      ok: false,
+      error: "rx_not_valid",
+    });
+  });
+  it("ship fails when valid at creation but expired at ctx.at", () => {
+    const o = { ...happy("packed"), createdAt: created, rx: rxMay };
+    expect(transition(o, ship, expiredNow)).toEqual({ ok: false, error: "rx_not_valid" });
+  });
+  it("confirm and ship fail when the Rx had already expired at creation", () => {
+    const early = { at: d("2026-10-01T06:00:00Z"), by: "staff" } as const;
+    const late = d("2026-11-16T06:00:00Z");
+    const placed = { ...happy("placed"), createdAt: late, rx: rxMay };
+    const packed = { ...happy("packed"), createdAt: late, rx: rxMay };
+    expect(transition(placed, { type: "confirm" }, early)).toEqual({
+      ok: false,
+      error: "rx_not_valid",
+    });
+    expect(transition(packed, ship, early)).toEqual({ ok: false, error: "rx_not_valid" });
+  });
+  it("keeps precedence awb_required -> rx_not_valid -> payment_required", () => {
+    const o = {
+      ...happy("packed"),
+      createdAt: created,
+      rx: rxMay,
+      paymentStatus: "refunded" as const,
+    };
+    expect(transition(o, { type: "ship", awb: "", courier: "C" }, expiredNow)).toEqual({
+      ok: false,
+      error: "awb_required",
+    });
+    expect(transition(o, ship, expiredNow)).toEqual({ ok: false, error: "rx_not_valid" });
+    expect(transition(o, ship, validNow)).toEqual({ ok: false, error: "payment_required" });
   });
 });
