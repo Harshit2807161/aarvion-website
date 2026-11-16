@@ -40,7 +40,7 @@ export type RxSnapshot = {
 
 /**
  * True when the Rx is approved and `on` falls in [rxDate, min(validUntil, rxDate + 6 months)).
- * Callers judge validity on the order's creation date, not on confirm/ship time.
+ * Callers judge validity at the moment of the gated transition (confirm, pack, ship).
  */
 export function isRxValidOn(rx: RxSnapshot, on: Date): boolean {
   if (rx.status !== "approved" || rx.rxDate === null) return false;
