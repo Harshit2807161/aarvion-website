@@ -57,6 +57,8 @@ bottom use commit SHAs.
 - `percentOff()` (floored, never rounds up) and the base components `RxBadge`, `StatusTag`, `Rupees`,
   `StampPrice` and `PriceInline` in `src/components/base/`, with `src/styles/stamp.css`; the stamp
   hides its tag below 1% and `src/lib/price-source.test.ts` keeps UI code from recomputing prices (#71).
+- `Button` and `ButtonLink` (seven variants, busy state) with `src/styles/buttons.css`, the `/dev/styleguide`
+  page, and `src/proxy.ts`, which makes every `/dev/*` URL a real HTTP 404 where mocks are forbidden (#72).
 
 ### Changed
 
