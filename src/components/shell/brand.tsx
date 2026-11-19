@@ -6,7 +6,8 @@ import { ROUTES } from "@/config/routes";
  * The Aarvion logo lockup. The logo already carries the wordmark and has no "PHARMACEUTICALS"
  * line, so the legal name appears in the address and the copyright instead.
  *
- * - `footer` (default): the official reversed logo on forest ground.
+ * - `footer` (default): the official reversed logo on forest ground, lazy-loaded so it is never
+ *   preloaded ahead of the page's LCP image.
  * - `header`: the full-colour logo on white, a home link (the link carries the name, so the
  *   image's alt is empty). Its height is CSS (`.brand-logo`: 40px, 34px on phones); the
  *   width/height attributes only reserve the box.
@@ -21,7 +22,7 @@ export function Brand({ placement = "footer" }: { placement?: "footer" | "header
   }
   return (
     <p className="foot-logo">
-      <BrandMark height={52} variant="reversed" alt="Aarvion" />
+      <BrandMark height={52} variant="reversed" alt="Aarvion" loading="lazy" />
     </p>
   );
 }
