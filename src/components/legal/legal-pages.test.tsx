@@ -1,5 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import ContactPage, { metadata as contactMetadata } from "@/app/(store)/contact/page";
+import GrievancePage from "@/app/(store)/legal/grievance/page";
+import PrescriptionPolicyPage from "@/app/(store)/legal/prescription-policy/page";
+import ReturnsCancellationPage from "@/app/(store)/legal/returns-cancellation/page";
+import ShippingPage from "@/app/(store)/legal/shipping/page";
+import { ROUTES } from "@/config/routes";
+import { SITE_CONFIG } from "@/config/site";
 import { BANNED_CLAIMS, findClaims } from "../../../tests/helpers/claims";
 import {
   Fact,
@@ -115,5 +122,70 @@ describe("findClaims", () => {
       "The price of each pack is the MRP printed on it, less ₹20.",
     ])
       expect(findClaims(text)).toEqual([]);
+  });
+});
+
+describe("refund, shipping, prescription, grievance and contact pages", () => {
+  const pages = [
+    ["Refunds and cancellation", ReturnsCancellationPage],
+    ["Shipping", ShippingPage],
+    ["Prescription policy", PrescriptionPolicyPage],
+    ["Grievances", GrievancePage],
+    ["Contact", ContactPage],
+  ] as const;
+
+  it.each(pages)("%s has its h1 in the forest band and makes no invented claims", (name, Page) => {
+    const { container } = render(<Page />);
+    const h1 = screen.getByRole("heading", { level: 1, name });
+    expect(h1.closest(".band")).not.toBeNull();
+    expect(findClaims(container.textContent!)).toEqual([]);
+  });
+
+  it("refunds: 48 hours, 5–7 working days, and prepaid refunds are conditional on paying online", () => {
+    const text = render(<ReturnsCancellationPage />).container.textContent!;
+    expect(text).toContain("48 hours");
+    expect(text).toContain("5–7 working days");
+    expect(text).toContain("before it is packed");
+    expect(text).toContain("If you paid online");
+    expect(text).toContain("A cash on delivery order owes nothing");
+  });
+
+  it("shipping: free delivery, ships after approval, COD up to ₹5,000, times pending", () => {
+    const { container } = render(<ShippingPage />);
+    const text = container.textContent!;
+    expect(text).toContain("free on every order, to any valid 6-digit pincode in India");
+    expect(text).toContain("only after a pharmacist approves its prescription");
+    expect(text).toContain("by SMS and email");
+    expect(text).toContain("up to ₹5,000");
+    expect(container.querySelectorAll(".pending").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("[C25] prescription: states the rule, never a claim about the catalogue", () => {
+    const text = render(<PrescriptionPolicyPage />).container.textContent!;
+    expect(text).toContain(
+      "Schedule H and H1 medicines are dispensed only against a valid prescription",
+    );
+    expect(text).toContain("8 MB");
+    expect(text).toContain("6 months");
+    expect(text).not.toContain("currently listed");
+    // Without allRx the C25 guard is on: any universal Rx claim would fail here.
+    expect(findClaims(text)).toEqual([]);
+  });
+
+  it("grievance: officer details and timelines are pending, order number format shown", () => {
+    const { container } = render(<GrievancePage />);
+    expect(container.textContent).toContain("AAR-YYMM-NNNNN");
+    expect(container.querySelectorAll(".pending").length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("contact: both address lines, pending care details, a Grievances link", () => {
+    expect(contactMetadata.title).toBe("Contact");
+    const { container } = render(<ContactPage />);
+    for (const line of SITE_CONFIG.address) expect(container.textContent).toContain(line);
+    expect(container.querySelectorAll(".pending").length).toBeGreaterThanOrEqual(2);
+    expect(container.textContent).toContain("For an order question, include your order number.");
+    expect(screen.getByRole("link", { name: "Grievances" }).getAttribute("href")).toBe(
+      ROUTES.legal.grievance,
+    );
   });
 });
