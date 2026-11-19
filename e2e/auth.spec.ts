@@ -44,6 +44,7 @@ test("OTP login: send, read the code from the dev outbox, verify, /me, logout", 
   );
   expect(verify.status).toBe(200);
   expect(verify.body.user.email).toBe(email);
+  expect(verify.body.user.name).toBe("E2E Shopper");
 
   const cookie = (await context.cookies()).find((c) => c.name === "__Host-aarv_sid");
   expect(cookie).toMatchObject({ httpOnly: true, secure: true, sameSite: "Lax", path: "/" });

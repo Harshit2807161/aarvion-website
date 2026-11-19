@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { POLICY_VERSION } from "../../config/site.ts";
 import { appendAudit } from "../audit.ts";
 import { getDeps } from "../deps.ts";
 import { hitRateLimit, peekRateLimit, resetRateLimit } from "../security/rate-limit.ts";
@@ -91,11 +92,30 @@ export async function sendOtp(i: {
   return { ok: true, resendAfterSec: RESEND_AFTER_SEC };
 }
 
+/** The policy version a sign-up accepts; stored with the consent. */
+export const CONSENT_VERSION = POLICY_VERSION;
+
+/**
+ * What a new account sends with its first verify: a name with at least one letter, the
+ * Terms and Privacy acceptance and the 18+ declaration (both must be true), and the marketing
+ * choice (optional in the UI, off by default, but always stated here). Unknown keys are refused.
+ */
+export const SignupInput = z.strictObject({
+  name: z.string().trim().min(2).max(80).regex(/\p{L}/u),
+  adult: z.literal(true),
+  termsPrivacy: z.literal(true),
+  marketing: z.boolean(),
+});
+export type SignupInput = z.infer<typeof SignupInput>;
+
 /**
  * F6: `code` is a loose string so every bad code, including a malformed one,
- * takes the same invalid_code path as a wrong one.
+ * takes the same invalid_code path as a wrong one. A bad `signup` is 400 invalid_request.
  */
-export const VerifyOtpBody = SendOtpBody.extend({ code: z.string().max(16) });
+export const VerifyOtpBody = SendOtpBody.extend({
+  code: z.string().max(16),
+  signup: SignupInput.optional(),
+});
 
 /**
  * Known risk (F11): the cap is keyed by identifier alone, so a third party who
@@ -119,12 +139,14 @@ export type VerifyOtpResult =
  * (anti-fixation), create a fresh session, clear the failure counter. Every
  * failure reason collapses to invalid_code, but only a mismatch counts toward
  * the cap: a verify with no live challenge cannot guess anything. The code and
- * the token are never logged or returned.
+ * the token are never logged or returned. A new user is created with the name
+ * and consents from `signup`; an existing user's are never changed.
  */
 export async function verifyOtpAndLogin(i: {
   channel: Channel;
   identifier: string;
   code: string;
+  signup?: SignupInput | undefined;
   ipBucket: string;
   existingToken: string | null;
   now: Date;
@@ -152,7 +174,17 @@ export async function verifyOtpAndLogin(i: {
     return { ok: false, error: "invalid_code" };
   }
 
-  const { user, created } = await findOrCreateUserByIdentifier(id, i.now);
+  // Written on insert only: an existing user's name and consents are never replaced.
+  const signup = i.signup && {
+    name: i.signup.name,
+    consents: {
+      channel: id.channel,
+      termsPrivacy: { version: CONSENT_VERSION, at: i.now },
+      adult: { at: i.now },
+      marketing: { optedIn: i.signup.marketing, at: i.now },
+    },
+  };
+  const { user, created } = await findOrCreateUserByIdentifier(id, i.now, signup);
   if (i.existingToken) await revokeSession(i.existingToken);
   const { token } = await createSession(user, i.now);
   // C6: the user is logged in by now, so a failing counter reset is logged, never a 500.

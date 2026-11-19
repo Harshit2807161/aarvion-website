@@ -92,7 +92,7 @@ describe("POST /api/auth/otp/verify", () => {
         phone: PHONE,
         email: null,
         role: "customer",
-        name: null,
+        name: "Test User",
       },
       isNewUser: true,
     });
@@ -353,6 +353,7 @@ describe("POST /api/auth/otp/verify", () => {
           channel: "phone",
           identifier: PHONE,
           code,
+          signup: DEFAULT_SIGNUP,
           ipBucket: "203.0.113.10",
           existingToken: null,
           now: clock.now(),

@@ -99,6 +99,9 @@ bottom use commit SHAs.
   consuming it (a match refunds its attempt), `findUserByIdentifier`, and users gain an optional
   `name` and a DPDP `consents` record (policy version, times, OTP channel) written on insert only;
   `PublicUser` gains `name`. Login tests send `DEFAULT_SIGNUP` from `tests/helpers/auth.ts` (#99).
+- `POST /api/auth/otp/verify` accepts `signup` (`name`, `adult: true`, `termsPrivacy: true`,
+  `marketing`; strict, else 400 `invalid_request`), and a new user stores the name and a DPDP
+  consent record: policy version `2026-11-17` (`CONSENT_VERSION`), the time and the OTP channel.
 
 ### Changed
 
