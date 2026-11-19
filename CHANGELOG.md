@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- Overlay foundations: the shadcn dialog primitives (`src/components/ui/dialog.tsx`), `src/styles/overlay.css` (dialog, side drawer and phone bottom sheet as keyframes on `[data-state]`, Aarvion scrim), the shadcn colour mapping in `globals.css`, and the pure drag-to-dismiss thresholds in `src/components/overlay/drag.ts`. Adds `@radix-ui/react-dialog` and dev dependency `postcss` (for the built-CSS scrim test) (#81).
 - Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
   Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React
   and Testing Library setup (#45).

@@ -1,0 +1,91 @@
+/*
+  Sheets: the dialog and side drawer, which become a draggable bottom sheet below 640px.
+  Port of design/prototype/css/flows.css lines 400-458 for src/components/overlay/overlay.tsx.
+  The prototype toggled an `.is-open` class and used transitions; Radix mounts the parts only
+  while open and marks them `data-state="open|closed"`, and it keeps them mounted until the
+  closing animation ends, so each state is a @keyframes animation instead. Only `transform`
+  and `opacity` move. Open animations use `backwards` fill so the drag hook's (next PR) inline transform
+  takes over afterwards; close animations use `forwards` fill so the panel stays gone until
+  Radix unmounts it.
+  The scrim is an Aarvion token mix (forest-950 at 50%, DESIGN.md "Drawers, Dialogs and Bottom
+  Sheets"), not `bg-black/50`: globals.css resets the colour palette, so `--color-black` does
+  not exist. overlay.test.ts checks the built CSS carries this rule.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.sheet-scrim {
+  position: fixed; inset: 0; z-index: 60;
+  background: color-mix(in srgb, var(--color-forest-950) 50%, transparent);
+}
+.sheet-scrim[data-state="open"] { animation: sheet-fade-in 380ms var(--ease-out) backwards; }
+.sheet-scrim[data-state="closed"] { animation: sheet-fade-out 300ms var(--ease-out) forwards; }
+
+.sheet-panel {
+  position: fixed; z-index: 61; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--color-white); color: var(--color-ink); outline: none;
+  box-shadow: 0 30px 60px -20px rgb(5 15 10 / 0.45), 0 8px 20px -10px rgb(5 15 10 / 0.3);
+  will-change: transform;
+}
+.sheet-head { position: relative; display: flex; align-items: center; gap: 12px; padding: 18px 16px 14px 24px; border-bottom: 1px solid var(--color-neutral-200); }
+.sheet-title { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; font: 600 1.375rem/1.3 var(--font-display); letter-spacing: -0.015em; }
+.sheet-title .num { font-size: 0.9375rem; font-weight: 500; color: var(--color-text-muted); letter-spacing: 0; }
+.sheet-grip { display: none; position: absolute; left: 50%; top: 8px; width: 40px; height: 5px; margin-left: -20px; border-radius: 3px; background: var(--color-neutral-300); }
+.sheet-close {
+  display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%;
+  color: var(--color-ink); cursor: pointer;
+  transition: transform var(--duration-press) var(--ease-out), background-color var(--duration-fast) ease;
+}
+.sheet-close:active { transform: scale(0.92); }
+@media (hover: hover) and (pointer: fine) { .sheet-close:hover { background: var(--color-neutral-100); } }
+.sheet-body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 8px 24px 20px; scrollbar-width: thin; }
+.sheet-foot { flex: none; display: grid; gap: 14px; padding: 18px 24px calc(20px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--color-neutral-200); background: var(--color-white); }
+
+/* Side drawer (cart, menu) */
+.sheet--side { top: 8px; right: 8px; bottom: 8px; width: min(460px, calc(100% - 16px)); border-radius: 22px; }
+.sheet--side[data-state="open"] { animation: sheet-side-in 480ms var(--ease-drawer) backwards; }
+.sheet--side[data-state="closed"] { animation: sheet-side-out 300ms var(--ease-drawer) forwards; }
+
+/* Centred dialog (sign-in, search) */
+.sheet--dialog {
+  inset: 0; margin: auto; width: min(480px, calc(100% - 32px)); height: fit-content; max-height: calc(100dvh - 48px);
+  border-radius: 24px;
+}
+.sheet--dialog[data-state="open"] { animation: sheet-scale-in 260ms var(--ease-out) backwards, sheet-fade-in 220ms var(--ease-out) backwards; }
+.sheet--dialog[data-state="closed"] { animation: sheet-scale-out 200ms var(--ease-out) forwards, sheet-fade-out 200ms var(--ease-out) forwards; }
+.sheet--dialog .sheet-head { border-bottom: 0; padding-bottom: 0; }
+.sheet--dialog .sheet-body { padding: 4px 28px 28px; }
+
+/* Phones: both become a bottom sheet you can drag down */
+@media (max-width: 639px) {
+  .sheet--side {
+    inset: auto 0 0 0; margin: 0; width: 100%; height: 92dvh; max-height: 92dvh; border-radius: 24px 24px 0 0;
+  }
+  .sheet--dialog {
+    inset: auto 0 0 0; margin: 0; width: 100%; height: auto; max-height: 92dvh; border-radius: 24px 24px 0 0;
+  }
+  .sheet--side[data-state="open"], .sheet--dialog[data-state="open"] { animation: sheet-up-in 460ms var(--ease-drawer) backwards; }
+  .sheet--side[data-state="closed"], .sheet--dialog[data-state="closed"] { animation: sheet-up-out 280ms var(--ease-drawer) forwards; }
+  .sheet-grip { display: block; }
+  .sheet-head { padding: 26px 12px 12px 20px; touch-action: none; cursor: grab; }
+  .sheet-body { padding: 4px 20px 20px; }
+  .sheet--dialog .sheet-body { padding: 0 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .sheet-foot { padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  /* Holds only the open animation off, so the close animation still plays from the dragged offset. */
+  .sheet-panel.is-dragging[data-state="open"] { animation: none; }
+}
+
+@keyframes sheet-fade-in { from { opacity: 0; } }
+@keyframes sheet-fade-out { to { opacity: 0; } }
+@keyframes sheet-scale-in { from { transform: scale(0.96); } }
+@keyframes sheet-scale-out { to { transform: scale(0.96); } }
+@keyframes sheet-side-in { from { transform: translateX(calc(100% + 16px)); } }
+@keyframes sheet-side-out { to { transform: translateX(calc(100% + 16px)); } }
+@keyframes sheet-up-in { from { transform: translateY(100%); } }
+@keyframes sheet-up-out { to { transform: translateY(100%); } }
+
+/* Reduced motion: no movement, opacity over 200ms (the scrim keeps its fade). */
+@media (prefers-reduced-motion: reduce) {
+  .sheet-panel[data-state="open"] { animation: sheet-fade-in 200ms ease backwards !important; }
+  .sheet-panel[data-state="closed"] { animation: sheet-fade-out 200ms ease forwards !important; }
+  .sheet-scrim[data-state="open"] { animation-duration: 200ms; }
+  .sheet-scrim[data-state="closed"] { animation-duration: 200ms; }
+}
