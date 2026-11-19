@@ -72,8 +72,8 @@ function Slide({ slide, n, count }: { slide: BannerSlide; n: number; count: numb
  * The home hero banner, the owner's "hero banner which keeps changing" (v2 brief, home
  * section 3). A server component: it picks the slides for the live catalogue with
  * `bannerSlides` (the banner fallback), so the first visible slide is the LCP, and hands them
- * to the client `BannerCarousel` as children. The page must set `.home` (banner.css) on an
- * ancestor for the 1280px width.
+ * to the client `BannerCarousel` as children. Its 1280px width comes from the page root's
+ * `.home` (src/styles/quick-trust.css).
  */
 export async function HeroBanner() {
   const slides = bannerSlides(await getCachedProducts());
