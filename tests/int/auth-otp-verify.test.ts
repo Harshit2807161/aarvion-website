@@ -55,7 +55,10 @@ beforeEach(async () => {
 
 const send = (identifier = PHONE, ip = "203.0.113.10") =>
   SEND(jsonPost(SEND_PATH, { channel: "phone", identifier }, { ip }));
-/** Sends DEFAULT_SIGNUP so a first login creates the user (C5); an existing user ignores it. */
+/**
+ * Sends DEFAULT_SIGNUP (C5): ignored today, and from 38c on what lets a first login create the
+ * user. An existing user ignores it.
+ */
 const verify = (code: string, opts?: Parameters<typeof jsonPost>[2], identifier = PHONE) =>
   VERIFY(jsonPost(PATH, { channel: "phone", identifier, code, signup: DEFAULT_SIGNUP }, opts));
 const count = async (name: string) => (await getDb()).collection(name).countDocuments();

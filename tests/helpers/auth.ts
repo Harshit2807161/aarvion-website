@@ -1,7 +1,7 @@
 /**
- * Sign-up details for a first login [C5]. Login tests send them by default, so a verify for a
- * new identifier creates the user instead of answering 409 `signup_required`; an existing
- * user's login ignores them (they are written on insert only).
+ * Sign-up details for a first login [C5]. Login tests send them by default. Today the verify
+ * body schema strips them; from 38c on, a verify for a new identifier needs them or answers 409
+ * `signup_required`. An existing user's login ignores them (they are written on insert only).
  */
 export const DEFAULT_SIGNUP = {
   name: "Test User",

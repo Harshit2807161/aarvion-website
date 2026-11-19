@@ -208,6 +208,15 @@ describe("checkOtpChallenge", () => {
     expect(await checkWithRace(code, { consumedAt: at(500) })).toEqual({ ok: true });
     expect(await stored()).toMatchObject({ attempts: 1, consumedAt: at(500) });
   });
+
+  it("never refunds a challenge replaced in between (the refund is pinned to challengeId)", async () => {
+    const { code } = await issue();
+    // A re-issue lands between the spend and the refund; its attempts are not the old one's.
+    expect(await checkWithRace(code, { challengeId: "reissued", attempts: 2 })).toEqual({
+      ok: true,
+    });
+    expect(await stored()).toMatchObject({ challengeId: "reissued", attempts: 2 });
+  });
 });
 
 describe("resendCooldownSec and cancel", () => {
