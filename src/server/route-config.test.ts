@@ -1,5 +1,5 @@
 import { globSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { matchesGlob, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -7,7 +7,8 @@ import { describe, expect, it } from "vitest";
 // (anything it reads first would abort the prerender), a dev GET calls `requireDevRoute()` next,
 // and the old segment configs are banned.
 const appDir = resolve(fileURLToPath(import.meta.url), "../../app");
-const routes = globSync("**/route.ts", { cwd: appDir }).map((f) => ({
+const ROUTE_GLOB = "**/route.{ts,tsx,js,mjs}";
+const routes = globSync(ROUTE_GLOB, { cwd: appDir }).map((f) => ({
   file: f,
   src: readFileSync(resolve(appDir, f), "utf8"),
 }));
@@ -65,5 +66,8 @@ describe("route handler config", () => {
     expect(getBodies("export function GET() {\n  return new Response();")).toEqual([null]);
     expect(getBodies("const GET = async () => {};\nexport { GET };")).toEqual([null]);
     expect("export const dynamic = 'force-dynamic';").toMatch(BANNED);
+    for (const f of ["api/x/route.ts", "api/x/route.tsx", "dev/route.js", "route.mjs"]) {
+      expect(matchesGlob(f, ROUTE_GLOB)).toBe(true);
+    }
   });
 });
