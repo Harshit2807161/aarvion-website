@@ -197,7 +197,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   depends on whether an account exists.
 - Verify order is fixed: normalise → 60/h per IP (before any challenge or user read) → peek the
   10-per-24 h failure cap → check the code → only a mismatch on a live challenge counts → only then,
-  without `signup`, look up the user → find or create the user → revoke any presented session → new
+  without `signup`, look up the user (unknown: 409; known: consume the code, where a failure is an
+  uncounted 400 `invalid_code`) → find or create the user → revoke any presented session → new
   session → clear the failure counter (a failing reset or audit write is logged by error name, never
   fails the login). Every code-check failure (unknown, expired, consumed, exhausted or mismatched
   code, or a bad identifier) is 400 `invalid_code`. The per-IP limit is 429 `rate_limited` and the

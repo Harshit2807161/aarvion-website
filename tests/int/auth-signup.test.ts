@@ -230,26 +230,87 @@ describe("sign-up on OTP verify", () => {
     }
   });
 
-  it("a verify without the right code never reads the users collection", async () => {
+  it("a verify without the right code never touches the users collection", async () => {
     await insertKnown();
     const { Collection } = await import("mongodb");
-    const junk = async (identifier: string, guess: string, signup?: typeof SIGNUP) => {
-      const spy = vi.spyOn(Collection.prototype, "findOne");
+    const METHODS = [
+      "find", // findOne goes through it too
+      "findOne",
+      "findOneAndUpdate",
+      "updateOne",
+      "insertOne",
+      "aggregate",
+      "countDocuments",
+    ] as const;
+    /** The collections `run` touched through any of METHODS. */
+    const touched = async (run: () => Promise<Response>) => {
+      const spies = METHODS.map((m) => vi.spyOn(Collection.prototype, m));
       try {
-        await expectInvalidCode(await verify(guess, { identifier, signup }));
-        const read = spy.mock.contexts.map(
-          (c) => (c as InstanceType<typeof Collection>).collectionName,
+        const res = await run();
+        const names = spies.flatMap((s) =>
+          s.mock.contexts.map((c) => (c as InstanceType<typeof Collection>).collectionName),
         );
-        expect(read).not.toContain(USERS_COLLECTION);
+        return { res, names };
       } finally {
-        spy.mockRestore();
+        spies.forEach((s) => s.mockRestore());
       }
+    };
+    const junk = async (identifier: string, guess: string, signup?: typeof SIGNUP) => {
+      const { res, names } = await touched(() => verify(guess, { identifier, signup }));
+      await expectInvalidCode(res);
+      expect(names).toContain(RATE_LIMITS_COLLECTION); // the spies are live
+      expect(names).not.toContain(USERS_COLLECTION);
     };
     for (const identifier of [ASHA, KNOWN]) {
       for (const signup of [undefined, SIGNUP]) await junk(identifier, "123456", signup);
       const code = await sendAndRead(identifier);
       for (const signup of [undefined, SIGNUP]) await junk(identifier, WRONG(code), signup);
     }
+
+    // Positive control: the same spies see users once the code is right.
+    clock.advance(31_000);
+    const code = await sendAndRead(KNOWN);
+    const { res, names } = await touched(() => verify(code, { identifier: KNOWN }));
+    expect(res.status).toBe(200);
+    expect(names).toContain(USERS_COLLECTION);
+  });
+
+  it("concurrent right-code verifies for a returning user without sign-up log in once", async () => {
+    await insertKnown();
+    const code = await sendAndRead(KNOWN);
+    const res = await Promise.all(
+      Array.from({ length: 4 }, () => verify(code, { identifier: KNOWN })),
+    );
+    expect(res.map((r) => r.status).sort()).toEqual([200, 400, 400, 400]);
+    expect(await count(SESSIONS_COLLECTION)).toBe(1);
+    expect(await failCount(KNOWN)).toBe(0);
+  });
+
+  it("a returning user's code used up between the check and the consume is an uncounted 400", async () => {
+    await insertKnown();
+    const code = await sendAndRead(KNOWN);
+    const otp = (await getDb()).collection<{ _id: string }>(OTP_COLLECTION);
+    const { Collection } = await import("mongodb");
+    const real = Collection.prototype.findOne;
+    // A concurrent login consumes the code while this verify looks the account up.
+    const spy = vi.spyOn(Collection.prototype, "findOne").mockImplementation(async function (
+      this: InstanceType<typeof Collection>,
+      ...args: Parameters<typeof real>
+    ) {
+      if (this.collectionName === USERS_COLLECTION) {
+        await otp.updateOne({ _id: `email:${KNOWN}` }, { $set: { consumedAt: T } });
+      }
+      return real.apply(this, args);
+    } as typeof real);
+    let res: Response;
+    try {
+      res = await verify(code, { identifier: KNOWN });
+    } finally {
+      spy.mockRestore();
+    }
+    await expectInvalidCode(res);
+    expect(await count(SESSIONS_COLLECTION)).toBe(0);
+    expect(await failCount(KNOWN)).toBe(0);
   });
 
   it("an unknown identifier locks out after 10 mismatches, as a known one does", async () => {
