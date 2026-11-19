@@ -108,14 +108,9 @@ describe("StoreFooter", () => {
     };
     const { container } = render(<StoreFooter categories={categories} config={config} />);
     const dds = [...container.querySelectorAll("dd")].map((d) => d.textContent);
-    expect(dds).toEqual([
-      "+91 11 0000 0000",
-      "care@example.test",
-      "DL-20B-1, DL-21B-2",
-      "A. Pharmacist",
-      "B. Officer",
-      "07AAAAA0000A1Z5",
-    ]);
+    expect(dds.join(" | ")).toBe(
+      "+91 11 0000 0000 | care@example.test | DL-20B-1, DL-21B-2 | A. Pharmacist | B. Officer | 07AAAAA0000A1Z5",
+    );
   });
 
   it("ends with the exact copyright line", () => {
