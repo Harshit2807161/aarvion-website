@@ -51,7 +51,7 @@ src/lib/            client-safe helpers (cn)
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES)
 src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, form/, feedback/ so far)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
-src/components/overlay/  dialog and side sheet: the drag thresholds and `useDragDismiss` hook (the Overlay component follows)
+src/components/overlay/  dialog and side sheet: `Overlay` (dialog and side sheet), the drag thresholds and `useDragDismiss`
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
 src/server/         framework-free business logic (the only place rules live)
   catalogue/        schema, pricing, categories, seed, search, queries
@@ -306,8 +306,8 @@ A change is done only when all of these hold:
 
 1. Tests added or updated, written first where practical, and the full local check passes.
 2. A line under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md), ending with the PR number.
-   CHANGELOG.md uses git's `union` merge driver (`.gitattributes`), so merging `origin/main` into
-   your branch keeps both sides' lines; check for duplicated or misplaced lines afterwards.
+   When merging `origin/main` conflicts on CHANGELOG.md, keep every line from both sides once,
+   under the right heading; never re-add an older wording of a line that main has changed.
 3. The matching page under [docs/dev/](docs/dev/README.md) is updated for any new or changed
    command, script, env var, route, data rule, folder, convention or procedure; AGENTS.md too if
    it changes how agents work; a ruling recorded if a rule changed.
