@@ -1,4 +1,4 @@
-/* Forms: fields, checkbox, switch, segmented control, option cards, error summary.
+/* Forms: the form grid, text fields, checkbox and segmented control, plus the form-grid helpers.
    Ported from design/prototype/css/flows.css lines 207-329 (the switch, option-card, error-summary and .field-ok rules are left out until a task uses them), with the old line-strong
    custom property renamed to --color-line-strong [C13]. Imported by globals.css
    inside @layer components. */
@@ -44,6 +44,9 @@
 .check-input:checked + .check-box { background: var(--color-forest-700); border-color: var(--color-forest-700); }
 .check-input:checked + .check-box .i { opacity: 1; transform: none; }
 .check-input:focus-visible + .check-box { outline: 2px solid var(--color-focus-light); outline-offset: 2px; }
+.check:has(.check-input:is(:disabled, [aria-disabled="true"])) { cursor: not-allowed; color: var(--color-text-muted); }
+.check-input:is(:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
+.check-input:is(:disabled, [aria-disabled="true"]) + .check-box { background: var(--color-neutral-100); border-color: var(--color-neutral-300); color: var(--color-neutral-400); }
 .check.is-invalid .check-box { border-color: var(--color-danger); }
 .check-text small { display: block; margin-top: 2px; font-size: var(--text-sm); color: var(--color-text-muted); }
 
@@ -65,17 +68,21 @@
 .seg-thumb {
   position: absolute; z-index: 0; left: 4px; top: 4px; bottom: 4px; width: calc((100% - 8px) / var(--n));
   border-radius: var(--radius-pill); background: var(--color-white); box-shadow: var(--shadow-sm);
+  transform: translateX(calc(var(--i, 0) * 100%));
   transition: transform var(--duration-base) var(--ease-out);
 }
-.seg:has(.seg-input:nth-of-type(2):checked) .seg-thumb { transform: translateX(100%); }
-.seg:has(.seg-input:nth-of-type(3):checked) .seg-thumb { transform: translateX(200%); }
 @media (hover: hover) and (pointer: fine) { .seg-input:not(:checked) + .seg-opt:hover { color: var(--color-ink); } }
 
 /* Keyboard focus must stay visible when forced colours drop the shadow and edge colour. */
 @media (forced-colors: active) {
   .input:focus, .select:focus, .textarea:focus { outline: 2px solid Highlight; outline-offset: 2px; }
+  .check-input:focus-visible + .check-box, .seg-input:focus-visible + .seg-opt { outline-color: Highlight; }
+  .check-input:checked + .check-box { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; }
+  .seg-thumb { border: 2px solid Highlight; }
 }
 @media (prefers-contrast: more) {
   .hint, .label .opt-hint { color: var(--color-neutral-800); }
-  .field-box { border-color: var(--color-neutral-700); }
+  .field-box, .check-box { border-color: var(--color-neutral-700); }
+  .check-text small, .seg-opt .num { color: var(--color-neutral-800); }
+  .seg-input:not(:checked) + .seg-opt { color: var(--color-neutral-900); }
 }
