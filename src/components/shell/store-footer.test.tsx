@@ -90,22 +90,11 @@ describe("StoreFooter", () => {
     expect(contact.getByText("Email").nextElementSibling?.textContent).toBe("To be added");
   });
 
-  it("offers cash on delivery only while online payments are off", () => {
+  it("offers cash on delivery only, with no online payment claim", () => {
     const { container } = render(<StoreFooter categories={categories} />);
     const pay = container.querySelector(".foot-pay")!;
     expect(pay.textContent).toBe("Pay withCash on delivery");
     expect(pay.textContent).not.toMatch(/UPI|Cards|Netbanking|Razorpay/);
-  });
-
-  it("lists the online methods once online payments are on", () => {
-    const { container } = render(
-      <StoreFooter categories={categories} config={{ ...SITE_CONFIG, onlinePayments: true }} />,
-    );
-    const pay = container.querySelector(".foot-pay")!;
-    for (const m of ["UPI", "Cards", "Netbanking", "Cash on delivery"]) {
-      expect(pay.textContent).toContain(m);
-    }
-    expect(pay.textContent).toContain("through Razorpay, or");
   });
 
   it("prints supplied legal facts and contact details instead of the placeholder", () => {

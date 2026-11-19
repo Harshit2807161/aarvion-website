@@ -20,11 +20,6 @@ export type SiteConfig = {
   grievanceOfficer: string | null;
   gstin: string | null;
   customerCare: { phone: string | null; email: string | null } | null;
-  /**
-   * Whether online payments (UPI, cards, netbanking through Razorpay) are live. Keep false until
-   * live Razorpay keys exist (plan Stage 6): the footer then offers cash on delivery only.
-   */
-  onlinePayments: boolean;
 };
 
 export const SITE_CONFIG: SiteConfig = {
@@ -39,7 +34,6 @@ export const SITE_CONFIG: SiteConfig = {
   grievanceOfficer: null,
   gstin: null,
   customerCare: null,
-  onlinePayments: false,
 };
 
 export type LegalField =

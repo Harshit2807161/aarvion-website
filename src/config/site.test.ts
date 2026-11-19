@@ -33,7 +33,6 @@ describe("SITE_CONFIG", () => {
     expect(SITE_CONFIG.grievanceOfficer).toBeNull();
     expect(SITE_CONFIG.gstin).toBeNull();
     expect(SITE_CONFIG.customerCare).toBeNull();
-    expect(SITE_CONFIG.onlinePayments).toBe(false);
     expect(POLICY_VERSION).toBe("2026-11-17");
   });
 });
