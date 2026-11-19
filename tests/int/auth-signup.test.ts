@@ -205,6 +205,28 @@ describe("sign-up on OTP verify", () => {
     }
   });
 
+  it("a verify without the right code never reads the users collection", async () => {
+    await insertKnown();
+    const { Collection } = await import("mongodb");
+    const junk = async (identifier: string, guess: string, signup?: typeof SIGNUP) => {
+      const spy = vi.spyOn(Collection.prototype, "findOne");
+      try {
+        await expectInvalidCode(await verify(guess, { identifier, signup }));
+        const read = spy.mock.contexts.map(
+          (c) => (c as InstanceType<typeof Collection>).collectionName,
+        );
+        expect(read).not.toContain(USERS_COLLECTION);
+      } finally {
+        spy.mockRestore();
+      }
+    };
+    for (const identifier of [ASHA, KNOWN]) {
+      for (const signup of [undefined, SIGNUP]) await junk(identifier, "123456", signup);
+      const code = await sendAndRead(identifier);
+      for (const signup of [undefined, SIGNUP]) await junk(identifier, WRONG(code), signup);
+    }
+  });
+
   it("an unknown identifier locks out after 10 mismatches, as a known one does", async () => {
     let code = await sendAndRead();
     for (let n = 0; n < 5; n++) await expectInvalidCode(await verify(WRONG(code)));

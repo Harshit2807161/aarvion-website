@@ -148,19 +148,21 @@ export type VerifyOtpResult =
   | { ok: false; error: "too_many_attempts" | "rate_limited"; retryAfterSec: number };
 
 /**
- * Order is fixed: normalise, per-IP limit, failure cap (peek), look up the
- * user, check the code, find or create the user, revoke any presented session
- * (anti-fixation), create a fresh session, clear the failure counter. Every
- * failure reason collapses to invalid_code, but only a mismatch counts toward
- * the cap: a verify with no live challenge cannot guess anything. The code and
- * the token are never logged or returned. A new user is created with the name
- * and consents from `signup`; an existing user's are never changed.
+ * Order is fixed: normalise, per-IP limit, failure cap (peek), check the
+ * code, then (only once it matched) look up the user, find or create the user,
+ * revoke any presented session (anti-fixation), create a fresh session, clear
+ * the failure counter. Every failure reason collapses to invalid_code, but only
+ * a mismatch counts toward the cap: a verify with no live challenge cannot
+ * guess anything. The code and the token are never logged or returned. A new
+ * user is created with the name and consents from `signup`; an existing user's
+ * are never changed.
  *
- * An unknown identifier without `signup` gets its code checked but not consumed
- * (the check refunds its attempt), and a right code answers signup_required
- * with no user, session or audit row; the same code then logs in once with
- * `signup`. Its failures take exactly the known-user path (same answer, same
- * counter), so junk verifies cannot tell whether an account exists.
+ * Nothing reads the users collection before the code matches, so a caller
+ * without the code cannot tell, even by timing, whether an account exists.
+ * Without `signup` the code is first checked without being consumed (a match
+ * refunds its attempt). An unknown identifier then answers signup_required
+ * with no user, session or audit row, and the same code logs in once with
+ * `signup`; a known one has the code consumed and logs in.
  */
 export async function verifyOtpAndLogin(i: {
   channel: Channel;
@@ -186,18 +188,23 @@ export async function verifyOtpAndLogin(i: {
   if (!cap.allowed)
     return { ok: false, error: "too_many_attempts", retryAfterSec: cap.retryAfterSec };
 
-  const existing = await findUserByIdentifier(id);
-  const needsSignup = !existing && !i.signup;
-  const checked = needsSignup
-    ? await checkOtpChallenge(id, i.code, i.now)
-    : await verifyOtpChallenge(id, i.code, i.now);
+  const checked = i.signup
+    ? await verifyOtpChallenge(id, i.code, i.now)
+    : await checkOtpChallenge(id, i.code, i.now);
   if (!checked.ok) {
     if (checked.reason === "mismatch") {
       await hitRateLimit({ key: failureKey, ...OTP_VERIFY_FAILURE_LIMIT, now: i.now });
     }
     return { ok: false, error: "invalid_code" };
   }
-  if (needsSignup) return { ok: false, error: "signup_required" };
+  if (!i.signup) {
+    // Only the code's holder gets here, so looking the account up reveals nothing.
+    if (!(await findUserByIdentifier(id))) return { ok: false, error: "signup_required" };
+    // A known user: now use the code up. It was just proven right, so a failure here is a
+    // concurrent login, an expiry or a resend in between, and it does not count as a guess.
+    const used = await verifyOtpChallenge(id, i.code, i.now);
+    if (!used.ok) return { ok: false, error: "invalid_code" };
+  }
 
   // Written on insert only: an existing user's name and consents are never replaced.
   const signup = i.signup && {

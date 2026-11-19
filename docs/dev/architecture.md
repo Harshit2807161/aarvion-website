@@ -84,7 +84,7 @@ the plan's "File Structure".
 | `categories` | ObjectId | `slug_unique` | seed |
 | `rate_limits` | the limiter key | `expiresAt_ttl` | `hitRateLimit` |
 | `otp_challenges` | `<channel>:<value>` (one live challenge per identifier) | `expiresAt_ttl` | `issueOtpChallenge`, `verifyOtpChallenge`, `checkOtpChallenge` (refunds a matching check's attempt) |
-| `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole` |
+| `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole`; lookups filter `{ $eq, $type: "string" }` so the partial indexes apply |
 | `sessions` | SHA-256 of the token | `expiresAt_ttl`, `userId_1` | `createSession`, `resolveSession`, `revokeSession` |
 | `audit_logs` | ObjectId | `at_desc`, `actorUserId_at_desc` | `appendAudit` |
 | `dev_outbox` | `mock_<uuid>` | `expiresAt_1` (TTL 24 h), `to_1_createdAt_1` | mock SMS and email |
@@ -115,17 +115,18 @@ A mutation, for example `POST /api/auth/otp/verify`:
 exists.
 
 **OTP verify** (`verifyOtpAndLogin`): normalise → 60/h per IP → peek the 10-per-24 h failure cap
-(429 `too_many_attempts`) → look up the user (`findUserByIdentifier`) → spend an attempt
-atomically and compare in constant time (`spendAndCompare`) → only a mismatch on a live challenge
-hits the failure counter → for an unknown identifier without `signup`, a match refunds its
-attempt and answers 409 `signup_required` with no user, session or audit row, leaving the code
-for one later login with `signup` (`checkOtpChallenge`); otherwise flip `consumedAt` (single use,
-`verifyOtpChallenge`) → find or create the user (a new one gets `name` and `consents` from
-`signup`) → revoke any presented session → create a session → clear the failure counter → audit
-`auth.login` (a failed counter reset or audit write is logged by error name and never fails the
-login). Every code-check failure (unknown, expired, consumed, exhausted or mismatched code, or a
-bad identifier) is 400 `invalid_code`, for unknown and known identifiers alike; the per-IP limit
-is 429 `rate_limited` and the lockout 429 `too_many_attempts`, both with `Retry-After`.
+(429 `too_many_attempts`) → spend an attempt atomically and compare in constant time
+(`spendAndCompare`; with `signup` a match flips `consumedAt`, `verifyOtpChallenge`; without it a
+match refunds the attempt, `checkOtpChallenge`) → only a mismatch on a live challenge hits the
+failure counter → only after a match, without `signup`, look up the user (`findUserByIdentifier`):
+an unknown identifier answers 409 `signup_required` with no user, session or audit row, leaving the
+code for one later login with `signup`; a known one has the code consumed → find or create the user
+(a new one gets `name` and `consents` from `signup`) → revoke any presented session → create a
+session → clear the failure counter → audit `auth.login` (a failed counter reset or audit write is
+logged by error name and never fails the login). Every code-check failure (unknown, expired,
+consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`, for unknown and
+known identifiers alike; the per-IP limit is 429 `rate_limited` and the lockout 429
+`too_many_attempts`, both with `Retry-After`.
 
 **Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one letter,
 and no Unicode control or format character such as a zero-width space or a bidi override, since
