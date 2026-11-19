@@ -27,6 +27,8 @@
 .btn.is-busy { pointer-events: none; }
 .spin { width: 18px; height: 18px; flex: none; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 640ms linear infinite; }
 @keyframes spin { to { transform: rotate(1turn); } }
+/* Reduced motion: the busy state stays (arc, aria-busy, busy text) but does not rotate. */
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 @media (hover: hover) and (pointer: fine) {
   .btn-sand:hover { background: var(--color-sand-100); }
   .btn-forest:hover { background: var(--color-forest-700); }

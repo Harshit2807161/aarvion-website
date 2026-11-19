@@ -9,7 +9,12 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 type Look = { variant?: ButtonVariant; size?: ButtonSize; block?: boolean };
 
-/** Class string for anything that should look like a button (a Link, a label...). */
+/**
+ * Class string for anything that should look like a button (a Link, a label...).
+ * The `link` variant is the plain underlined text link (`.link`, 44px tall), not a pill, so it
+ * returns "link" alone and ignores `size` and `block`: `btn-sm`/`btn-lg`/`btn-block` would
+ * add pill padding and width that a text link must not have.
+ */
 export function buttonClass({ variant = "forest", size = "md", block = false }: Look = {}): string {
   if (variant === "link") return "link";
   return cn("btn", `btn-${variant}`, size !== "md" && `btn-${size}`, block && "btn-block");
@@ -36,8 +41,17 @@ export function Button({
       className={cn(buttonClass({ variant, size, block }), busy !== false && "is-busy", className)}
       aria-busy={busy !== false ? true : undefined}
       aria-disabled={busy !== false ? true : rest["aria-disabled"]}
-      // aria-disabled alone does not stop a click, so a busy button drops it here.
-      onClick={busy !== false ? undefined : onClick}
+      // aria-disabled alone does not stop the browser: Enter, Space and implicit form submission
+      // still fire a native click, and a submit button's click submits the form. A busy button
+      // therefore swallows the click (preventDefault stops the submit) so checkout cannot send twice.
+      onClick={
+        busy !== false
+          ? (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          : onClick
+      }
     >
       {busy !== false ? (
         <>

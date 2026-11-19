@@ -29,7 +29,7 @@
 | `src/app/dev/outbox/route.ts` | `GET /dev/outbox?to=` (dev only) |
 | `src/app/layout.tsx`, `page.tsx` | root layout (`lang="en-IN"`, viewport, theme colour) and the "coming soon" placeholder home |
 | `src/app/globals.css` | Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored) |
-| `src/styles/` | ported prototype CSS imported by `globals.css` (today `base.css`, one merged `@layer base`), with `tokens.test.ts` and `css-hygiene.test.ts` |
+| `src/styles/` | ported prototype CSS imported by `globals.css` (`base.css`: one merged `@layer base` with resets, focus, type and utilities; `buttons.css`: `.btn*`, `.link`, `.spin`; `stamp.css`: `.dm`, `.stamp*`, `.off`, `.price-inline`, `.rx`, `.tag*`; the last two are imported `layer(components)`), with `tokens.test.ts` and `css-hygiene.test.ts` |
 | `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting) |
 | `components.json` | shadcn/ui config; only `dialog` and `input-otp` may be added (UI plan ruling) |
 | `src/server/` | business logic (below) |

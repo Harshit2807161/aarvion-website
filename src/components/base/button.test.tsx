@@ -58,6 +58,49 @@ describe("Button", () => {
   });
 });
 
+describe("busy submit button inside a form", () => {
+  function setup() {
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+    const onClick = vi.fn();
+    render(
+      <form onSubmit={onSubmit}>
+        <input aria-label="phone" />
+        <Button type="submit" busy="Sending…" onClick={onClick}>
+          Send
+        </Button>
+      </form>,
+    );
+    return { onSubmit, onClick };
+  }
+
+  it("does not submit when the busy button is clicked", () => {
+    const { onSubmit, onClick } = setup();
+    fireEvent.click(screen.getByRole("button"));
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("does not submit on implicit submission (Enter in a field fires the default button's click)", () => {
+    const { onSubmit } = setup();
+    const input = screen.getByLabelText("phone");
+    fireEvent.keyDown(input, { key: "Enter" });
+    // Browsers answer Enter in a field by clicking the form's default submit button.
+    (screen.getByRole("button") as HTMLButtonElement).click();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("submits normally when not busy", () => {
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <Button type="submit">Send</Button>
+      </form>,
+    );
+    fireEvent.click(screen.getByRole("button"));
+    expect(onSubmit).toHaveBeenCalledOnce();
+  });
+});
+
 describe("ButtonLink", () => {
   it("renders an anchor with button classes", () => {
     const { container } = render(
