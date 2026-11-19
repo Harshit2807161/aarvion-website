@@ -31,7 +31,8 @@ icons, so the metadata picks them up without any code.
 
 ## Regenerate
 
-`python3 scripts/trace_logo.py` (needs numpy, Pillow, scipy, scikit-image) re-traces the owner's
-source and rewrites `assets/brand/official/`, this folder and the icons in `src/app/`.
+Regenerate with `scripts/trace_logo.py` (added in #70); its header lists the Python packages. It
+re-traces the owner's source and rewrites `assets/brand/official/`, this folder and the icons in
+`src/app/`.
 `scripts/brand-assets.test.ts` checks every SVG here: it parses, has a viewBox, embeds no image and
 uses only the logo colours.

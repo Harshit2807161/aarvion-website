@@ -36,7 +36,7 @@ one-colour variants use forest `#1F3D2B` or white.
 never less than ½x in UI chrome. **Minimum size:** 24px tall (72px wide) on screen, 20mm wide in
 print; below that use the mark, and below 32px wide the favicon's head crop.
 
-**Regenerate** (never hand-edit the outputs): `python3 scripts/trace_logo.py` with numpy, Pillow,
-scipy and scikit-image installed. It rewrites this folder, `public/brand/` and the four icons in
+**Regenerate** (never hand-edit the outputs): Regenerate with `scripts/trace_logo.py` (added in #70);
+its header lists the Python packages. It rewrites this folder, `public/brand/` and the four icons in
 `src/app/`, and prints each layer's segment count and IoU; copy the three SVGs and `icons/icon.svg`
 (as `aarvion-icon.svg`) into `design/prototype/assets/brand/` too.
