@@ -82,8 +82,8 @@ the plan's "File Structure".
 | `products` | ObjectId | `slug_unique`, `category_active_sortOrder`, `familySlug_active` | seed |
 | `categories` | ObjectId | `slug_unique` | seed |
 | `rate_limits` | the limiter key | `expiresAt_ttl` | `hitRateLimit` |
-| `otp_challenges` | `<channel>:<value>` (one live challenge per identifier) | `expiresAt_ttl` | `issueOtpChallenge`, `verifyOtpChallenge` |
-| `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier`, `setUserRole` |
+| `otp_challenges` | `<channel>:<value>` (one live challenge per identifier) | `expiresAt_ttl` | `issueOtpChallenge`, `verifyOtpChallenge`, `checkOtpChallenge` (refunds a matching check's attempt) |
+| `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole` |
 | `sessions` | SHA-256 of the token | `expiresAt_ttl`, `userId_1` | `createSession`, `resolveSession`, `revokeSession` |
 | `audit_logs` | ObjectId | `at_desc`, `actorUserId_at_desc` | `appendAudit` |
 | `dev_outbox` | `mock_<uuid>` | `expiresAt_1` (TTL 24 h), `to_1_createdAt_1` | mock SMS and email |
@@ -117,7 +117,8 @@ exists.
 (429 `too_many_attempts`) → spend an attempt atomically and compare in constant time → only a
 mismatch on a live challenge hits the failure counter → flip `consumedAt` (single use) → find or
 create the user → revoke any presented session → create a session → clear the failure counter →
-audit `auth.login` (a failed audit write is logged, never fails the login). Every code-check
+audit `auth.login` (a failed counter reset or audit write is logged by error name and never fails
+the login). Every code-check
 failure (unknown, expired, consumed, exhausted or mismatched code, or a bad identifier) is 400
 `invalid_code`; the per-IP limit is 429 `rate_limited` and the lockout 429 `too_many_attempts`,
 both with `Retry-After`.

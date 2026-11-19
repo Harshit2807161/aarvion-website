@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import {
   OTP_COLLECTION,
   cancelOtpChallenge,
+  checkOtpChallenge,
   issueOtpChallenge,
   resendCooldownSec,
   verifyOtpChallenge,
@@ -139,6 +140,82 @@ describe("verifyOtpChallenge", () => {
       ok: false,
       reason: "no_active_challenge",
     });
+  });
+});
+
+describe("checkOtpChallenge", () => {
+  /** Runs `between` on the challenge right before checkOtpChallenge's refund write lands. */
+  async function checkWithRace(code: string, between: Record<string, unknown>) {
+    const { Collection } = await import("mongodb");
+    const real = Collection.prototype.updateOne;
+    const spy = vi.spyOn(Collection.prototype, "updateOne").mockImplementation(async function (
+      this: InstanceType<typeof Collection>,
+      ...args: Parameters<typeof real>
+    ) {
+      if (this.collectionName === OTP_COLLECTION) {
+        await real.call(this, { _id: identifierKey(id) }, { $set: between });
+      }
+      return real.apply(this, args);
+    } as typeof real);
+    try {
+      return await checkOtpChallenge(id, code, at(1000));
+    } finally {
+      spy.mockRestore();
+    }
+  }
+
+  it("accepts the right code without consuming it or keeping the attempt", async () => {
+    const { code } = await issue();
+    expect(await checkOtpChallenge(id, code, at(1000))).toEqual({ ok: true });
+    expect(await stored()).toMatchObject({ attempts: 0, consumedAt: null });
+    // The checked code still logs in, once.
+    expect(await verifyOtpChallenge(id, code, at(2000))).toEqual({ ok: true });
+    expect((await verifyOtpChallenge(id, code, at(3000))).ok).toBe(false);
+  });
+
+  it("spends an attempt on a wrong code, as verify does", async () => {
+    const { code } = await issue();
+    const wrong = code === "000000" ? "111111" : "000000";
+    expect(await checkOtpChallenge(id, wrong, at(1000))).toEqual({
+      ok: false,
+      reason: "mismatch",
+    });
+    expect(await stored()).toMatchObject({ attempts: 1, consumedAt: null });
+  });
+
+  it("reports no_active_challenge for an unknown, expired or used challenge", async () => {
+    expect(await checkOtpChallenge(id, "123456", T)).toEqual({
+      ok: false,
+      reason: "no_active_challenge",
+    });
+    const { code } = await issue();
+    expect((await checkOtpChallenge(id, code, at(300_000))).ok).toBe(false);
+    expect(await verifyOtpChallenge(id, code, at(1000))).toEqual({ ok: true });
+    expect(await checkOtpChallenge(id, code, at(2000))).toEqual({
+      ok: false,
+      reason: "no_active_challenge",
+    });
+  });
+
+  it("never refunds below zero", async () => {
+    const { code } = await issue();
+    expect(await checkWithRace(code, { attempts: 0 })).toEqual({ ok: true });
+    expect((await stored())!.attempts).toBe(0);
+  });
+
+  it("never refunds a challenge consumed in between", async () => {
+    const { code } = await issue();
+    expect(await checkWithRace(code, { consumedAt: at(500) })).toEqual({ ok: true });
+    expect(await stored()).toMatchObject({ attempts: 1, consumedAt: at(500) });
+  });
+
+  it("never refunds a challenge replaced in between (the refund is pinned to challengeId)", async () => {
+    const { code } = await issue();
+    // A re-issue lands between the spend and the refund; its attempts are not the old one's.
+    expect(await checkWithRace(code, { challengeId: "reissued", attempts: 2 })).toEqual({
+      ok: true,
+    });
+    expect(await stored()).toMatchObject({ challengeId: "reissued", attempts: 2 });
   });
 });
 

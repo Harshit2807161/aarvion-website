@@ -197,7 +197,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   depends on whether an account exists.
 - Verify order is fixed: normalise → 60/h per IP → peek the 10-per-24 h failure cap → verify →
   only a mismatch on a live challenge counts → find or create the user → revoke any presented
-  session → new session → clear the failure counter. Every code-check failure (unknown,
+  session → new session → clear the failure counter (a failing reset or audit write is logged
+  by error name, never fails the login). Every code-check failure (unknown,
   expired, consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`.
   The per-IP limit is 429 `rate_limited` and the lockout is 429 `too_many_attempts`, both with
   `Retry-After`; clients treat 429 as its own state.
