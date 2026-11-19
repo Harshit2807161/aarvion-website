@@ -167,7 +167,7 @@ bottom use commit SHAs.
 
 ### Fixed
 
-- Form field labels (`label.label`, `TextField`) no longer render as sand shipping-label cards: the ordering steps' card rule in `src/styles/steps.css` is scoped to `.vis-label .label`, since `forms.css` owns the bare `.label`. `src/styles/css-hygiene.test.ts` now also fails when a selector repeats across `src/styles/*.css` files (C12), which is how this collision was found; `base.css`'s deliberate group selectors are the only listed exception.
+- Form field labels (`label.label`, `TextField`) no longer render as sand shipping-label cards: the ordering steps' card rule in `src/styles/steps.css` is scoped to `.vis-label .label`, since `forms.css` owns the bare `.label`. `src/styles/css-hygiene.test.ts` now also fails when a selector repeats across `src/styles/*.css` files (C12), which is how this collision was found; `base.css`'s deliberate group selectors are the only listed exception (#124).
 - `ui` tests run under Vitest 5 again: the `next/navigation` mock state moved to
   `tests/helpers/navigation-mocks.ts`, because Vitest 5 rejects exported `vi.hoisted` values
   (#57).
