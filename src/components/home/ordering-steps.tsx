@@ -10,13 +10,18 @@ import { SITE_CONFIG } from "@/config/site";
  * The scroll film (Task 28) animates this markup without changing it: the engine in
  * src/components/film/engine.ts reads `data-act="pin"` on the section, `.stage` inside it, and the
  * `data-in` / `data-out` ranges ("start end in|out") on the elements below, and it toggles
- * `.is-active` on the `.step` items. Do not rename those hooks. The cards are examples, not
+ * `.is-active` on the `.step` items. The payment copy is gated on `onlinePayments` (SITE_CONFIG):
+ * no online-payment claim before live keys exist. Do not rename those hooks. The cards are examples, not
  * the customer's data, and the copy makes no delivery-time promise.
  */
 const BARCODE =
   "M2 0v40M6 0v40M9 0v40M15 0v40M18 0v40M24 0v40M26 0v40M31 0v40M37 0v40M40 0v40M44 0v40M50 0v40M53 0v40M55 0v40M61 0v40M66 0v40M69 0v40M74 0v40M78 0v40M80 0v40M86 0v40M91 0v40M94 0v40M98 0v40M104 0v40M107 0v40M110 0v40M116 0v40M120 0v40M123 0v40M128 0v40M131 0v40M137 0v40M140 0v40M145 0v40M149 0v40M152 0v40M158 0v40M162 0v40M165 0v40M170 0v40M174 0v40M177 0v40M183 0v40M186 0v40M191 0v40M195 0v40M198 0v40M204 0v40M208 0v40M211 0v40M217 0v40";
 
-export function OrderingSteps() {
+export function OrderingSteps({
+  onlinePayments = SITE_CONFIG.onlinePayments,
+}: {
+  onlinePayments?: boolean;
+}) {
   return (
     <section className="act act-steps" id="how" data-act="pin" aria-labelledby="how-title">
       <div className="stage">
@@ -52,8 +57,10 @@ export function OrderingSteps() {
               </span>
               <h3>We deliver it free</h3>
               <p>
-                Pay online or with cash on delivery. Your order is packed and shipped to your door
-                with no delivery charge.
+                {onlinePayments
+                  ? "Pay online or with cash on delivery."
+                  : "Pay by cash on delivery."}{" "}
+                Your order is packed and shipped to your door with no delivery charge.
               </p>
             </li>
           </ol>
@@ -102,7 +109,7 @@ export function OrderingSteps() {
                 <li className="done">
                   <Icon name="check" />
                   <b>Order placed</b>
-                  <span>Paid online</span>
+                  <span>{onlinePayments ? "Paid online" : "Cash on delivery"}</span>
                 </li>
                 <li className="done">
                   <Icon name="check" />

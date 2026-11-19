@@ -4,8 +4,8 @@ import { SITE_CONFIG } from "@/config/site";
 import { findClaims } from "../../../tests/helpers/claims";
 import { OrderingSteps } from "./ordering-steps";
 
-function setup() {
-  const { container } = render(<OrderingSteps />);
+function setup(onlinePayments = true) {
+  const { container } = render(<OrderingSteps onlinePayments={onlinePayments} />);
   return container;
 }
 
@@ -63,5 +63,19 @@ describe("OrderingSteps (static composition, C3)", () => {
 
   it("makes no invented claims", () => {
     expect(findClaims(setup().textContent ?? "")).toEqual([]);
+  });
+
+  it("says nothing about online payment while the flag is off", () => {
+    const text = setup(false).textContent ?? "";
+    expect(text).toContain("Pay by cash on delivery.");
+    expect(text).toContain("Cash on delivery");
+    expect(text).not.toMatch(/online|razorpay|upi/i);
+    expect(findClaims(text)).toEqual([]);
+  });
+
+  it("keeps the verbatim payment copy while the flag is on", () => {
+    const text = setup(true).textContent ?? "";
+    expect(text).toContain("Pay online or with cash on delivery.");
+    expect(text).toContain("Paid online");
   });
 });

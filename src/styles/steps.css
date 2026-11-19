@@ -3,11 +3,10 @@
   for src/components/home/ordering-steps.tsx, plus the phone rules for .steps, .step, .perf and
   .steps-vis (lines 607-612 there). The scroll film's `.film` rules arrive with Task 28 and must
   use descendant selectors under the engine's root (`.film-root.measuring ...`), never `html.measuring`.
+  --space-sec and --perforation come from the single `.home` rule in quick-trust.css.
   Width comes from --container-page (the home's `.home` rule sets it); no section-level override.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
-/* Tokens the prototype keeps in :root that this app does not define globally yet. */
-.act-steps { --space-sec: clamp(3.5rem, 2.4rem + 3.2vw, 5.5rem); --perforation: 2px dashed rgb(115 124 119 / 0.5); }
 .act-steps .stage { position: relative; padding: var(--space-sec) var(--spacing-gutter); max-width: calc(var(--container-page) + 2 * var(--spacing-gutter)); margin: 0 auto; }
 .steps-col { display: grid; grid-template-rows: auto auto; }
 .steps { grid-row: 2; grid-column: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-top: var(--spacing-heading); position: relative; z-index: 1; }
