@@ -68,8 +68,10 @@ bottom use commit SHAs.
   gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`) (#76).
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
-- The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
+- The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live
+  region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
+  `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 
 ### Changed
 
@@ -109,6 +111,9 @@ bottom use commit SHAs.
 - `buttonClass()` and `ButtonLink` are server-safe again: only `Button` is a client module
   (`button.client.tsx`, re-exported from `button.tsx`). The `/dev/*` 404 also sends no-store and
   noindex headers (#77).
+- The toast no longer dismisses a toast its own action raised, its action button meets the 44 px
+  target, a second `<LiveRegion/>` renders nothing, and plain toasts have a Dismiss button and
+  Escape (#87).
 
 ## [0.1.0] - 2026-11-17
 
