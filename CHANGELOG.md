@@ -101,10 +101,10 @@ bottom use commit SHAs.
   `PublicUser` gains `name`. Login tests send `DEFAULT_SIGNUP` from `tests/helpers/auth.ts` (#99).
 - `POST /api/auth/otp/verify` accepts `signup` (`name`, `adult: true`, `termsPrivacy: true`,
   `marketing`; strict, else 400 `invalid_request`), and a new user stores the name and a DPDP
-  consent record: policy version `2026-11-17` (`CONSENT_VERSION`), the time and the OTP channel.
+  consent record: policy version `2026-11-17` (`CONSENT_VERSION`), the time and the OTP channel (#107).
 - `GET /api/auth/session` (`src/app/api/auth/session/route.ts`) for the store header: always 200
   with `{ user }` (the public user, now with `name`) or `{ user: null }`, never 401, `no-store`,
-  re-issuing a sliding customer cookie.
+  re-issuing a sliding customer cookie (#107).
 
 ### Changed
 
