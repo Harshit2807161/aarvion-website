@@ -20,6 +20,18 @@ describe("sanitizeNext", () => {
     "/dev/outbox",
     "/a/../login",
     "/a\\b",
+    "/.//evil.com",
+    "/..//evil.com",
+    "/a/..//evil.com",
+    "/%2e//evil.com",
+    "/%2E%2E//evil.com",
+    "/%2e%2e//evil.com",
+    "/.//evil.com/x?y#z",
+    "/LOGIN",
+    "/./login",
+    "/x/../api/auth/logout",
+    "/%6Cogin",
+    "/API/auth/logout",
     "/" + "a".repeat(600),
   ])("falls back to / for %j", (p) => {
     expect(sanitizeNext(p)).toBe("/");

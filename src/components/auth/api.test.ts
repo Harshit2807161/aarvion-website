@@ -3,8 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SignupInput } from "@/server/auth/login";
 import { fetchSession, sendCode, verifyCode, type SignupPayload } from "./api.ts";
 
-// Type-level pin: the client payload must stay assignable to the server's input.
+// Type-level pin in both directions: a field the server adds, drops or renames fails typecheck.
 export const _check: z.input<typeof SignupInput> = {} as SignupPayload;
+export const _checkBack: SignupPayload = {} as z.input<typeof SignupInput>;
 
 function reply(status: number, body: unknown): Response {
   const text = typeof body === "string" ? body : JSON.stringify(body);
@@ -32,6 +33,9 @@ describe("sendCode", () => {
     const fn = mockFetch(reply(200, { ok: true, resendAfterSec: 30 }));
     expect(await sendCode("phone", "9876543210")).toEqual({ ok: true });
     expect(fn.mock.calls[0]![0]).toBe("/api/auth/otp/send");
+    const init = fn.mock.calls[0]![1]!;
+    expect(init.method).toBe("POST");
+    expect(init.headers).toEqual({ "Content-Type": "application/json" });
     expect(sentBody(fn)).toEqual({ channel: "phone", identifier: "9876543210" });
   });
 
@@ -63,6 +67,38 @@ describe("sendCode", () => {
     expect(await sendCode("phone", "x")).toEqual({ ok: false, error: "network" });
     mockFetch(reply(500, { error: "internal_error" }));
     expect(await sendCode("phone", "x")).toEqual({ ok: false, error: "network" });
+  });
+
+  it("a 2xx that is not the expected JSON is network, not sent", async () => {
+    mockFetch(reply(200, "<html>captive portal</html>"));
+    expect(await sendCode("phone", "x")).toEqual({ ok: false, error: "network" });
+    mockFetch(reply(200, { nope: true }));
+    expect(await sendCode("phone", "x")).toEqual({ ok: false, error: "network" });
+    mockFetch(reply(200, ""));
+    expect(await sendCode("phone", "x")).toEqual({ ok: false, error: "network" });
+  });
+
+  it.each([
+    [400, { error: "invalid_request" }],
+    [400, { error: "invalid_json" }],
+  ])("a %i %j is invalid_identifier", async (status, body) => {
+    mockFetch(reply(status, body));
+    expect(await sendCode("email", "x")).toEqual({ ok: false, error: "invalid_identifier" });
+  });
+
+  it.each([
+    [403, { error: "bad_origin" }],
+    [415, { error: "unsupported_media_type" }],
+    [500, { error: "internal_error" }],
+    [503, "<html>"],
+  ])("a %i %j is network", async (status, body) => {
+    mockFetch(reply(status, body));
+    expect(await sendCode("email", "x")).toEqual({ ok: false, error: "network" });
+  });
+
+  it("ignores a negative retryAfterSec", async () => {
+    mockFetch(reply(429, { error: "rate_limited", retryAfterSec: -5 }));
+    expect(await sendCode("phone", "x")).toEqual({ ok: false, error: "rate_limited" });
   });
 
   it("ignores a non-numeric retryAfterSec", async () => {
@@ -148,6 +184,37 @@ describe("verifyCode", () => {
     mockFetch(reply(400, { error: "invalid_request" }));
     expect(await verifyCode("phone", "x", "1")).toEqual({ ok: false, error: "network" });
   });
+
+  it("a refused signup body (400 or 413) is signup_required, never invalid_code", async () => {
+    mockFetch(reply(400, { error: "invalid_request" }));
+    expect(await verifyCode("phone", "x", "1", signup)).toEqual({
+      ok: false,
+      error: "signup_required",
+    });
+    mockFetch(reply(413, { error: "payload_too_large" }));
+    expect(await verifyCode("phone", "x", "1", signup)).toEqual({
+      ok: false,
+      error: "signup_required",
+    });
+  });
+
+  it.each([
+    [403, { error: "bad_origin" }],
+    [415, { error: "unsupported_media_type" }],
+    [500, { error: "internal_error" }],
+    [503, "<html>"],
+  ])("a %i %j with a signup is network", async (status, body) => {
+    mockFetch(reply(status, body));
+    expect(await verifyCode("phone", "x", "1", signup)).toEqual({ ok: false, error: "network" });
+  });
+
+  it("posts the trimmed name", async () => {
+    const fn = mockFetch(reply(400, { error: "invalid_code" }));
+    await verifyCode("phone", "x", "1", { ...signup, name: "  Asha Rao  " });
+    expect((sentBody(fn).signup as { name: string }).name).toBe("Asha Rao");
+    expect(fn.mock.calls[0]![0]).toBe("/api/auth/otp/verify");
+    expect(fn.mock.calls[0]![1]!.method).toBe("POST");
+  });
 });
 
 describe("fetchSession", () => {
@@ -157,6 +224,7 @@ describe("fetchSession", () => {
     );
     expect(await fetchSession()).toEqual({ name: "Asha" });
     expect(fn.mock.calls[0]![0]).toBe("/api/auth/session");
+    expect(fn.mock.calls[0]![1]!.cache).toBe("no-store");
   });
 
   it("signed in without a name returns name null", async () => {

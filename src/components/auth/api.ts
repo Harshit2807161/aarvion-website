@@ -32,13 +32,20 @@ export type VerifyResult =
       retryAfterSec?: number;
     };
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
 type Json = Record<string, unknown>;
 type Reply = { status: number; ok: boolean; body: Json | null } | null;
 
 /** Sends the request and parses a JSON object body; null on transport failure. */
 async function call(path: string, init: RequestInit): Promise<Reply> {
   try {
-    const res = await fetch(path, { credentials: "same-origin", ...init });
+    // A hung request must settle, or the busy state of the screen never clears.
+    const res = await fetch(path, {
+      credentials: "same-origin",
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      ...init,
+    });
     let body: Json | null = null;
     try {
       const parsed: unknown = await res.json();
@@ -81,10 +88,13 @@ const VERIFY_ERRORS = [
 export async function sendCode(channel: Channel, identifier: string): Promise<SendResult> {
   const r = await post("/api/auth/otp/send", { channel, identifier });
   if (!r) return { ok: false, error: "network" };
-  if (r.ok) return { ok: true };
-  const code = r.body?.error;
-  const known = SEND_ERRORS.find((e) => e === code);
-  if (!known) return { ok: false, error: "network" };
+  // A 2xx that is not the expected JSON (a proxy page, a service worker) must not read as "sent".
+  if (r.ok) return r.body?.ok === true ? { ok: true } : { ok: false, error: "network" };
+  const known = SEND_ERRORS.find((e) => e === r.body?.error);
+  if (!known) {
+    // A 400 here (invalid_request, invalid_json) can only be the identifier: channel is typed.
+    return { ok: false, error: r.status === 400 ? "invalid_identifier" : "network" };
+  }
   return { ok: false, error: known, ...retryAfter(r.body) };
 }
 
@@ -94,7 +104,9 @@ export async function verifyCode(
   code: string,
   signup?: SignupPayload,
 ): Promise<VerifyResult> {
-  const payload = signup ? { channel, identifier, code, signup } : { channel, identifier, code };
+  const payload = signup
+    ? { channel, identifier, code, signup: { ...signup, name: signup.name.trim() } }
+    : { channel, identifier, code };
   const r = await post("/api/auth/otp/verify", payload);
   if (!r) return { ok: false, error: "network" };
   if (r.ok) {
@@ -110,7 +122,13 @@ export async function verifyCode(
     };
   }
   const known = VERIFY_ERRORS.find((e) => e === r.body?.error);
-  if (!known) return { ok: false, error: "network" };
+  if (!known) {
+    // adult, termsPrivacy and marketing are fixed by type, so when the server refuses the signup
+    // body (400 invalid_request, or 413) the name is what it refused. Never fall back to
+    // invalid_code: that would spend a try on a code the server never checked.
+    const refusedName = signup !== undefined && (r.status === 400 || r.status === 413);
+    return { ok: false, error: refusedName ? "signup_required" : "network" };
+  }
   return { ok: false, error: known, ...retryAfter(r.body) };
 }
 
