@@ -79,4 +79,10 @@ describe("EmptyState", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Nothing here" })).toBeTruthy();
     expect(container.querySelector(".empty-actions button")).not.toBeNull();
   });
+
+  it("renders only the well when there is no title, copy or actions", () => {
+    const { container } = render(<EmptyState count="404" />);
+    expect(container.querySelector(".well-count")?.textContent).toBe("404");
+    expect(container.querySelector("h2, p, .empty-actions")).toBeNull();
+  });
 });
