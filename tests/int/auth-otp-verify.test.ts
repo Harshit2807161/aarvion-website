@@ -56,8 +56,8 @@ beforeEach(async () => {
 const send = (identifier = PHONE, ip = "203.0.113.10") =>
   SEND(jsonPost(SEND_PATH, { channel: "phone", identifier }, { ip }));
 /**
- * Sends DEFAULT_SIGNUP (C5): ignored today, and from 38c on what lets a first login create the
- * user. An existing user ignores it.
+ * Sends DEFAULT_SIGNUP (C5): a first login stores its name and consent, and from 38c on it is
+ * what lets a first login create the user. An existing user ignores it.
  */
 const verify = (code: string, opts?: Parameters<typeof jsonPost>[2], identifier = PHONE) =>
   VERIFY(jsonPost(PATH, { channel: "phone", identifier, code, signup: DEFAULT_SIGNUP }, opts));
@@ -92,7 +92,7 @@ describe("POST /api/auth/otp/verify", () => {
         phone: PHONE,
         email: null,
         role: "customer",
-        name: null,
+        name: "Test User",
       },
       isNewUser: true,
     });
@@ -353,6 +353,7 @@ describe("POST /api/auth/otp/verify", () => {
           channel: "phone",
           identifier: PHONE,
           code,
+          signup: DEFAULT_SIGNUP,
           ipBucket: "203.0.113.10",
           existingToken: null,
           now: clock.now(),

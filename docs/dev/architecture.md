@@ -25,6 +25,7 @@
 | `src/app/api/auth/otp/send/route.ts` | `POST /api/auth/otp/send` |
 | `src/app/api/auth/otp/verify/route.ts` | `POST /api/auth/otp/verify` (sets the session cookie) |
 | `src/app/api/auth/me/route.ts` | `GET /api/auth/me` (re-issues a sliding customer cookie) |
+| `src/app/api/auth/session/route.ts` | `GET /api/auth/session` for the header: always 200 `{ user }` or `{ user: null }` (never 401), `no-store`, re-issues a sliding customer cookie |
 | `src/app/api/auth/logout/route.ts` | `POST /api/auth/logout` (204, clears the cookie) |
 | `src/app/dev/outbox/route.ts` | `GET /dev/outbox?to=` (dev only) |
 | `src/app/dev/styleguide/page.tsx` | `/dev/styleguide` (dev only): every button variant, the Rx badge, tags, stamp and inline prices, the OTP field (`otp-demo.tsx`), the toast demo (`toast-demo.tsx`) the dialog / side sheet demo (`?overlay=dialog` or `side` opens one on load; read client-side in `overlay-demo.tsx`, never via page `searchParams`) and the icon grid, for visual review |
@@ -116,12 +117,21 @@ exists.
 **OTP verify** (`verifyOtpAndLogin`): normalise → 60/h per IP → peek the 10-per-24 h failure cap
 (429 `too_many_attempts`) → spend an attempt atomically and compare in constant time → only a
 mismatch on a live challenge hits the failure counter → flip `consumedAt` (single use) → find or
-create the user → revoke any presented session → create a session → clear the failure counter →
-audit `auth.login` (a failed counter reset or audit write is logged by error name and never fails
-the login). Every code-check
+create the user (a new one gets `name` and `consents` from `signup`) → revoke any presented
+session → create a session → clear the failure counter → audit `auth.login` (a failed counter
+reset or audit write is logged by error name and never fails the login). Every code-check
 failure (unknown, expired, consumed, exhausted or mismatched code, or a bad identifier) is 400
 `invalid_code`; the per-IP limit is 429 `rate_limited` and the lockout 429 `too_many_attempts`,
 both with `Retry-After`.
+
+**Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one
+letter, and no Unicode control or format character such as a zero-width space or a bidi
+override, since names show in staff views and emails), `adult: true`, `termsPrivacy: true` and
+`marketing` (a boolean; the UI leaves it off). A new user stores them as `name` and
+`consents = { channel, termsPrivacy: { version, at }, adult: { at }, marketing: { optedIn, at }
+}`, where `version` is `CONSENT_VERSION` (`POLICY_VERSION` in `src/config/site.ts`, today
+`2026-11-17`) and `channel` is the OTP channel verified. They are written on insert only;
+bumping `POLICY_VERSION` does not yet ask existing users again.
 
 **Session resolution** (`getAuth`): read the 43-character token from the cookie → look up by its
 hash → refuse if idle or absolute expiry has passed (and delete it) → touch at most once per
@@ -165,9 +175,14 @@ AVIF/WebP, `images.qualities` 70/75/85). Every GET handler's first statement is
 - Pages prerender from the DB at build time, so every Vercel scope needs a reachable, seeded
   database at build; an empty catalogue throws `CatalogueEmptyError` and fails the build.
 
+**Session route:** `GET /api/auth/session` (#107) is the header's auth source: always 200 with
+the public user or `null`, `no-store`. Nothing calls it yet.
+
 **Planned:**
 - Header auth state is fetched after hydration from `GET /api/auth/session`, so pages stay
-  static. Product images are content-hashed, so the CDN can cache them forever.
+  static. Plan Task 43 wires it (the header's `account` slot, `AccountPill`); until then the
+  header shows a static Sign in link.
+- Product images are content-hashed, so the CDN can cache them forever.
 - Client components (`src/components/**`) import at runtime from `src/server/**` only the pure
   `catalogue/pricing.ts`, `catalogue/search.ts` and `catalogue/order.ts`
   (`src/components/server-imports.test.ts`).
