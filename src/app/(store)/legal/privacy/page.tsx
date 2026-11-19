@@ -1,14 +1,13 @@
 import Link from "next/link";
 import {
   Fact,
-  formatPolicyDate,
   LegalPage,
   LegalSection,
   legalMetadata,
   Pending,
 } from "@/components/legal/legal-page";
 import { ROUTES } from "@/config/routes";
-import { POLICY_VERSION, SITE_CONFIG } from "@/config/site";
+import { SITE_CONFIG } from "@/config/site";
 
 const SUB = "How Aarvion Pharmaceuticals collects, uses and protects your personal data.";
 
@@ -98,10 +97,10 @@ export default function PrivacyPage() {
       <LegalSection title="How we protect it">
         <ul>
           <li>
-            We store each one-time sign-in code only as a keyed hash (HMAC), never the code itself.
-            A code works once, allows at most 5 tries and expires after 5 minutes.
+            We store each one-time sign-in code only in a scrambled (hashed) form, never as the code
+            itself. A code works once, allows at most 5 tries and expires after 5 minutes.
           </li>
-          <li>Sign-in sessions are stored only as a hash of the session token.</li>
+          <li>Sign-in sessions are stored only in scrambled (hashed) form too.</li>
           <li>Sign-in is rate-limited.</li>
           <li>
             Prescriptions are stored privately and are visible only to you and Aarvion staff. Their
@@ -138,10 +137,7 @@ export default function PrivacyPage() {
       </LegalSection>
 
       <LegalSection title="Changes and contact">
-        <p>
-          When this policy changes, we update this page and the date at the top. It was last updated
-          on {formatPolicyDate(POLICY_VERSION)}.
-        </p>
+        <p>When this policy changes, we update this page and the date at the top.</p>
         <p>
           To raise a complaint about how we handle your data, see{" "}
           <Link href={ROUTES.legal.grievance}>Grievances</Link>.

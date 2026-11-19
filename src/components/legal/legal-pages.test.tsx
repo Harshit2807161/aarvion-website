@@ -133,6 +133,8 @@ describe("Privacy policy", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Privacy policy" })).toBeInTheDocument();
     expect(container.querySelector(".band-sub")?.textContent).toBe(sub);
     expect(container.textContent).toContain("Last updated 17 November 2026");
+    // The date is stated once, at the top (13b review).
+    expect(container.textContent!.split("17 November 2026")).toHaveLength(2);
     expect(privacyMetadata).toEqual({ title: "Privacy policy", description: sub });
   });
 
@@ -160,7 +162,9 @@ describe("Privacy policy", () => {
     expect(text).toContain("not stored by Aarvion");
     expect(text).toContain("We never sell your personal data.");
     expect(text).toContain("expires after 5 minutes");
-    expect(text).toContain("Sign-in sessions are stored only as a hash");
+    expect(text).toContain("only in a scrambled (hashed) form, never as the code itself");
+    expect(text).toContain("Sign-in sessions are stored only in scrambled (hashed) form too.");
+    expect(text).not.toMatch(/HMAC|keyed hash/);
     expect(text).toContain("never appear in our messages or logs");
     expect(container.querySelectorAll(".pending").length).toBeGreaterThanOrEqual(3);
   });

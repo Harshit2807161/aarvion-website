@@ -99,6 +99,7 @@ bottom use commit SHAs.
 
 ### Changed
 
+- Privacy policy copy: how sign-in codes and sessions are stored now reads "scrambled (hashed) form" instead of "keyed hash (HMAC)", and the last-updated date is stated once, at the top.
 - Customer routes live in the `src/app/(store)` route group, whose layout renders the store footer;
   the root layout keeps only the toast region and the single live region, so admin and staff routes
   get no store footer (this includes `/dev/*` and the 404 page). The seeded-database build
