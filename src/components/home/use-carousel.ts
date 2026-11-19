@@ -24,7 +24,10 @@ type Options = {
  * Drives the home banner carousel. Markup (slides, dots, controls) is rendered by the component;
  * this hook owns the autoplay clock holds and the imperative slide DOM state: `is-current`,
  * `is-leaving`, `inert` and the lazy-to-eager image switch. React must not render those on the
- * slides. Task 19: hide the pause control when `!state.motion`. Autoplay itself is CSS: the current dot's `dot-run` animation ends and advances.
+ * slides; the one exception is the server markup's `is-current` on the first slide, so slide 1
+ * shows before hydration (`banner.tsx`). The component hides the pause control when
+ * `!state.motion`. Autoplay itself is CSS: the current dot's 6 s `dot-run` animation ends and
+ * advances (`banner.css`), so `AUTOPLAY_MS` only documents that duration.
  *
  * Browser APIs are read in effects only, so server and first client render agree. Until the
  * reduced-motion preference is read, `ready` is false and nothing autoplays.
@@ -102,6 +105,8 @@ export function useCarousel({ count, rootRef, trackRef }: Options) {
     listen(track, "pointercancel", untouch);
     cleanups.push(() => clearTimeout(touchTimer));
 
+    // A tab opened in the background never fires visibilitychange until it is shown.
+    if (document.hidden) hold("hidden", true);
     listen(document, "visibilitychange", () => hold("hidden", document.hidden));
     if (typeof IntersectionObserver !== "undefined") {
       const io = new IntersectionObserver((entries) => {
@@ -185,6 +190,8 @@ export function useCarousel({ count, rootRef, trackRef }: Options) {
 
   const go = useCallback(
     (i: number) => {
+      // The reducer ignores a non-integer index; the phone scroll must too, or it snaps to 0.
+      if (!Number.isInteger(i)) return;
       dispatch({ type: "go", index: i });
       if (phone.current) scrollToSlide(((i % count) + count) % count);
     },
