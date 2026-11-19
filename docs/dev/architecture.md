@@ -31,7 +31,7 @@
 | `src/proxy.ts` | answers a real HTTP 404 for every `/dev/*` request wherever `isMockForbidden()` is true, before anything renders |
 | `src/app/layout.tsx`, `page.tsx` | root layout (`lang="en-IN"`, viewport, theme colour) and the "coming soon" placeholder home |
 | `src/app/globals.css` | Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored) |
-| `src/styles/` | ported prototype CSS imported by `globals.css` (`base.css`: one merged `@layer base` with resets, focus, type and utilities; `buttons.css`: `.btn*`, `.link`, `.spin`; `stamp.css`: `.dm`, `.stamp*`, `.off`, `.price-inline`, `.rx`, `.tag*`; the last two are imported `layer(components)`), with `tokens.test.ts` and `css-hygiene.test.ts` |
+| `src/styles/` | ported prototype CSS imported by `globals.css` (`base.css`: one merged `@layer base` with resets, focus, type and utilities; `buttons.css`: `.btn*`, `.link`, `.spin`; `stamp.css`: `.dm`, `.stamp*`, `.off`, `.price-inline`, `.rx`, `.tag*`; `forms.css`: `.field`, `.input`, `.check*`, `.seg*`, plus the ported switch, option-card and error-summary rules; the last three are imported `layer(components)`), with `tokens.test.ts` and `css-hygiene.test.ts` |
 | `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting) |
 | `components.json` | shadcn/ui config; only `dialog` and `input-otp` may be added (UI plan ruling) |
 | `src/server/` | business logic (below) |
@@ -41,7 +41,7 @@
 | `data/` | `products.json` (seed source), `product-images.json` (generated), `source/` (Drive analysis) |
 | `public/products/` | generated, content-hashed product images |
 | `public/foil/`, `public/banners/` | foil, dome and banner rasters copied unchanged from `design/prototype/assets/`, each with a `.json` provenance sidecar (`scripts/public-provenance.test.ts`) |
-| `src/components/` | React components, added task by task (today `base/`: the icon set, `BrandMark`, `Button`, `ButtonLink`, `RxBadge`, `StatusTag`, `Rupees`, `StampPrice` and `PriceInline`; `home/`: the banner carousel reducer and controller hook; `film/`: the scroll film's progress maths and engine) |
+| `src/components/` | React components, added task by task (today `base/`: the icon set, `BrandMark`, `Button`, `ButtonLink`, `RxBadge`, `StatusTag`, `Rupees`, `StampPrice` and `PriceInline`; `form/`: `TextField`, which wires hint and error ids with `aria-describedby` and `aria-invalid`; `home/`: the banner carousel reducer and controller hook; `film/`: the scroll film's progress maths and engine) |
 | `public/brand/` | the official logo variants and app icons served to the site, copied from the masters (usage guide in its README) |
 | `src/fonts/` | committed `.woff2` subsets and `index.ts` (`next/font/local`), built by `pnpm fonts:subset` from `assets/fonts/` |
 | `assets/` | source photos and cutouts; `brand/official/` (the traced logo masters, made by `scripts/trace_logo.py`); banner scenes; `fonts/` (source TTFs, OFL licences, `SOURCES.json`, README) |
