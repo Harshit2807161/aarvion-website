@@ -18,12 +18,10 @@ Configured in `vitest.config.ts` (Vitest 5) and `playwright.config.ts` (Playwrig
   `{src,scripts,tests}/**/*.test.{ts,tsx}` and fails on a file no project (or two) would run. A
   `.ts` test is `unit`, a `.tsx` test is `ui`, and `tests/int/` is `int`.
 - `ui` runs with `@vitejs/plugin-react` and `tests/helpers/ui-setup.ts`: jest-dom matchers,
-  Testing Library `cleanup` after each test, and a mocked `next/navigation` (`useRouter` spies,
-  `usePathname`, `useSearchParams`). Component tests arrive with the UI plan's later tasks.
-  **On main at `d6446b2` no `ui` test can run yet:** `ui-setup.ts` exports `vi.hoisted` values,
-  which Vitest 5 rejects ("Cannot export hoisted variable"; reproduced with a one-line probe
-  test). The fix, moving the mocks to `tests/helpers/navigation-mocks.ts`, is in the open UI PR
-  #57.
+  Testing Library `cleanup`, and a mocked `next/navigation` whose state tests set through
+  `tests/helpers/navigation-mocks.ts` (`mockPathname`, `mockSearchParams`, `routerSpies`; plain
+  objects, since Vitest 5 rejects exported `vi.hoisted` values). `src/components/ui-project.test.tsx`
+  proves the setup works.
 - Server unit tests must run in Node, not happy-dom (`src/server/runtime.test.ts` checks this):
   happy-dom swaps in browser `fetch`, `Request`, `Response` and `URL`.
 
@@ -125,6 +123,7 @@ Helpers in `tests/helpers/`:
 | `scripts/pr-size.test.ts`, `tests/int/pr-size.test.ts` | the size counter or its excludes change |
 | `scripts/vitest-projects.test.ts` | a test file matches no Vitest project, or more than one |
 | `src/styles/tokens.test.ts` | `globals.css` drifts from the prototype's `tokens.css` or DESIGN.md colours |
+| `scripts/subset-fonts.test.ts` | a font subset loses ASCII, typographic or ₹ glyphs, licence name IDs 13/14, its size budget or its axis range, or drifts from a fresh `pnpm fonts:subset` |
 | `scripts/public-provenance.test.ts` | `public/foil/` or `public/banners/` gains or loses a file, a `.json` sidecar is missing or wrong, a raster's pixels differ from its sidecar, or a banner is not 1792 × 588 / 840 × 472, not from `composite_store_banners.py`, or over 120 KB |
 | `src/styles/css-hygiene.test.ts` | a selector repeats within one at-rule context across `src/styles/*.css` |
 | `scripts/deps-policy.test.ts` | a banned animation, carousel, toast or icon library (framer-motion, swiper, gsap, sonner, lucide-react, …) or an unlisted Radix package is added |
@@ -135,7 +134,7 @@ maths), `src/server/route-config.test.ts`, `src/components/server-imports.test.t
 
 ## Last verified
 
-2026-11-19 on macOS, at main `d6446b2` (#58): `pnpm test:unit` 32 files, 651 tests;
+2026-11-19 on macOS, at main `44a31ee` (#59): `pnpm test:unit` 35 files, 698 tests;
 `pnpm test:int` 18 files, 141 tests
 (Vitest prints a harmless warning that `vitest.config.ts` is ESM loaded as CommonJS). `pnpm
 test:e2e` was not run here.

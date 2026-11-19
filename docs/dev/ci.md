@@ -30,7 +30,8 @@ reopened.
 `pnpm pr-size origin/main` sums added and deleted lines from `git diff --numstat
 origin/main...HEAD`, skipping:
 
-- `pnpm-lock.yaml`, `data/**`, `docs/superpowers/**`, `docs/decisions/**`, `public/**` (since #48);
+- `pnpm-lock.yaml`, `data/**`, `docs/superpowers/**`, `docs/decisions/**`, `public/**` (since #48),
+  `assets/fonts/*.txt` (font licences, since #57);
 - `**/*.webp`, `**/*.png`, `**/*.svg` and binary rows;
 - files whose first line contains `@generated shadcn`.
 
@@ -42,8 +43,7 @@ Earlier phases treated it as advisory and let a few PRs land over 400 by ruling
 (`docs/decisions/phase-ca-ledger.md`); that no longer applies. A PR over 400 is split along
 commit or file seams into PRs cut fresh from `origin/main` (with cherry-picks or
 `git checkout <branch> -- <paths>`). Tests are never dropped to fit, and the guard is never
-changed to pass. The UI plan also lists `assets/fonts/*.txt` (from its Task 2) as excluded; that
-exclude lands with that task.
+changed to pass.
 
 ## The merge gate
 
