@@ -185,14 +185,14 @@ describe("Segmented", () => {
     it("prevents the default for handled keys and leaves the rest alone", () => {
       render(<Harness />);
       const radio = () => screen.getByRole("radio", { checked: true });
-      expect(fireEvent.keyDown(radio(), { key: "ArrowRight" })).toBe(false);
-      expect(fireEvent.keyDown(radio(), { key: "Home" })).toBe(false);
-      expect(fireEvent.keyDown(radio(), { key: "x" })).toBe(true);
       // Modified arrows (Alt+Left is browser Back) are left to the browser.
       for (const mod of ["altKey", "metaKey", "ctrlKey", "shiftKey"]) {
         expect(fireEvent.keyDown(radio(), { key: "ArrowLeft", [mod]: true })).toBe(true);
       }
       expect(screen.getByRole("radio", { name: "B" })).toBeChecked();
+      expect(fireEvent.keyDown(radio(), { key: "ArrowRight" })).toBe(false);
+      expect(fireEvent.keyDown(radio(), { key: "Home" })).toBe(false);
+      expect(fireEvent.keyDown(radio(), { key: "x" })).toBe(true);
     });
 
     it("keeps the group reachable when the value matches no option", () => {
