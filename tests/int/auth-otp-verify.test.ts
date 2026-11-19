@@ -17,6 +17,7 @@ import { resetEnvForTests } from "@/server/env";
 import { OUTBOX_COLLECTION } from "@/server/providers/outbox";
 import * as rateLimit from "@/server/security/rate-limit";
 import { RATE_LIMITS_COLLECTION } from "@/server/security/rate-limit";
+import { DEFAULT_SIGNUP } from "../helpers/auth";
 import { installClock } from "../helpers/clock";
 import { jsonPost, sessionTokenFrom } from "../helpers/http";
 import { clearCollections, startMemoryReplSet, stopMemoryReplSet } from "../helpers/mongo";
@@ -54,8 +55,9 @@ beforeEach(async () => {
 
 const send = (identifier = PHONE, ip = "203.0.113.10") =>
   SEND(jsonPost(SEND_PATH, { channel: "phone", identifier }, { ip }));
+/** Sends DEFAULT_SIGNUP so a first login creates the user (C5); an existing user ignores it. */
 const verify = (code: string, opts?: Parameters<typeof jsonPost>[2], identifier = PHONE) =>
-  VERIFY(jsonPost(PATH, { channel: "phone", identifier, code }, opts));
+  VERIFY(jsonPost(PATH, { channel: "phone", identifier, code, signup: DEFAULT_SIGNUP }, opts));
 const count = async (name: string) => (await getDb()).collection(name).countDocuments();
 const WRONG = (right: string) => (right === "000000" ? "111111" : "000000");
 /** Whole-token match, so a code that happens to sit inside a hex hash or a phone is not a hit. */
@@ -125,7 +127,12 @@ describe("POST /api/auth/otp/verify", () => {
     ).toBe(200);
     const code = await lastOtpCode("a@example.com");
     const res = await VERIFY(
-      jsonPost(PATH, { channel: "email", identifier: " a@example.com", code }),
+      jsonPost(PATH, {
+        channel: "email",
+        identifier: " a@example.com",
+        code,
+        signup: DEFAULT_SIGNUP,
+      }),
     );
     expect(res.status).toBe(200);
     expect(((await res.json()) as { user: { email: string } }).user.email).toBe("a@example.com");

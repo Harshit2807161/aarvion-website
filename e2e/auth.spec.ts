@@ -28,16 +28,18 @@ test("OTP login: send, read the code from the dev outbox, verify, /me, logout", 
   const code = /\d{6}/.exec(messages.at(-1)!.payload.text)?.[0];
   expect(code).toBeDefined();
 
+  // The address is new, so the verify carries the sign-up details a first login needs.
+  const signup = { name: "E2E Shopper", adult: true, termsPrivacy: true, marketing: false };
   const verify = await page.evaluate(
-    async ({ email, ip, code }) => {
+    async ({ email, ip, code, signup }) => {
       const res = await fetch("/api/auth/otp/verify", {
         method: "POST",
         headers: { "content-type": "application/json", "x-real-ip": ip },
-        body: JSON.stringify({ channel: "email", identifier: email, code }),
+        body: JSON.stringify({ channel: "email", identifier: email, code, signup }),
       });
       return { status: res.status, body: await res.json() };
     },
-    { email, ip, code: code! },
+    { email, ip, code: code!, signup },
   );
   expect(verify.status).toBe(200);
   expect(verify.body.user.email).toBe(email);
