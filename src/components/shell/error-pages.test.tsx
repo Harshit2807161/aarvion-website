@@ -7,6 +7,7 @@ vi.mock("@/lib/catalogue/cached", () => ({
   getCachedCategories: vi.fn(async () => [
     { slug: "cardiology", name: "Heart care", status: "live", sortOrder: 0 },
   ]),
+  getCachedProducts: vi.fn(async () => []),
 }));
 
 import GlobalError from "../../app/global-error";

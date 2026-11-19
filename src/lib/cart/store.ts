@@ -74,6 +74,21 @@ export const cartStore = {
     }
     return blocked;
   },
+  /**
+   * Drop lines whose slug is not in the catalogue (a product retired since the cart was saved),
+   * so they never count toward the 20-pack cap or show in the cart. Returns whether anything was dropped. Run by CartReconcile.
+   */
+  reconcile(known: ReadonlySet<string>): boolean {
+    // An empty set means the catalogue is not loaded, not that every product is gone.
+    if (known.size === 0) return false;
+    const current = cartStore.getSnapshot();
+    const kept = Object.entries(current).filter(([slug]) => known.has(slug));
+    if (kept.length === Object.keys(current).length) return false;
+    cache = Object.assign(Object.create(null), Object.fromEntries(kept));
+    write(cache!);
+    listeners.forEach((l) => l());
+    return true;
+  },
   /** TEST ONLY: forget the cached lines so the next read goes back to sessionStorage. */
   reset(): void {
     cache = null;
