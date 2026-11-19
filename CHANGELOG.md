@@ -75,7 +75,7 @@ bottom use commit SHAs.
 - `OtpField` (`src/components/form/otp-field.tsx`: input-otp behind the generated
   `src/components/ui/input-otp.tsx`, six `aria-hidden` boxes, paste of a whole SMS through
   `otpDigits`, once-per-code `onComplete`, shake only when motion is allowed) with
-  `src/styles/otp.css`.
+  `src/styles/otp.css` (#89).
 
 ### Changed
 
