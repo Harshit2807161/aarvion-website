@@ -36,7 +36,7 @@
 | `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting) |
 | `components.json` | shadcn/ui config; only `dialog` and `input-otp` may be added (UI plan ruling). After `shadcn add`, swap `lucide-react` for `Icon`, import Radix as `@radix-ui/react-dialog`, remove any `lucide-react`, `tw-animate-css` or `cn` package the CLI adds, revert its `globals.css` edits, and put `// @generated shadcn` on line 1 |
 | `src/components/ui/dialog.tsx` | the shadcn dialog primitives, restyled for Aarvion (generated, edited) |
-| `src/components/overlay/` | the pure phone bottom-sheet drag thresholds in `drag.ts` (28% of height, or 24px at 0.45px/ms) |
+| `src/components/overlay/` | the pure phone bottom-sheet drag thresholds in `drag.ts` (28% of height, or 24px at 0.45px/ms) and `useDragDismiss`, which returns pointer handlers for the sheet head. The panel follows the finger through an inline transform and carries `is-dragging` from the first pointerdown until it closes (that class holds the CSS open animation off; removing it while open would replay the entrance). Only the inline transition is cleared after a snap-back |
 | `src/server/` | business logic (below) |
 | `tests/int/`, `tests/helpers/` | integration tests and their helpers |
 | `e2e/` | Playwright specs |
