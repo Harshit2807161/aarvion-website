@@ -1,0 +1,100 @@
+/*
+  Home banner carousel: a port of the v2 prototype's site.css 95–157 and the banner rules of its
+  719px block (540–558); its 1100px and 880px blocks hold no banner rules. Class names are the
+  prototype's, so every rule diffs against it. Where it differs:
+  - The prototype gates the cross-fade on a `.js` class from an inline script. Here `.hero`
+    stands in for `.js` (same specificity): the server renders slide 1 `is-current`, so the
+    state before hydration (and without JS) is slide 1 alone.
+  - `is-auto` means motion is allowed. The user's pause (`is-stopped`) pauses the current dot's
+    fill where it stands, like a hold, instead of dropping it, so play resumes the same clock.
+    Its 6s duration is AUTOPLAY_MS in carousel.ts (banner.test.ts keeps them equal).
+  - Repeated selectors are merged into one rule each (C12): the phone block's two `.slide-line`
+    rules, the two `.hero-ctl` rules, and `.slide-img img`.
+  The banner is a plain `.wrap`, so its 1280px width comes from the one home root rule
+  (`.home`, src/styles/quick-trust.css); there is no section-level width here.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+/* the controls come first in the DOM (the rotation control leads the tab order, per the APG
+   carousel pattern) and sit below the slides on screen */
+.hero { display: flex; flex-direction: column; margin-top: 20px; }
+.hero-track {
+  position: relative; display: grid; isolation: isolate; overflow: clip;
+  width: 100%; aspect-ratio: 1280 / 420; min-height: 300px; border-radius: var(--radius-strip);   /* a definite width, so min-height never widens it through the ratio */
+  background: var(--color-forest-50);
+}
+.slide { grid-area: 1 / 1; position: relative; min-width: 0; --slide-bg: var(--color-forest-50); }
+.slide--eye { --slide-bg: var(--color-forest-100); }
+.slide--rx { --slide-bg: var(--color-sand-50); }
+.slide--delivery { --slide-bg: var(--color-sand-100); }
+.hero .slide { opacity: 0; visibility: hidden; transition: opacity 700ms var(--ease-out), visibility 0s linear 700ms; }
+.hero .slide.is-current { z-index: 1; opacity: 1; visibility: visible; transition-delay: 0s; }
+.hero .slide.is-leaving { opacity: 1; visibility: visible; transition: none; }
+.slide:not(.is-current) .slide-copy { pointer-events: none; }
+.slide-img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.slide-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 100% 50%; }
+.slide-copy {
+  position: relative; z-index: 1; height: 100%;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 12px;
+  max-width: min(48%, 540px); padding: 32px 0 32px clamp(28px, 4.6vw, 64px);
+}
+.slide-title { font: 700 clamp(1.75rem, 1.05rem + 1.9vw, 2.75rem)/1.06 var(--font-display); letter-spacing: -0.028em; color: var(--color-ink); text-wrap: balance; }
+.slide-line { max-width: 34ch; font-size: clamp(1rem, 0.92rem + 0.25vw, 1.125rem); line-height: 1.45; color: var(--color-neutral-700); text-wrap: pretty; }
+.slide-copy .btn { margin-top: 8px; }
+/* the incoming slide settles: its picture eases in from 1.035, its copy rises 10px */
+@media (prefers-reduced-motion: no-preference) {
+  .hero .slide-img img { transform: scale(1.035); transition: transform 1600ms var(--ease-out); }
+  .hero .slide.is-current .slide-img img, .hero .slide.is-leaving .slide-img img { transform: none; }
+  .hero .slide-copy > * { opacity: 0; transform: translate3d(0, 10px, 0); transition: opacity 420ms var(--ease-out), transform 520ms var(--ease-out); }
+  .hero .slide.is-current .slide-copy > *, .hero .slide.is-leaving .slide-copy > * { opacity: 1; transform: none; }
+  .hero .slide.is-current .slide-copy > :nth-child(1) { transition-delay: 140ms; }
+  .hero .slide.is-current .slide-copy > :nth-child(2) { transition-delay: 200ms; }
+  .hero .slide.is-current .slide-copy > :nth-child(3) { transition-delay: 260ms; }
+}
+
+.hero-ctl { order: 1; display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 8px; }
+.hero:not(.is-ready) .hero-ctl { visibility: hidden; }
+.hero-btn {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: var(--color-ink);
+  transition: transform var(--duration-press) var(--ease-out), background-color var(--duration-fast) ease;
+}
+.hero-btn:active { transform: scale(0.92); }
+.hero-play .i:nth-child(2), .hero.is-stopped .hero-play .i:nth-child(1) { display: none; }
+.hero.is-stopped .hero-play .i:nth-child(2) { display: block; }
+.hero.no-auto .hero-play { display: none; }
+@media (hover: hover) and (pointer: fine) { .hero-btn:hover { background: var(--color-neutral-100); } }
+.hero-dots { display: flex; align-items: center; margin: 0 4px; }
+.hero-dot { display: grid; place-items: center; width: 30px; height: 44px; }
+.hero-dot[aria-current="true"] { width: 44px; }
+.dot-fill { position: relative; overflow: hidden; width: 8px; height: 8px; border-radius: 4px; background: var(--color-neutral-300); }
+.hero-dot[aria-current="true"] .dot-fill { width: 28px; background: var(--color-neutral-200); }
+.dot-fill::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--color-forest-700); transform: translate3d(-100%, 0, 0); }
+.hero-dot[aria-current="true"] .dot-fill::after { transform: none; }
+/* autoplay: the current dot fills over 6s; its animationend advances the slide, so pausing the
+   fill (hover, focus, touch, hidden tab, off screen, the user's pause) pauses the clock exactly
+   where it stands. A new current dot starts a fresh fill. */
+.hero.is-auto .hero-dot[aria-current="true"] .dot-fill::after { animation: dot-run 6s linear both; }
+.hero.is-auto.is-held .hero-dot[aria-current="true"] .dot-fill::after,
+.hero.is-auto.is-stopped .hero-dot[aria-current="true"] .dot-fill::after { animation-play-state: paused; }
+@keyframes dot-run { from { transform: translate3d(-100%, 0, 0); } to { transform: none; } }
+@media (hover: hover) and (pointer: fine) { .hero-dot:not([aria-current="true"]):hover .dot-fill { background: var(--color-neutral-500); } }
+
+@media (max-width: 719px) {
+  /* banners: a swipeable scroll-snap row of cards, the next one peeking in */
+  .hero { width: auto; margin: 14px 0 0; }
+  .hero-track {
+    display: flex; gap: 12px; aspect-ratio: auto; min-height: 0; border-radius: 0; background: none; overflow: auto hidden;
+    padding: 0 var(--spacing-gutter); scroll-padding-inline: var(--spacing-gutter); scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain; scrollbar-width: none;
+  }
+  .hero-track::-webkit-scrollbar { display: none; }
+  .hero .slide { flex: 0 0 86%; display: flex; flex-direction: column; opacity: 1; visibility: visible; transition: none; scroll-snap-align: start; border-radius: var(--radius-lg); overflow: clip; background: var(--slide-bg); }
+  .slide-img { position: relative; display: block; aspect-ratio: 16 / 9; height: auto; }
+  .hero .slide-img img, .hero .slide-copy > * { transform: none; opacity: 1; transition: none; }
+  /* every card is as tall as the tallest (the track stretches them); the button sits on each card's
+     bottom edge, at least 12px under the line */
+  .slide-copy { flex: 1; height: auto; max-width: none; justify-content: flex-start; gap: 4px; padding: 10px 14px 12px; }
+  .slide-title { font-size: 1.25rem; line-height: 1.15; letter-spacing: -0.02em; }
+  .slide-line { margin-bottom: 8px; font-size: 0.875rem; line-height: 1.4; }
+  .slide-copy .btn { margin-top: auto; min-height: 44px; padding: 0 18px; font-size: 0.875rem; }
+  .hero-ctl { margin-top: 4px; }
+}

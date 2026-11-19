@@ -310,6 +310,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 - UI tasks follow the visual check and finish-review gates in the UI plan.
 - Spoken feedback goes through the one polite live region: call `announce()` from
   `src/components/feedback/live-region.tsx`; never add another `aria-live="polite"` element.
+  The one exception is the banner carousel's track (DESIGN.md: `off` while rotating, `polite`
+  otherwise, from `liveMode()`).
   Customer toasts are `toast()` from `feedback/toast.tsx` (one at a time); Sonner and
   lucide-react are banned. shadcn CLI output (`src/components/ui/`) is committed with a first-line
   `// @generated shadcn` marker and must not bring `lucide-react` or `tw-animate-css` with it.
