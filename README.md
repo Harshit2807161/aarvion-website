@@ -23,9 +23,11 @@ Requires Node 24 (`.nvmrc`) and pnpm 12. Copy `.env.example` to `.env.local`.
 - `pnpm build` / `pnpm start`: production build and server
 - `pnpm lint`, `pnpm typecheck`, `pnpm format`
 - `pnpm test:unit`: Vitest `unit` (node, `src/**/*.test.ts` and `scripts/**/*.test.ts`) and `ui` (happy-dom, `src/**/*.test.tsx`, React plugin, `tests/helpers/ui-setup.ts`) projects; every test file must belong to exactly one project (`scripts/vitest-projects.test.ts`)
-- `pnpm test:int`: Vitest `int` project (node, `tests/int/**/*.test.ts`)
+- `pnpm test:int`: Vitest `int` project (node, `tests/int/**/*.test.ts`); `tests/helpers/next-mocks.ts` mocks `connection()` and records the `next/cache` calls
 - `pnpm test:e2e`: Playwright (Chromium) against a production build; needs Mongo, so run `pnpm db:up` first (it uses the `aarvion_e2e` database and a random `OTP_PEPPER`)
 - `pnpm db:up && pnpm db:indexes && pnpm seed`: start Mongo, create indexes, seed the catalogue (insert-only, safe to re-run)
   - Reseeding after the category rename: the seed is insert-only, so an existing database keeps the old names and product order. (1) Always safe: in `mongosh`, run `db.categories.deleteMany({})`, then `pnpm seed`. (2) Product order, non-destructive: run `db.products.updateOne({ slug: "sacuwin-50" }, { $set: { sortOrder: 0 } })` and the same for `sacuwin-100` (1), `sacuwin-200` (2), `bemptor-r40` (3), `bemptor-180` (4). (3) `db.products.deleteMany({})` is only for a fresh or dev database with no admin edits, orders or carts, because product `_id` and `createdAt` change.
+
+Route handlers (Cache Components is on): no `dynamic`, `revalidate` or `fetchCache` exports, and every `GET` starts with `await connection()`, followed in `src/app/dev/**` by `requireDevRoute()` (`src/server/route-config.test.ts`).
 
 Stack decisions: `docs/decisions/stack.md`.
