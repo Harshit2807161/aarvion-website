@@ -162,6 +162,7 @@ bottom use commit SHAs.
 
 ### Fixed
 
+- The footer logo no longer competes with a page's LCP image: the footer passes `loading="lazy"` through `BrandMark`'s new `loading` prop, so React stops preloading it ahead of the content (the header logo stays eager).
 - `ui` tests run under Vitest 5 again: the `next/navigation` mock state moved to
   `tests/helpers/navigation-mocks.ts`, because Vitest 5 rejects exported `vi.hoisted` values
   (#57).
