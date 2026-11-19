@@ -62,6 +62,8 @@ bottom use commit SHAs.
 - `ui` tests run under Vitest 5 again: the `next/navigation` mock state moved to
   `tests/helpers/navigation-mocks.ts`, because Vitest 5 rejects exported `vi.hoisted` values
   (#57).
+- The banner carousel reducer keeps a user's pause across motion changes and guards bad input
+  (#64).
 
 ## [0.1.0] - 2026-11-17
 
