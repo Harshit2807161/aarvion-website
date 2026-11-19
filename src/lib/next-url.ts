@@ -38,7 +38,8 @@ export function sanitizeNext(raw: string | null): string {
   try {
     path = decodeURIComponent(path);
   } catch {
-    // keep the encoded path
+    // A malformed escape would skip the block-list; real store paths never carry one.
+    return "/";
   }
   path = path.toLowerCase();
   if (BLOCKED_PREFIXES.some((p) => path.startsWith(p))) return "/";
