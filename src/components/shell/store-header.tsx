@@ -39,7 +39,7 @@ function SignIn() {
 
 function Cart() {
   return (
-    <Link className="sh-btn sh-cart" href={ROUTES.cart} aria-label="Cart, 0 packs">
+    <Link className="sh-btn sh-cart" href={ROUTES.cart} aria-label="Cart, empty">
       <Icon name="cart" />
       <span className="cart-label">Cart</span>
       <span className="cart-count" aria-hidden="true">
