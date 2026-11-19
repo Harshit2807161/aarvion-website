@@ -35,16 +35,17 @@
 | `src/server/` | business logic (below) |
 | `tests/int/`, `tests/helpers/` | integration tests and their helpers |
 | `e2e/` | Playwright specs |
-| `scripts/` | `pr-size.ts`, `merge-gate.sh`, `sync-product-images.ts`, `seed.ts`, `db-indexes.ts`; Python asset tools (`render_foil.py`, `make_cutouts.py`, `composite_store_banners.py`, `build_stage0_docs.py`, …) |
+| `scripts/` | `pr-size.ts`, `merge-gate.sh`, `sync-product-images.ts`, `seed.ts`, `db-indexes.ts`, `subset-fonts.ts`, `shoot.mjs` (screenshots); Python asset tools (`render_foil.py`, `make_cutouts.py`, `composite_store_banners.py`, `build_stage0_docs.py`, …) |
 | `data/` | `products.json` (seed source), `product-images.json` (generated), `source/` (Drive analysis) |
 | `public/products/` | generated, content-hashed product images |
 | `public/foil/`, `public/banners/` | foil, dome and banner rasters copied unchanged from `design/prototype/assets/`, each with a `.json` provenance sidecar (`scripts/public-provenance.test.ts`) |
-| `src/components/` | React components, added task by task (today `home/carousel.ts`, the banner carousel reducer) |
-| `assets/` | source photos and cutouts, brand SVG drafts, banner scenes |
+| `src/components/` | React components, added task by task (today `home/carousel.ts`, the banner carousel reducer, and `film/progress.ts`, the scroll film's pure progress maths) |
+| `src/fonts/` | committed `.woff2` subsets and `index.ts` (`next/font/local`), built by `pnpm fonts:subset` from `assets/fonts/` |
+| `assets/` | source photos and cutouts, brand SVG drafts, banner scenes, `fonts/` (source TTFs, OFL licences, `SOURCES.json`) |
 | `design/prototype/` | the approved hi-fi prototype (excluded from ESLint) |
 
-Planned folders (UI plan): more of `src/components/**` and `src/lib/**`, `src/fonts/`,
-`src/config/`, `public/brand/`. See the plan's "File Structure".
+Planned folders (UI plan): more of `src/components/**` and `src/lib/**`, `src/config/`,
+`public/brand/`. See the plan's "File Structure".
 
 ## Server modules
 

@@ -29,8 +29,8 @@ Each runbook gives exact steps, commands, files touched, tests to run and the CH
   procedure updates the matching page here in the same PR. Stale docs are a review finding.
 - Mark anything not yet built as **planned** and anything you could not run as **not verified
   here**.
-- Commands on these pages were last run on 2026-11-19 (macOS, pnpm 12.10.1, main at `d6446b2`):
-  `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm test:unit` (32 files, 651 tests),
+- Commands on these pages were last run on 2026-11-19 (macOS, pnpm 12.10.1, main at `44a31ee`):
+  `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm test:unit` (35 files, 698 tests),
   `pnpm test:int` (18 files, 141 tests), `pnpm build`, `pnpm images:sync` (no diff) and
   `pnpm pr-size origin/main`.
   `pnpm db:indexes` and `pnpm seed` ran only through their int tests (in-memory replica set).
