@@ -23,7 +23,7 @@
 | --- | --- |
 | `src/app/api/health/route.ts` | `GET /api/health`: version plus a DB ping |
 | `src/app/api/auth/otp/send/route.ts` | `POST /api/auth/otp/send` |
-| `src/app/api/auth/otp/verify/route.ts` | `POST /api/auth/otp/verify` (sets the session cookie) |
+| `src/app/api/auth/otp/verify/route.ts` | `POST /api/auth/otp/verify` (sets the session cookie; 409 `signup_required` for a new identifier without `signup`) |
 | `src/app/api/auth/me/route.ts` | `GET /api/auth/me` (re-issues a sliding customer cookie) |
 | `src/app/api/auth/session/route.ts` | `GET /api/auth/session` for the header: always 200 `{ user }` or `{ user: null }` (never 401), `no-store`, re-issues a sliding customer cookie |
 | `src/app/api/auth/logout/route.ts` | `POST /api/auth/logout` (204, clears the cookie) |
@@ -35,7 +35,7 @@
 | `src/config/` | `site.ts` (`SITE_CONFIG`: legal name, address, and the pending legal facts, all `null` until the owner supplies them; `legalValue()`, `pendingLegalFields()`, and `assertLegalConfigComplete()`, the H4 production gate; `resolveSiteMetadataBase()`) and `routes.ts` (`ROUTES`, the one map of store links, and `PENDING_ROUTES`, the linked pages that must still 404 until built; each page's task deletes its entry) |
 | `src/app/globals.css` | Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored) |
 | `src/styles/` | ported prototype CSS imported by `globals.css` (`base.css`: one merged `@layer base` with resets, focus, type and utilities; `buttons.css`: `.btn*`, `.link`, `.spin`; `stamp.css`: `.dm`, `.stamp*`, `.off`, `.price-inline`, `.rx`, `.tag*`; `otp.css`: `.otp*`; `toast.css`: `.toast*`; `overlay.css`: `.sheet-*` dialog, side drawer and phone bottom sheet, as `@keyframes` on Radix `[data-state]`; `forms.css`: `.field`, `.field-box`, `.input`, `.check*`, `.seg*`; `footer.css`: the store footer, `.foot*`; `header.css`: the announcement line and store header, `.announce*`, `.store-head`, `.sh-*`, `--row-h` and `--hdr-h`; `catbar.css`: the category bar and the 880px chip row, `.catbar*`; `shell.css`: the Operate shell, `.band*` and `.work*`; `cart-control.css`: `.cart-ctl`, `.btn-add`, `.stepper`; `empty.css`: the empty-state well, `.empty*` and `.well-count`; `steps.css`: the home's ordering act, `.act-steps`, `.step*`, `.perf*`, `.doc*`, `.log*`, `.label*` (static rules only; `.film` rules come with the film wiring); `prose.css`: the policy reading column, `.prose*` (62ch, title-size h2, hairlines between sections) and the `.pending` "To be added" chip; `quick-trust.css`: the home quick-action cards and trust strip, `.quick`, `.qa*`, `.trust*`, and the `.home` 1280 width token; all but `base.css` are imported `layer(components)`), with `tokens.test.ts`, `css-hygiene.test.ts`, `overlay.test.ts` (compiles `globals.css` and checks the scrim rule), `shell.test.ts` and `prose.test.ts` |
-| `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting), `cart/` (the session-only UI cart: `cart.ts` pure rules and limits, `store.ts` `cartStore` over `sessionStorage` key `aarv-cart-ui-v0` with a cached `getSnapshot` and a frozen `{}` server snapshot, `use-cart-lines.ts` the client hook). It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. It stands in until the real server cart arrives in phase K, which replaces it. Also `next-url.ts` (`sanitizeNext(raw)`: the `?next=` guard for post-login redirects; returns "/" unless the value is a same-origin path of at most 512 characters with no backslash or control character and not under `/login`, `/api/` or `/dev/`; it checks the resolved output, because dot segments collapse (`/.//x` becomes `//x`), and blocks the prefixes case-insensitively (a malformed percent escape returns "/"); use it for every `next` read from a URL and pass the result straight to `router.replace`/`push`/`redirect`, never decode it) |
+| `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting), `catalogue/display.ts` (client-safe wording of catalogue data, ported from the prototype's `build.mjs`: `fullComposition`, `actives` (preservatives and salt forms dropped, each strength one non-breaking unit), `packDisplay`, `strengthTokens`, `shortName`, `plural`, `countWord`, `pocketImage` (the cutout, else the first photo), `categoryAnchor` and the `PocketProduct` type; type-only imports from `src/server`), `cart/` (the session-only UI cart: `cart.ts` pure rules and limits, `store.ts` `cartStore` over `sessionStorage` key `aarv-cart-ui-v0` with a cached `getSnapshot` and a frozen `{}` server snapshot, `use-cart-lines.ts` the client hook). It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. It stands in until the real server cart arrives in phase K, which replaces it. Also `next-url.ts` (`sanitizeNext(raw)`: the `?next=` guard for post-login redirects; returns "/" unless the value is a same-origin path of at most 512 characters with no backslash or control character and not under `/login`, `/api/` or `/dev/`; it checks the resolved output, because dot segments collapse (`/.//x` becomes `//x`), and blocks the prefixes case-insensitively (a malformed percent escape returns "/"); use it for every `next` read from a URL and pass the result straight to `router.replace`/`push`/`redirect`, never decode it) |
 | `components.json` | shadcn/ui config; only `dialog` and `input-otp` may be added (UI plan ruling). After `shadcn add`, swap `lucide-react` for `Icon`, import Radix as `@radix-ui/react-dialog`, remove any `lucide-react`, `tw-animate-css` or `cn` package the CLI adds, revert its `globals.css` edits, and put `// @generated shadcn` on line 1 |
 | `src/components/ui/dialog.tsx` | the shadcn dialog primitives, restyled for Aarvion (generated, edited) |
 | `src/components/ui/input-otp.tsx` | the shadcn `InputOTP` wrapper, trimmed to the one part `OtpField` uses (generated, edited; no `lucide-react`) |
@@ -84,7 +84,7 @@ the plan's "File Structure".
 | `categories` | ObjectId | `slug_unique` | seed |
 | `rate_limits` | the limiter key | `expiresAt_ttl` | `hitRateLimit` |
 | `otp_challenges` | `<channel>:<value>` (one live challenge per identifier) | `expiresAt_ttl` | `issueOtpChallenge`, `verifyOtpChallenge`, `checkOtpChallenge` (refunds a matching check's attempt) |
-| `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole` |
+| `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole`; lookups filter `{ $eq, $type: "string" }` so the partial indexes apply |
 | `sessions` | SHA-256 of the token | `expiresAt_ttl`, `userId_1` | `createSession`, `resolveSession`, `revokeSession` |
 | `audit_logs` | ObjectId | `at_desc`, `actorUserId_at_desc` | `appendAudit` |
 | `dev_outbox` | `mock_<uuid>` | `expiresAt_1` (TTL 24 h), `to_1_createdAt_1` | mock SMS and email |
@@ -115,23 +115,28 @@ A mutation, for example `POST /api/auth/otp/verify`:
 exists.
 
 **OTP verify** (`verifyOtpAndLogin`): normalise → 60/h per IP → peek the 10-per-24 h failure cap
-(429 `too_many_attempts`) → spend an attempt atomically and compare in constant time → only a
-mismatch on a live challenge hits the failure counter → flip `consumedAt` (single use) → find or
-create the user (a new one gets `name` and `consents` from `signup`) → revoke any presented
-session → create a session → clear the failure counter → audit `auth.login` (a failed counter
-reset or audit write is logged by error name and never fails the login). Every code-check
-failure (unknown, expired, consumed, exhausted or mismatched code, or a bad identifier) is 400
-`invalid_code`; the per-IP limit is 429 `rate_limited` and the lockout 429 `too_many_attempts`,
-both with `Retry-After`.
+(429 `too_many_attempts`) → spend an attempt atomically and compare in constant time
+(`spendAndCompare`; with `signup` a match flips `consumedAt`, `verifyOtpChallenge`; without it a
+match refunds the attempt, `checkOtpChallenge`) → only a mismatch on a live challenge hits the
+failure counter → only after a match, without `signup`, look up the user (`findUserByIdentifier`):
+an unknown identifier answers 409 `signup_required` with no user, session or audit row, leaving the
+code for one later login with `signup`; a known one has the code consumed → find or create the user
+(a new one gets `name` and `consents` from `signup`) → revoke any presented session → create a
+session → clear the failure counter → audit `auth.login` (a failed counter reset or audit write is
+logged by error name and never fails the login). Every code-check failure (unknown, expired,
+consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`, for unknown and
+known identifiers alike; the per-IP limit is 429 `rate_limited` and the lockout 429
+`too_many_attempts`, both with `Retry-After`.
 
-**Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one
-letter, and no Unicode control or format character such as a zero-width space or a bidi
-override, since names show in staff views and emails), `adult: true`, `termsPrivacy: true` and
-`marketing` (a boolean; the UI leaves it off). A new user stores them as `name` and
-`consents = { channel, termsPrivacy: { version, at }, adult: { at }, marketing: { optedIn, at }
-}`, where `version` is `CONSENT_VERSION` (`POLICY_VERSION` in `src/config/site.ts`, today
-`2026-11-17`) and `channel` is the OTP channel verified. They are written on insert only;
-bumping `POLICY_VERSION` does not yet ask existing users again.
+**Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one letter,
+and no Unicode control or format character such as a zero-width space or a bidi override, since
+names show in staff views and emails; only a zero-width joiner or non-joiner with a letter or mark
+on both sides is allowed, for Indic spellings), `adult: true`, `termsPrivacy: true` and `marketing`
+(a boolean; the UI leaves it off). A new user stores them as `name` and `consents = { channel,
+termsPrivacy: { version, at }, adult: { at }, marketing: { optedIn, at } }`, where `version` is
+`CONSENT_VERSION` (`POLICY_VERSION` in `src/config/site.ts`, today `2026-11-17`) and `channel` is
+the OTP channel verified. They are written on insert only; bumping `POLICY_VERSION` does not yet ask
+existing users again.
 
 **Session resolution** (`getAuth`): read the 43-character token from the cookie → look up by its
 hash → refuse if idle or absolute expiry has passed (and delete it) → touch at most once per
@@ -183,6 +188,10 @@ the public user or `null`, `no-store`. Nothing calls it yet.
   static. Plan Task 43 wires it (the header's `account` slot, `AccountPill`); until then the
   header shows a static Sign in link.
 - Product images are content-hashed, so the CDN can cache them forever.
-- Client components (`src/components/**`) import at runtime from `src/server/**` only the pure
-  `catalogue/pricing.ts`, `catalogue/search.ts` and `catalogue/order.ts`
-  (`src/components/server-imports.test.ts`).
+
+**Client imports (now):** components (`src/components/**`) import at runtime from
+`src/server/**` only the pure `catalogue/pricing.ts`, `catalogue/search.ts` and
+`catalogue/order.ts`; anything else from there is a statement-level `import type`
+(`src/components/server-imports.test.ts`). The test sees direct imports only: a server-only
+module reached through `src/lib/` (for example `catalogue/cached.ts`, which `withStoreChrome`
+calls) must still never be imported by a `"use client"` module.

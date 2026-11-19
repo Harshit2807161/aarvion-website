@@ -19,6 +19,8 @@ bottom use commit SHAs.
 ### Added
 
 - Login API client, verify half: `verifyCode` and `fetchSession` in `src/components/auth/api.ts`, plus `SignupPayload`, type-pinned both ways to the server's `SignupInput` in `api.test.ts`. `verifyCode` posts the trimmed name and a `signup` only when passed; a 400 or 413 with a signup is `signup_required` (the server refused the name), a 429 keeps `retryAfterSec`, and every other unexpected status maps to `network`. `fetchSession` returns only `{ name }`, or null when signed out or on any failure. Task 40 shows `nameInvalid` on `signup_required` in the profile step (#120).
+- `src/components/server-imports.test.ts`: components may import at runtime from `src/server/**` only `catalogue/pricing`, `catalogue/search` and `catalogue/order`; anything else needs a statement-level `import type`. It parses each file with the TypeScript compiler API, so side-effect imports, re-exports, `import()` and `require()` are caught too (#118).
+- Catalogue display helpers (`src/lib/catalogue/display.ts`), ported from the v2 prototype's `build.mjs` for the pocket, rails, category and product pages: `fullComposition`, `actives` (preservatives and salt forms dropped, each strength one non-breaking unit so a wrap or the line clamp never cuts it), `packDisplay` ("10 ml bottle" for eye drops, a number kept with its unit), `strengthTokens`, `shortName`, `plural`, `countWord`, `pocketImage` (the cutout, else the first photo), `categoryAnchor` and the `PocketProduct` type (#118).
 - Login API client, send half: `src/components/auth/api.ts` (`sendCode` and the shared `call` helper). It never throws: a transport failure, a 15 s timeout, a non-JSON or unexpected 2xx body and any other unexpected status map to `network`, except a 400, which is `invalid_identifier`. `verifyCode` and `fetchSession` follow in the next PR. Also `sanitizeNext` now returns "/" on a malformed percent escape instead of skipping the blocked-prefix check (#119).
 - Login helpers (pure, no UI yet): `src/components/auth/phone.ts` (`normMobile`, `formatMobile`, `MOBILE_RE`, `EMAIL_RE`) and `src/lib/next-url.ts` (`sanitizeNext` for the `?next=` redirect: same-origin paths only, never `/login`, `/api/` or `/dev/`) (#117).
 - `CartReconcile` (`src/components/cart/cart-reconcile.tsx`, mounted by `withStoreChrome()` with the slugs from `getCachedProducts()`) and `cartStore.reconcile`: stored cart lines for products the catalogue no longer sells are dropped so they cannot fill the 20-pack cap, with one polite announcement. An empty catalogue list is ignored, not treated as every product gone (#115).
@@ -117,6 +119,10 @@ bottom use commit SHAs.
 - `GET /api/auth/session` (`src/app/api/auth/session/route.ts`) for the store header: always 200
   with `{ user }` (the public user, now with `name`) or `{ user: null }`, never 401, `no-store`,
   re-issuing a sliding customer cookie (#107).
+- A new identifier's first OTP verify must carry `signup`: without it the right code answers 409
+  `signup_required` (no user, session or audit row) and is not used up, so it logs in exactly once
+  when the details follow. Nothing reads the account before the code matches, so junk verifies
+  behave the same for new and existing identifiers (`tests/int/auth-signup.test.ts`) (#116).
 
 ### Changed
 
@@ -175,6 +181,11 @@ bottom use commit SHAs.
 - A rate-limit store error while clearing the failure counter after a successful OTP verify no
   longer turns the login into a 500 with a session the client never receives; it is logged by
   error name, like a failed audit write (#99).
+- Sign-up names may hold a zero-width joiner or non-joiner (U+200D, U+200C) between two letters
+  or marks, as Indic spellings such as the Marathi eyelash ra need; #107 refused them. Every other
+  control or format character is still refused (#116).
+- `findUserByIdentifier` and `findOrCreateUserByIdentifier` filter `{ $eq, $type: "string" }`, so
+  they use the partial unique indexes instead of scanning every user (#116).
 
 ## [0.1.0] - 2026-11-17
 

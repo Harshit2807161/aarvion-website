@@ -82,9 +82,18 @@ function identifierField(id: Identifier) {
   return IDENTIFIER_FIELD[id.channel];
 }
 
-/** The user holding this verified identifier, or null. */
+/**
+ * The filter for an identifier. `$type: "string"` matches the unique indexes' partial filter, so
+ * the planner can use them; a plain `{ email: x }` is a collection scan, whose cost would differ
+ * for known and unknown identifiers. An upsert still inserts the field from `$eq`.
+ */
+function identifierFilter(id: Identifier) {
+  return { [identifierField(id)]: { $eq: id.value, $type: "string" } };
+}
+
+/** The user holding this verified identifier, or null. Index-backed (see identifierFilter). */
 export async function findUserByIdentifier(id: Identifier): Promise<UserDoc | null> {
-  return (await users()).findOne({ [identifierField(id)]: id.value });
+  return (await users()).findOne(identifierFilter(id));
 }
 
 /**
@@ -97,12 +106,12 @@ export async function findOrCreateUserByIdentifier(
   signup?: { name: string; consents: UserConsents },
 ): Promise<{ user: UserDoc; created: boolean }> {
   const col = await users();
-  const field = identifierField(id);
+  const filter = identifierFilter(id);
   const verifiedField = VERIFIED_FIELD[id.channel];
   const onInsert = signup ? { name: signup.name, consents: signup.consents } : {};
   const run = () =>
     col.findOneAndUpdate(
-      { [field]: id.value },
+      filter,
       {
         $setOnInsert: { role: "customer", createdAt: now, ...onInsert },
         $min: { [verifiedField]: now },

@@ -29,5 +29,8 @@ export const POST = withErrors(async (req) => {
       throw new HttpError(429, result.error, result.retryAfterSec);
     case "invalid_code":
       throw new HttpError(400, "invalid_code");
+    // The code was right but the identifier is new: the client asks for the sign-up details.
+    case "signup_required":
+      throw new HttpError(409, "signup_required");
   }
 });
