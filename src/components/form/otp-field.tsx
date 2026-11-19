@@ -17,6 +17,8 @@ export type OtpState = "idle" | "invalid" | "locked";
 // where an unanchored [0-9]* would accept anything, so it is anchored: same digits-only meaning.
 const OTP_PATTERN = "^[0-9]*$";
 
+const AUTOFILL_INPUT_TYPES = new Set(["insertText", "insertReplacementText", "insertFromPaste"]);
+
 const MOTION_QUERY = "(prefers-reduced-motion: no-preference)";
 
 function subscribeMotion(notify: () => void) {
@@ -35,7 +37,7 @@ function motionAllowed() {
  * never zooms) drawn as six aria-hidden boxes. A pasted code is handled twice over: a native
  * paste listener takes a whole 6-digit code and replaces the value (input-otp would insert it at
  * the caret and truncate: "48" + "482913" gives "484829"), and input-otp's pasteTransformer
- * cleans partial pastes. The Android autofill guard follows in the next PR.
+ * cleans partial pastes. The beforeinput guard below takes Android SMS autofill.
  *
  * Name the input with a <label for={id}>, or pass `ariaLabel` when there is no visible label.
  */
@@ -79,9 +81,16 @@ export function OtpField({
     if (value.length < OTP_LENGTH) completed.current = null;
   }, [value]);
 
-  // A pasted full code replaces the value. Stopping the native event keeps input-otp's own paste
-  // handler (and its completion effect) from also seeing a truncated value; partial pastes still
-  // reach it. React's onPaste cannot do this: input-otp's handler runs first.
+  // Native listeners on the real input (React's onBeforeInput never carries the native
+  // `inputType` [C18], and input-otp's own paste handler runs before React's onPaste).
+  //
+  // beforeinput: Android SMS autofill and keyboard suggestions insert the whole code as one text
+  // insertion at the caret. With a partial value already typed, maxlength would truncate it
+  // ("12" + "482913" gives "124829"), so take the digits instead.
+  //
+  // paste: a pasted full code replaces the value. Stopping the native event keeps input-otp's
+  // own paste handler (and its completion effect) from also seeing a truncated value; partial
+  // pastes still reach it.
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
@@ -93,9 +102,22 @@ export function OtpField({
       cb.current.onChange(digits);
       complete(digits);
     };
+    const onBeforeInput = (e: Event) => {
+      const ev = e as InputEvent;
+      if (!AUTOFILL_INPUT_TYPES.has(ev.inputType)) return;
+      const digits = otpDigits(ev.data ?? "");
+      if (digits.length !== OTP_LENGTH) return;
+      ev.preventDefault();
+      cb.current.onChange(digits);
+      complete(digits);
+    };
     input.addEventListener("paste", onPaste);
-    return () => input.removeEventListener("paste", onPaste);
-    // `complete` only touches refs, so the listener is attached once.
+    input.addEventListener("beforeinput", onBeforeInput);
+    return () => {
+      input.removeEventListener("paste", onPaste);
+      input.removeEventListener("beforeinput", onBeforeInput);
+    };
+    // `complete` only touches refs, so the listeners are attached once.
   }, []);
 
   // Shake on invalid, only when motion is allowed. matchMedia is read through

@@ -87,6 +87,9 @@ bottom use commit SHAs.
   `src/components/ui/input-otp.tsx`, six `aria-hidden` boxes, a pasted full code replacing
   a partial value (native paste listener, `otpDigits`), once-per-code `onComplete`, shake only when motion is allowed) with
   `src/styles/otp.css` (#89).
+- `OtpField` takes Android SMS autofill at the caret (a native `beforeinput` listener, since React's
+  `onBeforeInput` never carries `inputType`), shortens its boxes to 54 px at 400 px and narrower, and
+  the styleguide has an OTP section (#95).
 
 ### Changed
 
