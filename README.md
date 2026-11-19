@@ -22,7 +22,7 @@ Requires Node 24 (`.nvmrc`) and pnpm 12. Copy `.env.example` to `.env.local`.
 - `pnpm dev`: start the dev server
 - `pnpm build` / `pnpm start`: production build and server
 - `pnpm lint`, `pnpm typecheck`, `pnpm format`
-- `pnpm test:unit`: Vitest `unit` (node, `src/server/**` and `scripts/**`) and `ui` (happy-dom, `src/**/*.test.tsx`) projects
+- `pnpm test:unit`: Vitest `unit` (node, `src/**/*.test.ts` and `scripts/**/*.test.ts`) and `ui` (happy-dom, `src/**/*.test.tsx`, React plugin, `tests/helpers/ui-setup.ts`) projects; every test file must belong to exactly one project (`scripts/vitest-projects.test.ts`)
 - `pnpm test:int`: Vitest `int` project (node, `tests/int/**/*.test.ts`)
 - `pnpm test:e2e`: Playwright (Chromium) against a production build; needs Mongo, so run `pnpm db:up` first (it uses the `aarvion_e2e` database and a random `OTP_PEPPER`)
 - `pnpm db:up && pnpm db:indexes && pnpm seed`: start Mongo, create indexes, seed the catalogue (insert-only, safe to re-run)
