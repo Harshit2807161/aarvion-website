@@ -53,7 +53,7 @@
   /* Focus: a 2px ring that flips to sand on dark grounds. */
   :focus { outline: none; }
   :focus-visible { outline: 2px solid var(--focus, var(--color-focus-light)); outline-offset: 3px; border-radius: 6px; }
-  .band, .toast, .announce, .foot, .act-close, .tile-cardio, .qa--rx, [data-ground="forest"] {
+  .band, .toast, .announce, .foot, .act-close, .qa--rx, [data-ground="forest"] {
     --focus: var(--color-focus-dark);
   }
   h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, h3[tabindex="-1"]:focus { outline: none; }
