@@ -5,6 +5,7 @@ import { Button, ButtonLink, type ButtonSize, type ButtonVariant } from "@/compo
 import { ICON_NAMES, Icon } from "@/components/base/icon";
 import { PriceInline, StampPrice } from "@/components/base/stamp-price";
 import { FormsDemo } from "./forms-demo";
+import { ToastDemo } from "./toast-demo";
 import { requireDevRoute } from "@/server/dev-only";
 
 export const metadata: Metadata = { title: "Styleguide (dev)", robots: { index: false } };
@@ -123,6 +124,13 @@ export default async function StyleguidePage() {
           Form fields
         </h2>
         <FormsDemo />
+      </section>
+
+      <section aria-labelledby="sg-toast">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-toast">
+          Toast
+        </h2>
+        <ToastDemo />
       </section>
 
       <section aria-labelledby="sg-icons">

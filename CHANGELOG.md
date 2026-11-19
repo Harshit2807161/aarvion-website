@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- `useDragDismiss` (`src/components/overlay/use-drag-dismiss.ts`): drag-to-dismiss for the phone bottom sheet, a hook returning pointer handlers for the sheet head; the panel keeps `is-dragging` while open so a snap-back or a tap never replays the entrance animation (#85).
 - Overlay foundations: the shadcn dialog primitives (`src/components/ui/dialog.tsx`), `src/styles/overlay.css` (dialog, side drawer and phone bottom sheet as keyframes on `[data-state]`, Aarvion scrim), the shadcn colour mapping in `globals.css`, and the pure drag-to-dismiss thresholds in `src/components/overlay/drag.ts`. Adds `@radix-ui/react-dialog` and dev dependency `postcss` (for the built-CSS scrim test) (#81).
 - Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
   Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React
@@ -69,6 +70,9 @@ bottom use commit SHAs.
   URL a real HTTP 404 where mocks are forbidden (#75).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 - `Checkbox` and `Segmented` in `src/components/form/` (native checkbox and radios; the segmented control has roving tabindex, arrows, Home and End; errors are `role="alert"`), forced-colors and contrast-more rules in `forms.css`, and the styleguide demo (#84).
+- The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live
+  region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
+  `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 
 ### Changed
 
@@ -108,6 +112,9 @@ bottom use commit SHAs.
 - `buttonClass()` and `ButtonLink` are server-safe again: only `Button` is a client module
   (`button.client.tsx`, re-exported from `button.tsx`). The `/dev/*` 404 also sends no-store and
   noindex headers (#77).
+- The toast no longer dismisses a toast its own action raised, its action button meets the 44 px
+  target, a second `<LiveRegion/>` renders nothing, and plain toasts have a Dismiss button and
+  Escape (#87).
 
 ## [0.1.0] - 2026-11-17
 
