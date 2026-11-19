@@ -112,6 +112,10 @@ bottom use commit SHAs.
 - `GET /api/auth/session` (`src/app/api/auth/session/route.ts`) for the store header: always 200
   with `{ user }` (the public user, now with `name`) or `{ user: null }`, never 401, `no-store`,
   re-issuing a sliding customer cookie (#107).
+- A new identifier's first OTP verify must carry `signup`: without it the right code answers 409
+  `signup_required` (no user, session or audit row) and is not used up, so it logs in exactly once
+  when the details follow. Junk verifies behave the same for new and existing identifiers
+  (`tests/int/auth-signup.test.ts`).
 
 ### Changed
 

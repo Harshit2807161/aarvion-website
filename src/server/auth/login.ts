@@ -7,12 +7,18 @@ import { normalizeIdentifier, identifierKey, type Channel } from "./identifier.t
 import {
   OTP_TTL_MS,
   cancelOtpChallenge,
+  checkOtpChallenge,
   issueOtpChallenge,
   resendCooldownSec,
   verifyOtpChallenge,
 } from "./otp.ts";
 import { createSession, revokeSession, sessionKindForRole, type SessionKind } from "./sessions.ts";
-import { findOrCreateUserByIdentifier, toPublicUser, type PublicUser } from "./users.ts";
+import {
+  findOrCreateUserByIdentifier,
+  findUserByIdentifier,
+  toPublicUser,
+  type PublicUser,
+} from "./users.ts";
 
 export const SendOtpBody = z.object({
   channel: z.enum(["phone", "email"]),
@@ -96,7 +102,7 @@ export async function sendOtp(i: {
 export const CONSENT_VERSION = POLICY_VERSION;
 
 /**
- * What a new account sends with its first verify: a name with at least one letter, the
+ * What a new account must send with its first verify: a name with at least one letter, the
  * Terms and Privacy acceptance and the 18+ declaration (both must be true), and the marketing
  * choice (optional in the UI, off by default, but always stated here). Unknown keys are refused.
  *
@@ -140,16 +146,23 @@ export const OTP_VERIFY_IP_LIMIT = { limit: 60, windowMs: 3_600_000 } as const;
 export type VerifyOtpResult =
   | { ok: true; user: PublicUser; isNewUser: boolean; token: string; kind: SessionKind }
   | { ok: false; error: "invalid_code" }
+  | { ok: false; error: "signup_required" }
   | { ok: false; error: "too_many_attempts" | "rate_limited"; retryAfterSec: number };
 
 /**
- * Order is fixed: normalise, per-IP limit, failure cap (peek), verify the
- * challenge, find or create the user, revoke any presented session
+ * Order is fixed: normalise, per-IP limit, failure cap (peek), look up the
+ * user, check the code, find or create the user, revoke any presented session
  * (anti-fixation), create a fresh session, clear the failure counter. Every
  * failure reason collapses to invalid_code, but only a mismatch counts toward
  * the cap: a verify with no live challenge cannot guess anything. The code and
  * the token are never logged or returned. A new user is created with the name
  * and consents from `signup`; an existing user's are never changed.
+ *
+ * An unknown identifier without `signup` gets its code checked but not consumed
+ * (the check refunds its attempt), and a right code answers signup_required
+ * with no user, session or audit row; the same code then logs in once with
+ * `signup`. Its failures take exactly the known-user path (same answer, same
+ * counter), so junk verifies cannot tell whether an account exists.
  */
 export async function verifyOtpAndLogin(i: {
   channel: Channel;
@@ -175,13 +188,18 @@ export async function verifyOtpAndLogin(i: {
   if (!cap.allowed)
     return { ok: false, error: "too_many_attempts", retryAfterSec: cap.retryAfterSec };
 
-  const verified = await verifyOtpChallenge(id, i.code, i.now);
-  if (!verified.ok) {
-    if (verified.reason === "mismatch") {
+  const existing = await findUserByIdentifier(id);
+  const needsSignup = !existing && !i.signup;
+  const checked = needsSignup
+    ? await checkOtpChallenge(id, i.code, i.now)
+    : await verifyOtpChallenge(id, i.code, i.now);
+  if (!checked.ok) {
+    if (checked.reason === "mismatch") {
       await hitRateLimit({ key: failureKey, ...OTP_VERIFY_FAILURE_LIMIT, now: i.now });
     }
     return { ok: false, error: "invalid_code" };
   }
+  if (needsSignup) return { ok: false, error: "signup_required" };
 
   // Written on insert only: an existing user's name and consents are never replaced.
   const signup = i.signup && {

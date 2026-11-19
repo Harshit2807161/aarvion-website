@@ -23,7 +23,7 @@
 | --- | --- |
 | `src/app/api/health/route.ts` | `GET /api/health`: version plus a DB ping |
 | `src/app/api/auth/otp/send/route.ts` | `POST /api/auth/otp/send` |
-| `src/app/api/auth/otp/verify/route.ts` | `POST /api/auth/otp/verify` (sets the session cookie) |
+| `src/app/api/auth/otp/verify/route.ts` | `POST /api/auth/otp/verify` (sets the session cookie; 409 `signup_required` for a new identifier without `signup`) |
 | `src/app/api/auth/me/route.ts` | `GET /api/auth/me` (re-issues a sliding customer cookie) |
 | `src/app/api/auth/session/route.ts` | `GET /api/auth/session` for the header: always 200 `{ user }` or `{ user: null }` (never 401), `no-store`, re-issues a sliding customer cookie |
 | `src/app/api/auth/logout/route.ts` | `POST /api/auth/logout` (204, clears the cookie) |
@@ -115,14 +115,17 @@ A mutation, for example `POST /api/auth/otp/verify`:
 exists.
 
 **OTP verify** (`verifyOtpAndLogin`): normalise → 60/h per IP → peek the 10-per-24 h failure cap
-(429 `too_many_attempts`) → spend an attempt atomically and compare in constant time → only a
-mismatch on a live challenge hits the failure counter → flip `consumedAt` (single use) → find or
-create the user (a new one gets `name` and `consents` from `signup`) → revoke any presented
-session → create a session → clear the failure counter → audit `auth.login` (a failed counter
-reset or audit write is logged by error name and never fails the login). Every code-check
-failure (unknown, expired, consumed, exhausted or mismatched code, or a bad identifier) is 400
-`invalid_code`; the per-IP limit is 429 `rate_limited` and the lockout 429 `too_many_attempts`,
-both with `Retry-After`.
+(429 `too_many_attempts`) → look up the user (`findUserByIdentifier`) → spend an attempt
+atomically and compare in constant time (`spendAndCompare`) → only a mismatch on a live challenge
+hits the failure counter → for an unknown identifier without `signup`, a match refunds its
+attempt and answers 409 `signup_required` with no user, session or audit row, leaving the code
+for one later login with `signup` (`checkOtpChallenge`); otherwise flip `consumedAt` (single use,
+`verifyOtpChallenge`) → find or create the user (a new one gets `name` and `consents` from
+`signup`) → revoke any presented session → create a session → clear the failure counter → audit
+`auth.login` (a failed counter reset or audit write is logged by error name and never fails the
+login). Every code-check failure (unknown, expired, consumed, exhausted or mismatched code, or a
+bad identifier) is 400 `invalid_code`, for unknown and known identifiers alike; the per-IP limit
+is 429 `rate_limited` and the lockout 429 `too_many_attempts`, both with `Retry-After`.
 
 **Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one
 letter, and no Unicode control or format character such as a zero-width space or a bidi
