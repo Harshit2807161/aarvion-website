@@ -44,7 +44,7 @@ Why each was chosen: [docs/decisions/stack.md](docs/decisions/stack.md).
 ## Repo map
 
 ```
-src/app/            Next.js routes: api/{health,auth/**}, dev/outbox, layout, placeholder home;
+src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide}, layout, placeholder home;
                     globals.css (Tailwind 4 @theme tokens)
 src/styles/         ported prototype CSS (base.css, one @layer base) and the token and CSS tests
 src/lib/            client-safe helpers (cn)
@@ -240,8 +240,9 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   production build lacks `ALLOW_MOCKS_IN_PROD_BUILD=1`, or when the database is `aarvion_prod`.
   Set `ALLOW_MOCKS_IN_PROD_BUILD=1` only for the e2e build and the Vercel Preview scope.
 - Production sets `MONGODB_DB=aarvion_prod`. Previews use a separate database.
-- Every dev-only route under `src/app/dev/` calls `requireDevRoute()` before any work (right after
-  `await connection()` in a GET), outside `withErrors`.
+- `/dev/*` answers a real 404 where mocks are forbidden, decided by `src/proxy.ts` before anything
+  renders. Every dev-only route under `src/app/dev/` also calls `requireDevRoute()` before any
+  work (right after `await connection()` in a GET), outside `withErrors`.
 
 **Code rules that protect the invariants**
 
