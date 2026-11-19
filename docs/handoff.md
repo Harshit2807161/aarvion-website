@@ -12,7 +12,7 @@ PRs ([project plan](plan/project-plan.md), Context, point 3); every ruling made 
 
 ## Current state
 
-**As of 2026-11-19, `main` is at `1c2c957` (#64).** What a visitor sees: a placeholder home
+**As of 2026-11-19, `main` is at `7bd9b81` (#60).** What a visitor sees: a placeholder home
 ("Aarvion: coming soon") and the JSON APIs below. No deployment exists.
 
 ### Merged
@@ -25,7 +25,7 @@ PRs ([project plan](plan/project-plan.md), Context, point 3); every ruling made 
 | A Auth (A1–A4) | #21–#23, #25–#33, #40 | rate limiter, OTP send and verify, sessions, guards, `/api/auth/me`, logout, audit log, preview isolation, `/dev/outbox`, auth e2e |
 | O1 order domain | #35, #36, #38, #39 | Rx validity, pure order state machine, order numbers |
 | Plans and records | #15, #41, #42, #44 | Phase CA plan, rulings log, Phase CA ledger, UI plan (revision 2) |
-| UI phase so far | #45, #46, #48, #51, #57, #58, #59, #63, #64, #65 | Tailwind 4 tokens and base styles, `cn()`, test-project mapping, dependency policy; foil and banner rasters in `public/` with provenance; shopper category names and Sacuwin-first `sortOrder`; font subsets and `scripts/shoot.mjs`; the banner carousel reducer and controller hook; the scroll film's progress maths and engine |
+| UI phase so far | #45, #46, #48, #51, #57, #58, #59, #60, #63, #64, #65 | Tailwind 4 tokens and base styles, `cn()`, test-project mapping, dependency policy; foil and banner rasters in `public/` with provenance; shopper category names and Sacuwin-first `sortOrder`; font subsets and `scripts/shoot.mjs`; the banner carousel reducer and controller hook; the scroll film's progress maths and engine; Cache Components on, with `await connection()` first in every GET and the shared shelf order |
 
 Routes on `main`: `GET /api/health`, `POST /api/auth/otp/send`, `POST /api/auth/otp/verify`,
 `GET /api/auth/me`, `POST /api/auth/logout`, `GET /dev/outbox` (dev only). Collections:
@@ -43,8 +43,8 @@ once: **A** Tasks 2 → 3 → 4/5/6; **B** 8 → 7, then 38; **D** 16 → 18 →
 runs e2e locally (port 3100 and the `aarvion_e2e` database would collide); B and D rely on CI.
 
 Open PRs on 2026-11-19:
-- UI: #60 (Task 7a, Cache Components and shelf order), #62 (Task 2b, icons, brand mark, rupee
-  formatting).
+- UI: #62 (Task 2b, icons, brand mark, rupee formatting); Task 7b (cached catalogue) next on
+  track B.
 - Logo: `feat/brand-logo` (the owner's official logo traced to vector, variants in
   `public/brand/`; it replaces the Montserrat wordmark subset). In progress, no PR yet; #62's
   brand mark points at its files.
@@ -67,7 +67,7 @@ UI plan tasks:
 | 4 | Dialog and sheet overlay with the phone bottom sheet | `feat/ui-overlay` | F6 | not started |
 | 5 | Text field, checkbox and segmented control | `feat/ui-fields` | F6 | not started |
 | 6 | OTP field, customer toast and live region | `feat/ui-otp-toast` | F6 | not started |
-| 7 | Cache Components, shelf order and the cached, tagged catalogue | `feat/catalogue-cache` | C3 | 7a open (#60) |
+| 7 | Cache Components, shelf order and the cached, tagged catalogue | `feat/catalogue-cache` | C3 | 7a merged (#60); 7b in progress |
 | 8 | Shopper category names | `feat/category-display-names` | v2 brief | merged (#51) |
 | 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | not started |
 | 10 | Announcement bar and store header | `feat/store-header` | F7 | not started |
@@ -183,7 +183,7 @@ No plan is written yet for the phases after UI; each gets its own plan under
 1. Read [AGENTS.md](../AGENTS.md), this page, [dev/README.md](dev/README.md) and the
    [project plan](plan/project-plan.md).
 2. See what changed since "Current state" was written:
-   `git fetch origin && git log --oneline 1c2c957..origin/main`, `gh pr list --state open`, and
+   `git fetch origin && git log --oneline 7bd9b81..origin/main`, `gh pr list --state open`, and
    the `[Unreleased]` section of the CHANGELOG. Update "Current state" first if it is stale.
 3. Find each task's status by matching merged and open PR branch names against the task table
    (the plan names every branch), and read new rulings in `docs/decisions/rulings.md`. If you
