@@ -1,5 +1,5 @@
-import { ObjectId } from "mongodb";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { Collection, ObjectId, type Document, type Filter } from "mongodb";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   USERS_COLLECTION,
   findOrCreateUserByIdentifier,
@@ -107,6 +107,39 @@ describe("findUserByIdentifier", () => {
     await expect(findUserByIdentifier({ channel: "$where", value: "x" } as never)).rejects.toThrow(
       "unsupported channel",
     );
+  });
+});
+
+describe("identifier lookups are index-backed", () => {
+  /** The winning plan for the users filter that `call` sends through `method`. */
+  async function planOf(method: "findOne" | "findOneAndUpdate", call: () => Promise<unknown>) {
+    const spy = vi.spyOn(Collection.prototype, method);
+    let filter: Filter<Document> | undefined;
+    try {
+      await call();
+      const i = spy.mock.contexts.findIndex(
+        (c) => (c as Collection).collectionName === USERS_COLLECTION,
+      );
+      filter = spy.mock.calls[i]?.[0] as Filter<Document>;
+    } finally {
+      spy.mockRestore();
+    }
+    const plan = await (await getDb()).collection(USERS_COLLECTION).find(filter).explain();
+    return JSON.stringify(plan.queryPlanner.winningPlan);
+  }
+
+  // A COLLSCAN costs more for an unknown identifier than a known one: a timing oracle.
+  it.each([
+    ["phone", phone, "phone_unique"],
+    ["email", email, "email_unique"],
+  ] as const)("%s: both lookups use the partial unique index", async (_n, ident, index) => {
+    for (const plan of [
+      await planOf("findOne", () => findUserByIdentifier(ident)),
+      await planOf("findOneAndUpdate", () => findOrCreateUserByIdentifier(ident, T)),
+    ]) {
+      expect(plan).toContain(`"indexName":"${index}"`);
+      expect(plan).not.toContain("COLLSCAN");
+    }
   });
 });
 

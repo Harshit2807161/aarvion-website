@@ -195,13 +195,20 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 - Send order is fixed: validate → resend cooldown (spends no budget) → 20/h per IP → 3/10 min
   per identifier → issue → deliver; a failed delivery deletes the challenge. The answer never
   depends on whether an account exists.
-- Verify order is fixed: normalise → 60/h per IP → peek the 10-per-24 h failure cap → verify →
-  only a mismatch on a live challenge counts → find or create the user → revoke any presented
-  session → new session → clear the failure counter (a failing reset or audit write is logged
-  by error name, never fails the login). Every code-check failure (unknown,
-  expired, consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`.
-  The per-IP limit is 429 `rate_limited` and the lockout is 429 `too_many_attempts`, both with
-  `Retry-After`; clients treat 429 as its own state.
+- Verify order is fixed: normalise → 60/h per IP (before any challenge or user read) → peek the
+  10-per-24 h failure cap → check the code → only a mismatch on a live challenge counts → only then,
+  without `signup`, look up the user → find or create the user → revoke any presented session → new
+  session → clear the failure counter (a failing reset or audit write is logged by error name, never
+  fails the login). Every code-check failure (unknown, expired, consumed, exhausted or mismatched
+  code, or a bad identifier) is 400 `invalid_code`. The per-IP limit is 429 `rate_limited` and the
+  lockout is 429 `too_many_attempts`, both with `Retry-After`; clients treat 429 as its own state.
+- Sign-up: the right code for an unknown identifier without `signup` is 409 `signup_required`,
+  with no user, session or audit row. That check never consumes the code (a match refunds its
+  attempt), so the same code logs in exactly once with `signup`. Junk verifies for an unknown
+  identifier must behave exactly like a known one's (same 400, same counter, no 429 oracle), so
+  they never reveal whether an account exists: nothing reads `users` before the code matches,
+  and identifier lookups stay index-backed (`{ $eq, $type: "string" }` hits the partial unique
+  index; a plain equality is a collection scan whose time depends on the account).
 - Sign-up consent: `signup` requires Terms and Privacy and 18+; its consents
   (`CONSENT_VERSION` = `POLICY_VERSION`, times, OTP channel) are written on insert only and never
   overwritten by a later login.

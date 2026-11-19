@@ -18,6 +18,7 @@ import { clearCollections, startMemoryReplSet, stopMemoryReplSet } from "../help
 import { lastOtpCode } from "../helpers/otp";
 
 const ASHA = "asha@example.com";
+const KNOWN = "ravi@example.com";
 const T = new Date("2026-11-17T04:30:00Z");
 const AUDIT = "audit_logs";
 const SIGNUP = { name: "Asha Rao", adult: true, termsPrivacy: true, marketing: false };
@@ -58,6 +59,7 @@ const verify = (code: string, { identifier = ASHA, signup, ip }: VerifyOpts = {}
       ip ? { ip } : {},
     ),
   );
+const WRONG = (right: string) => (right === "000000" ? "111111" : "000000");
 const count = async (name: string) => (await getDb()).collection(name).countDocuments();
 const users = async () => (await getDb()).collection<UserDoc>(USERS_COLLECTION);
 
@@ -67,15 +69,49 @@ async function sendAndRead(identifier = ASHA): Promise<string> {
   return lastOtpCode(identifier);
 }
 
+/** The identifier's failed-verify count (0 when it has no window). */
+async function failCount(identifier = ASHA): Promise<number> {
+  const col = (await getDb()).collection<{ _id: string; count: number }>(RATE_LIMITS_COLLECTION);
+  return (await col.findOne({ _id: `otp-verify-fail:email:${identifier}` }))?.count ?? 0;
+}
+
 /** Attempts spent on the identifier's challenge, or undefined without one. */
 async function attempts(identifier = ASHA): Promise<number | undefined> {
   const col = (await getDb()).collection<{ _id: string; attempts: number }>(OTP_COLLECTION);
   return (await col.findOne({ _id: `email:${identifier}` }))?.attempts;
 }
 
+async function insertKnown(): Promise<void> {
+  await (
+    await users()
+  ).insertOne({
+    email: KNOWN,
+    role: "customer",
+    createdAt: T,
+    updatedAt: T,
+    lastLoginAt: T,
+  } as UserDoc);
+}
+
+async function expectInvalidCode(res: Response): Promise<void> {
+  expect(res.status).toBe(400);
+  expect(await res.json()).toEqual({ error: "invalid_code" });
+  expect(res.headers.get("set-cookie")).toBeNull();
+}
+
 describe("sign-up on OTP verify", () => {
-  it("a first verify with sign-up creates the user with its name and consents", async () => {
-    const ok = await verify(await sendAndRead(), { signup: SIGNUP });
+  it("an unknown identifier's right code without sign-up is 409, then signs up with it", async () => {
+    const code = await sendAndRead();
+    const res = await verify(code);
+    expect(res.status).toBe(409);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(await res.json()).toEqual({ error: "signup_required" });
+    expect(res.headers.get("set-cookie")).toBeNull();
+    expect(await count(USERS_COLLECTION)).toBe(0);
+    expect(await count(SESSIONS_COLLECTION)).toBe(0);
+    expect(await count(AUDIT)).toBe(0);
+
+    const ok = await verify(code, { signup: SIGNUP });
     expect(ok.status).toBe(200);
     expect(sessionTokenFrom(ok)).not.toBeNull();
     expect(await ok.json()).toEqual({
@@ -96,8 +132,115 @@ describe("sign-up on OTP verify", () => {
       adult: { at: T },
       marketing: { optedIn: false, at: T },
     });
+  });
+
+  it("4 wrong codes, then the right code: 409 without sign-up, 200 with it", async () => {
+    const code = await sendAndRead();
+    for (let n = 0; n < 4; n++) await expectInvalidCode(await verify(WRONG(code)));
+    expect((await verify(code)).status).toBe(409);
+    // A 409 neither counts as a failure nor clears the counter: only a login clears it.
+    expect(await failCount()).toBe(4);
+    expect((await verify(code, { signup: SIGNUP })).status).toBe(200);
+    expect(await failCount()).toBe(0);
+  });
+
+  it("C1 (iii): a code a 409 checked is not consumed and logs in exactly once", async () => {
+    const code = await sendAndRead();
+    // More checks than the challenge has attempts: a matching check refunds its attempt.
+    for (let n = 0; n < 6; n++) expect((await verify(code)).status).toBe(409);
+    expect(await attempts()).toBe(0);
+    expect((await verify(code, { signup: SIGNUP })).status).toBe(200);
+    await expectInvalidCode(await verify(code, { signup: SIGNUP }));
+    await expectInvalidCode(await verify(code));
+    expect(await count(USERS_COLLECTION)).toBe(1);
     expect(await count(SESSIONS_COLLECTION)).toBe(1);
-    expect(await count(AUDIT)).toBe(1);
+  });
+
+  it("C1 (i): 11 verifies with no challenge stay 400 for unknown and known alike", async () => {
+    await insertKnown();
+    for (const identifier of [ASHA, KNOWN]) {
+      for (let n = 0; n < 11; n++) await expectInvalidCode(await verify("123456", { identifier }));
+      expect(await failCount(identifier)).toBe(0);
+    }
+  });
+
+  it("C1 (ii): 60 no-sign-up verifies per IP pass the limiter, the 61st is 429 untouched", async () => {
+    const ip = "203.0.113.9";
+    const code = await sendAndRead();
+    for (let n = 0; n < 60; n++) {
+      await expectInvalidCode(await verify("123456", { identifier: `new${n}@example.com`, ip }));
+    }
+
+    const { Collection } = await import("mongodb");
+    const spies = (["findOne", "findOneAndUpdate", "updateOne"] as const).map((m) =>
+      vi.spyOn(Collection.prototype, m),
+    );
+    let res: Response;
+    let touched: string[];
+    try {
+      res = await verify(code, { ip });
+    } finally {
+      // Read before restoring: mockRestore also clears the recorded calls.
+      touched = spies.flatMap((s) =>
+        s.mock.contexts.map((c) => (c as InstanceType<typeof Collection>).collectionName),
+      );
+      for (const s of spies) s.mockRestore();
+    }
+    expect(touched).not.toContain(OTP_COLLECTION);
+    expect(touched).not.toContain(USERS_COLLECTION);
+    expect(res.status).toBe(429);
+    const body = (await res.json()) as { error: string; retryAfterSec: number };
+    expect(body).toEqual({ error: "rate_limited", retryAfterSec: expect.any(Number) });
+    expect(res.headers.get("retry-after")).toBe(String(body.retryAfterSec));
+    expect(await attempts()).toBe(0);
+  });
+
+  it("a wrong code without sign-up is 400 and counts once, for unknown and known alike", async () => {
+    await insertKnown();
+    for (const identifier of [ASHA, KNOWN]) {
+      const code = await sendAndRead(identifier);
+      await expectInvalidCode(await verify(WRONG(code), { identifier }));
+      expect(await failCount(identifier)).toBe(1);
+      expect(await attempts(identifier)).toBe(1);
+    }
+  });
+
+  it("a verify without the right code never reads the users collection", async () => {
+    await insertKnown();
+    const { Collection } = await import("mongodb");
+    const junk = async (identifier: string, guess: string, signup?: typeof SIGNUP) => {
+      const spy = vi.spyOn(Collection.prototype, "findOne");
+      try {
+        await expectInvalidCode(await verify(guess, { identifier, signup }));
+        const read = spy.mock.contexts.map(
+          (c) => (c as InstanceType<typeof Collection>).collectionName,
+        );
+        expect(read).not.toContain(USERS_COLLECTION);
+      } finally {
+        spy.mockRestore();
+      }
+    };
+    for (const identifier of [ASHA, KNOWN]) {
+      for (const signup of [undefined, SIGNUP]) await junk(identifier, "123456", signup);
+      const code = await sendAndRead(identifier);
+      for (const signup of [undefined, SIGNUP]) await junk(identifier, WRONG(code), signup);
+    }
+  });
+
+  it("an unknown identifier locks out after 10 mismatches, as a known one does", async () => {
+    let code = await sendAndRead();
+    for (let n = 0; n < 5; n++) await expectInvalidCode(await verify(WRONG(code)));
+    clock.advance(31_000);
+    code = await sendAndRead();
+    for (let n = 0; n < 5; n++) await expectInvalidCode(await verify(WRONG(code)));
+    clock.advance(31_000);
+    code = await sendAndRead();
+    for (const signup of [undefined, SIGNUP]) {
+      const res = await verify(code, { signup });
+      expect(res.status).toBe(429);
+      expect(await res.json()).toMatchObject({ error: "too_many_attempts" });
+    }
+    expect(await count(USERS_COLLECTION)).toBe(0);
   });
 
   it("an existing user logs in without sign-up, and a later sign-up changes nothing", async () => {
@@ -128,10 +271,14 @@ describe("sign-up on OTP verify", () => {
     expect(user?.consents?.marketing).toEqual({ optedIn: true, at: T });
   });
 
-  it("accepts real names in Latin and Devanagari", async () => {
+  it("accepts real names in Latin and Indic scripts, joiners between letters included", async () => {
     for (const [identifier, name] of [
       ["ravi@example.com", "Ravi Kumar"],
       ["priya@example.com", "प्रिया शर्मा"],
+      // Marathi eyelash ra: a zero-width joiner between a virama and a letter.
+      ["aarya@example.com", "\u0906\u0930\u094D\u200D\u092F\u093E"],
+      // A zero-width non-joiner keeps an explicit virama (Dwarka, in Devanagari).
+      ["dwarka@example.com", "\u0926\u094D\u200C\u0935\u093E\u0930\u0915\u093E"],
     ] as const) {
       const res = await verify(await sendAndRead(identifier), {
         identifier,
@@ -142,14 +289,12 @@ describe("sign-up on OTP verify", () => {
     }
   });
 
-  it("until 38c, a first verify without sign-up creates a user with no name or consents", async () => {
-    // Pins today's interim behaviour; 38c changes this to 409 signup_required.
+  it("a first verify without sign-up is 409 and never creates a consent-less user", async () => {
+    // Before 38c this created a user with no name or consents.
     const res = await verify(await sendAndRead());
-    expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ isNewUser: true, user: { email: ASHA, name: null } });
-    const user = await (await users()).findOne({ email: ASHA });
-    expect(user).not.toHaveProperty("name");
-    expect(user).not.toHaveProperty("consents");
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "signup_required" });
+    expect(await (await users()).findOne({ email: ASHA })).toBeNull();
   });
 
   it("400 invalid_request for a sign-up without the required consents or a real name", async () => {
@@ -170,6 +315,10 @@ describe("sign-up on OTP verify", () => {
       { ...SIGNUP, name: "\u200BA\u200B" },
       { ...SIGNUP, name: "Asha \u202ERao" },
       { ...SIGNUP, name: "Asha\nRao" },
+      // A joiner is allowed only between two letters or marks.
+      { ...SIGNUP, name: "\u200DRavi" },
+      { ...SIGNUP, name: "Ravi\u200D" },
+      { ...SIGNUP, name: "\u0906\u0930\u094D\u200D\u200D\u092F\u093E" },
       { ...SIGNUP, role: "admin" },
       "Asha Rao",
     ];

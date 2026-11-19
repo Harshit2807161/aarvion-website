@@ -116,6 +116,10 @@ bottom use commit SHAs.
 - `GET /api/auth/session` (`src/app/api/auth/session/route.ts`) for the store header: always 200
   with `{ user }` (the public user, now with `name`) or `{ user: null }`, never 401, `no-store`,
   re-issuing a sliding customer cookie (#107).
+- A new identifier's first OTP verify must carry `signup`: without it the right code answers 409
+  `signup_required` (no user, session or audit row) and is not used up, so it logs in exactly once
+  when the details follow. Nothing reads the account before the code matches, so junk verifies
+  behave the same for new and existing identifiers (`tests/int/auth-signup.test.ts`) (#116).
 
 ### Changed
 
@@ -174,6 +178,11 @@ bottom use commit SHAs.
 - A rate-limit store error while clearing the failure counter after a successful OTP verify no
   longer turns the login into a 500 with a session the client never receives; it is logged by
   error name, like a failed audit write (#99).
+- Sign-up names may hold a zero-width joiner or non-joiner (U+200D, U+200C) between two letters
+  or marks, as Indic spellings such as the Marathi eyelash ra need; #107 refused them. Every other
+  control or format character is still refused (#116).
+- `findUserByIdentifier` and `findOrCreateUserByIdentifier` filter `{ $eq, $type: "string" }`, so
+  they use the partial unique indexes instead of scanning every user (#116).
 
 ## [0.1.0] - 2026-11-17
 

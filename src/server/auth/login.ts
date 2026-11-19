@@ -7,12 +7,18 @@ import { normalizeIdentifier, identifierKey, type Channel } from "./identifier.t
 import {
   OTP_TTL_MS,
   cancelOtpChallenge,
+  checkOtpChallenge,
   issueOtpChallenge,
   resendCooldownSec,
   verifyOtpChallenge,
 } from "./otp.ts";
 import { createSession, revokeSession, sessionKindForRole, type SessionKind } from "./sessions.ts";
-import { findOrCreateUserByIdentifier, toPublicUser, type PublicUser } from "./users.ts";
+import {
+  findOrCreateUserByIdentifier,
+  findUserByIdentifier,
+  toPublicUser,
+  type PublicUser,
+} from "./users.ts";
 
 export const SendOtpBody = z.object({
   channel: z.enum(["phone", "email"]),
@@ -96,21 +102,19 @@ export async function sendOtp(i: {
 export const CONSENT_VERSION = POLICY_VERSION;
 
 /**
- * What a new account sends with its first verify: a name with at least one letter, the
+ * What a new account must send with its first verify: a name with at least one letter, the
  * Terms and Privacy acceptance and the 18+ declaration (both must be true), and the marketing
  * choice (optional in the UI, off by default, but always stated here). Unknown keys are refused.
  *
  * After trimming, the name may hold no Unicode control or format character (`\p{C}`): zero-width
- * and bidi marks survive `trim()` and can hide or reorder a name in staff views and emails.
+ * and bidi marks survive `trim()` and can hide or reorder a name in staff views and emails. The
+ * one exception is a zero-width non-joiner or joiner (U+200C, U+200D) with a letter or mark on
+ * both sides, which Indic spellings need (the Marathi eyelash ra, an explicit virama).
  */
+const NO_HIDDEN_CHARS = /^(?:\P{C}|(?<=[\p{L}\p{M}])[\u200C\u200D](?=[\p{L}\p{M}]))*$/u;
+
 export const SignupInput = z.strictObject({
-  name: z
-    .string()
-    .trim()
-    .min(2)
-    .max(80)
-    .regex(/\p{L}/u)
-    .regex(/^\P{C}*$/u),
+  name: z.string().trim().min(2).max(80).regex(/\p{L}/u).regex(NO_HIDDEN_CHARS),
   adult: z.literal(true),
   termsPrivacy: z.literal(true),
   marketing: z.boolean(),
@@ -140,16 +144,25 @@ export const OTP_VERIFY_IP_LIMIT = { limit: 60, windowMs: 3_600_000 } as const;
 export type VerifyOtpResult =
   | { ok: true; user: PublicUser; isNewUser: boolean; token: string; kind: SessionKind }
   | { ok: false; error: "invalid_code" }
+  | { ok: false; error: "signup_required" }
   | { ok: false; error: "too_many_attempts" | "rate_limited"; retryAfterSec: number };
 
 /**
- * Order is fixed: normalise, per-IP limit, failure cap (peek), verify the
- * challenge, find or create the user, revoke any presented session
- * (anti-fixation), create a fresh session, clear the failure counter. Every
- * failure reason collapses to invalid_code, but only a mismatch counts toward
- * the cap: a verify with no live challenge cannot guess anything. The code and
- * the token are never logged or returned. A new user is created with the name
- * and consents from `signup`; an existing user's are never changed.
+ * Order is fixed: normalise, per-IP limit, failure cap (peek), check the
+ * code, then (only once it matched) look up the user, find or create the user,
+ * revoke any presented session (anti-fixation), create a fresh session, clear
+ * the failure counter. Every failure reason collapses to invalid_code, but only
+ * a mismatch counts toward the cap: a verify with no live challenge cannot
+ * guess anything. The code and the token are never logged or returned. A new
+ * user is created with the name and consents from `signup`; an existing user's
+ * are never changed.
+ *
+ * Nothing reads the users collection before the code matches, so a caller
+ * without the code cannot tell, even by timing, whether an account exists.
+ * Without `signup` the code is first checked without being consumed (a match
+ * refunds its attempt). An unknown identifier then answers signup_required
+ * with no user, session or audit row, and the same code logs in once with
+ * `signup`; a known one has the code consumed and logs in.
  */
 export async function verifyOtpAndLogin(i: {
   channel: Channel;
@@ -175,12 +188,22 @@ export async function verifyOtpAndLogin(i: {
   if (!cap.allowed)
     return { ok: false, error: "too_many_attempts", retryAfterSec: cap.retryAfterSec };
 
-  const verified = await verifyOtpChallenge(id, i.code, i.now);
-  if (!verified.ok) {
-    if (verified.reason === "mismatch") {
+  const checked = i.signup
+    ? await verifyOtpChallenge(id, i.code, i.now)
+    : await checkOtpChallenge(id, i.code, i.now);
+  if (!checked.ok) {
+    if (checked.reason === "mismatch") {
       await hitRateLimit({ key: failureKey, ...OTP_VERIFY_FAILURE_LIMIT, now: i.now });
     }
     return { ok: false, error: "invalid_code" };
+  }
+  if (!i.signup) {
+    // Only the code's holder gets here, so looking the account up reveals nothing.
+    if (!(await findUserByIdentifier(id))) return { ok: false, error: "signup_required" };
+    // A known user: now use the code up. It was just proven right, so a failure here is a
+    // concurrent login, an expiry or a resend in between, and it does not count as a guess.
+    const used = await verifyOtpChallenge(id, i.code, i.now);
+    if (!used.ok) return { ok: false, error: "invalid_code" };
   }
 
   // Written on insert only: an existing user's name and consents are never replaced.
