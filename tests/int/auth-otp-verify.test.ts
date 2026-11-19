@@ -15,6 +15,7 @@ import { resetDepsForTests, setDepsForTests } from "@/server/deps";
 import "@/server/db/register-all.ts";
 import { resetEnvForTests } from "@/server/env";
 import { OUTBOX_COLLECTION } from "@/server/providers/outbox";
+import * as rateLimit from "@/server/security/rate-limit";
 import { RATE_LIMITS_COLLECTION } from "@/server/security/rate-limit";
 import { installClock } from "../helpers/clock";
 import { jsonPost, sessionTokenFrom } from "../helpers/http";
@@ -473,6 +474,27 @@ describe("POST /api/auth/otp/verify", () => {
     const res = await verify("123456", undefined, "5876543210");
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "invalid_code" });
+  });
+
+  it("C6: a failing counter reset is logged by name only and never fails the login", async () => {
+    const code = await sendAndRead();
+    // The message carries the identifier and the code, so logging it would leak both.
+    const boom = Object.assign(new Error(`reset failed for ${PHONE} ${code}`), {
+      name: "MongoNetworkError",
+    });
+    const reset = vi.spyOn(rateLimit, "resetRateLimit").mockRejectedValue(boom);
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const res = await verify(code);
+      expect(res.status).toBe(200);
+      expect(sessionTokenFrom(res)).not.toBeNull();
+      expect(reset).toHaveBeenCalledOnce();
+      expect(err.mock.calls).toEqual([["rate limit reset failed", "MongoNetworkError"]]);
+    } finally {
+      reset.mockRestore();
+      err.mockRestore();
+    }
+    expect(await count(SESSIONS_COLLECTION)).toBe(1);
   });
 
   it("never logs the code or the session token", async () => {
