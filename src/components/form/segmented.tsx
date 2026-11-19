@@ -1,6 +1,8 @@
 import { type CSSProperties, type KeyboardEvent, useRef } from "react";
 import { Icon, type IconName } from "@/components/base/icon";
 
+const STEP: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+
 export type SegmentedOption<T extends string> = { value: T; label: string; icon?: IconName };
 
 /**
@@ -30,21 +32,19 @@ export function Segmented<T extends string>({
   function onKeyDown(e: KeyboardEvent<HTMLFieldSetElement>) {
     // Leave Alt/Cmd/Ctrl/Shift combinations (browser back/forward, shortcuts) to the browser.
     if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-    const last = options.length - 1;
+    const n = options.length;
+    const step = STEP[e.key];
     const target =
-      e.key === "ArrowRight" || e.key === "ArrowDown"
-        ? (current + 1) % options.length
-        : e.key === "ArrowLeft" || e.key === "ArrowUp"
-          ? (current - 1 + options.length) % options.length
-          : e.key === "Home"
-            ? 0
-            : e.key === "End"
-              ? last
-              : -1;
-    if (target < 0) return;
-    e.preventDefault();
+      step !== undefined
+        ? (current + step + n) % n
+        : e.key === "Home"
+          ? 0
+          : e.key === "End"
+            ? n - 1
+            : -1;
     const next = options[target];
     if (!next) return;
+    e.preventDefault();
     onChange(next.value);
     ref.current?.querySelectorAll<HTMLInputElement>("input.seg-input")[target]?.focus();
   }
