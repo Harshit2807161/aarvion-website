@@ -12,7 +12,7 @@ PRs ([project plan](plan/project-plan.md), Context, point 3); every ruling made 
 
 ## Current state
 
-**As of 2026-11-19, `main` is at `44a31ee` (#59).** What a visitor sees: a placeholder home
+**As of 2026-11-19, `main` is at `1c2c957` (#64).** What a visitor sees: a placeholder home
 ("Aarvion: coming soon") and the JSON APIs below. No deployment exists.
 
 ### Merged
@@ -25,7 +25,7 @@ PRs ([project plan](plan/project-plan.md), Context, point 3); every ruling made 
 | A Auth (A1–A4) | #21–#23, #25–#33, #40 | rate limiter, OTP send and verify, sessions, guards, `/api/auth/me`, logout, audit log, preview isolation, `/dev/outbox`, auth e2e |
 | O1 order domain | #35, #36, #38, #39 | Rx validity, pure order state machine, order numbers |
 | Plans and records | #15, #41, #42, #44 | Phase CA plan, rulings log, Phase CA ledger, UI plan (revision 2) |
-| UI phase so far | #45, #46, #48, #51, #57, #58, #59 | Tailwind 4 tokens and base styles, `cn()`, test-project mapping, dependency policy; foil and banner rasters in `public/` with provenance; shopper category names and Sacuwin-first `sortOrder`; font subsets and `scripts/shoot.mjs`; the banner carousel reducer; the scroll film's progress maths |
+| UI phase so far | #45, #46, #48, #51, #57, #58, #59, #63, #64, #65 | Tailwind 4 tokens and base styles, `cn()`, test-project mapping, dependency policy; foil and banner rasters in `public/` with provenance; shopper category names and Sacuwin-first `sortOrder`; font subsets and `scripts/shoot.mjs`; the banner carousel reducer and controller hook; the scroll film's progress maths and engine |
 
 Routes on `main`: `GET /api/health`, `POST /api/auth/otp/send`, `POST /api/auth/otp/verify`,
 `GET /api/auth/me`, `POST /api/auth/logout`, `GET /dev/outbox` (dev only). Collections:
@@ -39,13 +39,12 @@ one PR each (split into `-a`/`-b` PRs when over 400 lines), run with subagent-dr
 development: an implementer per task, a task review, then the controller merges through
 `scripts/merge-gate.sh`. Its Global Constraints, Decisions and "Order and dependencies" sections
 are binding. The owner allowed parallel worktrees, so three tracks with disjoint files run at
-once: **A** Tasks 2 → 3 → 4/5/6; **B** 8 → 7, then 38; **D** 16 → 18 → 26 → 27. Only track A
+once: **A** Tasks 2 → 3 → 4/5/6; **B** 8 → 7, then 38; **D** 16 → 18 → 26 → 27 (done so far). Only track A
 runs e2e locally (port 3100 and the `aarvion_e2e` database would collide); B and D rely on CI.
 
 Open PRs on 2026-11-19:
 - UI: #60 (Task 7a, Cache Components and shelf order), #62 (Task 2b, icons, brand mark, rupee
-  formatting), #63 (Task 18b, carousel hook), #64 (carousel pause fix), #65 (Task 27, film
-  engine).
+  formatting).
 - Logo: `feat/brand-logo` (the owner's official logo traced to vector, variants in
   `public/brand/`; it replaces the Montserrat wordmark subset). In progress, no PR yet; #62's
   brand mark points at its files.
@@ -79,7 +78,7 @@ UI plan tasks:
 | 15 | Session-only cart store, cart controls and the header cart pill | `feat/cart-ui-store` | C3/C4 until K2 | not started |
 | 16 | Foil and banner rasters into `public/` with provenance | `chore/public-rasters` | C3 | merged (#48) |
 | 17 | Display helpers and the foil pocket with % off | `feat/catalogue-pocket` | C3 | not started |
-| 18 | Banner carousel controller | `feat/banner-carousel-controller` | C3 | 18a merged (#58); 18b open (#63); fix open (#64) |
+| 18 | Banner carousel controller | `feat/banner-carousel-controller` | C3 | merged (#58, #63, #64) |
 | 19 | Hero banner with LCP on slide 1 | `feat/home-banner` | C3 | not started |
 | 20 | Quick actions and trust strip | `feat/home-quick-trust` | C3 | not started |
 | 21 | "Shop by category" bento | `feat/home-category-bento` | C3 | not started |
@@ -88,7 +87,7 @@ UI plan tasks:
 | 24 | "How ordering works" (static) | `feat/home-ordering-steps` | C3 | not started |
 | 25 | FAQ and the closing act (static) | `feat/home-faq-close` | C3 | not started |
 | 26 | Film math | `feat/film-math` | C3 | merged (#59) |
-| 27 | Film engine | `feat/film-engine` | C3 | open (#65) |
+| 27 | Film engine | `feat/film-engine` | C3 | merged (#65) |
 | 28 | Film motion, the hydration-safe flag and the home budgets | `feat/film-motion` | C3 | not started |
 | 29 | Home finish-review gate | `fix/home-finish-review` | C3 | not started |
 | 30 | Category page, and "View all" becomes a link | `feat/category-page` | C3b | not started |
@@ -184,7 +183,7 @@ No plan is written yet for the phases after UI; each gets its own plan under
 1. Read [AGENTS.md](../AGENTS.md), this page, [dev/README.md](dev/README.md) and the
    [project plan](plan/project-plan.md).
 2. See what changed since "Current state" was written:
-   `git fetch origin && git log --oneline 44a31ee..origin/main`, `gh pr list --state open`, and
+   `git fetch origin && git log --oneline 1c2c957..origin/main`, `gh pr list --state open`, and
    the `[Unreleased]` section of the CHANGELOG. Update "Current state" first if it is stale.
 3. Find each task's status by matching merged and open PR branch names against the task table
    (the plan names every branch), and read new rulings in `docs/decisions/rulings.md`. If you
