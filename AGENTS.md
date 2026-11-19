@@ -208,6 +208,9 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   every session of that user.
 - Every mutation calls `assertSameOrigin(req)` inside `withErrors`; auth responses use
   `jsonResponse` (`no-store`); cookies are read from `req.headers`, never `cookies()`.
+- Cache Components is on (#60): every GET handler starts with `await connection()` (then
+  `requireDevRoute()` under `src/app/dev/`), and route files never export `dynamic`,
+  `revalidate` or `fetchCache` (`src/server/route-config.test.ts`).
 - Never log or return an OTP code, a session token, a full phone number or email, or
   prescription content. Logs record error names only. The audit log is append-only through
   `appendAudit()` and holds ids and flags only.
