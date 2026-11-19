@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/base/icon";
 import { ROUTES } from "@/config/routes";
+import { SearchCardLink } from "./search-card-link";
 
 type Action = {
   icon: IconName;
@@ -42,24 +43,23 @@ export function QuickActions() {
   return (
     <section className="quick wrap" aria-label="Quick actions">
       <ul className="qa-grid">
-        {ACTIONS.map((a) => (
-          <li className="qa-cell" key={a.title}>
-            <Link
-              className={a.rx ? "qa qa--rx" : "qa"}
-              href={a.href}
-              {...(a.search ? { "data-search": "" } : {})}
-            >
-              <span className="qa-well">
-                <Icon name={a.icon} size={22} />
-              </span>
-              <span className="qa-text">
-                <span className="qa-title">{a.title}</span>
-                <span className="qa-line">{a.line}</span>
-              </span>
-              <Icon name="go" size={18} />
-            </Link>
-          </li>
-        ))}
+        {ACTIONS.map((a) => {
+          const Card = a.search ? SearchCardLink : Link;
+          return (
+            <li className="qa-cell" key={a.title}>
+              <Card className={a.rx ? "qa qa--rx" : "qa"} href={a.href}>
+                <span className="qa-well">
+                  <Icon name={a.icon} size={22} />
+                </span>
+                <span className="qa-text">
+                  <span className="qa-title">{a.title}</span>
+                  <span className="qa-line">{a.line}</span>
+                </span>
+                <Icon name="go" size={18} />
+              </Card>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

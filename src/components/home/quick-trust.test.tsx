@@ -1,8 +1,14 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { findClaims } from "../../../tests/helpers/claims";
 import { ROUTES } from "@/config/routes";
-import { SITE_CONFIG } from "@/config/site";
+const site = vi.hoisted(() => ({ onlinePayments: false }));
+vi.mock("@/config/site", async (orig) => ({
+  ...(await orig<typeof import("@/config/site")>()),
+  SITE_CONFIG: site,
+}));
+
 import { QuickActions } from "./quick-actions";
 import { TrustStrip } from "./trust-strip";
 
@@ -39,6 +45,19 @@ describe("QuickActions", () => {
     }
   });
 
+  it("focuses the header search field when the search card is clicked, and keeps #q as the fallback", async () => {
+    render(
+      <>
+        <input id="q" type="search" aria-label="Search" />
+        <QuickActions />
+      </>,
+    );
+    const card = screen.getByRole("link", { name: /Search for a medicine/ });
+    expect(card.getAttribute("href")).toBe("#q");
+    await userEvent.click(card);
+    expect(document.activeElement).toBe(document.getElementById("q"));
+  });
+
   it("carries the prototype lines and no invented claims", () => {
     const { container } = render(<QuickActions />);
     expect([...container.querySelectorAll(".qa-line")].map((n) => n.textContent)).toEqual([
@@ -68,15 +87,17 @@ describe("TrustStrip", () => {
     expect(container.textContent).not.toMatch(/\d/);
   });
 
-  it("says pay on arrival while online payments are off, and offers Razorpay once they are live", () => {
-    expect(SITE_CONFIG.onlinePayments).toBe(false);
+  it("follows SITE_CONFIG.onlinePayments by default: pay on arrival while off, Razorpay once live", () => {
+    site.onlinePayments = false;
     const off = render(<TrustStrip />);
     expect(off.container.textContent).toContain("Pay when your order arrives");
     expect(off.container.textContent).not.toMatch(/Razorpay|online/i);
     off.unmount();
-    const on = render(<TrustStrip onlinePayments />);
+    site.onlinePayments = true;
+    const on = render(<TrustStrip />);
     expect(on.container.textContent).toContain("Or pay online with Razorpay");
     expect(on.container.textContent).not.toContain("Pay when your order arrives");
+    site.onlinePayments = false;
   });
 
   it("makes no invented claims in either state", () => {
