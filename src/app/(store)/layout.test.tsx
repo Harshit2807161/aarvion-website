@@ -34,6 +34,15 @@ describe("store layout", () => {
     );
   });
 
+  it("puts the announcement line before the page", async () => {
+    const { container } = await renderStorePage();
+    const bar = container.querySelector("[data-announce]")!;
+    expect(bar).not.toBeNull();
+    expect(bar.compareDocumentPosition(container.querySelector("p:not(.announce-in)")!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
   it("still has exactly one live region", async () => {
     const { container } = await renderStorePage();
     expect(container.querySelectorAll("#live")).toHaveLength(1);
