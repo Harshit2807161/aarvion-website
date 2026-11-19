@@ -1,3 +1,4 @@
+import { CartPill } from "@/components/cart/cart-pill";
 import { AnnounceBar } from "@/components/shell/announce-bar";
 import { SkipLink } from "@/components/shell/skip-link";
 import { StoreFooter } from "@/components/shell/store-footer";
@@ -16,7 +17,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
     <>
       <SkipLink />
       <AnnounceBar />
-      <StoreHeader />
+      <StoreHeader cart={<CartPill />} />
       {children}
       <StoreFooter categories={live} />
     </>

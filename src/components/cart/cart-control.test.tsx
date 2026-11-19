@@ -1,0 +1,139 @@
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LiveRegion } from "@/components/feedback/live-region";
+import { CART_UI_STORAGE_KEY } from "@/lib/cart/cart";
+import { cartStore } from "@/lib/cart/store";
+import { CartControl } from "./cart-control";
+import { CartPill } from "./cart-pill";
+
+const NAME = "Sacuwin 100";
+const SLUG = "sacuwin-100";
+
+function setup() {
+  return render(
+    <>
+      <CartPill />
+      <CartControl slug={SLUG} name={NAME} />
+      <LiveRegion />
+    </>,
+  );
+}
+const add = () => screen.getByRole("button", { name: `Add ${NAME} to cart`, hidden: true });
+const incBtn = () => document.querySelector<HTMLElement>("[data-inc]")!;
+const decBtn = () => document.querySelector<HTMLElement>("[data-dec]")!;
+const live = () => document.getElementById("live")!;
+const spoken = async () => {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(60);
+  });
+  return live().textContent;
+};
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  sessionStorage.clear();
+  cartStore.reset();
+});
+
+describe("CartControl", () => {
+  it("renders the v2 markup at zero", () => {
+    setup();
+    const ctl = document.querySelector(".cart-ctl")!;
+    expect(ctl.getAttribute("data-qty")).toBe("0");
+    expect(add().textContent).toBe("Add to cart");
+    const stepper = screen.getByRole("group", { name: `${NAME} in cart`, hidden: true });
+    expect(stepper.querySelector("output")?.getAttribute("aria-live")).toBe("polite");
+  });
+
+  it("hydrates a stored cart without a mismatch, then shows the stored quantity", async () => {
+    vi.useRealTimers();
+    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ [SLUG]: 2 }));
+    const html = renderToString(<CartControl slug={SLUG} name={NAME} />);
+    expect(html).toContain('data-qty="0"');
+    expect(html).toContain("Add to cart");
+
+    const container = document.createElement("div");
+    container.innerHTML = html;
+    document.body.append(container);
+    const errors: unknown[] = [];
+    const spy = vi.spyOn(console, "error").mockImplementation((...a) => void errors.push(a));
+    await act(async () => {
+      hydrateRoot(container, <CartControl slug={SLUG} name={NAME} />, {
+        onRecoverableError: (e) => errors.push(e),
+      });
+    });
+    spy.mockRestore();
+    expect(errors).toEqual([]);
+    expect(container.querySelector(".cart-ctl")?.getAttribute("data-qty")).toBe("2");
+    expect(container.querySelector("output")?.textContent).toBe("2");
+    container.remove();
+  });
+
+  it("moves focus from Add to + and announces the count", async () => {
+    setup();
+    const addBtn = add();
+    addBtn.focus();
+    fireEvent.click(addBtn);
+    expect(document.querySelector(".cart-ctl")?.getAttribute("data-qty")).toBe("1");
+    expect(document.activeElement).toBe(incBtn());
+    expect(await spoken()).toBe(`${NAME}: 1 in cart`);
+    fireEvent.click(incBtn());
+    expect(await spoken()).toBe(`${NAME}: 2 in cart`);
+  });
+
+  it("returns focus to Add at zero and announces the removal", async () => {
+    setup();
+    fireEvent.click(add());
+    fireEvent.click(decBtn());
+    expect(document.querySelector(".cart-ctl")?.getAttribute("data-qty")).toBe("0");
+    expect(document.activeElement).toBe(add());
+    expect(await spoken()).toBe(`${NAME} removed from cart`);
+  });
+
+  it("disables + at 10 and announces the product limit on click", async () => {
+    setup();
+    fireEvent.click(add());
+    for (let i = 0; i < 9; i++) fireEvent.click(incBtn());
+    expect(incBtn().getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(incBtn());
+    expect(document.querySelector("output")?.textContent).toBe("10");
+    expect(await spoken()).toBe("You can order up to 10 packs of Sacuwin 100.");
+  });
+
+  it("announces the order limit when the order is full", async () => {
+    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ x: 10, y: 9 }));
+    setup();
+    fireEvent.click(add());
+    fireEvent.click(incBtn());
+    expect(incBtn().getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(incBtn());
+    expect(await spoken()).toBe("An order can hold up to 20 packs.");
+  });
+});
+
+describe("CartPill", () => {
+  it("reads 0 packs, then 1 pack, then N packs", () => {
+    setup();
+    const pill = () => screen.getByRole("link", { name: /^Cart, / });
+    expect(pill().getAttribute("aria-label")).toBe("Cart, 0 packs");
+    expect(pill().getAttribute("href")).toBe("/cart");
+    fireEvent.click(add());
+    expect(pill().getAttribute("aria-label")).toBe("Cart, 1 pack");
+    fireEvent.click(incBtn());
+    expect(pill().getAttribute("aria-label")).toBe("Cart, 2 packs");
+    expect(pill().querySelector(".cart-count")?.getAttribute("aria-hidden")).toBe("true");
+    expect(pill().querySelector(".cart-count")?.textContent).toBe("2");
+  });
+
+  it("bumps the count on a change, not on first render", () => {
+    setup();
+    const count = () => document.querySelector(".cart-count")!;
+    expect(count().classList.contains("bump")).toBe(false);
+    fireEvent.click(add());
+    expect(count().classList.contains("bump")).toBe(true);
+    fireEvent.animationEnd(count());
+    expect(count().classList.contains("bump")).toBe(false);
+  });
+});
