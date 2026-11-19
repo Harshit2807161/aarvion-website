@@ -1,7 +1,12 @@
+import { QuickActions } from "@/components/home/quick-actions";
+import { TrustStrip } from "@/components/home/trust-strip";
+
 export default function Home() {
   return (
-    <main id="main">
+    <main id="main" className="home">
       <h1>Aarvion: coming soon</h1>
+      <QuickActions />
+      <TrustStrip />
     </main>
   );
 }
