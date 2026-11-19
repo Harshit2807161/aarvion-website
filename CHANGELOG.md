@@ -18,7 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
-- Home banner slides and the banner fallback (`src/lib/catalogue/banners.ts`): `BANNER_SLIDES` holds the four slides' copy, links, alt text and rasters; `bannerSlides(products)` shows a slide only while every pack it names is live, and without Sacuwin the prescription slide leads, so a Win2Age-printed pack never leads the banner. The delivery line says "Cash on delivery available." until `SITE_CONFIG.onlinePayments` is on.
+- Home banner slides and the banner fallback (`src/lib/catalogue/banners.ts`): `BANNER_SLIDES` holds the four slides' copy, links, alt text and rasters; `bannerSlides(products)` shows a slide only while every pack it names is live, and without Sacuwin the prescription slide leads, so a Win2Age-printed pack never leads the banner. The delivery line says "Cash on delivery available." until `SITE_CONFIG.onlinePayments` is on (#113).
 - E2E: `e2e/shell.spec.ts` (an unknown URL is a 404 inside the store chrome) and `collectConsoleErrors(page)` in `e2e/helpers/console.ts`, which ignores only a 404 on the page's own URL and 404 `?_rsc=` prefetches of `PENDING_ROUTES` (unit tested in `scripts/e2e-console.test.ts`) (#111).
 - 404 and error pages: `src/app/not-found.tsx` (inside the store chrome, shared with the `(store)` layout through `withStoreChrome()` in `src/components/shell/store-chrome.tsx`), `error.tsx` (client; "Try again" calls `retry()`, which re-fetches, where `reset()` would not; logs only the error name and digest) and `global-error.tsx` (own `<html>`, inline styles); `EmptyState` (`src/components/shell/empty-state.tsx`, `src/styles/empty.css`) with a dot-matrix count at 3.6px pitch (#109).
 - Privacy policy at `/legal/privacy` (`src/app/(store)/legal/privacy/page.tsx`): what is collected and why, DPDP Act 2023 consent and rights, sharing, OTP, session and prescription protection as built, and "To be added" for the grievance officer, customer care, storage location and retention periods (#103).
@@ -161,7 +161,7 @@ bottom use commit SHAs.
 - A rate-limit store error while clearing the failure counter after a successful OTP verify no
   longer turns the login into a 500 with a session the client never receives; it is logged by
   error name, like a failed audit write (#99).
-- The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen.
+- The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen (#113).
 
 ## [0.1.0] - 2026-11-17
 
