@@ -12,6 +12,7 @@ export const POST = withErrors(async (req) => {
     channel: body.channel,
     identifier: body.identifier,
     code: body.code,
+    signup: body.signup,
     ipBucket: ipBucket(clientIp(req)),
     existingToken: readSessionToken(req),
     now: getDeps().now(),
