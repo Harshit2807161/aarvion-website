@@ -69,7 +69,8 @@
   .sheet-body { padding: 4px 20px 20px; }
   .sheet--dialog .sheet-body { padding: 0 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
   .sheet-foot { padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px)); }
-  .sheet-panel.is-dragging { animation: none; }
+  /* Holds only the open animation off, so the close animation still plays from the dragged offset. */
+  .sheet-panel.is-dragging[data-state="open"] { animation: none; }
 }
 
 @keyframes sheet-fade-in { from { opacity: 0; } }

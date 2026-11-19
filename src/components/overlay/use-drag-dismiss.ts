@@ -8,16 +8,23 @@ const PHONE_QUERY = "(max-width: 639px)";
 /** Pointers that start on these keep their own behaviour (Close, links, inputs). */
 const INTERACTIVE = "button, a, input";
 const SNAP_BACK = "transform 220ms var(--ease-drawer)";
+/** transitionend does not fire if nothing moved, so the snap-back also settles on a timer. */
+const SNAP_BACK_FALLBACK_MS = 280;
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
 type Drag = { id: number; startY: number; startedAt: number };
 
 /**
  * Drag-to-dismiss for the phone bottom sheet. Spread the returned handlers on the grab area
- * (the sheet head); `panelRef` is the panel that moves. The panel follows the finger through
- * an inline transform (no re-render per move); the `is-dragging` class switches off its CSS
- * animation meanwhile. Past the thresholds in drag.ts it calls `onDismiss`, and the panel's
- * close animation then continues from where the finger left it; otherwise it snaps back.
- * Inactive above 639px. Browser state (matchMedia, performance.now) is read inside handlers only.
+ * (the sheet head, which does not scroll; never on the panel, where a drag would fight the
+ * scrolling body). `panelRef` is the panel that moves. The panel follows the finger through
+ * an inline transform (no re-render per move); the `is-dragging` class holds its CSS open
+ * animation off (it would otherwise override the inline transform, and restart if the class
+ * went away early). Past the thresholds in drag.ts it calls `onDismiss`, and the panel's close
+ * animation then continues from where the finger left it. Otherwise, or if `onDismiss` did not
+ * close it, the panel snaps back and `is-dragging` is removed only once that has finished.
+ * A second pointer is ignored while one is dragging. Inactive above 639px. Browser state
+ * (matchMedia, performance.now) is read inside handlers only.
  */
 export function useDragDismiss({
   panelRef,
@@ -27,14 +34,39 @@ export function useDragDismiss({
   onDismiss: () => void;
 }) {
   const drag = useRef<Drag | null>(null);
+  /** Finishes a snap-back early (clears its timer and listener); null when none is running. */
+  const settle = useRef<(() => void) | null>(null);
+
+  function snapBack(panel: HTMLElement) {
+    settle.current?.();
+    const timer: { id?: ReturnType<typeof setTimeout> } = {};
+    const done = () => {
+      clearTimeout(timer.id);
+      panel.removeEventListener("transitionend", done);
+      panel.style.transition = "";
+      panel.classList.remove("is-dragging");
+      settle.current = null;
+    };
+    const moved = panel.style.transform !== "";
+    if (!moved || window.matchMedia(REDUCED_MOTION).matches) {
+      panel.style.transform = "";
+      done();
+      return;
+    }
+    timer.id = setTimeout(done, SNAP_BACK_FALLBACK_MS);
+    settle.current = done;
+    panel.addEventListener("transitionend", done);
+    panel.style.transition = SNAP_BACK;
+    panel.style.transform = "";
+  }
 
   function onPointerDown(e: ReactPointerEvent<HTMLElement>) {
     const panel = panelRef.current;
-    if (!panel || e.button !== 0) return;
+    if (!panel || e.button !== 0 || drag.current) return;
     if (!window.matchMedia(PHONE_QUERY).matches) return;
     if ((e.target as Element).closest(INTERACTIVE)) return;
+    settle.current?.();
     drag.current = { id: e.pointerId, startY: e.clientY, startedAt: performance.now() };
-    panel.style.transition = "";
     panel.classList.add("is-dragging");
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
@@ -60,20 +92,17 @@ export function useDragDismiss({
     const dismiss =
       !cancelled &&
       shouldDismiss(dy, panel.getBoundingClientRect().height, performance.now() - d.startedAt);
-    panel.classList.remove("is-dragging");
-    if (dismiss) {
-      onDismiss();
+    if (!dismiss) {
+      snapBack(panel);
       return;
     }
-    panel.style.transition = SNAP_BACK;
-    panel.style.transform = "";
-    panel.addEventListener(
-      "transitionend",
-      () => {
-        panel.style.transition = "";
-      },
-      { once: true },
-    );
+    // is-dragging stays on: overlay.css only holds the *open* animation off, so the close
+    // animation takes over from the dragged offset once Radix flips data-state.
+    onDismiss();
+    // If the parent refused to close, the panel is still open a frame later: snap back.
+    requestAnimationFrame(() => {
+      if (panel.isConnected && panel.getAttribute("data-state") === "open") snapBack(panel);
+    });
   }
 
   return {
@@ -81,5 +110,7 @@ export function useDragDismiss({
     onPointerMove,
     onPointerUp: (e: ReactPointerEvent<HTMLElement>) => finish(e, false),
     onPointerCancel: (e: ReactPointerEvent<HTMLElement>) => finish(e, true),
+    // Capture lost without a pointerup (capture failed, or the browser took the gesture).
+    onLostPointerCapture: (e: ReactPointerEvent<HTMLElement>) => finish(e, true),
   };
 }

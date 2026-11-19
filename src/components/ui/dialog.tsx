@@ -1,11 +1,10 @@
 // @generated shadcn (dialog), then edited for Aarvion: Radix imported from the single
-// @radix-ui/react-dialog package (deps-policy), `cn` from "@/lib/cn", and the stock look (bg-black/50 scrim, zoom/fade utilities) removed. The look lives
+// @radix-ui/react-dialog package (deps-policy), and the stock look (bg-black/50 scrim, zoom/fade utilities) removed. The look lives
 // in src/styles/overlay.css and is applied by src/components/overlay/overlay.tsx.
 "use client";
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as React from "react";
-import { cn } from "@/lib/cn";
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -42,7 +41,7 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogOverlay className={overlayClassName} />
-      <DialogPrimitive.Content data-slot="dialog-content" className={cn(className)} {...props}>
+      <DialogPrimitive.Content data-slot="dialog-content" className={className} {...props}>
         {children}
       </DialogPrimitive.Content>
     </DialogPortal>
