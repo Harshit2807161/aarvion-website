@@ -76,6 +76,9 @@ bottom use commit SHAs.
 
 ### Changed
 
+- `main` is now protected on GitHub (nine required checks, linear history, no force pushes or
+  deletion) after the repository went public; `scripts/merge-gate.sh` uses `--admin` only for a
+  ruled `ALLOW_OVERSIZE=1` exception (#PRNUM).
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
   resolve to localhost; an unset or invalid value falls back to `http://localhost:3000` instead of
   failing the build (#76).
