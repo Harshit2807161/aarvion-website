@@ -50,7 +50,7 @@ src/styles/         ported prototype CSS (base.css, one @layer base; buttons, st
 src/lib/            client-safe helpers (cn)
 src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/ so far)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
-src/components/overlay/  dialog and side sheet: drag-to-dismiss hook and thresholds (the Overlay component follows)
+src/components/overlay/  dialog and side sheet: the pure drag thresholds (the drag hook and the Overlay component follow)
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
 src/server/         framework-free business logic (the only place rules live)
   catalogue/        schema, pricing, categories, seed, search, queries

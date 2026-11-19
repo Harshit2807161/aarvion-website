@@ -4,7 +4,7 @@
   The prototype toggled an `.is-open` class and used transitions; Radix mounts the parts only
   while open and marks them `data-state="open|closed"`, and it keeps them mounted until the
   closing animation ends, so each state is a @keyframes animation instead. Only `transform`
-  and `opacity` move. Open animations use `backwards` fill so the drag hook's inline transform
+  and `opacity` move. Open animations use `backwards` fill so the drag hook's (next PR) inline transform
   takes over afterwards; close animations use `forwards` fill so the panel stays gone until
   Radix unmounts it.
   The scrim is an Aarvion token mix (forest-950 at 50%, DESIGN.md "Drawers, Dialogs and Bottom
