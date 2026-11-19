@@ -8,6 +8,7 @@
 @import "../styles/toast.css" layer(components);
 @import "../styles/footer.css" layer(components);
 @import "../styles/header.css" layer(components);
+@import "../styles/search.css" layer(components);
 @import "../styles/catbar.css" layer(components);
 @import "../styles/shell.css" layer(components);
 @import "../styles/cart-control.css" layer(components);
