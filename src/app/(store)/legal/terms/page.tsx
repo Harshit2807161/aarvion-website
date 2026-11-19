@@ -64,17 +64,27 @@ export default function TermsPage() {
       </LegalSection>
 
       <LegalSection title="Orders and payment">
-        <p>
-          You can pay online through Razorpay (UPI, cards or netbanking), or by cash on delivery for
-          orders up to ₹5,000.
-          {!onlinePayments &&
-            " Online payment is not available yet; until it is, cash on delivery is the only way to pay."}
-        </p>
+        {/* Like the footer, name online methods only once they work (docs/dev/deploy.md). */}
+        {onlinePayments ? (
+          <p>
+            You can pay online through Razorpay (UPI, cards or netbanking), or by cash on delivery
+            for orders up to ₹5,000.
+          </p>
+        ) : (
+          <p>
+            You pay by cash on delivery, for orders up to ₹5,000. Online payment is not available
+            yet.
+          </p>
+        )}
         <p>You can order at most 10 packs of any one medicine, and 20 packs in one order.</p>
-        <p>
-          If you pay online, you pay when you place the order. If the pharmacist rejects the
-          prescription, the order is put on hold and your payment is refunded.
-        </p>
+        {onlinePayments ? (
+          <p>
+            If you pay online, you pay when you place the order. If the pharmacist rejects the
+            prescription, the order is put on hold and your payment is refunded.
+          </p>
+        ) : (
+          <p>If the pharmacist rejects the prescription, the order is put on hold.</p>
+        )}
       </LegalSection>
 
       <LegalSection title="Delivery">

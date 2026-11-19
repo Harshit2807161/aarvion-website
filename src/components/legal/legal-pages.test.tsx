@@ -230,15 +230,23 @@ describe("Terms of use", () => {
     expect(href("Grievances")).toBe(ROUTES.legal.grievance);
   });
 
-  it("says cash on delivery is the only way to pay until online payments are live", () => {
-    const cashOnly = "Online payment is not available yet";
+  it("names online payment only once onlinePayments is on, as the footer does", () => {
+    const online = /Razorpay|UPI|cards|netbanking|pay online/i;
     const was = SITE_CONFIG.onlinePayments;
     try {
       SITE_CONFIG.onlinePayments = false;
-      expect(render(<TermsPage />).container.textContent).toContain(cashOnly);
+      const cod = render(<TermsPage />).container.textContent!;
+      expect(cod).toContain("You pay by cash on delivery, for orders up to ₹5,000.");
+      expect(cod).toContain("Online payment is not available yet.");
+      expect(cod).not.toMatch(online);
       cleanup();
       SITE_CONFIG.onlinePayments = true;
-      expect(render(<TermsPage />).container.textContent).not.toContain(cashOnly);
+      const live = render(<TermsPage />).container.textContent!;
+      expect(live).toContain(
+        "You can pay online through Razorpay (UPI, cards or netbanking), or by cash on delivery for orders up to ₹5,000.",
+      );
+      expect(live).toContain("If you pay online, you pay when you place the order.");
+      expect(live).not.toContain("Online payment is not available yet");
     } finally {
       SITE_CONFIG.onlinePayments = was;
     }
