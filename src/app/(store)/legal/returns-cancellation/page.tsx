@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { LegalPage, LegalSection, legalMetadata, Pending } from "@/components/legal/legal-page";
+import { Fact, LegalPage, LegalSection, legalMetadata } from "@/components/legal/legal-page";
 import { ROUTES } from "@/config/routes";
+import { SITE_CONFIG } from "@/config/site";
 
 const SUB = "When you can cancel an order, when a medicine can be returned, and how refunds work.";
 
@@ -12,6 +13,7 @@ export const metadata = legalMetadata("Refunds and cancellation", SUB);
  * "5–7 working days" and "48 hours" exact: the page test and the brief pin them.
  */
 export default function ReturnsCancellationPage() {
+  const { customerCare } = SITE_CONFIG;
   return (
     <LegalPage title="Refunds and cancellation" sub={SUB}>
       <LegalSection title="Cancelling an order">
@@ -39,9 +41,12 @@ export default function ReturnsCancellationPage() {
       </LegalSection>
 
       <LegalSection title="How to report a problem">
+        <p>Contact customer care and include your order number.</p>
         <p>
-          Contact customer care and include your order number. Customer care phone and email:{" "}
-          <Pending />
+          Customer care phone: <Fact value={customerCare?.phone} />
+        </p>
+        <p>
+          Customer care email: <Fact value={customerCare?.email} />
         </p>
         <p>
           See <Link href={ROUTES.contact}>Contact</Link>.
