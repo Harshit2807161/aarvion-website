@@ -34,13 +34,20 @@ describe("store layout", () => {
     );
   });
 
-  it("puts the announcement line before the page", async () => {
+  it("puts the skip link, announcement and header before the page", async () => {
     const { container } = await renderStorePage();
-    const bar = container.querySelector("[data-announce]")!;
-    expect(bar).not.toBeNull();
-    expect(bar.compareDocumentPosition(container.querySelector("p:not(.announce-in)")!)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
+    const order = [
+      "a.skip",
+      "[data-announce]",
+      "header[data-store-head]",
+      "main, p:not(.announce-in)",
+    ].map((sel) => container.querySelector(sel)!);
+    order.forEach((el) => expect(el).not.toBeNull());
+    for (let i = 1; i < order.length; i++) {
+      expect(order[i - 1]!.compareDocumentPosition(order[i]!)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    }
   });
 
   it("still has exactly one live region", async () => {
