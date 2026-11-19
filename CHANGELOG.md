@@ -22,6 +22,7 @@ in a follow-up commit after `gh pr create`. Group Dependabot bumps into one line
 - Deploy plan and the planned secret-rotation and failed-deploy runbooks under `docs/dev/` (#53).
 - Catalogue runbooks: add a product, change an MRP, swap a Win2Age photo, add a category (#54).
 - Handoff document `docs/handoff.md` for whoever takes over (#55).
+- This changelog, with 0.1.0 backfilled from the merged PRs #1–#44 (#56).
 
 ### Changed
 
