@@ -2,6 +2,8 @@
   Toast: port of design/prototype/css/flows.css lines 459-473 for src/components/feedback/toast.tsx.
   Enters from below via @starting-style (400ms), leaves with a fade and a 12px drop (220ms in the
   prototype; the JS removes it after TOAST_LEAVE_MS = 240). Under reduced motion it never translates.
+  Deliberate deviation from the prototype: its `.toast .btn { min-height: 40px }` is dropped so the
+  action button keeps btn-sm's 44px (customer targets are at least 44px); the toast grows to 56px.
   The focus ring on a toast is sand-200 through base.css's `.toast { --focus }`.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
@@ -14,7 +16,7 @@
 }
 .toast .i { width: 20px; height: 20px; color: var(--color-leaf-300); }
 .toast span { flex: 1; padding: 8px 0; }
-.toast .btn { min-height: 40px; padding: 0 16px; }
+.toast .toast-close { padding: 0; min-width: 44px; }
 .toast.is-leaving { opacity: 0; transform: translateY(12px); transition-duration: 220ms; }
 @starting-style { .toast { opacity: 0; transform: translateY(100%); } }
 @media (prefers-reduced-motion: reduce) { @starting-style { .toast { transform: none; } } .toast.is-leaving { transform: none; } }

@@ -118,8 +118,8 @@ export default async function StyleguidePage() {
         </div>
       </section>
 
-      <section aria-labelledby="sg-otp">
-        <h2 className="mb-4 text-lg font-semibold" id="sg-otp">
+      <section aria-labelledby="sg-toast">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-toast">
           Toast
         </h2>
         <ToastDemo />
