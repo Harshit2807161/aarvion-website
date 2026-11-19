@@ -9,11 +9,7 @@ import { isMockForbidden } from "@/server/providers/guard";
  * status; requireDevRoute() stays in each page and route as a second guard.
  */
 export function proxy(): NextResponse {
-  if (isMockForbidden())
-    return new NextResponse("Not found", {
-      status: 404,
-      headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" },
-    });
+  if (isMockForbidden()) return new NextResponse("Not found", { status: 404 });
   return NextResponse.next();
 }
 

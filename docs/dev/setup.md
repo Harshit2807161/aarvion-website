@@ -78,9 +78,7 @@ a component or `src/styles/*.css`) exist only where mocks are allowed. Where `is
 is true (production, or the production database) `src/proxy.ts` answers a real HTTP 404 for
 every `/dev/*` request before anything renders; `requireDevRoute()` in each page or route is the
 second guard. A new dev page needs both (the proxy already matches `/dev/:path*`) and
-`export const instant = false` if it calls `connection()` first. `src/proxy.test.ts` covers the 404 (the e2e harness allows mocks, so a mocks-forbidden production
-check is manual: `pnpm build && pnpm start`, then curl `/dev/styleguide` without the flag). Any component
-that attaches an event handler must be a `"use client"` module; keep pure helpers out of it.
+`export const instant = false` if it calls `connection()` first. `src/proxy.test.ts` covers the 404.
 
 ## The dev outbox (reading OTPs locally)
 

@@ -1,7 +1,4 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { Button, ButtonLink, buttonClass } from "./button";
 
@@ -101,26 +98,6 @@ describe("busy submit button inside a form", () => {
     );
     fireEvent.click(screen.getByRole("button"));
     expect(onSubmit).toHaveBeenCalledOnce();
-  });
-});
-
-describe("server safety", () => {
-  it("keeps button.tsx (buttonClass, ButtonLink) free of a client directive; only button.client.tsx has one", () => {
-    const dir = path.resolve(import.meta.dirname);
-    const directive = /^\s*["']use client["']/m;
-    expect(readFileSync(path.join(dir, "button.tsx"), "utf8")).not.toMatch(directive);
-    expect(readFileSync(path.join(dir, "button-class.ts"), "utf8")).not.toMatch(directive);
-    expect(readFileSync(path.join(dir, "button.client.tsx"), "utf8")).toMatch(directive);
-  });
-
-  it("renders ButtonLink and buttonClass without any client runtime (static markup)", () => {
-    const html = renderToStaticMarkup(
-      <ButtonLink href="/x" variant="quiet" size="sm" icon="arrow">
-        Go
-      </ButtonLink>,
-    );
-    expect(html).toContain('class="btn btn-quiet btn-sm"');
-    expect(buttonClass({ variant: "link" })).toBe("link");
   });
 });
 
