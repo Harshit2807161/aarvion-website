@@ -7,15 +7,26 @@ import { Overlay, type OverlayProps } from "./overlay";
 type Props = Partial<Pick<OverlayProps, "variant" | "count" | "footer">> & {
   onOpenChange?: (open: boolean) => void;
   focusEmail?: boolean;
+  returnToFallback?: boolean;
 };
 
-function Harness({ variant = "dialog", onOpenChange, focusEmail, ...rest }: Props) {
+function Harness({
+  variant = "dialog",
+  onOpenChange,
+  focusEmail,
+  returnToFallback,
+  ...rest
+}: Props) {
   const [open, setOpen] = useState(false);
   const email = useRef<HTMLInputElement>(null);
+  const fallback = useRef<HTMLButtonElement>(null);
   return (
     <>
       <button type="button" onClick={() => setOpen(true)}>
         Open sign in
+      </button>
+      <button type="button" ref={fallback}>
+        Fallback
       </button>
       <p>Outside content</p>
       <Overlay
@@ -28,6 +39,7 @@ function Harness({ variant = "dialog", onOpenChange, focusEmail, ...rest }: Prop
         title="Sign in"
         closeLabel="Close sign in"
         initialFocus={focusEmail ? email : undefined}
+        returnFocusTo={returnToFallback ? fallback : undefined}
         {...rest}
       >
         <label>
@@ -95,11 +107,28 @@ describe("Overlay", () => {
     expect(screen.getByText("Outside content").closest("[aria-hidden='true']")).not.toBeNull();
   });
 
+  it("focuses Close by default when there is no initialFocus", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await openIt(user);
+    expect(screen.getByRole("button", { name: "Close sign in" })).toHaveFocus();
+  });
+
+  it("returns focus to returnFocusTo instead of the opener when given", async () => {
+    const user = userEvent.setup();
+    render(<Harness returnToFallback />);
+    await openIt(user);
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: "Fallback" })).toHaveFocus();
+  });
+
   it("renders the count after the title", async () => {
     const user = userEvent.setup();
     render(<Harness count="3 items" />);
     await user.click(screen.getByRole("button", { name: "Open sign in" }));
-    expect(screen.getByRole("heading", { name: /Sign in/ }).textContent).toBe("Sign in3 items");
+    expect(screen.getByRole("heading", { name: /Sign in/ }).textContent).toBe("Sign in 3 items");
+    // The accessible name reads as words, not "Sign in3 items".
+    expect(screen.getByRole("dialog", { name: "Sign in 3 items" })).toBeInTheDocument();
   });
 
   it("renders the footer under the body", async () => {
