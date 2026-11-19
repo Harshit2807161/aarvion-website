@@ -11,6 +11,7 @@
 @import "../styles/catbar.css" layer(components);
 @import "../styles/shell.css" layer(components);
 @import "../styles/cart-control.css" layer(components);
+@import "../styles/pocket.css" layer(components);
 @import "../styles/prose.css" layer(components);
 @import "../styles/quick-trust.css" layer(components);
 @import "../styles/empty.css" layer(components);
@@ -202,6 +203,16 @@
 
   /* What stays stuck to the top; the store header sets --hdr-h (117px desktop, 108px phone). */
   --sticky-top: calc(var(--hdr-h, 117px) + 20px);
+
+  /* Foil material: design/prototype/css/site.css (v2) lines 83-94, with /foil/ URLs into
+     public/foil/. Rasters rendered by scripts/render_foil.py: the lit foil body (2x, tileable)
+     under the print field, the knurl at under half its emboss (lidding foil is smooth where it is
+     printed). The pocket floor and dome rasters are set in src/styles/pocket.css. */
+  --foil-body: url("/foil/foil-plate.webp") 0 0 / 1440px 360px, var(--color-foil-200);
+  --foil-print: image-set(url("/foil/foil-knurl-print-1x.webp") 1x, url("/foil/foil-knurl-print.webp") 2x) 0 0 / 140px 120px, var(--foil-body);
+  --perforation: 2px dashed rgb(115 124 119 / 0.5);
+  /* perforation pressed into foil: a dark slit with a lit lip one pixel beside it */
+  --perf-v: linear-gradient(rgb(46 56 51 / 0.5) 56%, transparent 0) 0 0 / 1px 9px repeat-y, linear-gradient(rgb(255 255 255 / 0.9) 56%, transparent 0) 1px 1px / 1px 9px repeat-y;
 
   /* shadcn/ui roles, mapped per DESIGN.md "Implementation mapping". */
   --background: var(--color-white);

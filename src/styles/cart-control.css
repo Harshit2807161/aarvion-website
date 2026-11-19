@@ -13,3 +13,5 @@
   .btn-add:hover { background: var(--color-forest-700); }
   .stepper button:hover { background: rgb(255 255 255 / 0.1); }
 }
+/* phone pockets are 45vw (site.css 719px block) */
+@media (max-width: 719px) { .btn-add span { font-size: 0.8125rem; } }

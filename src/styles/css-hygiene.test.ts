@@ -82,4 +82,25 @@ describe("[C12] src/styles hygiene", () => {
     const duplicates = keys.filter((k, i) => keys.indexOf(k) !== i);
     expect([...new Set(duplicates)]).toEqual([]);
   });
+
+  // base.css is the one merged @layer base: it names a few component classes in shared groups on
+  // purpose (no text selection on controls, the sand focus ring on forest ground, tabular stamp
+  // figures). Those are the only selectors two files may share; the list must stay exact.
+  const BASE_GROUPS = [
+    ".announce", ".band", ".btn", ".foot", ".qa--rx", ".seg-opt", ".stamp", ".toast",
+  ];
+
+  it("no selector repeats across files within an at-rule context (base.css groups aside)", () => {
+    const owners = new Map<string, string[]>();
+    for (const file of files) {
+      for (const key of new Set(ruleKeys(readFileSync(path.join(root, file), "utf8")))) {
+        owners.set(key, [...(owners.get(key) ?? []), path.basename(file)]);
+      }
+    }
+    const shared = [...owners].filter(([, f]) => f.length > 1);
+    const allowed = ([k, f]: [string, string[]]) =>
+      BASE_GROUPS.includes(k) && f.length === 2 && f.includes("base.css");
+    expect(shared.filter((s) => !allowed(s)).map(([k, f]) => `${k}: ${f.join(", ")}`)).toEqual([]);
+    expect(shared.map(([k]) => k).sort()).toEqual(BASE_GROUPS);
+  });
 });

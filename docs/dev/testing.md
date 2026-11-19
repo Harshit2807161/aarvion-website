@@ -108,8 +108,11 @@ Helpers in `tests/helpers/`:
   rate limits never collide; read codes from `/dev/outbox`.
 - In CI a failed run uploads `playwright-report/` and `test-results/` as the `playwright-report`
   artifact for 7 days.
+- `e2e/home.spec.ts` checks the hero banner: it rotates within 7 s with no console or page error
+  (`collectConsoleErrors`), holds on hover, answers the keyboard, stays put under reduced motion,
+  and is a scroll-snap row at 390px.
 - Planned (UI plan): `e2e/budgets.spec.ts` (LCP, CLS, first-load JS), `freshness.spec.ts`, and
-  specs for the home, shell, catalogue, search and login.
+  specs for the shell, catalogue, search and login.
 
 ## Guard tests (they enforce conventions)
 
@@ -125,14 +128,14 @@ Helpers in `tests/helpers/`:
 | `scripts/sync-product-images.test.ts` | a photo or `products.json` changed without `pnpm images:sync` |
 | `src/server/catalogue/pricing.test.ts` | any listed product's price is not MRP − ₹20 |
 | `src/lib/price-source.test.ts` | UI code under `src/app/**` or `src/components/**` reads `pricePaise` or `MRP_DISCOUNT_PAISE` or subtracts 2000 itself |
-| `src/components/server-imports.test.ts` | a non-test file under `src/components/**` imports from `src/server/**` (by `@/server/…` or a relative path) other than `catalogue/pricing`, `catalogue/search` or `catalogue/order` without a statement-level `import type` / `export type` (an inline `import { type X }` does not count); it parses with the TypeScript compiler API and also catches side-effect imports, re-exports, `import()` and `require()` |
+| `src/components/server-imports.test.ts` | a non-test file under `src/components/**`, or under `src/lib/**` other than the server-only `catalogue/cached.ts` and `catalogue/errors.ts`, imports from `src/server/**` (by `@/server/…` or a relative path) other than `catalogue/pricing`, `catalogue/search` or `catalogue/order` without a statement-level `import type` / `export type` (an inline `import { type X }` does not count); it parses with the TypeScript compiler API and also catches side-effect imports, re-exports, `import()` and `require()` |
 | `src/server/auth/cookie.test.ts` | the cookie `Max-Age` drifts from `SESSION_POLICY` |
 | `scripts/pr-size.test.ts`, `tests/int/pr-size.test.ts` | the size counter or its excludes change |
 | `scripts/vitest-projects.test.ts` | a test file matches no Vitest project, or more than one |
 | `src/styles/tokens.test.ts` | `globals.css` drifts from the prototype's `tokens.css` or DESIGN.md colours |
 | `scripts/subset-fonts.test.ts` | a font subset loses ASCII, typographic or ₹ glyphs, licence name IDs 13/14, its size budget or its axis range, or drifts from a fresh `pnpm fonts:subset` |
 | `scripts/public-provenance.test.ts` | `public/foil/` or `public/banners/` gains or loses a file, a `.json` sidecar is missing or wrong, a raster's pixels differ from its sidecar, or a banner is not 1792 × 588 / 840 × 472, not from `composite_store_banners.py`, or over 120 KB |
-| `src/styles/css-hygiene.test.ts` | a selector repeats within one at-rule context across `src/styles/*.css` |
+| `src/styles/css-hygiene.test.ts` | a selector repeats within one at-rule context, in one `src/styles/*.css` file or across two of them [C12]; only `base.css`'s listed group selectors (`.btn`, `.toast`, `.stamp`, …) may also appear in one other file, and that list must stay exact |
 | `src/components/overlay/overlay.test.tsx` | the Overlay: dialog role and aria-modal, focus on open, focus trap, Escape and focus return, scrim click, scroll lock and aria-hidden siblings, variants, and the phone drag through the head |
 | `e2e/styleguide.spec.ts` | also: at 390px a short drag or a tap on the overlay head leaves no running animation and the transform at identity |
 | `src/components/overlay/use-drag-dismiss.test.tsx` | the drag hook: follows the finger, dismisses over the thresholds, snaps back otherwise, never removes `is-dragging` while open, ignores a second pointer and Close, skips the snap-back transition under reduced motion |

@@ -18,6 +18,8 @@ bottom use commit SHAs.
 
 ### Added
 
+- Hero banner on the home page (`src/components/home/banner.tsx`, mounted by `src/app/(store)/page.tsx` in `main#home.home` under an sr-only h1): four rotating slides chosen by `bannerSlides()`, each an art-directed picture through `getImageProps` (the 840 × 472 phone crop below 720px, else the 1792 master) with live copy and a forest button. The first slide shown is the LCP image, eager with `fetchPriority="high"`; the rest load lazily. `e2e/home.spec.ts` covers rotation, hover hold, keyboard, reduced motion and the phone scroll-snap row (#129).
+- The foil pocket, the storefront's product card (`src/components/catalogue/pocket.tsx`, `src/styles/pocket.css`, imported by `globals.css`): the pack under a clear dome on print-field foil, the name with its Rx badge, the actives (two lines, three on phones, never cutting a strength), the pack line, the stamp price with its % off and Add to cart. Images are lazy; `priority` gives the LCP candidate `loading="eager"` and `fetchPriority="high"`, never a preload. The foil material variables (`--foil-body`, `--foil-print`, `--perforation`, `--perf-v`) are defined once in `globals.css`'s `:root`, and `--perforation` leaves `.home` in `quick-trust.css`. In `stamp.css` the MRP never breaks and the % off pill wraps under it in a narrow pocket (164px phones); `cart-control.css` (Task 15) gains the 13px phone Add to cart label. The import guard now also checks client-safe `src/lib/**`. `/dev/styleguide` shows every catalogue product as a pocket, and `e2e/styleguide.spec.ts` checks one loads through `next/image` (#122).
 - `GET /api/products?q=&strength=`: the header search's data. Reads the cached catalogue, matches by query tokens and variant strength in shelf order, returns at most 20 `SearchResult`s (`src/lib/catalogue/search-result.ts`), `no-store`, 60 requests a minute per IP bucket (429 `rate_limited`), and never logs the query. (#123)
 - Banner carousel shell (`src/components/home/banner-carousel.tsx`, client) and its styles (`src/styles/banner.css`, a port of the v2 site.css banner rules, imported by `globals.css` and covered by `css-hygiene.test.ts`): the play/pause, previous, dot and next controls come first in the DOM, the track's `aria-live` follows `liveMode()`, and the root gains `is-ready`, `is-auto`, `is-held`, `is-stopped` or `no-auto` only after mount. The current dot's 6 s `dot-run` fill is the autoplay clock and pauses under a hold or the user's pause. The banner takes its 1280px width from the one home root rule (`.home` in `src/styles/quick-trust.css`); it sets no width of its own (#126).
 - Login copy (pure, no UI yet): `src/components/auth/login-copy.ts` holds `LOGIN_COPY` (every customer string of the login flow), `mmss`, `waitText` (a missing or non-finite wait reads "a little while", never NaN) and the client constants `MAX_TRIES`, `RESEND_SEC`, `CODE_TTL_MS`, which `login-copy.test.ts` pins to the server's limits. `nameRefused` is the copy for the server refusing the name. The state machine follows in later PRs (#128).
@@ -171,6 +173,7 @@ bottom use commit SHAs.
 
 ### Fixed
 
+- Form field labels (`label.label`, `TextField`) no longer render as sand shipping-label cards: the ordering steps' card rule in `src/styles/steps.css` is scoped to `.vis-label .label`, since `forms.css` owns the bare `.label`. `src/styles/css-hygiene.test.ts` now also fails when a selector repeats across `src/styles/*.css` files (C12), which is how this collision was found; `base.css`'s deliberate group selectors are the only listed exception (#124).
 - `ui` tests run under Vitest 5 again: the `next/navigation` mock state moved to
   `tests/helpers/navigation-mocks.ts`, because Vitest 5 rejects exported `vi.hoisted` values
   (#57).
@@ -194,6 +197,7 @@ bottom use commit SHAs.
 - `findUserByIdentifier` and `findOrCreateUserByIdentifier` filter `{ $eq, $type: "string" }`, so
   they use the partial unique indexes instead of scanning every user (#116).
 - The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen. A dot fill that ends in the frame a hold or the pause starts is kept as `due` and advances once autoplay can run again, so the banner can no longer stall on one slide (#113).
+- The footer logo no longer competes with a page's LCP image: the footer passes `loading="lazy"` through `BrandMark`'s new `loading` prop, so React stops preloading it ahead of the content (the header logo stays eager) (#129).
 
 ## [0.1.0] - 2026-11-17
 
