@@ -76,7 +76,7 @@ gitignored).
 `/dev/outbox` and `/dev/styleguide` (every base component on one screen; open it after changing
 a component or `src/styles/*.css`) exist only where mocks are allowed. The styleguide's foil
 pockets read the catalogue, so run `pnpm db:up && pnpm db:indexes && pnpm seed` first; without a
-database that section shows a seeding hint and the rest still renders. Where `isMockForbidden()`
+database that section shows a hint (and the server log the error name) and the rest still renders. Where `isMockForbidden()`
 is true (production, or the production database) `src/proxy.ts` answers a real HTTP 404 for
 every `/dev/*` request before anything renders; `requireDevRoute()` in each page or route is the
 second guard. A new dev page needs both (the proxy already matches `/dev/:path*`) and

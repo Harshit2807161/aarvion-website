@@ -59,12 +59,14 @@ function ButtonGrid() {
   );
 }
 
-/** The seeded catalogue, or none when Mongo is unset or down, so the rest of the page still renders. */
-async function catalogueOrNone(): Promise<PublicProduct[]> {
+/** The seeded catalogue, or null when it cannot be read, so the rest of the page still renders. */
+async function catalogueOrNull(): Promise<PublicProduct[] | null> {
   try {
     return await getCachedProducts();
-  } catch {
-    return [];
+  } catch (error) {
+    // The error name only (AGENTS.md: logs record error names), so a real bug is not hidden.
+    console.error("styleguide: catalogue read failed:", (error as Error)?.name ?? "unknown");
+    return null;
   }
 }
 
@@ -72,7 +74,7 @@ async function catalogueOrNone(): Promise<PublicProduct[]> {
 export default async function StyleguidePage() {
   await connection();
   requireDevRoute();
-  const products = await catalogueOrNone();
+  const products = await catalogueOrNull();
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-10 p-6">
       <h1 className="h-section">Styleguide</h1>
@@ -144,7 +146,7 @@ export default async function StyleguidePage() {
           the smaller phone dome are rail rules, not shown here. Images are lazy unless{" "}
           <code>priority</code> marks the page&rsquo;s LCP candidate.
         </p>
-        {products.length > 0 ? (
+        {products && products.length > 0 ? (
           <ul className="grid w-fit grid-cols-[repeat(3,248px)] rounded-strip px-[10px] pt-[2px] pb-[4px] shadow-md [background:var(--foil-print)] max-[719px]:-mx-6 max-[719px]:w-auto max-[719px]:grid-cols-[repeat(2,max(164px,45vw))] max-[719px]:justify-center max-[719px]:rounded-none">
             {products.map((product) => (
               <Pocket key={product.slug} product={product} />
@@ -152,7 +154,10 @@ export default async function StyleguidePage() {
           </ul>
         ) : (
           <p>
-            No catalogue to show: run <code>pnpm db:up && pnpm db:indexes && pnpm seed</code>.
+            {products
+              ? "No products in the catalogue"
+              : "The catalogue could not be read (see the server log)"}
+            : run <code>pnpm db:up && pnpm db:indexes && pnpm seed</code>.
           </p>
         )}
       </section>
