@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   LOGIN_COPY,
+  codeMessage,
   identifierOf,
   initialLoginState,
   loginReducer,
@@ -22,6 +23,20 @@ function codeStep(channel: "phone" | "email" = "phone"): LoginState {
     { type: "sendOk", now: T },
   ]);
 }
+type FailError = Extract<LoginEvent, { type: "verifyFail" }>["error"];
+const fail = (
+  error: FailError,
+  now: number,
+  extra: { retryAfterSec?: number } = {},
+): LoginEvent => ({
+  type: "verifyFail",
+  error,
+  now,
+  code: "482913",
+  ...extra,
+});
+/** A code step with a resend in flight. */
+const resending = (from: LoginState = codeStep()) => loginReducer(from, { type: "resendStart" });
 
 describe("id step", () => {
   it("validates the mobile number", () => {
@@ -95,6 +110,23 @@ describe("busy is a guard", () => {
     const code = codeStep();
     expect(loginReducer(code, { type: "sendFail", error: "network", now: T + 1 })).toBe(code);
   });
+  it("ignores Change while a resend is in flight, so a late result still matches its request", () => {
+    const r = resending();
+    expect(loginReducer(r, { type: "change" })).toBe(r);
+  });
+  it("ignores resend and verify starts while busy", () => {
+    const r = resending();
+    expect(loginReducer(r, { type: "resendStart" })).toBe(r);
+    expect(loginReducer(r, { type: "verifyStart" })).toBe(r);
+    const v = loginReducer(codeStep(), { type: "verifyStart" });
+    expect(loginReducer(v, { type: "verifyStart" })).toBe(v);
+    expect(loginReducer(v, { type: "resendStart" })).toBe(v);
+  });
+  it("ignores a verify result when no verify is in flight", () => {
+    const s = codeStep();
+    expect(loginReducer(s, fail("invalid_code", T + 1))).toBe(s);
+    expect(loginReducer(s, { type: "verifyOk", isNewUser: false })).toBe(s);
+  });
 });
 
 describe("sending", () => {
@@ -140,11 +172,204 @@ describe("sending", () => {
     const s = loginReducer(sending(), { type: "sendFail", error: "rate_limited", now: T });
     expect(s).toMatchObject({ error: "Too many codes requested. Try again in a little while." });
   });
+  it("resend_cooldown on the id step means a live code exists: go to the code step", () => {
+    const s = loginReducer(sending(), {
+      type: "sendFail",
+      error: "resend_cooldown",
+      retryAfterSec: 22,
+      now: T,
+    });
+    expect(s).toMatchObject({
+      step: "code",
+      identifier: "9876543210",
+      resendAt: T + 22_000,
+      sentAt: T + 22_000 - 30_000,
+      error: null,
+      busy: false,
+    });
+    const noWait = loginReducer(sending(), { type: "sendFail", error: "resend_cooldown", now: T });
+    expect(noWait).toMatchObject({ step: "code", resendAt: T + 30_000 });
+    expect(JSON.stringify(noWait)).not.toContain("NaN");
+  });
   it("Change returns to the id step with the identifier", () => {
     expect(loginReducer(codeStep(), { type: "change" })).toMatchObject({
       step: "id",
       raw: "9876543210",
       error: null,
     });
+  });
+});
+
+describe("resend", () => {
+  it("resets the code clock and tries, and keeps the sign-up details", () => {
+    const signup = { name: "Asha Rao", adult: true, termsPrivacy: true, marketing: false } as const;
+    const base = codeStep();
+    if (base.step !== "code") throw new Error("expected the code step");
+    const locked: LoginState = { ...base, tries: 5, locked: "tries", signup };
+    const s = run([{ type: "resendStart" }, { type: "sendOk", now: T + 40_000 }], locked);
+    expect(s).toMatchObject({
+      sentAt: T + 40_000,
+      resendAt: T + 70_000,
+      tries: 0,
+      locked: null,
+      busy: false,
+      signup,
+    });
+  });
+  it("I4: a new code does not lift the daily or network lock the server still holds", () => {
+    for (const [error, retryAfterSec] of [
+      ["too_many_attempts", 80_000],
+      ["rate_limited", 900],
+    ] as const) {
+      const locked = run([{ type: "verifyStart" }, fail(error, T, { retryAfterSec })], codeStep());
+      const s = run([{ type: "resendStart" }, { type: "sendOk", now: T + 40_000 }], locked);
+      expect(s).toMatchObject({
+        tries: 0,
+        locked: locked.step === "code" ? locked.locked : null,
+        lockedUntil: T + retryAfterSec * 1000,
+      });
+      expect(loginReducer(s, { type: "verifyStart" })).toBe(s);
+    }
+  });
+  it("I2: a resend that cannot be delivered goes back to the id step with the message", () => {
+    const s = loginReducer(resending(), {
+      type: "sendFail",
+      error: "delivery_failed",
+      now: T + 40_000,
+    });
+    expect(s).toEqual({
+      step: "id",
+      channel: "phone",
+      raw: "9876543210",
+      error: "We couldn’t send the code. Try again, or use your email instead.",
+      busy: false,
+    });
+  });
+  it("I3: a resend failure shows even while the code is locked for wrong tries", () => {
+    const locked = run(
+      Array.from({ length: 5 }, () => [
+        { type: "verifyStart" } as const,
+        fail("invalid_code", T + 1000),
+      ]).flat(),
+      codeStep(),
+    );
+    expect(codeMessage(locked, T + 40_000)).toBe(LOGIN_COPY.lockedReady);
+    const s = loginReducer(resending(locked), {
+      type: "sendFail",
+      error: "network",
+      now: T + 40_000,
+    });
+    expect(s).toMatchObject({ step: "code", locked: "tries", busy: false });
+    expect(codeMessage(s, T + 40_000)).toBe(LOGIN_COPY.network);
+  });
+  it("a rate-limited resend pushes the resend time out to the real wait", () => {
+    const s = loginReducer(resending(), {
+      type: "sendFail",
+      error: "rate_limited",
+      retryAfterSec: 600,
+      now: T + 40_000,
+    });
+    expect(s).toMatchObject({
+      step: "code",
+      resendAt: T + 40_000 + 600_000,
+      error: "Too many codes requested. Try again in 10:00.",
+    });
+  });
+  it("a resend_cooldown failure moves the countdown and shows no error", () => {
+    const s = loginReducer(resending(), {
+      type: "sendFail",
+      error: "resend_cooldown",
+      retryAfterSec: 12,
+      now: T + 1000,
+    });
+    expect(s).toMatchObject({ step: "code", busy: false, resendAt: T + 13_000, error: null });
+  });
+});
+
+describe("wrong codes", () => {
+  const verifying = () => loginReducer(codeStep(), { type: "verifyStart" });
+  it("counts down and locks on the last try", () => {
+    let s = verifying();
+    s = loginReducer(s, fail("invalid_code", T + 10_000));
+    expect(s).toMatchObject({ tries: 1, error: "That code doesn’t match. 4 tries left." });
+    s = run(
+      [
+        { type: "verifyStart" },
+        fail("invalid_code", T + 10_000),
+        { type: "verifyStart" },
+        fail("invalid_code", T + 10_000),
+        { type: "verifyStart" },
+        fail("invalid_code", T + 10_000),
+      ],
+      s,
+    );
+    expect(s).toMatchObject({ tries: 4, error: "That code doesn’t match. 1 try left." });
+    s = run([{ type: "verifyStart" }, fail("invalid_code", T + 10_000)], s);
+    expect(s).toMatchObject({ tries: 5, locked: "tries" });
+    expect(codeMessage(s, T + 20_000)).toBe(LOGIN_COPY.lockedWait("0:10"));
+    expect(codeMessage(s, T + 30_000)).toBe(LOGIN_COPY.lockedReady);
+  });
+  it("an expired code says so and does not count a try", () => {
+    const s = loginReducer(verifying(), fail("invalid_code", T + 300_000));
+    expect(s).toMatchObject({ tries: 0, error: LOGIN_COPY.expired, locked: null, busy: false });
+  });
+  it("a locked code ignores verifyStart", () => {
+    const s = run(
+      Array.from({ length: 5 }, () => [
+        { type: "verifyStart" } as const,
+        fail("invalid_code", T + 1000),
+      ]).flat(),
+      codeStep(),
+    );
+    expect(loginReducer(s, { type: "verifyStart" })).toBe(s);
+  });
+});
+
+describe("server limits", () => {
+  const verifying = (s: LoginState = codeStep()) => loginReducer(s, { type: "verifyStart" });
+  it("too_many_attempts locks for the day", () => {
+    const s = loginReducer(verifying(), fail("too_many_attempts", T, { retryAfterSec: 3600 }));
+    expect(s).toMatchObject({
+      locked: "daily",
+      lockedUntil: T + 3_600_000,
+      error: "Too many wrong codes for this number today. Try again in 1 hour.",
+    });
+    const e = loginReducer(
+      verifying(codeStep("email")),
+      fail("too_many_attempts", T, { retryAfterSec: 1500 }),
+    );
+    expect(e).toMatchObject({
+      error: "Too many wrong codes for this email today. Try again in 25 minutes.",
+    });
+  });
+  it("rate_limited (C3) blocks Verify without spending a try", () => {
+    const s = loginReducer(verifying(), fail("rate_limited", T, { retryAfterSec: 900 }));
+    expect(s).toMatchObject({
+      tries: 0,
+      locked: "network",
+      lockedUntil: T + 900_000,
+      error: "Too many attempts from this network. Try again in 15:00.",
+    });
+    expect(loginReducer(s, { type: "tick", now: T + 899_000 })).toMatchObject({
+      locked: "network",
+    });
+    expect(loginReducer(s, { type: "tick", now: T + 900_000 })).toMatchObject({
+      locked: null,
+      lockedUntil: null,
+      error: null,
+    });
+  });
+  it("a missing or non-finite wait never prints NaN and still unlocks (carry b)", () => {
+    const s = loginReducer(verifying(), fail("rate_limited", T));
+    expect(s).toMatchObject({
+      error: "Too many attempts from this network. Try again in a little while.",
+      lockedUntil: T + 60_000,
+    });
+    const d = loginReducer(verifying(), fail("too_many_attempts", T, { retryAfterSec: NaN }));
+    expect(d).toMatchObject({
+      error: "Too many wrong codes for this number today. Try again in a little while.",
+      lockedUntil: T + 60_000,
+    });
+    expect(JSON.stringify(d)).not.toContain("NaN");
   });
 });

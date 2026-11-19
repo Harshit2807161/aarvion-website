@@ -14,9 +14,23 @@
  * Effects the UI runs (the reducer never does I/O):
  * - id step, `busy`: call `sendCode(channel, identifierOf(channel, raw))`, then dispatch `sendOk`
  *   or `sendFail`.
+ * - code step, `busy`, not `sessionCheck`: after `verifyStart` call `verifyCode` (with
+ *   `state.signup`), after `resendStart` call `sendCode(channel, identifier)`; dispatch
+ *   `verifyOk`/`verifyFail` or `sendOk`/`sendFail` accordingly.
+ * - While a code is locked on a timer, dispatch `tick` about once a second and render
+ *   `codeMessage(state, now)`.
  */
 import type { Channel, SignupPayload } from "./api.ts";
-import { LOGIN_COPY, RESEND_SEC, mmss } from "./login-copy.ts";
+import {
+  CODE_TTL_MS,
+  FALLBACK_LOCK_MS,
+  LOGIN_COPY,
+  MAX_TRIES,
+  RESEND_SEC,
+  mmss,
+  waitText,
+  wholeSec,
+} from "./login-copy.ts";
 import { EMAIL_RE, MOBILE_RE, formatMobile, normMobile } from "./phone.ts";
 
 export * from "./login-copy.ts";
@@ -120,6 +134,8 @@ function sendFailMessage(channel: Channel, e: Extract<LoginEvent, { type: "sendF
       return LOGIN_COPY.rateLimited(mmss(e.retryAfterSec));
     case "delivery_failed":
       return LOGIN_COPY.deliveryFailed(channel);
+    case "resend_cooldown":
+      return ""; // never shown: the code step's resend countdown says it
     default:
       return LOGIN_COPY.network;
   }
@@ -159,6 +175,35 @@ function idFrom(
   return { step: "id", channel: s.channel, raw: s.identifier, error, busy: false };
 }
 
+/** A verify failure in the code step. Sign-up and network outcomes arrive in the last PR. */
+function reduceVerifyFail(
+  s: CodeState,
+  e: Extract<LoginEvent, { type: "verifyFail" }>,
+): LoginState {
+  const what = s.channel === "phone" ? "number" : "email";
+  const lockMs = wholeSec(e.retryAfterSec) === null ? FALLBACK_LOCK_MS : e.retryAfterSec! * 1000;
+  switch (e.error) {
+    case "invalid_code": {
+      if (e.now - s.sentAt >= CODE_TTL_MS) return { ...s, busy: false, error: LOGIN_COPY.expired };
+      const tries = s.tries + 1;
+      if (tries >= MAX_TRIES) {
+        return { ...s, busy: false, tries, locked: "tries", lockedUntil: null, error: null };
+      }
+      return { ...s, busy: false, tries, error: LOGIN_COPY.wrong(MAX_TRIES - tries) };
+    }
+    case "too_many_attempts": {
+      const error = LOGIN_COPY.daily(what, waitText(e.retryAfterSec));
+      return { ...s, busy: false, locked: "daily", lockedUntil: e.now + lockMs, error };
+    }
+    case "rate_limited": {
+      const error = LOGIN_COPY.verifyRateLimited(mmss(e.retryAfterSec));
+      return { ...s, busy: false, locked: "network", lockedUntil: e.now + lockMs, error };
+    }
+    default:
+      return { ...s, busy: false, error: LOGIN_COPY.network };
+  }
+}
+
 export function loginReducer(s: LoginState, e: LoginEvent): LoginState {
   if (s.step === "id") {
     switch (e.type) {
@@ -183,6 +228,18 @@ export function loginReducer(s: LoginState, e: LoginEvent): LoginState {
       }
       case "sendFail": {
         if (!s.busy) return s;
+        if (e.error === "resend_cooldown") {
+          // The server sent this identifier a code under 30 s ago and it is still live: go to the
+          // code step and let its resend countdown say so.
+          const wait = wholeSec(e.retryAfterSec) ?? RESEND_SEC;
+          const resendAt = e.now + wait * 1000;
+          return newCodeState(
+            s.channel,
+            identifierOf(s.channel, s.raw),
+            resendAt - RESEND_SEC * 1000,
+            resendAt,
+          );
+        }
         return { ...s, busy: false, error: sendFailMessage(s.channel, e) };
       }
       default:
@@ -194,10 +251,69 @@ export function loginReducer(s: LoginState, e: LoginEvent): LoginState {
     switch (e.type) {
       case "change":
         return s.busy ? s : idFrom(s, null);
+      case "resendStart":
+        return s.busy ? s : { ...s, busy: true, error: null };
+      case "sendOk":
+        if (!s.busy || s.sessionCheck) return s;
+        // A new code starts a fresh clock and try budget and lifts only the per-code lock. The
+        // daily and network locks belong to the identifier and the IP, which the server keeps.
+        return {
+          ...s,
+          sentAt: e.now,
+          resendAt: e.now + RESEND_SEC * 1000,
+          tries: 0,
+          locked: s.locked === "tries" ? null : s.locked,
+          lockedUntil: s.locked === "tries" ? null : s.lockedUntil,
+          error: null,
+          busy: false,
+        };
+      case "sendFail": {
+        if (!s.busy || s.sessionCheck) return s;
+        // The failed delivery deleted the held code on the server: nothing left to verify.
+        if (e.error === "delivery_failed") return idFrom(s, sendFailMessage(s.channel, e));
+        const waits = e.error === "rate_limited" || e.error === "resend_cooldown";
+        const wait = wholeSec(e.retryAfterSec) ?? RESEND_SEC;
+        return {
+          ...s,
+          busy: false,
+          error: e.error === "resend_cooldown" ? null : sendFailMessage(s.channel, e),
+          resendAt: waits ? e.now + wait * 1000 : s.resendAt,
+        };
+      }
+      case "verifyStart":
+        // A locked code is never sent; the UI disables Verify, this keeps the reducer honest.
+        return s.locked || s.busy ? s : { ...s, busy: true, error: null };
+      case "verifyOk":
+        return !s.busy || s.sessionCheck ? s : { step: "done", isNewUser: e.isNewUser };
+      case "verifyFail":
+        return !s.busy || s.sessionCheck ? s : reduceVerifyFail(s, e);
+      case "tick":
+        if ((s.locked === "daily" || s.locked === "network") && s.lockedUntil !== null) {
+          if (e.now >= s.lockedUntil) {
+            return { ...s, locked: null, lockedUntil: null, error: null };
+          }
+        }
+        return s;
       default:
         return s;
     }
   }
 
   return s;
+}
+
+/**
+ * The message under the code field at time `now`, or null. A resend failure (`error`) always
+ * shows, even while the code is locked; otherwise a code locked for wrong tries counts down to
+ * the moment a new one can be asked for.
+ */
+export function codeMessage(s: LoginState, now: number): string | null {
+  if (s.step !== "code") return null;
+  if (s.error !== null) return s.error;
+  if (s.locked === "tries") {
+    return now < s.resendAt
+      ? LOGIN_COPY.lockedWait(mmss((s.resendAt - now) / 1000))
+      : LOGIN_COPY.lockedReady;
+  }
+  return null;
 }
