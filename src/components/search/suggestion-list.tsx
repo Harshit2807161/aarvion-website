@@ -54,6 +54,7 @@ export function SuggestionList({
           onClick={() => onChoose(p)}
         >
           {p.image ? (
+            // eslint-disable-next-line @next/next/no-img-element -- 44px catalogue webp, sized at sync time
             <img src={p.image.src} alt="" width={44} height={44} loading="lazy" decoding="async" />
           ) : (
             <span aria-hidden="true" />
