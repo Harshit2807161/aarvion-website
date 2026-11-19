@@ -13,9 +13,19 @@ const open = (out: string) => {
 };
 
 const ascii = Array.from({ length: 0x7f - 0x20 }, (_, i) => String.fromCodePoint(0x20 + i)).join("");
-const extras = "₹’“”–—·×→…";
+const extras = "₹’“”–—·×→…•−";
 
 describe("subset fonts", () => {
+  it("keeps the next/font weight ranges in src/fonts/index.ts equal to the baked axes", () => {
+    const source = readFileSync(path.join(root, "src/fonts/index.ts"), "utf8");
+    const weights = [...source.matchAll(/weight: "(\d+) (\d+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
+    const baked = FONT_JOBS.map((j) => {
+      const wght = j.axes.wght as { min: number; max: number };
+      return [wght.min, wght.max];
+    });
+    expect(weights).toEqual(baked);
+  });
+
   it("covers the core ranges the storefront needs", () => {
     expect(CORE_RANGES).toContainEqual([0x20b9, 0x20b9]);
     expect(FONT_JOBS.map((j) => j.out)).toEqual([
