@@ -31,8 +31,7 @@ html { scroll-padding-top: calc(var(--hdr-h) + 12px); }
   align-items: center; column-gap: clamp(20px, 3vw, 40px); height: var(--row-h);
 }
 .brand { grid-area: brand; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--color-forest-900); text-decoration: none; }
-.brand-mark { width: 40px; height: 11px; fill: var(--color-leaf-500); overflow: visible; }
-.brand-word { font: 800 1.0625rem/1 var(--font-wordmark); letter-spacing: 0.06em; }
+.brand-logo { display: block; height: 40px; width: auto; } /* the official logo, assets/brand/ */
 
 /* Search */
 .search { grid-area: search; position: relative; width: 100%; max-width: 640px; }
@@ -149,9 +148,7 @@ html { scroll-padding-top: calc(var(--hdr-h) + 12px); }
 .foot { background: var(--color-forest-900); color: var(--color-text-on-dark-muted); padding: 56px 0 28px; font-size: var(--text-sm); line-height: 1.5; }
 .foot-top { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr)); gap: 32px 40px; }
 .foot-logo { display: grid; justify-items: start; gap: 8px; color: var(--color-white); }
-.foot-logo .brand-mark { width: 64px; height: 18px; fill: var(--color-leaf-300); }
-.foot-logo .brand-word { font-size: 1.5rem; letter-spacing: 0.05em; }
-.brand-sub { font: 800 0.625rem/1 var(--font-wordmark); letter-spacing: 0.32em; color: var(--color-text-on-dark-muted); margin-top: -2px; }
+.foot-logo img { display: block; height: 52px; width: auto; } /* reversed logo on forest */
 .foot-about { margin-top: 18px; max-width: 34ch; text-wrap: pretty; }
 .foot-h { margin-bottom: 8px; font: 600 1rem/1.3 var(--font-display); letter-spacing: -0.01em; color: var(--color-white); }
 .foot-col ul { display: grid; }
@@ -189,6 +186,7 @@ html { scroll-padding-top: calc(var(--hdr-h) + 12px); }
   .store-head--reduced .sh-row { grid-template-columns: auto auto; grid-template-areas: "brand note"; height: 56px; padding-bottom: 0; }
   .sh-secure { font-size: 0.875rem; }
   .brand { height: var(--row-h); }
+  .brand-logo { height: 34px; }
   .sh-actions { justify-self: end; margin-right: -10px; }
   .sh-rx { display: none; }
   .sh-btn { width: 44px; padding: 0; justify-content: center; }

@@ -1,0 +1,34 @@
+{
+ "prompt": "Composite, not generated as one image. Scene: assets/banners/store/sacuwin-scene.png (GPT Image 2.5, run in Figma (round-1 direction d1-pedestal--gpt; see docs/review/style-round-1.html section 4); not recorded (round 1); generation prompt not recorded; no products, text or logos in it). Real pack cutouts placed by scripts/composite_store_banners.py: sacuwin-50, sacuwin-100, sacuwin-200.",
+ "createdAt": "2026-11-16T21:06:13.000Z",
+ "file": "sacuwin-1792.webp",
+ "origin": "AI-generated scene with real product photographs composited on top",
+ "scene": "assets/banners/store/sacuwin-scene.png",
+ "sceneGenerator": "GPT Image 2.5, run in Figma (round-1 direction d1-pedestal--gpt; see docs/review/style-round-1.html section 4)",
+ "figmaFile": null,
+ "figmaNode": "not recorded (round 1)",
+ "sceneSha256": "a374cda0ab1b1708",
+ "cutouts": [
+  "assets/products/cutout/sacuwin-50.webp",
+  "assets/products/cutout/sacuwin-100.webp",
+  "assets/products/cutout/sacuwin-200.webp"
+ ],
+ "cutoutOrigin": "owner product photos (assets/products/original), background removed by scripts/make_cutouts.py",
+ "generator": "scripts/composite_store_banners.py",
+ "command": "python3 -I scripts/composite_store_banners.py <project_root>",
+ "crop": {
+  "x": 0,
+  "y": 140,
+  "w": 1792,
+  "h": 588,
+  "of": "1792x768 composite"
+ },
+ "pixels": [
+  1792,
+  588
+ ],
+ "encode": "Pillow WebP quality 86 method 6",
+ "bytes": 51568,
+ "text": "none baked in; headline, line and button are live HTML",
+ "date": "2026-11-16"
+}

@@ -5,8 +5,6 @@ import { HttpError, jsonResponse, readJson, withErrors } from "@/server/http";
 import { assertSameOrigin } from "@/server/security/origin";
 import { clientIp, ipBucket } from "@/server/security/client-ip";
 
-export const dynamic = "force-dynamic";
-
 export const POST = withErrors(async (req) => {
   assertSameOrigin(req);
   const body = await readJson(req, VerifyOtpBody);

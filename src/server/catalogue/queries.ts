@@ -1,6 +1,7 @@
 import type { WithId } from "mongodb";
 import { getDb } from "../db/client.ts";
 import { CATEGORIES_COLLECTION, PRODUCTS_COLLECTION } from "./collections.ts";
+import { compareVariants } from "./order.ts";
 import { sellingPricePaise } from "./pricing.ts";
 import { matchesTokens, queryTokens } from "./search.ts";
 import { Slug, type Category, type Product } from "./schema.ts";
@@ -13,7 +14,7 @@ export type PublicProduct = Omit<
   pricePaise: number;
 };
 
-function toPublicProduct(doc: WithId<Product>): PublicProduct {
+export function toPublicProduct(doc: WithId<Product>): PublicProduct {
   const { _id, ...fields } = doc;
   const pub: Partial<Product> = { ...fields };
   delete pub.internalNotes;
@@ -53,11 +54,12 @@ export async function listVisibleCategories(): Promise<Category[]> {
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  if (!Slug.safeParse(slug).success) return null;
+  const parsed = Slug.safeParse(slug);
+  if (!parsed.success) return null;
   const doc = await (
     await categories()
   ).findOne({
-    slug: slug as Category["slug"],
+    slug: parsed.data as Category["slug"],
     status: { $in: ["live", "coming_soon"] },
   });
   return doc
@@ -82,38 +84,31 @@ export async function listProducts(
 }
 
 export async function getProductBySlug(slug: string): Promise<PublicProduct | null> {
-  if (!Slug.safeParse(slug).success) return null;
+  const parsed = Slug.safeParse(slug);
+  if (!parsed.success) return null;
   const live = await liveSlugs();
   const doc = await (
     await products()
   ).findOne({
-    slug,
+    slug: parsed.data,
     active: true,
     category: { $in: live as Product["category"][] },
   });
   return doc ? toPublicProduct(doc) : null;
 }
 
-function variantNumber(p: { variantLabel: string | null }): number {
-  const n = p.variantLabel === null ? Number.NaN : Number.parseInt(p.variantLabel, 10);
-  return n;
-}
-
 export async function getFamily(familySlug: string): Promise<PublicProduct[]> {
-  if (!Slug.safeParse(familySlug).success) return [];
+  const parsed = Slug.safeParse(familySlug);
+  if (!parsed.success) return [];
   const live = await liveSlugs();
   const docs = await (
     await products()
   )
-    .find({ familySlug, active: true, category: { $in: live as Product["category"][] } })
-    .toArray();
-  return docs
-    .sort((a, b) => {
-      const x = variantNumber(a);
-      const y = variantNumber(b);
-      if (Number.isNaN(x) !== Number.isNaN(y)) return Number.isNaN(x) ? 1 : -1;
-      if (!Number.isNaN(x) && x !== y) return x - y;
-      return a.name.localeCompare(b.name);
+    .find({
+      familySlug: parsed.data,
+      active: true,
+      category: { $in: live as Product["category"][] },
     })
-    .map(toPublicProduct);
+    .toArray();
+  return docs.sort(compareVariants).map(toPublicProduct);
 }
