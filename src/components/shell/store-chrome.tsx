@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { CartPill } from "@/components/cart/cart-pill";
 import { AnnounceBar } from "@/components/shell/announce-bar";
 import { CategoryBar } from "@/components/shell/category-bar";
 import { SkipLink } from "@/components/shell/skip-link";
@@ -20,7 +21,7 @@ export async function withStoreChrome(children: ReactNode): Promise<ReactNode> {
     <>
       <SkipLink />
       <AnnounceBar />
-      <StoreHeader />
+      <StoreHeader cart={<CartPill />} />
       <CategoryBar categories={live} />
       {children}
       <StoreFooter categories={live} />

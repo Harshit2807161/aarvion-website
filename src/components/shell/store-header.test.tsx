@@ -51,9 +51,9 @@ describe("StoreHeader", () => {
     render(<StoreHeader />);
     expect(href("Upload prescription")).toBe("/account/prescriptions");
     expect(href("Sign in")).toBe("/login");
-    expect(href("Cart, 0 packs")).toBe("/cart");
+    expect(href("Cart, empty")).toBe("/cart");
     expect(
-      screen.getByRole("link", { name: "Cart, 0 packs" }).querySelector(".cart-count")?.textContent,
+      screen.getByRole("link", { name: "Cart, empty" }).querySelector(".cart-count")?.textContent,
     ).toBe("0");
   });
 
