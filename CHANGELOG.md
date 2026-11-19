@@ -63,7 +63,7 @@ bottom use commit SHAs.
 - `Button` and `ButtonLink` in `src/components/base/` (seven variants, three sizes, a busy state that
   drops clicks) with `src/styles/buttons.css` (#74).
 - `src/config/site.ts` (`SITE_CONFIG`, `legalValue`, `assertLegalConfigComplete`, the H4 production
-  gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`).
+  gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`) (#76).
 
 ### Changed
 
