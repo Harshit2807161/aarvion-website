@@ -14,13 +14,16 @@ Where the build stands and what is next: [docs/handoff.md](docs/handoff.md).
 
 ## Read first
 
-1. [docs/handoff.md](docs/handoff.md): current state, the plan in flight, owner blockers.
+1. [docs/handoff.md](docs/handoff.md): the living state document: what is merged, what is in
+   flight, owner blockers.
 2. [docs/dev/README.md](docs/dev/README.md): setup, architecture, testing, CI, data, deploy,
    runbooks.
 3. [docs/decisions/rulings.md](docs/decisions/rulings.md): every ruling made for the owner.
 4. The active plan under [docs/superpowers/plans/](docs/superpowers/plans/), especially its
    "Global Constraints" section.
 5. [DESIGN.md](DESIGN.md) before any UI work.
+6. The approved project plan, [docs/plan/project-plan.md](docs/plan/project-plan.md), for the
+   phase table and the owner's inputs.
 
 ## Stack
 
@@ -58,6 +61,8 @@ e2e/                Playwright specs (production build)
 scripts/            pr-size, sync-product-images, seed, db-indexes (+ Python asset tools)
 data/               products.json (seed source), product-images.json (generated), source/
 public/products/    generated, content-hashed product images (never edit by hand)
+public/foil/, public/banners/  rasters copied unchanged from design/prototype/assets/, with .json
+                    provenance sidecars (pinned by scripts/public-provenance.test.ts)
 assets/             source photos, cutouts, brand SVG drafts, banner scenes
 design/prototype/   approved hi-fi prototype (reference, not app code)
 docs/               requirements, catalogue, decisions/, superpowers/plans/, dev/, handoff.md
@@ -106,11 +111,13 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 
 - `ci.yml`: `lint`, `typecheck`, `unit`, `int`, `build`, `e2e`. `pr-guards.yml`: `pr-title`,
   `branch-name`, `pr-size`.
-- **Merge gate:** `lint`, `typecheck`, `unit`, `int`, `build`, `e2e`, `pr-title` and
-  `branch-name` must each show `pass` by name in `gh pr checks <n>`. A missing or pending check
-  blocks. `pr-size` must pass too: every PR, docs included, stays at or under 400 changed lines
-  (owner, 2026-11-18). GitHub branch protection is not applied (private free repo), so the gate
-  is enforced by process. Details: [docs/dev/ci.md](docs/dev/ci.md).
+- **Merge gate:** all nine checks, `lint`, `typecheck`, `unit`, `int`, `build`, `e2e`,
+  `pr-title`, `branch-name` and `pr-size`, must each show `pass` by name in `gh pr checks <n>`.
+  A missing or pending check blocks. Every PR, docs included, stays at or under 400 changed lines
+  (owner, 2026-11-18). `scripts/merge-gate.sh <n>` checks all nine and squash-merges;
+  `ALLOW_OVERSIZE=1` is allowed only with a ruling recorded in `docs/decisions/rulings.md`.
+  GitHub branch protection is not applied (private free repo), so the gate is enforced by
+  process. Details: [docs/dev/ci.md](docs/dev/ci.md).
 
 ## Branches, commits and PRs
 
@@ -130,7 +137,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   commits), never delete remote branches or tags. To bring in `main`, merge it (a merge commit).
 - **Ask a human before merging to `main`** unless the owner has authorised you for this work.
   The owner authorised the build controller to merge PRs whose checks are green
-  ([docs/progress.md](docs/progress.md)); implementers never merge their own PRs.
+  ([project plan](docs/plan/project-plan.md), Context, point 3); implementers never merge their
+  own PRs.
 - Never change git config, remotes, hooks, repo settings, collaborators, secrets or branch
   protection without asking.
 
@@ -143,7 +151,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   time and never stored. MRP must be at least ₹21 (2100 paise).
 - A pack whose MRP is unknown gets ₹404 (`DEFAULT_MRP_PAISE = 40400`, price ₹384), with
   `mrpSource: "default"`.
-- % off is `floor(2000 / mrpPaise × 100)`, never rounded up. No headline, banner, section or
+- % off is floored, never rounded up: use `percentOff(mrpPaise)` in `pricing.ts` (planned, UI
+  Task 3), never inline the maths in UI code. No headline, banner, section or
   meta title leads with the ₹20.
 
 **Prescriptions** ([validity.ts](src/server/prescriptions/validity.ts))
@@ -181,7 +190,10 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   depends on whether an account exists.
 - Verify order is fixed: normalise → 60/h per IP → peek the 10-per-24 h failure cap → verify →
   only a mismatch on a live challenge counts → find or create the user → revoke any presented
-  session → new session → clear the failure counter. Every failure is 400 `invalid_code`.
+  session → new session → clear the failure counter. Every code-check failure (unknown,
+  expired, consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`.
+  The per-IP limit is 429 `rate_limited` and the lockout is 429 `too_many_attempts`, both with
+  `Retry-After`; clients treat 429 as its own state.
 - Client IP comes only from `x-real-ip`; IPv6 is bucketed by /64. Never trust
   `x-forwarded-for`.
 - Sessions: a 32-byte random token; only its SHA-256 is stored. Cookie
@@ -202,12 +214,17 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   Magic Remedies Act). Facts not yet supplied render "To be added".
 - Shoppers read category names as Heart care, Diabetes care, Eye care, Respiratory care (and
   Digestive care, Bone and joint care, Urinary care), never therapy-area words such as
-  Cardiology. The code still holds the old names until UI plan Task 8.
+  Cardiology. `CATEGORY_LIST` holds the shopper names since #51. The seed is insert-only, so an
+  existing database keeps old names and product order until it is reseeded the safe way: README
+  "Reseeding after the category rename" (`db.categories.deleteMany({})` then `pnpm seed`, then
+  per-slug `updateOne` of product `sortOrder`).
+- The seed gives Sacuwin 50, 100 and 200 `sortOrder` 0–2, so the Aarvion-printed packs lead
+  Heart care (controller ruling, `rulings.md`). Keep new products after them.
 - **Win2Age placeholder photos:** only the Sacuwin packs are Aarvion-printed. 7 products show
   packs printed under Win2Age (Aarvion's earlier marketer) and Caftop's pack is unbranded.
-  `imageSource` in `data/products.json` marks each; keep it accurate. A Win2Age pack
-  never leads a banner, and product pages will caption Win2Age photos (UI plan Task 32). Swap them with
-  [the runbook](docs/dev/runbooks/swap-a-product-photo.md).
+  `imageSource` in `data/products.json` marks each; keep it accurate. A Win2Age pack never
+  leads a banner, and product pages will caption Win2Age photos (UI plan Task 32). Swap them
+  with [the runbook](docs/dev/runbooks/swap-a-product-photo.md).
 
 **Environments**
 
@@ -259,7 +276,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 
 - Rulings made for the owner: [docs/decisions/rulings.md](docs/decisions/rulings.md). Topic
   records: `stack.md`, `db.md`, `environments.md`, `repo.md`. Phase ledgers:
-  `phase-f-ledger.md`, `phase-ca-ledger.md`.
+  `phase-f-ledger.md`, `phase-ca-ledger.md`. At the end of each phase its execution ledger is
+  persisted to `docs/decisions/` the same way.
 - To record a decision, add one bullet to the right section of `rulings.md`: **the ruling (date)**,
   the reason, and "Cost if wrong: …". If it replaces an older ruling, say "supersedes …" and edit
   the old line to point at the new one. Never delete history.
@@ -286,6 +304,8 @@ A change is done only when all of these hold:
 - Do not log codes, tokens, phone numbers, emails or prescription content.
 - Do not invent ratings, reviews, counts, badges, certifications or medical claims.
 - Do not hand-edit `public/products/` or `data/product-images.json`; run `pnpm images:sync`.
+  Files in `public/foil/` and `public/banners/` are copied unchanged from
+  `design/prototype/assets/` with their sidecars; `scripts/public-provenance.test.ts` pins them.
 - Do not re-run `scripts/build_stage0_docs.py`: it overwrites `data/products.json` and the
   catalogue docs.
 - Do not change an existing index in place, or add a collection index without a name.
