@@ -173,7 +173,7 @@ bottom use commit SHAs.
 - A rate-limit store error while clearing the failure counter after a successful OTP verify no
   longer turns the login into a 500 with a session the client never receives; it is logged by
   error name, like a failed audit write (#99).
-- The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen (#113).
+- The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen. A dot fill that ends in the frame a hold or the pause starts is kept as `due` and advances once autoplay can run again, so the banner can no longer stall on one slide (#113).
 
 ## [0.1.0] - 2026-11-17
 
