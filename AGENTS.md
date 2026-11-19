@@ -240,8 +240,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   production build lacks `ALLOW_MOCKS_IN_PROD_BUILD=1`, or when the database is `aarvion_prod`.
   Set `ALLOW_MOCKS_IN_PROD_BUILD=1` only for the e2e build and the Vercel Preview scope.
 - Production sets `MONGODB_DB=aarvion_prod`. Previews use a separate database.
-- Every dev-only route under `src/app/dev/` calls `requireDevRoute()` first and is not wrapped in
-  `withErrors`.
+- Every dev-only route under `src/app/dev/` calls `requireDevRoute()` before any work (right after
+  `await connection()` in a GET), outside `withErrors`.
 
 **Code rules that protect the invariants**
 
@@ -297,6 +297,8 @@ A change is done only when all of these hold:
 
 1. Tests added or updated, written first where practical, and the full local check passes.
 2. A line under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md), ending with the PR number.
+   CHANGELOG.md uses git's `union` merge driver (`.gitattributes`), so merging `origin/main` into
+   your branch keeps both sides' lines; check for duplicated or misplaced lines afterwards.
 3. The matching page under [docs/dev/](docs/dev/README.md) is updated for any new or changed
    command, script, env var, route, data rule, folder, convention or procedure; AGENTS.md too if
    it changes how agents work; a ruling recorded if a rule changed.

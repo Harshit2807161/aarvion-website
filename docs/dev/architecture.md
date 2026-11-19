@@ -91,7 +91,7 @@ A mutation, for example `POST /api/auth/otp/verify`:
 
 1. `withErrors` wraps the handler: an `HttpError` becomes `{ error, retryAfterSec? }` with its
    status and `Retry-After`; an `EnvError` becomes 500 `server_misconfigured`; anything else 500
-   `internal_error`. Only the error name is logged.
+   `internal_error`. Only the error name is logged. Next's control flow is rethrown (`unstable_rethrow`).
 2. `assertSameOrigin(req)`: `Origin` must equal the request's origin or `APP_URL`'s (403
    `bad_origin`; a missing or `null` Origin is refused).
 3. `readJson(req, Schema)`: 415 unless `application/json`, 413 over 16 KB, 400 `invalid_json` or
@@ -142,20 +142,22 @@ parts with `setDepsForTests({ now, sms, … })` and restore with `resetDepsForTe
 
 ## Caching
 
-**Now (since #60, UI Task 7a):** Cache Components is on (`next.config.ts`: `cacheComponents`,
+**Now (since #60, #68):** Cache Components and `partialPrefetching` are on (`next.config.ts`:
 AVIF/WebP, `images.qualities` 70/75/85). Every GET handler's first statement is
 `await connection()`, then `requireDevRoute()` in `src/app/dev/**`; `export const dynamic`,
 `revalidate` and `fetchCache` are banned (`src/server/route-config.test.ts`). Int tests mock
-`connection()` and `next/cache` through `tests/helpers/next-mocks.ts`. Nothing is cached yet.
+`connection()` and `next/cache` through `tests/helpers/next-mocks.ts`.
 
-**Planned (UI Task 7b onward):**
+**Since #68 (pages read these from UI Task 9):**
 - Catalogue reads go through `'use cache'` wrappers in
-  `src/lib/catalogue/cached.ts`, tagged `catalogue`, with `cacheLife("hours")` as a backstop.
+  `src/lib/catalogue/cached.ts`, tagged `catalogue` (plus `catalogue:<kind>:<slug>` for a valid slug), with `cacheLife("hours")` as a backstop.
 - `revalidateCatalogue()` calls `revalidateTag("catalogue", { expire: 0 })`, so the next request
   after an MRP, photo, active or category write shows the new value. Phase D's admin writes must
-  call it.
+  call it; so does the dev-only `POST /dev/catalogue/revalidate`. A direct DB edit needs a redeploy.
 - Pages prerender from the DB at build time, so every Vercel scope needs a reachable, seeded
   database at build; an empty catalogue throws `CatalogueEmptyError` and fails the build.
+
+**Planned:**
 - Header auth state is fetched after hydration from `GET /api/auth/session`, so pages stay
   static. Product images are content-hashed, so the CDN can cache them forever.
 - Client components (`src/components/**`) import at runtime from `src/server/**` only the pure

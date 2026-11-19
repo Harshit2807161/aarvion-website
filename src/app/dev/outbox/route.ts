@@ -3,9 +3,8 @@ import { jsonResponse } from "@/server/http";
 import { requireDevRoute } from "@/server/dev-only";
 import { readOutbox } from "@/server/providers/outbox";
 
-// Deliberately not wrapped in withErrors: requireDevRoute() throws Next's notFound() control-flow
-// error, which Next must see to answer 404 (withErrors would turn it into a 500). It runs after
-// connection(), so the 404 decision uses the request-time environment, not the build's.
+// requireDevRoute() runs after connection(), so the 404 decision uses the request-time
+// environment, not the build's.
 export async function GET(req: Request): Promise<Response> {
   await connection();
   requireDevRoute();

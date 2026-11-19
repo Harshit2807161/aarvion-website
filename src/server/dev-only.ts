@@ -3,7 +3,10 @@
 import { notFound } from "next/navigation";
 import { isMockForbidden } from "./providers/guard.ts";
 
-/** Call first in every dev-only route or page: a 404 whenever mocks are forbidden. */
+/**
+ * A 404 whenever mocks are forbidden. Call it first in every dev-only handler; in a GET or a page,
+ * call it right after `await connection()` (C8), so the decision uses the request-time environment.
+ */
 export function requireDevRoute(): void {
   if (isMockForbidden()) notFound();
 }

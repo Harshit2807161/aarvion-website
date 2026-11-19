@@ -35,7 +35,8 @@ export function orderForShelf(
     const key = familyKey(p);
     familyRank.set(key, Math.min(familyRank.get(key) ?? Infinity, p.sortOrder));
   }
-  return products.toSorted(
+  // Not toSorted(): it is missing in Firefox 111-114, which Next 16 still targets, unpolyfilled.
+  return [...products].sort(
     (a, b) =>
       byNumber(
         categoryRank.get(a.category) ?? Infinity,

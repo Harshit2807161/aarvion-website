@@ -18,6 +18,36 @@ mock-enabled deploy on the production database would expose real customers.
   e2e smoke can run without a database. Vercel production (`VERCEL_ENV=production`)
   always fails closed.
 
+## Build-time database (Cache Components)
+
+Pages prerender from the catalogue at build time (`src/lib/catalogue/cached.ts`), so a build
+reads Mongo. It fails closed: it never deploys an empty storefront.
+
+- Every Vercel scope (Preview and Production) needs `MONGODB_URI` and `MONGODB_DB` available
+  **at build time**, with the same values as at runtime.
+- That database must be seeded: with the scope's `MONGODB_URI` and `MONGODB_DB` exported, run
+  `pnpm db:indexes && pnpm seed` (insert-only, safe to re-run).
+- Atlas network access must admit Vercel's build machines as well as its functions. Their IPs
+  are not fixed, so this means access from anywhere with strong credentials, or a fixed-egress
+  option such as Vercel Secure Compute.
+- Failure modes, each a failed build (the live deploy stays up): no `MONGODB_URI` ("MONGODB_URI
+  is not set"); an unreachable cluster (fails after the 3 s server-selection timeout); an empty
+  catalogue (`CatalogueEmptyError` from `generateStaticParams`, naming `MONGODB_DB` and the seed
+  command).
+- CI: the `build` job seeds `aarvion_build`; the `e2e` job seeds `aarvion_e2e`.
+- Freshness: catalogue writes call `revalidateCatalogue()` (`revalidateTag("catalogue",
+  { expire: 0 })`), so the next request re-reads Mongo; `cacheLife("hours")` is a backstop.
+  A new deploy starts with an empty cache. Three gaps:
+  - **A direct database edit is not expired.** An MRP changed in mongosh or the Atlas UI calls
+    nothing, and in Production `POST /dev/catalogue/revalidate` answers 404. The old price can
+    show until the 1 h backstop (the first request after it may still get the old page while it
+    refreshes) or until a redeploy. Until the phase D admin MRP editor exists (it calls
+    `revalidateCatalogue()`), the procedure is: edit, then redeploy.
+  - **The browser may keep a page for up to 5 minutes** (the `hours` profile's client `stale`
+    time), even after a revalidation.
+  - **Cart and checkout always reprice from Mongo**, never from the page, so a stale page never
+    sets the charged price.
+
 ## Enforcement status
 
 Enforced. `isMockForbidden()` refuses mocks, and dev-only routes 404, when any of these hold:

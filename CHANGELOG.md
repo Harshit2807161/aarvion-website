@@ -54,6 +54,9 @@ bottom use commit SHAs.
   switched to it, and `scripts/brand-assets.test.ts` (#67).
 - Logo tracing script `scripts/trace_logo.py`, which regenerates the masters, `public/brand/`
   and the app icons (#70).
+- Cached catalogue reads in `src/lib/catalogue/cached.ts` (`'use cache'`, `cacheLife("hours")`,
+  tag `catalogue` plus a per-slug tag for valid slugs), `revalidateCatalogue()` (expires at once),
+  `assertCatalogue()` and the dev-only `POST /dev/catalogue/revalidate` (#68).
 - `percentOff()` (floored, never rounds up) and the base components `RxBadge`, `StatusTag`, `Rupees`,
   `StampPrice` and `PriceInline` in `src/components/base/`, with `src/styles/stamp.css`; the stamp
   hides its tag below 1% and `src/lib/price-source.test.ts` keeps UI code from recomputing prices (#71).
@@ -62,6 +65,8 @@ bottom use commit SHAs.
 
 ### Changed
 
+- `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
+  a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).
 - Categories use shopper names (Heart care, Diabetes care, Eye care, Respiratory care, Digestive
   care, Bone and joint care, Urinary care), and the seed puts Sacuwin 50, 100 and 200 first in
@@ -69,6 +74,8 @@ bottom use commit SHAs.
 - Cache Components is on: every GET handler starts with `await connection()`, route files no
   longer export `dynamic` (`src/server/route-config.test.ts`), and int tests mock `next/server`
   and `next/cache` (#60).
+- The CI `build` job seeds Mongo (`aarvion_build`) and `e2e` seeds `aarvion_e2e`; `withErrors`
+  rethrows Next's control flow (`unstable_rethrow`); `partialPrefetching` is on (#68).
 - `pr-size` is required for every PR, docs included; `docs/decisions/repo.md` lists the nine
   required checks (#52).
 - `docs/progress.md` is retired to a pointer at the handoff, the changelog and the decisions

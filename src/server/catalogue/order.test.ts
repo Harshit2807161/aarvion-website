@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { catalogueCategories, publicCatalogue } from "../../../tests/helpers/catalogue";
 import { compareVariants, orderForShelf } from "./order.ts";
+import type { PublicProduct } from "./queries.ts";
 
 const slugs = (ps: { slug: string }[]) => ps.map((p) => p.slug);
 const family = (familySlug: string) =>
@@ -69,6 +70,29 @@ describe("orderForShelf", () => {
   it("ranks a family by its lowest sortOrder", () => {
     const ps = shuffled().map((p) => (p.slug === "bemptor-r40" ? { ...p, sortOrder: -1 } : p));
     expect(slugs(orderForShelf(ps, catalogueCategories())).slice(0, 5)).toEqual([
+      "bemptor-180",
+      "bemptor-r40",
+      "sacuwin-50",
+      "sacuwin-100",
+      "sacuwin-200",
+    ]);
+  });
+
+  it("puts products of an unknown category last", () => {
+    const ps = shuffled().map((p) =>
+      p.slug === "mucohelp"
+        ? { ...p, category: "not-a-category" as PublicProduct["category"], sortOrder: -5 }
+        : p,
+    );
+    expect(slugs(orderForShelf(ps, catalogueCategories())).at(-1)).toBe("mucohelp");
+  });
+
+  it("keeps tied families together, ordered by familySlug", () => {
+    const ps = shuffled().map((p) => (p.slug === "bemptor-r40" ? { ...p, sortOrder: 0 } : p));
+    const cardio = orderForShelf(ps, catalogueCategories()).filter(
+      (p) => p.category === "cardiology",
+    );
+    expect(slugs(cardio)).toEqual([
       "bemptor-180",
       "bemptor-r40",
       "sacuwin-50",
