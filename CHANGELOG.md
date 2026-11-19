@@ -66,7 +66,6 @@ bottom use commit SHAs.
   gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`) (#76).
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
-  gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`).
 - `StoreFooter` and `Brand` in `src/components/shell/` with `src/styles/footer.css`; the root layout
   renders the footer.
 
@@ -75,8 +74,8 @@ bottom use commit SHAs.
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
   resolve to localhost; an unset or invalid value falls back to `http://localhost:3000` instead of
   failing the build (#76).
-  resolve to localhost. It also reads the live categories for the footer, so **every build now
-  needs a seeded database**: seed the Preview DB before this merges into a Vercel-connected repo.
+- The root layout reads the live categories for the footer, so **every build now needs a seeded
+  database**: seed the Preview DB before this merges into a Vercel-connected repo.
 - `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
   a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).
