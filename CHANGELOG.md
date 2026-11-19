@@ -62,6 +62,8 @@ bottom use commit SHAs.
   hides its tag below 1% and `src/lib/price-source.test.ts` keeps UI code from recomputing prices (#71).
 - `Button` and `ButtonLink` in `src/components/base/` (seven variants, three sizes, a busy state that
   drops clicks) with `src/styles/buttons.css` (#74).
+- `Button` and `ButtonLink` (seven variants, busy state) with `src/styles/buttons.css`, the `/dev/styleguide`
+  page, and `src/proxy.ts`, which makes every `/dev/*` URL a real HTTP 404 where mocks are forbidden (#72).
 
 ### Changed
 

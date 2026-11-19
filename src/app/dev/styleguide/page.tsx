@@ -8,9 +8,9 @@ import { requireDevRoute } from "@/server/dev-only";
 
 export const metadata: Metadata = { title: "Styleguide (dev)", robots: { index: false } };
 
-// Cache Components would otherwise reject connection() outside Suspense. A Suspense wrapper
-// would let the shell stream before requireDevRoute() decides, losing the real 404 status, so
-// this page opts out of prerendering and blocks until the guard has run.
+// `instant = false` is the documented Next 16 opt-out for Cache Components' instant-navigation
+// check: connection() must run before the guard, so this page blocks instead of prerendering.
+// The real 404 status for production comes from src/proxy.ts; requireDevRoute() is the backstop.
 export const instant = false;
 
 const VARIANTS: ButtonVariant[] = [
