@@ -87,7 +87,7 @@ bottom use commit SHAs.
   `src/styles/otp.css` (#89).
 - `OtpField` takes Android SMS autofill at the caret (a native `beforeinput` listener, since React's
   `onBeforeInput` never carries `inputType`), shortens its boxes to 54 px at 400 px and narrower, and
-  the styleguide has an OTP section (#NNN).
+  the styleguide has an OTP section (#95).
 
 ### Changed
 
