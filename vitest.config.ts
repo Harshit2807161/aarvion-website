@@ -1,3 +1,4 @@
+import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
@@ -12,16 +13,18 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
-          include: ["src/server/**/*.test.ts", "scripts/**/*.test.ts"],
+          include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
         },
       },
       {
+        plugins: [react()],
         resolve: { alias },
         test: {
           name: "ui",
           environment: "happy-dom",
           include: ["src/**/*.test.tsx"],
-          exclude: ["src/server/**", "**/node_modules/**"],
+          exclude: ["**/node_modules/**"],
+          setupFiles: ["tests/helpers/ui-setup.ts"],
         },
       },
       {
