@@ -95,6 +95,7 @@ describe("GET /api/auth/me", () => {
         phone: PHONE,
         email: null,
         role: "customer",
+        name: null,
       },
     });
   });

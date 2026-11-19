@@ -86,6 +86,7 @@ describe("POST /api/auth/otp/verify", () => {
         phone: PHONE,
         email: null,
         role: "customer",
+        name: null,
       },
       isNewUser: true,
     });
