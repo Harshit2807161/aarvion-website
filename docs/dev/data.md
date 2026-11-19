@@ -9,6 +9,8 @@
 | `public/products/<slug>/` | served, content-hashed images | `pnpm images:sync` only |
 | `assets/products/original/` | source photos (WebP) | hand |
 | `assets/products/cutout/<slug>.webp` | transparent cutout of each hero photo | `scripts/make_cutouts.py` or hand |
+| `design/prototype/assets/banners/` | banner composites with `.json` sidecars | `scripts/composite_store_banners.py` |
+| `public/banners/`, `public/foil/` | served banner (1792 and phone `-m` crops, not the 1280) and foil rasters, with sidecars | copied unchanged from `design/prototype/assets/`; `scripts/public-provenance.test.ts` pins them |
 | `src/server/catalogue/categories.ts` | the 8 categories (`CATEGORY_LIST`) | code change |
 | `data/source/` | the Drive-folder analysis (file list, OCR, mapping) | not edited |
 | `docs/catalogue.md`, `docs/missing-products.md` | the full 32-line catalogue and the 20 products without photos | hand |
@@ -49,11 +51,11 @@ Current products (price = MRP − ₹20):
 
 | Slug | Category | MRP | Price | Photos | `sortOrder` |
 | --- | --- | --- | --- | --- | --- |
-| `bemptor-r40` | cardiology | ₹630 | ₹610 | win2age | 0 |
-| `bemptor-180` | cardiology | ₹380 | ₹360 | win2age | 1 |
-| `sacuwin-100` | cardiology | ₹407 | ₹387 | aarvion | 4 |
-| `sacuwin-200` | cardiology | ₹290 | ₹270 | aarvion | 5 |
-| `sacuwin-50` | cardiology | ₹281 | ₹261 | aarvion | 6 |
+| `sacuwin-50` | cardiology | ₹281 | ₹261 | aarvion | 0 |
+| `sacuwin-100` | cardiology | ₹407 | ₹387 | aarvion | 1 |
+| `sacuwin-200` | cardiology | ₹290 | ₹270 | aarvion | 2 |
+| `bemptor-r40` | cardiology | ₹630 | ₹610 | win2age | 3 |
+| `bemptor-180` | cardiology | ₹380 | ₹360 | win2age | 4 |
 | `vildage-m-50-500` | diabetology | ₹185 | ₹165 | win2age | 20 |
 | `hyloage` | ophthalmology | ₹425 | ₹405 | win2age | 25 |
 | `sysnet-ultra` | ophthalmology | ₹416 | ₹396 | win2age | 26 |
@@ -63,9 +65,10 @@ Current products (price = MRP − ₹20):
 
 Open data questions live in each product's `notes` and in [handoff.md](../handoff.md): the
 Bemptor-R40 MRP (read as ₹630, OCR said ₹650), the Hyloage and Sysnet Ultra manufacturers, and
-whether Mucohelp is the right product. A controller ruling (UI phase) gives the Sacuwin family
-the lowest `sortOrder` in Heart care so Aarvion-printed packs lead the first rail; that data
-change lands with UI plan Task 7 (planned).
+whether Mucohelp is the right product. Since #51 the Sacuwin family has the lowest `sortOrder`
+in Heart care (0–2) so Aarvion-printed packs lead the first rail (controller ruling in
+`docs/decisions/rulings.md`); give a new product a `sortOrder` after its category's existing
+ones, and never below Sacuwin in cardiology.
 
 ## Images
 
@@ -88,7 +91,10 @@ product has no cutout. Running `pnpm images:sync` on an unchanged tree changes n
 
 Banner composites (`scripts/composite_store_banners.py`, Python with Pillow) place the cutouts on
 the generated scenes in `assets/banners/store/` and write `design/prototype/assets/banners/` with
-`.json` provenance sidecars. Text is never baked into a banner.
+`.json` provenance sidecars. The served copies are `public/banners/<scene>-1792.webp` and
+`<scene>-m.webp` with their sidecars, copied unchanged (the 1280 exports are not served);
+`scripts/public-provenance.test.ts` checks the file set, the sidecars, the pixel sizes (1792 × 588,
+840 × 472), the generator and a 120 KB cap. Text is never baked into a banner.
 
 ## Seed
 
@@ -104,30 +110,35 @@ the generated scenes in `assets/banners/store/` and write `design/prototype/asse
 It is **insert-only**: an existing document (and any admin edit to it) is never changed, and
 re-runs report everything as `existing`. A product missing from the manifest exits 1 naming the
 slug. Consequence: a change to an existing product or category in the JSON or code does not reach
-a database that already has it. Apply it with the admin (phase D, planned), a targeted update, or
-by dropping a dev database and seeding again. The runbooks say which.
+a database that already has it. Apply it with a targeted `updateOne` (the runbooks give each), or
+the admin once phase D exists. Dropping data and seeding again is only for a fresh or local
+database with no admin edits, orders or carts, never Preview or Production.
 
 ## Categories
 
 `CATEGORY_SLUGS` (the zod enum in `schema.ts`) and `CATEGORY_LIST` (`categories.ts`) define 8
 categories with `status` and `sortOrder`:
 
-| Slug | Name in code today | Shopper name (UI plan Task 8) | Status |
+| Slug | Name (shopper name, since #51) | Status | `sortOrder` |
 | --- | --- | --- | --- |
-| `cardiology` | Cardiology | Heart care | live |
-| `diabetology` | Diabetology | Diabetes care | live |
-| `ophthalmology` | Eye care | Eye care | live |
-| `respiratory` | Respiratory | Respiratory care | live |
-| `gastroenterology` | Gastroenterology | Digestive care | coming_soon |
-| `orthopaedics` | Orthopaedics | Bone and joint care | coming_soon |
-| `urology` | Urology | Urinary care | coming_soon |
-| `pain-management` | Pain Management | Pain Management | hidden |
+| `cardiology` | Heart care | live | 1 |
+| `diabetology` | Diabetes care | live | 2 |
+| `ophthalmology` | Eye care | live | 3 |
+| `respiratory` | Respiratory care | live | 4 |
+| `gastroenterology` | Digestive care | coming_soon | 5 |
+| `orthopaedics` | Bone and joint care | coming_soon | 6 |
+| `urology` | Urinary care | coming_soon | 7 |
+| `pain-management` | Pain Management | hidden | 8 |
 
 - Only products in **live** categories are public: lists, search, slug lookups and families.
 - **coming_soon** categories are listed but show no products.
 - **hidden** categories resolve to `null` (their pages 404).
-- Slugs never change; display names do. Because the seed is insert-only, the Task 8 rename
-  reaches an existing database only after `db.categories.deleteMany({})` and `pnpm seed`.
+- Slugs never change; display names do. The seed is insert-only, so a database seeded before
+  #51 keeps the old names and product order. Reseed it the safe way (README "Reseeding after the
+  category rename"): `db.categories.deleteMany({})` then `pnpm seed`, then for products a
+  per-slug `db.products.updateOne({ slug: "sacuwin-50" }, { $set: { sortOrder: 0 } })` and the
+  same for `sacuwin-100` (1), `sacuwin-200` (2), `bemptor-r40` (3), `bemptor-180` (4). Deleting
+  products is only for a fresh or dev database with no admin edits, orders or carts.
 
 ## Prices
 
