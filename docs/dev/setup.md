@@ -32,13 +32,15 @@ curl -s http://localhost:3000/api/health   # {"status":"ok","version":"0.1.0","d
   change to a database that already has it, prefer a targeted `updateOne` (the runbooks give
   each one, and README "Reseeding after the category rename" gives the category one).
 - Starting a database over is **only for the local docker database** (or a fresh one) with no
-  admin edits, orders or carts you want to keep, and **never for Preview or Production**. Check
-  the name first, then drop it and seed again (not verified here):
+  admin edits, orders or carts you want to keep, and **never for Preview or Production**. One
+  guarded command checks the name and drops only a local dev database (`aarvion` by default, or
+  `aarvion_e2e`); anything else is refused. Then seed again (not verified here):
 
   ```sh
-  # replace aarvion with your MONGODB_DB if you changed it
-  docker compose exec mongo mongosh --quiet --eval 'db.getSiblingDB("aarvion").getName()'
-  docker compose exec mongo mongosh --quiet --eval 'db.getSiblingDB("aarvion").dropDatabase()'
+  # the positional argument is the database to drop: your MONGODB_DB (default aarvion)
+  docker compose exec mongo mongosh --quiet aarvion --eval '
+    if (["aarvion", "aarvion_e2e"].includes(db.getName())) printjson(db.dropDatabase());
+    else print("refusing: " + db.getName() + " is not a local dev database");'
   pnpm db:indexes && pnpm seed
   ```
 
