@@ -46,10 +46,10 @@ Why each was chosen: [docs/decisions/stack.md](docs/decisions/stack.md).
 ```
 src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide}, layout, placeholder home;
                     globals.css (Tailwind 4 @theme tokens)
-src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms and overlay.css) and the token and CSS tests
+src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms, overlay and toast.css) and the token and CSS tests
 src/lib/            client-safe helpers (cn)
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES)
-src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, shell/ so far)
+src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, feedback/, shell/ so far)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
 src/components/overlay/  dialog and side sheet: the pure drag thresholds (the drag hook and the Overlay component follow)
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
@@ -283,6 +283,11 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   `scripts/trace_logo.py`, never hand-edited. Logo colours are brand-only, never UI colours. Do
   not edit `public/brand/` or `design/prototype/assets/brand/` unless your task says so.
 - UI tasks follow the visual check and finish-review gates in the UI plan.
+- Spoken feedback goes through the one polite live region: call `announce()` from
+  `src/components/feedback/live-region.tsx`; never add another `aria-live="polite"` element.
+  Customer toasts are `toast()` from `feedback/toast.tsx` (one at a time); Sonner and
+  lucide-react are banned. shadcn CLI output (`src/components/ui/`) is committed with a first-line
+  `// @generated shadcn` marker and must not bring `lucide-react` or `tw-animate-css` with it.
 
 ## Decisions
 

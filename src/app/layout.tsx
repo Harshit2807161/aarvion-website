@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { StoreFooter } from "@/components/shell/store-footer";
+import { LiveRegion } from "@/components/feedback/live-region";
+import { Toaster } from "@/components/feedback/toast";
 import { resolveSiteMetadataBase, SITE_CONFIG } from "@/config/site";
 import { fontVariables } from "@/fonts";
 import { getCachedCategories } from "@/lib/catalogue/cached";
@@ -32,6 +34,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         {children}
         <StoreFooter categories={live} />
+        <Toaster />
+        <LiveRegion />
       </body>
     </html>
   );

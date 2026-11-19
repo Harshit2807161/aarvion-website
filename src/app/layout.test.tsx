@@ -47,11 +47,11 @@ describe("root layout", () => {
       children: ReactElement;
     }>;
     const body = html.props.children as ReactElement<{ children: ReactElement[] }>;
-    const [page, footer] = body.props.children as [
-      string,
-      ReactElement<{ categories: { slug: string }[] }>,
-    ];
-    expect(page).toBe("page");
+    const kids = body.props.children as ReactElement[];
+    const footer = kids.find((k) => k.type === StoreFooter) as ReactElement<{
+      categories: { slug: string }[];
+    }>;
+    expect(kids[0]).toBe("page");
     expect(footer.type).toBe(StoreFooter);
     expect(footer.props.categories.map((c) => c.slug)).toEqual(["cardiology"]);
   });

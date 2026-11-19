@@ -69,6 +69,7 @@ bottom use commit SHAs.
   URL a real HTTP 404 where mocks are forbidden (#75).
 - `StoreFooter` and `Brand` in `src/components/shell/` with `src/styles/footer.css`; the root layout
   renders the footer, with cash on delivery as the only payment line until prepaid is live (#82).
+- The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 
 ### Changed
