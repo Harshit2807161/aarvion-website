@@ -105,8 +105,8 @@ curl -s 'http://localhost:3000/dev/outbox?to=you@example.test'
   `pnpm dev` it works.
 - Verify with `POST /api/auth/otp/verify` and `{"channel","identifier","code"}`. A first login
   also needs `"signup": {"name","adult":true,"termsPrivacy":true,"marketing"}`, stored as the
-  new user's consent; without it the right code answers 409 `signup_required` and stays usable.
-  The session
+  new user's consent; without it the right code answers 409 `signup_required` and stays usable
+  until its original expiry (a resend replaces it). The session
   cookie `__Host-aarv_sid` needs `Secure`: it works on `http://localhost` in Chrome and Firefox,
   but not in Safari, on LAN addresses or on `*.test` hosts. Use `localhost` or https.
 

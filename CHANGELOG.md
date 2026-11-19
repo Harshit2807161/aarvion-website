@@ -185,6 +185,9 @@ bottom use commit SHAs.
 - Sign-up names may hold a zero-width joiner or non-joiner (U+200D, U+200C) between two letters
   or marks, as Indic spellings such as the Marathi eyelash ra need; #107 refused them. Every other
   control or format character is still refused (#116).
+- Sign-up names also refuse default-ignorable characters, such as a Hangul filler (renders blank)
+  or the combining grapheme joiner, which #107 let through; the joiner exception above still
+  holds. The name rule has a unit table in `src/server/auth/login.test.ts` (#121).
 - `findUserByIdentifier` and `findOrCreateUserByIdentifier` filter `{ $eq, $type: "string" }`, so
   they use the partial unique indexes instead of scanning every user (#116).
 - The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen. A dot fill that ends in the frame a hold or the pause starts is kept as `due` and advances once autoplay can run again, so the banner can no longer stall on one slide (#113).
