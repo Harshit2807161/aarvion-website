@@ -31,14 +31,7 @@ export function FormsDemo() {
         hint="Indian mobile numbers (+91) only."
       />
       <TextField id="sg-name" label="Full name" placeholder="Example name" />
-      <TextField
-        id="sg-bad"
-        label="Pincode"
-        mono
-        defaultValue="4000"
-        hint="Six digits."
-        error="Enter a 6-digit pincode."
-      />
+      <TextField id="sg-bad" label="Pincode" mono defaultValue="4000" error="Enter 6 digits." />
       <div>
         <Checkbox id="sg-adult" label="I am 18 or older" defaultChecked />
         <Checkbox
@@ -48,7 +41,7 @@ export function FormsDemo() {
         />
         <Checkbox
           id="sg-terms"
-          label="I agree to the Terms of use"
+          label="I agree to the Terms"
           error="Accept the terms to continue."
         />
       </div>

@@ -33,15 +33,9 @@ export function Segmented<T extends string>({
     // Leave Alt/Cmd/Ctrl/Shift combinations (browser back/forward, shortcuts) to the browser.
     if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     const n = options.length;
-    const step = STEP[e.key];
+    const step = STEP[e.key] ?? 0;
     const target =
-      step !== undefined
-        ? (current + step + n) % n
-        : e.key === "Home"
-          ? 0
-          : e.key === "End"
-            ? n - 1
-            : -1;
+      e.key === "Home" ? 0 : e.key === "End" ? n - 1 : step ? (current + step + n) % n : -1;
     const next = options[target];
     if (!next) return;
     e.preventDefault();

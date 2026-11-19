@@ -24,8 +24,7 @@ export function Checkbox({
   ...input
 }: CheckboxProps) {
   const hasError = Boolean(error);
-  const describedBy =
-    [hasError ? `${id}-err` : null, extraDescribedBy].filter(Boolean).join(" ") || undefined;
+  const describedBy = [hasError && `${id}-err`, extraDescribedBy].filter(Boolean).join(" ");
   return (
     <div>
       <label className={cn("check", hasError && "is-invalid", className)} htmlFor={id}>
@@ -34,7 +33,7 @@ export function Checkbox({
           id={id}
           type="checkbox"
           className="check-input"
-          aria-describedby={describedBy}
+          aria-describedby={describedBy || undefined}
           aria-invalid={hasError ? true : undefined}
         />
         <span className="check-box" aria-hidden="true">
