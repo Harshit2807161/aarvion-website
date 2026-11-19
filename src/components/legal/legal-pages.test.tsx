@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import PrivacyPage, { metadata as privacyMetadata } from "@/app/(store)/legal/privacy/page";
+import { ROUTES } from "@/config/routes";
 import { BANNED_CLAIMS, findClaims } from "../../../tests/helpers/claims";
 import {
   Fact,
@@ -115,5 +117,62 @@ describe("findClaims", () => {
       "The price of each pack is the MRP printed on it, less ₹20.",
     ])
       expect(findClaims(text)).toEqual([]);
+  });
+});
+
+/** The page's h2 texts in document order. */
+const h2s = (root: HTMLElement) => [...root.querySelectorAll("h2")].map((h) => h.textContent);
+
+describe("Privacy policy", () => {
+  const sub = "How Aarvion Pharmaceuticals collects, uses and protects your personal data.";
+
+  it("has the h1, the sub, the last-updated line and the metadata", () => {
+    const { container } = render(<PrivacyPage />);
+    expect(screen.getByRole("heading", { level: 1, name: "Privacy policy" })).toBeInTheDocument();
+    expect(container.querySelector(".band-sub")?.textContent).toBe(sub);
+    expect(container.textContent).toContain("Last updated 17 November 2026");
+    expect(privacyMetadata).toEqual({ title: "Privacy policy", description: sub });
+  });
+
+  it("has the 11 sections in order", () => {
+    expect(h2s(render(<PrivacyPage />).container)).toEqual([
+      "Who we are",
+      "What we collect",
+      "Why we use it",
+      "Your consent",
+      "Who we share it with",
+      "Where it is stored and for how long",
+      "How we protect it",
+      "Your rights under the Digital Personal Data Protection Act, 2023",
+      "Age",
+      "Cookies",
+      "Changes and contact",
+    ]);
+  });
+
+  it("states consent, sharing and protection as built, and marks the pending facts", () => {
+    const { container } = render(<PrivacyPage />);
+    const text = container.textContent!;
+    expect(text).toContain("Aarvion Pharmaceuticals, Plot No. 70, Second Floor");
+    expect(text).toContain("off by default");
+    expect(text).toContain("not stored by Aarvion");
+    expect(text).toContain("We never sell your personal data.");
+    expect(text).toContain("expires after 5 minutes");
+    expect(text).toContain("Sign-in sessions are stored only as a hash");
+    expect(text).toContain("never appear in our messages or logs");
+    expect(container.querySelectorAll(".pending").length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("links to the grievance page and to the account", () => {
+    render(<PrivacyPage />);
+    for (const link of screen.getAllByRole("link", { name: "Grievances" }))
+      expect(link.getAttribute("href")).toBe(ROUTES.legal.grievance);
+    expect(screen.getByRole("link", { name: "your account" }).getAttribute("href")).toBe(
+      ROUTES.account,
+    );
+  });
+
+  it("makes no invented claims", () => {
+    expect(findClaims(render(<PrivacyPage />).container.textContent!)).toEqual([]);
   });
 });

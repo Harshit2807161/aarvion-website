@@ -12,6 +12,7 @@ import { ensureIndexes } from "@/server/db/indexes";
 import { resetEnvForTests } from "@/server/env";
 import { OUTBOX_COLLECTION } from "@/server/providers/outbox";
 import { RATE_LIMITS_COLLECTION } from "@/server/security/rate-limit";
+import { DEFAULT_SIGNUP } from "../helpers/auth";
 import { installClock } from "../helpers/clock";
 import { jsonPost } from "../helpers/http";
 import { clearCollections, startMemoryReplSet, stopMemoryReplSet } from "../helpers/mongo";
@@ -50,7 +51,14 @@ beforeEach(async () => {
 async function login(): Promise<Response> {
   await SEND(jsonPost("/api/auth/otp/send", { channel: "phone", identifier: PHONE }));
   const code = await lastOtpCode(PHONE);
-  return VERIFY(jsonPost("/api/auth/otp/verify", { channel: "phone", identifier: PHONE, code }));
+  return VERIFY(
+    jsonPost("/api/auth/otp/verify", {
+      channel: "phone",
+      identifier: PHONE,
+      code,
+      signup: DEFAULT_SIGNUP,
+    }),
+  );
 }
 
 describe("audit log", () => {
