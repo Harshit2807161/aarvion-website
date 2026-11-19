@@ -19,6 +19,7 @@ bottom use commit SHAs.
 ### Added
 
 - Home banner slides and the banner fallback (`src/lib/catalogue/banners.ts`): `BANNER_SLIDES` holds the four slides' copy, links, alt text and rasters; `bannerSlides(products)` shows a slide only while every pack it names is live, and without Sacuwin the prescription slide leads, so a Win2Age-printed pack never leads the banner. The delivery line says "Cash on delivery available." until `SITE_CONFIG.onlinePayments` is on (#113).
+- Home "How ordering works" static composition: `OrderingSteps` (`src/components/home/ordering-steps.tsx`, `src/styles/steps.css`), mounted in `src/app/(store)/page.tsx`. Three steps over a dashed perforation and three example cards (prescription, order, shipping label) labelled "Example ...". It carries the `data-act`, `data-in` and `data-out` hooks that the film engine reads; the `.film` rules (and any `.film-root.measuring ...` selectors) arrive with the film wiring task. `--space-sec` and `--perforation` are scoped to `.act-steps` until a shared definition lands (#112).
 - Terms of use at `/legal/terms` (`src/app/(store)/legal/terms/page.tsx`): who can order, OTP sign-in, the prescription rule and validity ruling, prices, payment and quantity limits, delivery, cancellations and returns, no medical advice, and "To be added" for liability and governing law; the payment section offers only cash on delivery and names no online method until `onlinePayments` is true, then Razorpay as well (#105).
 - E2E: `e2e/shell.spec.ts` (an unknown URL is a 404 inside the store chrome) and `collectConsoleErrors(page)` in `e2e/helpers/console.ts`, which ignores only a 404 on the page's own URL and 404 `?_rsc=` prefetches of `PENDING_ROUTES` (unit tested in `scripts/e2e-console.test.ts`) (#111).
 - 404 and error pages: `src/app/not-found.tsx` (inside the store chrome, shared with the `(store)` layout through `withStoreChrome()` in `src/components/shell/store-chrome.tsx`), `error.tsx` (client; "Try again" calls `retry()`, which re-fetches, where `reset()` would not; logs only the error name and digest) and `global-error.tsx` (own `<html>`, inline styles); `EmptyState` (`src/components/shell/empty-state.tsx`, `src/styles/empty.css`) with a dot-matrix count at 3.6px pitch (#109).
@@ -106,6 +107,12 @@ bottom use commit SHAs.
   consuming it (a match refunds its attempt), `findUserByIdentifier`, and users gain an optional
   `name` and a DPDP `consents` record (policy version, times, OTP channel) written on insert only;
   `PublicUser` gains `name`. Login tests send `DEFAULT_SIGNUP` from `tests/helpers/auth.ts` (#99).
+- `POST /api/auth/otp/verify` accepts a strict `signup` (`name` free of control or format characters,
+  `adult: true`, `termsPrivacy: true`, `marketing`; else 400 `invalid_request`); a new user stores the
+  name and a DPDP consent record: version `2026-11-17` (`CONSENT_VERSION`), time, OTP channel (#107).
+- `GET /api/auth/session` (`src/app/api/auth/session/route.ts`) for the store header: always 200
+  with `{ user }` (the public user, now with `name`) or `{ user: null }`, never 401, `no-store`,
+  re-issuing a sliding customer cookie (#107).
 
 ### Changed
 
