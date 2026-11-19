@@ -2,6 +2,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { proxy, config } from "./proxy.ts";
 import { resetEnvForTests } from "./server/env.ts";
 
+// The e2e harness always runs with ALLOW_MOCKS_IN_PROD_BUILD=1 (it needs /dev/outbox), so a
+// mocks-forbidden production server cannot be e2e-tested. These tests run the proxy with the
+// environment stubbed instead. The full production check is manual, without the flag:
+//   pnpm build && pnpm start; curl -i localhost:3000/dev/styleguide /dev/outbox  (404), / (200)
 const saved = { ...process.env };
 function setEnv(vars: Record<string, string>) {
   for (const k of [
@@ -29,6 +33,8 @@ describe("proxy (dev routes)", () => {
     setEnv({ NODE_ENV: "production" });
     const res = proxy();
     expect(res.status).toBe(404);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(res.headers.get("x-robots-tag")).toBe("noindex");
   });
 
   it("answers 404 on the production database even in a mock-allowed build", () => {
