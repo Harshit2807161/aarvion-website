@@ -18,7 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
-- `GET /api/products?q=&strength=`: the header search's data. Reads the cached catalogue, matches by query tokens and variant strength in shelf order, returns at most 20 `SearchResult`s (`src/lib/catalogue/search-result.ts`), `no-store`, 60 requests a minute per IP bucket (429 `rate_limited`), and never logs the query. (#TBD)
+- `GET /api/products?q=&strength=`: the header search's data. Reads the cached catalogue, matches by query tokens and variant strength in shelf order, returns at most 20 `SearchResult`s (`src/lib/catalogue/search-result.ts`), `no-store`, 60 requests a minute per IP bucket (429 `rate_limited`), and never logs the query. (#123)
 
 - Login API client, verify half: `verifyCode` and `fetchSession` in `src/components/auth/api.ts`, plus `SignupPayload`, type-pinned both ways to the server's `SignupInput` in `api.test.ts`. `verifyCode` posts the trimmed name and a `signup` only when passed; a 400 or 413 with a signup is `signup_required` (the server refused the name), a 429 keeps `retryAfterSec`, and every other unexpected status maps to `network`. `fetchSession` returns only `{ name }`, or null when signed out or on any failure. Task 40 shows `nameInvalid` on `signup_required` in the profile step (#120).
 - `src/components/server-imports.test.ts`: components may import at runtime from `src/server/**` only `catalogue/pricing`, `catalogue/search` and `catalogue/order`; anything else needs a statement-level `import type`. It parses each file with the TypeScript compiler API, so side-effect imports, re-exports, `import()` and `require()` are caught too (#118).
