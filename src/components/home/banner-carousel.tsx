@@ -6,7 +6,6 @@ import { cn } from "@/lib/cn";
 import type { BannerSlide } from "@/lib/catalogue/banners";
 import { liveMode, playLabel } from "./carousel";
 import { useCarousel } from "./use-carousel";
-import "./banner.css";
 
 /**
  * The banner carousel's client shell (index.src.html 61–118): the controls, then the track that
