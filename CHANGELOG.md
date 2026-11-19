@@ -60,6 +60,8 @@ bottom use commit SHAs.
 - `percentOff()` (floored, never rounds up) and the base components `RxBadge`, `StatusTag`, `Rupees`,
   `StampPrice` and `PriceInline` in `src/components/base/`, with `src/styles/stamp.css`; the stamp
   hides its tag below 1% and `src/lib/price-source.test.ts` keeps UI code from recomputing prices (#71).
+- `Button` and `ButtonLink` in `src/components/base/` (seven variants, three sizes, a busy state that
+  drops clicks) with `src/styles/buttons.css` (#74).
 
 ### Changed
 
