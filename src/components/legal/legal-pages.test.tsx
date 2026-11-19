@@ -74,4 +74,46 @@ describe("findClaims", () => {
     expect(findClaims("Sign-in is rate-limited and stored securely.")).toEqual([]);
     expect(BANNED_CLAIMS).toHaveLength(14);
   });
+
+  it("flags a positive guarantee but passes a negated disclaimer", () => {
+    for (const text of [
+      "We guarantee genuine packs.",
+      "Guaranteed delivery.",
+      "A refund guarantee.",
+    ])
+      expect(findClaims(text)).toEqual([expect.stringMatching(/^guarantee$/i)]);
+    for (const text of [
+      "We do not guarantee delivery dates.",
+      "Aarvion does not guarantee it.",
+      "We don’t guarantee it.",
+      "We cannot guarantee it.",
+    ])
+      expect(findClaims(text)).toEqual([]);
+  });
+
+  it("[C25] flags copy saying every medicine needs a prescription, unless the page passes allRx", () => {
+    for (const text of [
+      "Every listed medicine needs a valid prescription.",
+      "All our medicines require a prescription.",
+      "Currently listed medicines all need one.",
+      "Every medicine on the store is Schedule H.",
+      "Our products all require a valid Rx.",
+    ]) {
+      expect(findClaims(text)).not.toEqual([]);
+      // allRx: true only when the page computed it from catalogue data.
+      expect(findClaims(text, { allRx: true })).toEqual([]);
+    }
+  });
+
+  it("[C25] passes the prescription rule stated as a rule", () => {
+    for (const text of [
+      "A medicine that needs a prescription is sold only against a valid prescription.",
+      "Prescription medicines are dispensed only against a valid prescription.",
+      "Schedule H and H1 medicines are dispensed only against a valid prescription.",
+      "A pharmacist checks every prescription before an order is packed.",
+      "Our pharmacist checks the prescription for every order.",
+      "The price of each pack is the MRP printed on it, less ₹20.",
+    ])
+      expect(findClaims(text)).toEqual([]);
+  });
 });

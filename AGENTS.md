@@ -222,8 +222,10 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 - No invented claims: no ratings, reviews, customer or order counts, "bestseller", "trending",
   delivery-time promises, certifications or "licensed". No therapeutic or cure claims (Drugs and
   Magic Remedies Act). Facts not yet supplied render "To be added" (`Pending` or `Fact` from
-  `src/components/legal/legal-page.tsx`). Every page and section test runs `findClaims`
-  (`tests/helpers/claims.ts`) over its rendered text and expects `[]`.
+  `src/components/legal/legal-page.tsx`). The legal page tests run `findClaims`
+  (`tests/helpers/claims.ts`) over their rendered text and expect `[]`; each page or section task
+  adds it to its tests as it lands. It also flags copy saying every medicine needs a prescription
+  [C25]; pass `{ allRx: true }` only where the page computes that from catalogue data.
 - Shoppers read category names as Heart care, Diabetes care, Eye care, Respiratory care (and
   Digestive care, Bone and joint care, Urinary care), never therapy-area words such as
   Cardiology. `CATEGORY_LIST` holds the shopper names since #51. The seed is insert-only, so an

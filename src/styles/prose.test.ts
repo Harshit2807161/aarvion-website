@@ -33,6 +33,11 @@ describe("prose.css", () => {
     expect(decls(".prose section + section")["border-top"]).toBe("1px solid var(--color-rule)");
   });
 
+  it("keeps list markers: discs for ul, numbers for ol", () => {
+    expect(decls(".prose ul")["list-style"]).toBe("disc");
+    expect(decls(".prose ol")["list-style"]).toBe("decimal");
+  });
+
   it("marks a pending fact as a sand-100 chip in wait-ink", () => {
     expect(decls(".pending").background).toBe("var(--color-sand-100)");
     expect(decls(".pending").color).toBe("var(--color-wait-ink)");
