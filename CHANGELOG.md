@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- `Checkbox` and `Segmented` (native radios, sliding thumb) in `src/components/form/`, with their tests and styleguide demo (#TBD).
 - `TextField` (the forms stylesheet is ported whole) in `src/components/form/` with the ported `src/styles/forms.css`: 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, 44 px targets, and a styleguide demo (#79).
 - Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
   Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React

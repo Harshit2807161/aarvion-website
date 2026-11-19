@@ -1,9 +1,25 @@
+"use client";
+
+import { useState } from "react";
+import { Checkbox } from "@/components/form/checkbox";
+import { Segmented } from "@/components/form/segmented";
 import { TextField } from "@/components/form/text-field";
 
-/** Dev-only demo of the form fields in their default, hinted and errored states. */
+/** Dev-only demo of the form fields in their default, hinted, errored and checked states. */
 export function FormsDemo() {
+  const [via, setVia] = useState<"mobile" | "email">("mobile");
   return (
     <div className="form max-w-md">
+      <Segmented
+        name="sg-via"
+        legend="Sign in with"
+        value={via}
+        onChange={setVia}
+        options={[
+          { value: "mobile", label: "Mobile", icon: "user" },
+          { value: "email", label: "Email", icon: "mail" },
+        ]}
+      />
       <TextField
         id="sg-mobile"
         label="Mobile number"
@@ -23,6 +39,19 @@ export function FormsDemo() {
         hint="Six digits."
         error="Enter a 6-digit pincode."
       />
+      <div>
+        <Checkbox id="sg-adult" label="I am 18 or older" defaultChecked />
+        <Checkbox
+          id="sg-news"
+          label="Tell me about new Aarvion medicines"
+          sub="Optional. Change it any time in your account."
+        />
+        <Checkbox
+          id="sg-terms"
+          label="I agree to the Terms of use"
+          error="Accept the terms to continue."
+        />
+      </div>
     </div>
   );
 }
