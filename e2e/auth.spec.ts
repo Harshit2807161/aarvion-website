@@ -28,8 +28,8 @@ test("OTP login: send, read the code from the dev outbox, verify, /me, logout", 
   const code = /\d{6}/.exec(messages.at(-1)!.payload.text)?.[0];
   expect(code).toBeDefined();
 
-  // The address is new, so the verify carries the sign-up details a first login needs from 38c on
-  // (until then the server ignores them).
+  // The address is new, so the verify carries the sign-up details, stored with the new user
+  // (from 38c on, a first login needs them).
   const signup = { name: "E2E Shopper", adult: true, termsPrivacy: true, marketing: false };
   const verify = await page.evaluate(
     async ({ email, ip, code, signup }) => {
