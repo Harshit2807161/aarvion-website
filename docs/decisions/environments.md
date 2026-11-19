@@ -37,7 +37,16 @@ reads Mongo. It fails closed: it never deploys an empty storefront.
 - CI: the `build` job seeds `aarvion_build`; the `e2e` job seeds `aarvion_e2e`.
 - Freshness: catalogue writes call `revalidateCatalogue()` (`revalidateTag("catalogue",
   { expire: 0 })`), so the next request re-reads Mongo; `cacheLife("hours")` is a backstop.
-  A new deploy starts with an empty cache.
+  A new deploy starts with an empty cache. Three gaps:
+  - **A direct database edit is not expired.** An MRP changed in mongosh or the Atlas UI calls
+    nothing, and in Production `POST /dev/catalogue/revalidate` answers 404. The old price can
+    show until the 1 h backstop (the first request after it may still get the old page while it
+    refreshes) or until a redeploy. Until the phase D admin MRP editor exists (it calls
+    `revalidateCatalogue()`), the procedure is: edit, then redeploy.
+  - **The browser may keep a page for up to 5 minutes** (the `hours` profile's client `stale`
+    time), even after a revalidation.
+  - **Cart and checkout always reprice from Mongo**, never from the page, so a stale page never
+    sets the charged price.
 
 ## Enforcement status
 

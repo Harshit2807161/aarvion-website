@@ -7,7 +7,8 @@ import { describe, expect, it } from "vitest";
 // (anything it reads first would abort the prerender), a dev GET calls `requireDevRoute()` next,
 // and the old segment configs are banned.
 const appDir = resolve(fileURLToPath(import.meta.url), "../../app");
-const ROUTE_GLOB = "**/route.{ts,tsx,js,mjs}";
+// Next 16's default pageExtensions (tsx, ts, jsx, js); .mjs is not a route extension.
+const ROUTE_GLOB = "**/route.{ts,tsx,js,jsx}";
 const routes = globSync(ROUTE_GLOB, { cwd: appDir }).map((f) => ({
   file: f,
   src: readFileSync(resolve(appDir, f), "utf8"),
@@ -66,7 +67,7 @@ describe("route handler config", () => {
     expect(getBodies("export function GET() {\n  return new Response();")).toEqual([null]);
     expect(getBodies("const GET = async () => {};\nexport { GET };")).toEqual([null]);
     expect("export const dynamic = 'force-dynamic';").toMatch(BANNED);
-    for (const f of ["api/x/route.ts", "api/x/route.tsx", "dev/route.js", "route.mjs"]) {
+    for (const f of ["api/x/route.ts", "api/x/route.tsx", "dev/route.js", "route.jsx"]) {
       expect(matchesGlob(f, ROUTE_GLOB)).toBe(true);
     }
   });

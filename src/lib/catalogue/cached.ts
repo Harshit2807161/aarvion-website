@@ -8,11 +8,15 @@ import {
   listVisibleCategories,
   type PublicProduct,
 } from "@/server/catalogue/queries";
-import type { Category } from "@/server/catalogue/schema";
+import { Slug, type Category } from "@/server/catalogue/schema";
 import { CATALOGUE_TAG, categoryTag, familyTag, productTag } from "./tags";
 
 // Pages read the catalogue only through these. "hours" is a backstop: catalogue writes
 // expire the tag at once through revalidateCatalogue().
+
+/** The per-slug tag, only for a valid slug: Next logs a rejected (over-long) tag verbatim. */
+const slugTag = (slug: string, tag: (slug: string) => string): string[] =>
+  Slug.safeParse(slug).success ? [tag(slug)] : [];
 
 /** Every public product (live categories, active), in shelf order. */
 export async function getCachedProducts(): Promise<PublicProduct[]> {
@@ -34,14 +38,14 @@ export async function getCachedCategories(): Promise<Category[]> {
 export async function getCachedCategory(slug: string): Promise<Category | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag(CATALOGUE_TAG, categoryTag(slug));
+  cacheTag(CATALOGUE_TAG, ...slugTag(slug, categoryTag));
   return getCategoryBySlug(slug);
 }
 
 export async function getCachedProduct(slug: string): Promise<PublicProduct | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag(CATALOGUE_TAG, productTag(slug));
+  cacheTag(CATALOGUE_TAG, ...slugTag(slug, productTag));
   return getProductBySlug(slug);
 }
 
@@ -49,6 +53,6 @@ export async function getCachedProduct(slug: string): Promise<PublicProduct | nu
 export async function getCachedFamily(familySlug: string): Promise<PublicProduct[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag(CATALOGUE_TAG, familyTag(familySlug));
+  cacheTag(CATALOGUE_TAG, ...slugTag(familySlug, familyTag));
   return getFamily(familySlug);
 }

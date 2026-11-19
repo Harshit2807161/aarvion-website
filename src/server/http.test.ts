@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+// Private Next path (the promise connection() returns in a prerender); an upgrade may move it.
 import { makeDynamicHangingPromise } from "next/dist/server/dynamic-rendering-utils";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";

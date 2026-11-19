@@ -30,7 +30,7 @@ Requires Node 24 (`.nvmrc`) and pnpm 12. Copy `.env.example` to `.env.local`.
 
 Route handlers (Cache Components is on): no `dynamic`, `revalidate` or `fetchCache` exports, and every `GET` starts with `await connection()`, followed in `src/app/dev/**` by `requireDevRoute()` (`src/server/route-config.test.ts`).
 
-Catalogue caching: pages read the catalogue only through `src/lib/catalogue/cached.ts` (`'use cache'`, `cacheLife("hours")`, tag `catalogue`). Every catalogue write must call `revalidateCatalogue()`, which expires the tag at once; locally, `POST /dev/catalogue/revalidate` (same-origin, dev only) does the same.
+Catalogue caching: pages read the catalogue only through `src/lib/catalogue/cached.ts` (`'use cache'`, `cacheLife("hours")`, tag `catalogue`). Every catalogue write must call `revalidateCatalogue()`, which expires the tag at once; locally, `POST /dev/catalogue/revalidate` (same-origin, dev only) does the same. Freshness gaps (a direct database edit needs a redeploy; browsers may keep a page for 5 minutes): `docs/decisions/environments.md`.
 
 Stack decisions: `docs/decisions/stack.md`.
 

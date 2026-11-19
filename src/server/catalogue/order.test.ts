@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { catalogueCategories, publicCatalogue } from "../../../tests/helpers/catalogue";
 import { compareVariants, orderForShelf } from "./order.ts";
+import type { PublicProduct } from "./queries.ts";
 
 const slugs = (ps: { slug: string }[]) => ps.map((p) => p.slug);
 const family = (familySlug: string) =>
@@ -79,7 +80,9 @@ describe("orderForShelf", () => {
 
   it("puts products of an unknown category last", () => {
     const ps = shuffled().map((p) =>
-      p.slug === "mucohelp" ? { ...p, category: "urology" as const, sortOrder: -5 } : p,
+      p.slug === "mucohelp"
+        ? { ...p, category: "not-a-category" as PublicProduct["category"], sortOrder: -5 }
+        : p,
     );
     expect(slugs(orderForShelf(ps, catalogueCategories())).at(-1)).toBe("mucohelp");
   });

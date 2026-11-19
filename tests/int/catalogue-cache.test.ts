@@ -91,10 +91,13 @@ describe("cached catalogue reads", () => {
     expectCached(familyTag("sacuwin"));
   });
 
-  it("return null or nothing for unknown and hidden slugs", async () => {
+  it("return null or nothing for unknown and hidden slugs; an invalid slug gets no tag", async () => {
     expect(await getCachedCategory("pain-management")).toBeNull();
-    expect(await getCachedProduct("nope")).toBeNull();
+    expectCached(categoryTag("pain-management"));
+    expect(await getCachedProduct("a".repeat(300))).toBeNull(); // Next would log the tag verbatim
+    expectCached();
     expect(await getCachedFamily("Bad Slug")).toEqual([]);
+    expectCached();
   });
 
   it("use distinct, namespaced tags", () => {

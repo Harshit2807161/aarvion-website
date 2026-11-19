@@ -46,11 +46,11 @@ refuses mocks whenever the database is `aarvion_prod`.
 
 `VERCEL_ENV` and `NODE_ENV` are set by the platform.
 
-**Build-time database (planned, UI plan Task 7, ruling C11):** pages prerender from the DB, so
+**Build-time database (UI plan Task 7, ruling C11):** pages prerender from the DB, so
 every Vercel scope needs `MONGODB_URI` and `MONGODB_DB` at build time, a seeded database, and
 Atlas network access for Vercel builds. An empty catalogue throws `CatalogueEmptyError` and fails
 the build instead of deploying an empty store. Seed the preview database before UI Task 9 merges,
-and `aarvion_prod` before the first production deploy.
+and `aarvion_prod` before the first production deploy. Redeploy after a direct database edit.
 
 ## First deploy (planned)
 
