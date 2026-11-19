@@ -10,6 +10,7 @@
 @import "../styles/header.css" layer(components);
 @import "../styles/catbar.css" layer(components);
 @import "../styles/shell.css" layer(components);
+@import "../styles/cart-control.css" layer(components);
 @import "../styles/prose.css" layer(components);
 @import "../styles/quick-trust.css" layer(components);
 @import "../styles/empty.css" layer(components);

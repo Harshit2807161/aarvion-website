@@ -145,8 +145,9 @@ describe("useCarousel with motion", () => {
     expect(live.state.current).toBe(0);
     fire(m.root, "pointerleave", mouse);
     expect(liveMode(live.state)).toBe("off");
-    runEnd(m.root);
     expect(live.state.current).toBe(1);
+    runEnd(m.root);
+    expect(live.state.current).toBe(2);
   });
 
   it("holds while focus is inside and releases when it leaves the root", () => {
@@ -207,14 +208,15 @@ describe("useCarousel with motion", () => {
     expect(liveMode(live.state)).toBe("off");
   });
 
-  it("toggleStop stops and restarts autoplay", () => {
+  it("toggleStop stops and restarts autoplay, applying a fill that ended as it stopped", () => {
     const m = mount({ reduced: false, phone: false });
     act(() => live.toggleStop());
     runEnd(m.root);
     expect(live.state.current).toBe(0);
     act(() => live.toggleStop());
-    runEnd(m.root);
     expect(live.state.current).toBe(1);
+    runEnd(m.root);
+    expect(live.state.current).toBe(2);
   });
 });
 
