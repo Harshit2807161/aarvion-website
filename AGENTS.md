@@ -197,7 +197,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   depends on whether an account exists.
 - Verify order is fixed: normalise → 60/h per IP (before any challenge or user read) → peek the
   10-per-24 h failure cap → check the code → only a mismatch on a live challenge counts → only then,
-  without `signup`, look up the user → find or create the user → revoke any presented session → new
+  without `signup`, look up the user (unknown: 409; known: consume the code, where a failure is an
+  uncounted 400 `invalid_code`) → find or create the user → revoke any presented session → new
   session → clear the failure counter (a failing reset or audit write is logged by error name, never
   fails the login). Every code-check failure (unknown, expired, consumed, exhausted or mismatched
   code, or a bad identifier) is 400 `invalid_code`. The per-IP limit is 429 `rate_limited` and the
@@ -310,6 +311,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 - UI tasks follow the visual check and finish-review gates in the UI plan.
 - Spoken feedback goes through the one polite live region: call `announce()` from
   `src/components/feedback/live-region.tsx`; never add another `aria-live="polite"` element.
+  The one exception is the banner carousel's track (DESIGN.md: `off` while rotating, `polite`
+  otherwise, from `liveMode()`).
   Customer toasts are `toast()` from `feedback/toast.tsx` (one at a time); Sonner and
   lucide-react are banned. shadcn CLI output (`src/components/ui/`) is committed with a first-line
   `// @generated shadcn` marker and must not bring `lucide-react` or `tw-animate-css` with it.

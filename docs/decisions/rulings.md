@@ -152,7 +152,7 @@ Copied from the Phase UI plan's "Decisions taken in this plan" (`docs/superpower
   - the four live `/category/*` pages, until Task 30.
 - **Cart.** A session-only cart store (10 per product, 20 per order) drives the controls until K2.
 - **Sign-up on verify** [C1]:
-  - the order is: normalise, the per-IP verify hit, peek the cap, `findUserByIdentifier`, then check or verify;
+  - the order is: normalise, the per-IP verify hit, peek the cap, then check the code (with `signup`, verify and consume it; without it, a non-consuming check). Only after a match, and only without `signup`, `findUserByIdentifier`: an unknown identifier gets the 409, a known one has the code consumed. Nothing reads `users` before the code matches, and identifier lookups filter `{ $eq, $type: "string" }` so the partial unique indexes apply (38c review I1, #116; this supersedes the earlier order, which put the lookup before the check);
   - an unknown identifier with the right code and no `signup` gets 409 `signup_required`, and nothing is created or consumed;
   - only a mismatch hits the failure limiter;
   - the refund filter requires `challengeId`, `consumedAt: null` and `attempts > 0`;
