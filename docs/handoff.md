@@ -43,11 +43,10 @@ once: **A** Tasks 2 → 3 → 4/5/6; **B** 8 → 7, then 38; **D** 16 → 18 →
 runs e2e locally (port 3100 and the `aarvion_e2e` database would collide); B and D rely on CI.
 
 Open PRs on 2026-11-19:
-- UI: #62 (Task 2b, icons, brand mark, rupee formatting); Task 7b (cached catalogue) next on
-  track B.
-- Logo: `feat/brand-logo` (the owner's official logo traced to vector, variants in
-  `public/brand/`; it replaces the Montserrat wordmark subset). In progress, no PR yet; #62's
-  brand mark points at its files.
+- UI: #62 (Task 2b, icons, brand mark, rupee formatting), #68 (Task 7b, cached catalogue).
+- Logo: #67 (`feat/brand-logo-a`: the owner's official logo traced to vector, variants in
+  `public/brand/`; it replaces the Montserrat wordmark subset). #62's brand mark points at its
+  files.
 - Agent docs, split from #47 to respect the 400-line limit: #49, #50, #52, #53, #54, #55 (this
   page), #56 (CHANGELOG, with the catch-up for the merged UI PRs), #61 (project plan), #66
   (`scripts/merge-gate.sh`).
@@ -67,7 +66,7 @@ UI plan tasks:
 | 4 | Dialog and sheet overlay with the phone bottom sheet | `feat/ui-overlay` | F6 | not started |
 | 5 | Text field, checkbox and segmented control | `feat/ui-fields` | F6 | not started |
 | 6 | OTP field, customer toast and live region | `feat/ui-otp-toast` | F6 | not started |
-| 7 | Cache Components, shelf order and the cached, tagged catalogue | `feat/catalogue-cache` | C3 | 7a merged (#60); 7b in progress |
+| 7 | Cache Components, shelf order and the cached, tagged catalogue | `feat/catalogue-cache` | C3 | 7a merged (#60); 7b open (#68) |
 | 8 | Shopper category names | `feat/category-display-names` | v2 brief | merged (#51) |
 | 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | not started |
 | 10 | Announcement bar and store header | `feat/store-header` | F7 | not started |
@@ -214,7 +213,7 @@ No plan is written yet for the phases after UI; each gets its own plan under
 | Design system | [DESIGN.md](../DESIGN.md), `.impeccable/design.json`, surface briefs in `.impeccable/surfaces/`, [design/direction-round-1.md](design/direction-round-1.md), review pages in [review/](review/) |
 | Prototype | [design/prototype/](../design/prototype/) (generator in `design/prototype/src/`); published copy https://claude.ai/artifact/BCPDh3iJPP6asGvRz3xJkc |
 | Seed data and images | `data/products.json`, `data/product-images.json`, `data/source/`, `assets/products/{original,cutout}/`, `public/products/` |
-| Brand | drafts in `assets/brand/`; official logo variants in `public/brand/` (logo PR, in progress) |
+| Brand | drafts in `assets/brand/`; official logo variants in `public/brand/` (logo PR #67, open) |
 | Banners and foil | round-1 scenes `assets/banners/round1/`; store scenes and `PROVENANCE.md` in `assets/banners/store/`; composites in `design/prototype/assets/banners/`; served copies with sidecars in `public/banners/` and `public/foil/`; image generation ran in the owner's Figma file `dlvnZAbqR9Vbnk3Sg7Eixi` |
 | Fonts | sources and licences in `assets/fonts/`; subsets in `src/fonts/` |
 | Scripts | `scripts/merge-gate.sh` (the merge gate), `scripts/shoot.mjs` (screenshots), `scripts/*.ts` (pr-size, images, seed, indexes, fonts), `scripts/*.py` (foil, cutouts, banners, flyer, Stage 0 docs) |
