@@ -27,7 +27,7 @@
 | `src/app/api/auth/me/route.ts` | `GET /api/auth/me` (re-issues a sliding customer cookie) |
 | `src/app/api/auth/logout/route.ts` | `POST /api/auth/logout` (204, clears the cookie) |
 | `src/app/dev/outbox/route.ts` | `GET /dev/outbox?to=` (dev only) |
-| `src/app/dev/styleguide/page.tsx` | `/dev/styleguide` (dev only): every button variant, the Rx badge, tags, stamp and inline prices, the toast demo (`toast-demo.tsx`) and the icon grid, for visual review |
+| `src/app/dev/styleguide/page.tsx` | `/dev/styleguide` (dev only): every button variant, the Rx badge, tags, stamp and inline prices, the toast demo (`toast-demo.tsx`) the dialog / side sheet demo (`?overlay=dialog` or `side` opens one on load; read client-side in `overlay-demo.tsx`, never via page `searchParams`) and the icon grid, for visual review |
 | `src/proxy.ts` | answers a real HTTP 404 for every `/dev/*` request wherever `isMockForbidden()` is true, before anything renders |
 | `src/app/layout.tsx`, `page.tsx` | root layout (`lang="en-IN"`, viewport, theme colour, `metadataBase` from `APP_URL`, and the `StoreFooter` after `{children}`; it reads the live categories from the cached catalogue, so **every build needs a seeded database**) and the "coming soon" placeholder home |
 | `src/config/` | `site.ts` (`SITE_CONFIG`: legal name, address, and the pending legal facts, all `null` until the owner supplies them; `legalValue()`, `pendingLegalFields()`, and `assertLegalConfigComplete()`, the H4 production gate; `resolveSiteMetadataBase()`) and `routes.ts` (`ROUTES`, the one map of store links, and `PENDING_ROUTES`, the linked pages that must still 404 until built; each page's task deletes its entry) |
