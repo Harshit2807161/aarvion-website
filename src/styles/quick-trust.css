@@ -11,7 +11,6 @@
 .home {
   --container-page: 80rem;
   --space-sec: clamp(3.5rem, 2.4rem + 3.2vw, 5.5rem); /* rhythm between store sections */
-  --perforation: 2px dashed rgb(115 124 119 / 0.5);
 }
 .quick { margin-top: 20px; }
 .qa-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
