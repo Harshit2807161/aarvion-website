@@ -91,6 +91,10 @@ bottom use commit SHAs.
 - `OtpField` takes Android SMS autofill at the caret (a native `beforeinput` listener, since React's
   `onBeforeInput` never carries `inputType`), shortens its boxes to 54 px at 400 px and narrower, and
   the styleguide has an OTP section (#95).
+- Sign-up building blocks in `src/server/auth/`: `checkOtpChallenge` confirms a code without
+  consuming it (a match refunds its attempt), `findUserByIdentifier`, and users gain an optional
+  `name` and a DPDP `consents` record (policy version, times, OTP channel) written on insert only;
+  `PublicUser` gains `name`. Login tests send `DEFAULT_SIGNUP` from `tests/helpers/auth.ts`.
 
 ### Changed
 
@@ -145,6 +149,9 @@ bottom use commit SHAs.
 - The toast no longer dismisses a toast its own action raised, its action button meets the 44 px
   target, a second `<LiveRegion/>` renders nothing, and plain toasts have a Dismiss button and
   Escape (#87).
+- A rate-limit store error while clearing the failure counter after a successful OTP verify no
+  longer turns the login into a 500 with a session the client never receives; it is logged by
+  error name, like a failed audit write.
 
 ## [0.1.0] - 2026-11-17
 
