@@ -1,0 +1,69 @@
+/*
+  The foil pocket (product card): port of design/prototype/css/site.css (v2) lines 83-94 (the foil
+  material variables, with /foil/ URLs into public/foil/), 208-252 (pocket, dome, label and the
+  composition clamp) and the pocket rules of its 719px block, for src/components/catalogue/pocket.tsx.
+  Left out: `.rx` (stamp.css), the stamp and its 719px sizes (stamp.css), `.btn-add` (cart-control.css),
+  and the rail-scoped `.rail-row > .pocket` and `.rail-row .blister` phone rules (the rails' CSS).
+  --perforation is also set on `.home` (quick-trust.css) with the same value.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+/* ── Foil material ────────────────────────────────────────────────────── */
+/* Rasters rendered by scripts/render_foil.py: the lit foil body (2x, tileable) under the print
+   field, the knurl at under half its emboss (lidding foil is smooth where it is printed), plus
+   the pressed-foil pocket floor and the clear PVC domes (9-slice). All static layers. */
+:root {
+  --foil-body: url("/foil/foil-plate.webp") 0 0 / 1440px 360px, var(--color-foil-200);
+  --foil-print: image-set(url("/foil/foil-knurl-print-1x.webp") 1x, url("/foil/foil-knurl-print.webp") 2x) 0 0 / 140px 120px, var(--foil-body);
+  --perforation: 2px dashed rgb(115 124 119 / 0.5);
+  /* perforation pressed into foil: a dark slit with a lit lip one pixel beside it */
+  --perf-v: linear-gradient(rgb(46 56 51 / 0.5) 56%, transparent 0) 0 0 / 1px 9px repeat-y, linear-gradient(rgb(255 255 255 / 0.9) 56%, transparent 0) 1px 1px / 1px 9px repeat-y;
+}
+
+/* ── Pocket (product card): a dome on print-field foil, then the label ─ */
+.pocket { position: relative; container: pocket / inline-size; color: var(--color-ink); --bh: 188px; }
+.pocket-in { position: relative; height: 100%; display: grid; grid-template-rows: auto 1fr; gap: 14px; padding: 12px 12px 14px; transition: transform var(--duration-press) var(--ease-out); }
+.pocket-in:has(.btn-add:active) { transform: scale(0.98); }
+.blister {
+  position: relative; isolation: isolate;
+  --dome: url("/foil/dome-hero.webp"); --dome-slice: 80; --dome-w: 40px; --dome-m: -12px;
+  display: grid; place-items: center; height: var(--bh); width: min(100%, calc(var(--bh) * 1.1)); justify-self: center; border-radius: var(--radius-lg);
+  background: url("/foil/dome-floor.webp") 0 0 / 100% 100%;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.blister::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  box-shadow: 0 16px 24px -12px rgb(14 30 21 / 0.35); opacity: 0; transition: opacity var(--duration-base) var(--ease-out);
+}
+/* the clear dome over the pack: contact shadow, seal, walls, rim light, window highlight */
+.blister::after {
+  content: ""; position: absolute; inset: var(--dome-m); z-index: 2; pointer-events: none;
+  border: var(--dome-w) solid transparent; border-image: var(--dome) var(--dome-slice) fill / var(--dome-w) stretch;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pocket:hover .blister { transform: translateY(-3px); }
+  .pocket:hover .blister::before { opacity: 1; }
+}
+/* the pack fills its dome: up to the inside of the 10px walls less 4px, and 82% of the width */
+.pocket-img { max-height: calc(var(--bh) - 28px); max-width: 82%; width: auto; filter: drop-shadow(0 6px 7px rgb(20 32 26 / 0.22)); }
+/* the label uses the pocket's full inner width (a little wider than the dome), so every
+   composition fits its two lines on desktop */
+.pocket-body { display: flex; flex-direction: column; gap: 3px; padding: 0 4px; min-width: 0; }
+.pocket-name { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 600 1.0625rem/1.2 var(--font-display); letter-spacing: -0.012em; color: var(--color-ink); }
+/* the actives with their strengths, at most two lines; a strength never breaks (.str), so the
+   clamp can only ever fall between actives. The full composition stays in the title and for AT */
+.pocket-salt {
+  position: relative; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  font-size: var(--text-xs); line-height: var(--text-xs--line-height); color: var(--color-neutral-800);
+}
+.str { white-space: nowrap; }
+.pocket-pack { font-size: var(--text-xs); line-height: 1.4; color: var(--color-ink); font-weight: 500; }
+.pocket-foot { display: flex; flex-direction: column; gap: 12px; margin-top: auto; padding-top: 10px; }
+.pocket.is-found .blister { outline: 3px solid var(--color-forest-600); outline-offset: 4px; }
+
+@media (max-width: 719px) {
+  .pocket-in { padding: 10px 8px 12px; gap: 12px; }
+  .pocket-name { font-size: 1rem; }
+  /* phone pockets are 45vw: the longest compositions (Sysnet Ultra, Oloage-KT, Vildage-M) need a
+     third line, and two would cut a strength */
+  .pocket-salt { font-size: 0.75rem; -webkit-line-clamp: 3; }
+}
