@@ -251,6 +251,11 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   production build lacks `ALLOW_MOCKS_IN_PROD_BUILD=1`, or when the database is `aarvion_prod`.
   Set `ALLOW_MOCKS_IN_PROD_BUILD=1` only for the e2e build and the Vercel Preview scope.
 - Production sets `MONGODB_DB=aarvion_prod`. Previews use a separate database.
+- Customer chrome (skip link, announcement, header, category bar, footer) is `withStoreChrome()` in
+  `src/components/shell/store-chrome.tsx`, used by the `(store)` layout and by the root
+  `not-found.tsx`, which sits outside the group. A new page that renders outside `(store)` and
+  wants the chrome calls it; never copy the chrome. Keep exactly one `<LiveRegion/>` (root layout).
+  Error boundaries use `retry()` (Next 16.3+), and log only `error.name` and `error.digest`.
 - `/dev/*` answers a real 404 where mocks are forbidden, decided by `src/proxy.ts` before anything
   renders. Every dev-only route under `src/app/dev/` also calls `requireDevRoute()` before any
   work (right after `await connection()` in a GET), outside `withErrors`.

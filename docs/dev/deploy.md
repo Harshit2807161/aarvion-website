@@ -49,7 +49,7 @@ refuses mocks whenever the database is `aarvion_prod`.
 **Build-time database (UI plan Task 7, ruling C11):** pages prerender from the DB, so
 every Vercel scope needs `MONGODB_URI` and `MONGODB_DB` at build time, a seeded database, and
 Atlas network access for Vercel builds. An empty catalogue throws `CatalogueEmptyError` and fails
-the build instead of deploying an empty store. The `(store)` layout (`src/app/(store)/layout.tsx`, UI Task 9) renders the footer from the live categories, so from that PR on every customer page build reads the DB (`/api/*`, `/dev/*` and the 404 page sit outside `(store)` and do not). **Seed the Preview database before that PR merges into a Vercel-connected repo** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
+the build instead of deploying an empty store. The `(store)` layout (`src/app/(store)/layout.tsx`, UI Task 9) renders the footer from the live categories, so from that PR on every customer page build reads the DB (`/api/*` and `/dev/*` sit outside `(store)` and do not; the 404 page reads the same cached categories for its chrome). **Seed the Preview database before that PR merges into a Vercel-connected repo** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
 
 ## First deploy (planned)
 
@@ -92,12 +92,15 @@ Nothing below exists yet; each lands before or with the production deploy.
     (a partial pair counts as pending).
   - The gate does not see policy facts that live only in page copy. Before launch, replace each
     `<Pending />` in `src/app/(store)/legal/` with the owner's text: the privacy policy's data
-    storage location and retention periods (handoff owner action 23).
+    storage location and retention periods (handoff owner action 23), and the terms of use's
+    liability limits and governing law (owner action 24).
 - **Go-live: online payments.** `SITE_CONFIG.onlinePayments` (`src/config/site.ts`) is `false`, so
-  the footer's payment line says only "Cash on delivery". Once live Razorpay keys exist and prepaid
-  checkout works (plan Stage 6), flip it to `true` in the same PR: the line then adds UPI, cards
-  and netbanking through Razorpay. Never flip it earlier; the site must not claim methods that do
-  not work.
+  the footer's payment line says only "Cash on delivery", and the terms of use offer only cash on
+  delivery and name no online method. Once live Razorpay keys exist and prepaid checkout works
+  (plan Stage 6), flip it to `true` in the same PR: the footer line then adds UPI, cards and
+  netbanking through Razorpay, and the terms switch to paying online through Razorpay or by cash
+  on delivery, with the pay-first and refund rule. Never flip it earlier; the site must not claim
+  methods that do not work.
 - **Index drift detection** (compare live index options with the registry) before the H5
   deploy ([docs/decisions/db.md](../decisions/db.md)).
 - **H5 production deploy and runbook**, including how to run `db:indexes` in production.

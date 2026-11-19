@@ -116,6 +116,8 @@ Helpers in `tests/helpers/`:
 | Test | Fails when |
 | --- | --- |
 | `src/server/db/register-all.test.ts` | a module calls `registerIndexes` but `register-all.ts` does not import it |
+| `src/components/shell/error-pages.test.tsx` | the 404, `error.tsx` (retry once, no message or stack shown or logged), `global-error.tsx` and `EmptyState` |
+| `scripts/e2e-console.test.ts` | `isExpectedNotFound` in `e2e/helpers/console.ts`: only a 404 on the page's own URL or a pending route's `_rsc` prefetch is ignored |
 | `src/proxy.test.ts` | `/dev/*` stops answering 404 when mocks are forbidden |
 | `src/server/dev-routes.test.ts` | a route or page under `src/app/dev/` does not call `requireDevRoute()` |
 | `src/server/deps.test.ts`, `providers/guard.test.ts` | mocks become reachable in a production-like runtime |
