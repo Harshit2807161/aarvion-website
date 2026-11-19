@@ -48,13 +48,7 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
     box: { top: 0, len: 1 },
     items: [el, ...el.querySelectorAll<HTMLElement>("[data-in],[data-out]")]
       .filter((a) => a.dataset.in || a.dataset.out)
-      .map((a) => ({
-        el: a,
-        i: parseRange(a.dataset.in),
-        o: parseRange(a.dataset.out),
-        vi: -1,
-        vo: -1,
-      })),
+      .map((a) => ({ el: a, i: parseRange(a.dataset.in), o: parseRange(a.dataset.out), vi: -1, vo: -1 })),
   }));
   const steps = [...root.querySelectorAll<HTMLElement>(".step")];
   const byEl = new Map(acts.map((a) => [a.el, a]));

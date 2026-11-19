@@ -31,15 +31,7 @@ export type CarouselEvent =
   | { type: "motion"; on: boolean };
 
 export function initialCarousel(count: number, motion: boolean): CarouselState {
-  return {
-    count,
-    current: 0,
-    stopped: !motion,
-    userPaused: false,
-    holds: [],
-    ready: false,
-    motion,
-  };
+  return { count, current: 0, stopped: !motion, userPaused: false, holds: [], ready: false, motion };
 }
 
 const wrap = (i: number, count: number) => (count > 0 ? ((i % count) + count) % count : 0);

@@ -74,10 +74,7 @@ describe("carouselReducer autoplay", () => {
   it("applies the motion preference once read", () => {
     const off = carouselReducer(running(), { type: "motion", on: false });
     expect(off).toMatchObject({ motion: false, stopped: true });
-    expect(carouselReducer(off, { type: "motion", on: true })).toMatchObject({
-      motion: true,
-      stopped: false,
-    });
+    expect(carouselReducer(off, { type: "motion", on: true })).toMatchObject({ motion: true, stopped: false });
   });
 });
 
@@ -85,17 +82,13 @@ describe("labels", () => {
   it("liveMode is off only while autoplaying", () => {
     expect(liveMode(running())).toBe("off");
     expect(liveMode(initialCarousel(4, true))).toBe("polite");
-    expect(liveMode(carouselReducer(running(), { type: "hold", why: "hover", on: true }))).toBe(
-      "polite",
-    );
+    expect(liveMode(carouselReducer(running(), { type: "hold", why: "hover", on: true }))).toBe("polite");
     expect(liveMode(carouselReducer(running(), { type: "toggleStop" }))).toBe("polite");
   });
 
   it("playLabel strings are exact", () => {
     expect(playLabel(running())).toBe("Stop automatic slide show");
-    expect(playLabel(carouselReducer(running(), { type: "toggleStop" }))).toBe(
-      "Start automatic slide show",
-    );
+    expect(playLabel(carouselReducer(running(), { type: "toggleStop" }))).toBe("Start automatic slide show");
   });
 });
 
