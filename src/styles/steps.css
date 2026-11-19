@@ -3,7 +3,7 @@
   for src/components/home/ordering-steps.tsx, plus the phone rules for .steps, .step, .perf and
   .steps-vis (lines 607-612 there). The scroll film's `.film` rules arrive with Task 28 and must
   use descendant selectors under the engine's root (`.film-root.measuring ...`), never `html.measuring`.
-  --space-sec and --perforation come from the single `.home` rule in quick-trust.css.
+  --space-sec comes from the single `.home` rule in quick-trust.css; --perforation from globals.css's :root.
   Width comes from --container-page (the home's `.home` rule sets it); no section-level override.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */

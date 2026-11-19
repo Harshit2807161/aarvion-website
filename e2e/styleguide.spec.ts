@@ -10,6 +10,18 @@ test("dev styleguide renders every base component", async ({ page }) => {
   await expect(page.locator("abbr.rx").first()).toBeVisible();
 });
 
+test("styleguide pockets show the seeded packs through next/image", async ({ page }) => {
+  await page.goto("/dev/styleguide");
+  const pockets = page.locator("#styleguide-pockets li.pocket");
+  expect(await pockets.count()).toBeGreaterThan(0);
+  const img = pockets.first().locator("img.pocket-img");
+  await img.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => img.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0))
+    .toBe(true);
+  await expect(pockets.first().locator(".stamp .off")).toContainText("% off");
+});
+
 test("a toast speaks through the single polite live region", async ({ page }) => {
   await page.goto("/dev/styleguide");
   await page.getByRole("button", { name: "Show toast" }).click();
