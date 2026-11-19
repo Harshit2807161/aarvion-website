@@ -11,7 +11,7 @@ const handle = withErrors(async (req) => {
 
 /** Dev-only: expire the cached catalogue (e2e freshness checks, local catalogue edits). */
 export async function POST(req: Request): Promise<Response> {
-  // Outside withErrors, so its notFound() reaches Next as a 404 instead of becoming a 500.
+  // Before the origin check, so a disallowed environment answers 404 to every request.
   requireDevRoute();
   return handle(req);
 }
