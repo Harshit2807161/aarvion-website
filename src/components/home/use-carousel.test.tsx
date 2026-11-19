@@ -32,13 +32,50 @@ function Fixture() {
   );
 }
 
+const REDUCED = "(prefers-reduced-motion: reduce)";
+const PHONE = "(max-width: 719px)";
+type Mql = { matches: boolean; media: string; fns: Set<() => void> };
+/** One list per query, so a test can flip it and fire its `change` listeners. */
+const mqls = new Map<string, Mql>();
+
 function mockMedia({ reduced, phone }: { reduced: boolean; phone: boolean }) {
-  vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: query.includes("prefers-reduced-motion") ? reduced : query === "(max-width: 719px)" ? phone : false,
-    media: query,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  }));
+  mqls.clear();
+  vi.stubGlobal("matchMedia", (query: string) => {
+    if (!mqls.has(query)) {
+      const matches = query === REDUCED ? reduced : query === PHONE ? phone : false;
+      mqls.set(query, { matches, media: query, fns: new Set() });
+    }
+    const m = mqls.get(query)!;
+    return Object.assign(m, {
+      addEventListener: (_: string, fn: () => void) => m.fns.add(fn),
+      removeEventListener: (_: string, fn: () => void) => m.fns.delete(fn),
+    });
+  });
+}
+
+function flipMedia(query: string, matches: boolean) {
+  const m = mqls.get(query)!;
+  m.matches = matches;
+  act(() => m.fns.forEach((fn) => fn()));
+}
+
+/** A stand-in IntersectionObserver whose callback the test drives. */
+const io = { cb: null as ((entries: { isIntersecting: boolean }[]) => void) | null, disconnect: vi.fn() };
+function mockIntersection() {
+  io.cb = null;
+  io.disconnect.mockClear();
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      constructor(cb: (entries: { isIntersecting: boolean }[]) => void) {
+        io.cb = cb;
+      }
+      observe() {}
+      disconnect() {
+        io.disconnect();
+      }
+    },
+  );
 }
 
 function fire(el: Element | Window | Document, type: string, props: Record<string, unknown> = {}) {
@@ -61,6 +98,7 @@ function mount(opts: { reduced: boolean; phone: boolean }) {
   const view = render(<Fixture />);
   fire(window, "load");
   return {
+    unmount: view.unmount,
     root: view.getByTestId("root"),
     track: view.getByTestId("track"),
     slide: (i: number) => view.getByTestId(`slide-${i}`),
@@ -107,8 +145,9 @@ describe("useCarousel with motion", () => {
     expect(live.state.current).toBe(0);
     fire(m.root, "pointerleave", mouse);
     expect(liveMode(live.state)).toBe("off");
-    runEnd(m.root);
     expect(live.state.current).toBe(1);
+    runEnd(m.root);
+    expect(live.state.current).toBe(2);
   });
 
   it("holds while focus is inside and releases when it leaves the root", () => {
@@ -140,14 +179,44 @@ describe("useCarousel with motion", () => {
     expect(liveMode(live.state)).toBe("off");
   });
 
-  it("toggleStop stops and restarts autoplay", () => {
+  it("starts held when the tab is already hidden at mount", () => {
+    Object.defineProperty(document, "hidden", { configurable: true, value: true });
+    const m = mount({ reduced: false, phone: false });
+    expect(liveMode(live.state)).toBe("polite");
+    runEnd(m.root);
+    expect(live.state.current).toBe(0);
+    hide(false);
+    expect(liveMode(live.state)).toBe("off");
+  });
+
+  it("releases a touch hold 4000 ms after pointercancel too", () => {
+    const m = mount({ reduced: false, phone: false });
+    fire(m.track, "pointerdown", touch);
+    fire(m.track, "pointercancel", touch);
+    act(() => void vi.advanceTimersByTime(3999));
+    expect(liveMode(live.state)).toBe("polite");
+    act(() => void vi.advanceTimersByTime(1));
+    expect(liveMode(live.state)).toBe("off");
+  });
+
+  it("holds while the banner is off screen (away)", () => {
+    mockIntersection();
+    mount({ reduced: false, phone: false });
+    act(() => io.cb!([{ isIntersecting: false }]));
+    expect(live.state.holds).toEqual(["away"]);
+    act(() => io.cb!([{ isIntersecting: true }]));
+    expect(liveMode(live.state)).toBe("off");
+  });
+
+  it("toggleStop stops and restarts autoplay, applying a fill that ended as it stopped", () => {
     const m = mount({ reduced: false, phone: false });
     act(() => live.toggleStop());
     runEnd(m.root);
     expect(live.state.current).toBe(0);
     act(() => live.toggleStop());
-    runEnd(m.root);
     expect(live.state.current).toBe(1);
+    runEnd(m.root);
+    expect(live.state.current).toBe(2);
   });
 });
 
@@ -177,6 +246,16 @@ describe("useCarousel DOM", () => {
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
   });
 
+  it("phone: go ignores a non-integer index, like the reducer, and does not scroll", () => {
+    const m = mount({ reduced: false, phone: true });
+    const scrollTo = vi.fn();
+    m.track.scrollTo = scrollTo as unknown as typeof m.track.scrollTo;
+    act(() => live.go(Number.NaN));
+    act(() => live.go(1.5));
+    expect(scrollTo).not.toHaveBeenCalled();
+    expect(live.state.current).toBe(0);
+  });
+
   it("phone: a settled scroll sets current to the nearest slide, the last at the end", () => {
     const m = mount({ reduced: false, phone: true });
     [0, 1, 2, 3].forEach((i) => Object.defineProperty(m.slide(i), "offsetLeft", { configurable: true, value: i * 300 }));
@@ -197,5 +276,57 @@ describe("useCarousel DOM", () => {
   it("makes the remaining slides' images eager on window load", () => {
     const m = mount({ reduced: false, phone: false });
     for (const i of [1, 2, 3]) expect(m.img(i)).toHaveAttribute("loading", "eager");
+  });
+});
+
+describe("useCarousel media changes", () => {
+  it("follows a live reduced-motion flip, and the user's pause survives it", () => {
+    const m = mount({ reduced: false, phone: false });
+    flipMedia(REDUCED, true);
+    expect(live.state).toMatchObject({ motion: false, stopped: true });
+    runEnd(m.root);
+    expect(live.state.current).toBe(0);
+    flipMedia(REDUCED, false);
+    runEnd(m.root);
+    expect(live.state.current).toBe(1);
+
+    act(() => live.toggleStop());
+    flipMedia(REDUCED, true);
+    flipMedia(REDUCED, false);
+    expect(live.state).toMatchObject({ motion: true, stopped: true, userPaused: true });
+  });
+
+  it("re-marks the slides when the phone query flips", () => {
+    const m = mount({ reduced: false, phone: false });
+    [0, 1, 2, 3].forEach((i) => Object.defineProperty(m.slide(i), "offsetLeft", { configurable: true, value: i * 300 }));
+    act(() => live.go(2));
+    flipMedia(PHONE, true);
+    for (const i of [0, 1, 2, 3]) expect(m.slide(i)).not.toHaveAttribute("inert");
+    expect(m.slide(0)).not.toHaveClass("is-leaving");
+    expect(m.track.scrollLeft).toBe(600);
+    flipMedia(PHONE, false);
+    for (const i of [0, 1, 3]) expect(m.slide(i)).toHaveAttribute("inert");
+    expect(m.slide(2)).not.toHaveAttribute("inert");
+  });
+});
+
+describe("useCarousel unmount", () => {
+  it("removes every listener, observer and timer", () => {
+    mockIntersection();
+    const added = vi.spyOn(document, "addEventListener");
+    const removed = vi.spyOn(document, "removeEventListener");
+    const m = mount({ reduced: false, phone: false });
+    fire(m.track, "pointerdown", touch);
+    fire(m.track, "pointerup", touch);
+    act(() => live.go(1));
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
+    m.unmount();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(io.disconnect).toHaveBeenCalledTimes(1);
+    for (const mq of mqls.values()) expect(mq.fns.size).toBe(0);
+    const visibility = (spy: typeof added) => spy.mock.calls.filter(([type]) => type === "visibilitychange");
+    expect(visibility(removed)).toHaveLength(visibility(added).length);
+    added.mockRestore();
+    removed.mockRestore();
   });
 });

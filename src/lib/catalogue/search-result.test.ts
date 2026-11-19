@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { publicCatalogue } from "../../../tests/helpers/catalogue";
-import { pocketImage } from "./display";
-import { toSearchResult } from "./search-result";
+import { MAX_RESULTS, searchProducts, toSearchResult } from "./search-result";
 
 const NB = "\u00a0";
 const product = (slug: string) => {
@@ -20,7 +19,7 @@ describe("toSearchResult", () => {
       pack: `Strip of 14${NB}tablets`,
       mrpPaise: 40700,
       pricePaise: 38700,
-      image: pocketImage(p),
+      image: p.cutout,
     });
   });
 
@@ -29,5 +28,33 @@ describe("toSearchResult", () => {
     expect(keys).not.toContain("composition");
     expect(keys).not.toContain("internalNotes");
     expect(keys).not.toContain("mrpSource");
+  });
+});
+
+describe("searchProducts", () => {
+  const many = Array.from({ length: 30 }, (_, i) => ({
+    ...product("sacuwin-100"),
+    slug: `sacuwin-${i}`,
+  }));
+
+  it("returns at most 20 hits, first in the given order", () => {
+    const hits = searchProducts(many, "sacu", null);
+    expect(MAX_RESULTS).toBe(20);
+    expect(hits).toHaveLength(20);
+    expect(hits[0]!.slug).toBe("sacuwin-0");
+    expect(hits[19]!.slug).toBe("sacuwin-19");
+  });
+
+  it("matches a strength as a whole number: 5 does not match 50", () => {
+    const all = publicCatalogue();
+    expect(searchProducts(all, "", "5")).toEqual([]);
+    expect(searchProducts(all, "", "50").map((r) => r.slug)).toEqual([
+      "sacuwin-50",
+      "vildage-m-50-500",
+    ]);
+  });
+
+  it("gives nothing for no query and no strength", () => {
+    expect(searchProducts(many, " .* ", null)).toEqual([]);
   });
 });

@@ -19,7 +19,7 @@ bottom use commit SHAs.
 ### Added
 
 - `GET /api/products?q=&strength=`: the header search's data. Reads the cached catalogue, matches by query tokens and variant strength in shelf order, returns at most 20 `SearchResult`s (`src/lib/catalogue/search-result.ts`), `no-store`, 60 requests a minute per IP bucket (429 `rate_limited`), and never logs the query. (#123)
-
+- Home banner slides and the banner fallback (`src/lib/catalogue/banners.ts`): `BANNER_SLIDES` holds the four slides' copy, links, alt text and rasters; `bannerSlides(products)` shows a slide only while every pack it names is live, and without Sacuwin the prescription slide leads, so a Win2Age-printed pack never leads the banner. The delivery line says "Cash on delivery available." until `SITE_CONFIG.onlinePayments` is on (#113).
 - Login API client, verify half: `verifyCode` and `fetchSession` in `src/components/auth/api.ts`, plus `SignupPayload`, type-pinned both ways to the server's `SignupInput` in `api.test.ts`. `verifyCode` posts the trimmed name and a `signup` only when passed; a 400 or 413 with a signup is `signup_required` (the server refused the name), a 429 keeps `retryAfterSec`, and every other unexpected status maps to `network`. `fetchSession` returns only `{ name }`, or null when signed out or on any failure. Task 40 shows `nameInvalid` on `signup_required` in the profile step (#120).
 - `src/components/server-imports.test.ts`: components may import at runtime from `src/server/**` only `catalogue/pricing`, `catalogue/search` and `catalogue/order`; anything else needs a statement-level `import type`. It parses each file with the TypeScript compiler API, so side-effect imports, re-exports, `import()` and `require()` are caught too (#118).
 - Catalogue display helpers (`src/lib/catalogue/display.ts`), ported from the v2 prototype's `build.mjs` for the pocket, rails, category and product pages: `fullComposition`, `actives` (preservatives and salt forms dropped, each strength one non-breaking unit so a wrap or the line clamp never cuts it), `packDisplay` ("10 ml bottle" for eye drops, a number kept with its unit), `strengthTokens`, `shortName`, `plural`, `countWord`, `pocketImage` (the cutout, else the first photo), `categoryAnchor` and the `PocketProduct` type (#118).
@@ -186,8 +186,12 @@ bottom use commit SHAs.
 - Sign-up names may hold a zero-width joiner or non-joiner (U+200D, U+200C) between two letters
   or marks, as Indic spellings such as the Marathi eyelash ra need; #107 refused them. Every other
   control or format character is still refused (#116).
+- Sign-up names also refuse default-ignorable characters, such as a Hangul filler (renders blank)
+  or the combining grapheme joiner, which #107 let through; the joiner exception above still
+  holds. The name rule has a unit table in `src/server/auth/login.test.ts` (#121).
 - `findUserByIdentifier` and `findOrCreateUserByIdentifier` filter `{ $eq, $type: "string" }`, so
   they use the partial unique indexes instead of scanning every user (#116).
+- The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen. A dot fill that ends in the frame a hold or the pause starts is kept as `due` and advances once autoplay can run again, so the banner can no longer stall on one slide (#113).
 
 ## [0.1.0] - 2026-11-17
 

@@ -140,8 +140,33 @@ describe("sign-up on OTP verify", () => {
     expect((await verify(code)).status).toBe(409);
     // A 409 neither counts as a failure nor clears the counter: only a login clears it.
     expect(await failCount()).toBe(4);
+    expect(await attempts()).toBe(4);
     expect((await verify(code, { signup: SIGNUP })).status).toBe(200);
     expect(await failCount()).toBe(0);
+  });
+
+  it("a 409 between mismatches grants no extra guess: the 5-attempt budget still runs out", async () => {
+    const code = await sendAndRead();
+    for (let n = 0; n < 4; n++) await expectInvalidCode(await verify(WRONG(code)));
+    expect((await verify(code)).status).toBe(409);
+    await expectInvalidCode(await verify(WRONG(code)));
+    expect(await attempts()).toBe(5);
+    // Exhausted: even the right code with sign-up details no longer logs in.
+    await expectInvalidCode(await verify(code, { signup: SIGNUP }));
+    expect(await count(USERS_COLLECTION)).toBe(0);
+  });
+
+  it("answers 409 on the phone channel too, and stores the phone channel with the consent", async () => {
+    const phone = "+919876543210";
+    const post = (route: "send" | "verify", body: object = {}) =>
+      (route === "send" ? SEND : VERIFY)(
+        jsonPost(`/api/auth/otp/${route}`, { channel: "phone", identifier: phone, ...body }),
+      );
+    expect((await post("send")).status).toBe(200);
+    const code = await lastOtpCode(phone);
+    expect((await post("verify", { code })).status).toBe(409);
+    expect((await post("verify", { code, signup: SIGNUP })).status).toBe(200);
+    expect((await (await users()).findOne({ phone }))?.consents?.channel).toBe("phone");
   });
 
   it("C1 (iii): a code a 409 checked is not consumed and logs in exactly once", async () => {
@@ -205,26 +230,87 @@ describe("sign-up on OTP verify", () => {
     }
   });
 
-  it("a verify without the right code never reads the users collection", async () => {
+  it("a verify without the right code never touches the users collection", async () => {
     await insertKnown();
     const { Collection } = await import("mongodb");
-    const junk = async (identifier: string, guess: string, signup?: typeof SIGNUP) => {
-      const spy = vi.spyOn(Collection.prototype, "findOne");
+    const METHODS = [
+      "find", // findOne goes through it too
+      "findOne",
+      "findOneAndUpdate",
+      "updateOne",
+      "insertOne",
+      "aggregate",
+      "countDocuments",
+    ] as const;
+    /** The collections `run` touched through any of METHODS. */
+    const touched = async (run: () => Promise<Response>) => {
+      const spies = METHODS.map((m) => vi.spyOn(Collection.prototype, m));
       try {
-        await expectInvalidCode(await verify(guess, { identifier, signup }));
-        const read = spy.mock.contexts.map(
-          (c) => (c as InstanceType<typeof Collection>).collectionName,
+        const res = await run();
+        const names = spies.flatMap((s) =>
+          s.mock.contexts.map((c) => (c as InstanceType<typeof Collection>).collectionName),
         );
-        expect(read).not.toContain(USERS_COLLECTION);
+        return { res, names };
       } finally {
-        spy.mockRestore();
+        spies.forEach((s) => s.mockRestore());
       }
+    };
+    const junk = async (identifier: string, guess: string, signup?: typeof SIGNUP) => {
+      const { res, names } = await touched(() => verify(guess, { identifier, signup }));
+      await expectInvalidCode(res);
+      expect(names).toContain(RATE_LIMITS_COLLECTION); // the spies are live
+      expect(names).not.toContain(USERS_COLLECTION);
     };
     for (const identifier of [ASHA, KNOWN]) {
       for (const signup of [undefined, SIGNUP]) await junk(identifier, "123456", signup);
       const code = await sendAndRead(identifier);
       for (const signup of [undefined, SIGNUP]) await junk(identifier, WRONG(code), signup);
     }
+
+    // Positive control: the same spies see users once the code is right.
+    clock.advance(31_000);
+    const code = await sendAndRead(KNOWN);
+    const { res, names } = await touched(() => verify(code, { identifier: KNOWN }));
+    expect(res.status).toBe(200);
+    expect(names).toContain(USERS_COLLECTION);
+  });
+
+  it("concurrent right-code verifies for a returning user without sign-up log in once", async () => {
+    await insertKnown();
+    const code = await sendAndRead(KNOWN);
+    const res = await Promise.all(
+      Array.from({ length: 4 }, () => verify(code, { identifier: KNOWN })),
+    );
+    expect(res.map((r) => r.status).sort()).toEqual([200, 400, 400, 400]);
+    expect(await count(SESSIONS_COLLECTION)).toBe(1);
+    expect(await failCount(KNOWN)).toBe(0);
+  });
+
+  it("a returning user's code used up between the check and the consume is an uncounted 400", async () => {
+    await insertKnown();
+    const code = await sendAndRead(KNOWN);
+    const otp = (await getDb()).collection<{ _id: string }>(OTP_COLLECTION);
+    const { Collection } = await import("mongodb");
+    const real = Collection.prototype.findOne;
+    // A concurrent login consumes the code while this verify looks the account up.
+    const spy = vi.spyOn(Collection.prototype, "findOne").mockImplementation(async function (
+      this: InstanceType<typeof Collection>,
+      ...args: Parameters<typeof real>
+    ) {
+      if (this.collectionName === USERS_COLLECTION) {
+        await otp.updateOne({ _id: `email:${KNOWN}` }, { $set: { consumedAt: T } });
+      }
+      return real.apply(this, args);
+    } as typeof real);
+    let res: Response;
+    try {
+      res = await verify(code, { identifier: KNOWN });
+    } finally {
+      spy.mockRestore();
+    }
+    await expectInvalidCode(res);
+    expect(await count(SESSIONS_COLLECTION)).toBe(0);
+    expect(await failCount(KNOWN)).toBe(0);
   });
 
   it("an unknown identifier locks out after 10 mismatches, as a known one does", async () => {
@@ -271,14 +357,12 @@ describe("sign-up on OTP verify", () => {
     expect(user?.consents?.marketing).toEqual({ optedIn: true, at: T });
   });
 
-  it("accepts real names in Latin and Indic scripts, joiners between letters included", async () => {
+  // The full name matrix is the SignupInput unit table (src/server/auth/login.test.ts).
+  it("stores real names, a joiner between letters included", async () => {
     for (const [identifier, name] of [
       ["ravi@example.com", "Ravi Kumar"],
-      ["priya@example.com", "प्रिया शर्मा"],
       // Marathi eyelash ra: a zero-width joiner between a virama and a letter.
       ["aarya@example.com", "\u0906\u0930\u094D\u200D\u092F\u093E"],
-      // A zero-width non-joiner keeps an explicit virama (Dwarka, in Devanagari).
-      ["dwarka@example.com", "\u0926\u094D\u200C\u0935\u093E\u0930\u0915\u093E"],
     ] as const) {
       const res = await verify(await sendAndRead(identifier), {
         identifier,
@@ -307,18 +391,9 @@ describe("sign-up on OTP verify", () => {
       without("termsPrivacy"),
       without("marketing"),
       { ...SIGNUP, marketing: "yes" },
+      // Two name refusals reach the route; the unit table holds the rest.
       { ...SIGNUP, name: "A" },
-      { ...SIGNUP, name: "   A   " },
-      { ...SIGNUP, name: "12345" },
-      { ...SIGNUP, name: "x".repeat(81) },
-      // Control and format characters: they hide or reorder text in staff views and emails.
       { ...SIGNUP, name: "\u200BA\u200B" },
-      { ...SIGNUP, name: "Asha \u202ERao" },
-      { ...SIGNUP, name: "Asha\nRao" },
-      // A joiner is allowed only between two letters or marks.
-      { ...SIGNUP, name: "\u200DRavi" },
-      { ...SIGNUP, name: "Ravi\u200D" },
-      { ...SIGNUP, name: "\u0906\u0930\u094D\u200D\u200D\u092F\u093E" },
       { ...SIGNUP, role: "admin" },
       "Asha Rao",
     ];

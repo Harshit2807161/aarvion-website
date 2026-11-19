@@ -17,6 +17,12 @@ export type CarouselState = {
   holds: readonly Hold[];
   ready: boolean;
   motion: boolean;
+  /**
+   * A tick that ended while held or paused. The fill can end in the very frame a hold starts,
+   * before its paused play-state applies, and a finished fill never ends again; so the tick is
+   * kept and lands as soon as autoplay can run. A manual move or motion turning off drops it.
+   */
+  due: boolean;
 };
 
 export type CarouselEvent =
@@ -31,7 +37,7 @@ export type CarouselEvent =
   | { type: "motion"; on: boolean };
 
 export function initialCarousel(count: number, motion: boolean): CarouselState {
-  return { count, current: 0, stopped: !motion, userPaused: false, holds: [], ready: false, motion };
+  return { count, current: 0, stopped: !motion, userPaused: false, holds: [], ready: false, motion, due: false };
 }
 
 const wrap = (i: number, count: number) => (count > 0 ? ((i % count) + count) % count : 0);
@@ -49,14 +55,19 @@ export function playLabel(s: CarouselState): string {
 }
 
 export function carouselReducer(s: CarouselState, e: CarouselEvent): CarouselState {
+  const n = step(s, e);
+  return n.due && autoplaying(n) ? { ...n, current: wrap(n.current + 1, n.count), due: false } : n;
+}
+
+function step(s: CarouselState, e: CarouselEvent): CarouselState {
   switch (e.type) {
     case "go":
       if (!Number.isInteger(e.index)) return s;
-      return { ...s, current: wrap(e.index, s.count) };
+      return { ...s, current: wrap(e.index, s.count), due: false };
     case "next":
-      return { ...s, current: wrap(s.current + 1, s.count) };
+      return { ...s, current: wrap(s.current + 1, s.count), due: false };
     case "prev":
-      return { ...s, current: wrap(s.current - 1, s.count) };
+      return { ...s, current: wrap(s.current - 1, s.count), due: false };
     case "toggleStop":
       return s.motion ? { ...s, userPaused: !s.userPaused, stopped: !s.userPaused } : s;
     case "hold": {
@@ -67,8 +78,9 @@ export function carouselReducer(s: CarouselState, e: CarouselEvent): CarouselSta
     case "ready":
       return s.ready ? s : { ...s, ready: true };
     case "tickEnd":
-      return autoplaying(s) ? { ...s, current: wrap(s.current + 1, s.count) } : s;
+      if (autoplaying(s)) return { ...s, current: wrap(s.current + 1, s.count) };
+      return s.ready && s.motion && !s.due ? { ...s, due: true } : s;
     case "motion":
-      return e.on === s.motion ? s : { ...s, motion: e.on, stopped: !e.on || s.userPaused };
+      return e.on === s.motion ? s : { ...s, motion: e.on, stopped: !e.on || s.userPaused, due: e.on && s.due };
   }
 }

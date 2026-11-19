@@ -135,3 +135,34 @@ describe("carouselReducer hardening", () => {
     expect(carouselReducer(held, { type: "hold", why: "hover", on: true })).toBe(held);
   });
 });
+
+// The dot fill can end in the frame a hold or pause starts, before the paused play-state lands:
+// that animationend arrives held, and the finished fill never runs again. The tick is kept.
+describe("carouselReducer due tick", () => {
+  it("keeps a tick that ends under a hold and advances once when the hold releases", () => {
+    let s = carouselReducer(running(), { type: "hold", why: "hover", on: true });
+    s = carouselReducer(s, { type: "tickEnd" });
+    expect(s).toMatchObject({ current: 0, due: true });
+    s = carouselReducer(s, { type: "hold", why: "hover", on: false });
+    expect(s).toMatchObject({ current: 1, due: false });
+  });
+
+  it("waits for the last hold and the user's pause before applying it", () => {
+    let s = carouselReducer(running(), { type: "toggleStop" });
+    s = carouselReducer(s, { type: "hold", why: "focus", on: true });
+    s = carouselReducer(s, { type: "tickEnd" });
+    s = carouselReducer(s, { type: "toggleStop" });
+    expect(s).toMatchObject({ current: 0, due: true });
+    s = carouselReducer(s, { type: "hold", why: "focus", on: false });
+    expect(s).toMatchObject({ current: 1, due: false });
+  });
+
+  it("drops a due tick on a manual move or when motion turns off, and never sets one before load", () => {
+    const due = carouselReducer(carouselReducer(running(), { type: "hold", why: "touch", on: true }), { type: "tickEnd" });
+    for (const e of [{ type: "next" }, { type: "prev" }, { type: "go", index: 2 }, { type: "motion", on: false }] as const) {
+      expect(carouselReducer(due, e).due).toBe(false);
+    }
+    expect(carouselReducer(carouselReducer(due, { type: "next" }), { type: "hold", why: "touch", on: false }).current).toBe(1);
+    expect(carouselReducer(initialCarousel(4, true), { type: "tickEnd" }).due).toBe(false);
+  });
+});

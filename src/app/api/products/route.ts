@@ -1,16 +1,11 @@
 import { connection } from "next/server";
-import { strengthTokens } from "@/lib/catalogue/display";
 import { getCachedProducts } from "@/lib/catalogue/cached";
-import { toSearchResult } from "@/lib/catalogue/search-result";
-import { MAX_QUERY_LENGTH, matchesTokens, queryTokens } from "@/server/catalogue/search";
+import { SEARCH_LIMIT, STRENGTH_RE, searchProducts } from "@/lib/catalogue/search-result";
+import { MAX_QUERY_LENGTH } from "@/server/catalogue/search";
 import { getDeps } from "@/server/deps";
 import { HttpError, jsonResponse, withErrors } from "@/server/http";
 import { clientIp, ipBucket } from "@/server/security/client-ip";
 import { hitRateLimit } from "@/server/security/rate-limit";
-
-const SEARCH_LIMIT = { limit: 60, windowMs: 60_000 } as const;
-const MAX_RESULTS = 20;
-const STRENGTH_RE = /^\d{1,6}$/;
 
 /**
  * Header search: `GET /api/products?q=&strength=`. Reads the cached catalogue (never the DB per
@@ -33,16 +28,5 @@ export const GET = withErrors(async (req) => {
   });
   if (!limited.allowed) throw new HttpError(429, "rate_limited", limited.retryAfterSec);
 
-  const tokens = queryTokens(q);
-  if (tokens.length === 0 && strength === null) return jsonResponse({ results: [] });
-
-  const results = (await getCachedProducts())
-    .filter(
-      (p) =>
-        matchesTokens(p, tokens) &&
-        (strength === null || strengthTokens(p.variantLabel).includes(strength)),
-    )
-    .slice(0, MAX_RESULTS)
-    .map(toSearchResult);
-  return jsonResponse({ results });
+  return jsonResponse({ results: searchProducts(await getCachedProducts(), q, strength) });
 });
