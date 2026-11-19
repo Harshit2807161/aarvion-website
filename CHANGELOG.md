@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- Overlay foundations: the shadcn dialog primitives (`src/components/ui/dialog.tsx`), `src/styles/overlay.css` (dialog, side drawer and phone bottom sheet as keyframes on `[data-state]`, Aarvion scrim), the shadcn colour mapping in `globals.css`, and the pure drag-to-dismiss thresholds in `src/components/overlay/drag.ts`. Adds `@radix-ui/react-dialog` and dev dependency `postcss` (for the built-CSS scrim test) (#81).
 - Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
   Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React
   and Testing Library setup (#45).
@@ -67,6 +68,7 @@ bottom use commit SHAs.
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
 - The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
+- `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 
 ### Changed
 

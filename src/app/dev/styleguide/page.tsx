@@ -4,6 +4,7 @@ import { RxBadge, StatusTag, type StatusTone } from "@/components/base/badge";
 import { Button, ButtonLink, type ButtonSize, type ButtonVariant } from "@/components/base/button";
 import { ICON_NAMES, Icon } from "@/components/base/icon";
 import { PriceInline, StampPrice } from "@/components/base/stamp-price";
+import { FormsDemo } from "./forms-demo";
 import { ToastDemo } from "./toast-demo";
 import { requireDevRoute } from "@/server/dev-only";
 
@@ -118,8 +119,15 @@ export default async function StyleguidePage() {
         </div>
       </section>
 
-      <section aria-labelledby="sg-otp">
-        <h2 className="mb-4 text-lg font-semibold" id="sg-otp">
+      <section aria-labelledby="sg-forms-title" id="styleguide-forms">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-forms-title">
+          Form fields
+        </h2>
+        <FormsDemo />
+      </section>
+
+      <section aria-labelledby="sg-toast">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-toast">
           Toast
         </h2>
         <ToastDemo />
