@@ -5,6 +5,7 @@ import { Button, ButtonLink, type ButtonSize, type ButtonVariant } from "@/compo
 import { ICON_NAMES, Icon } from "@/components/base/icon";
 import { PriceInline, StampPrice } from "@/components/base/stamp-price";
 import { requireDevRoute } from "@/server/dev-only";
+import { OverlayDemo } from "./overlay-demo";
 
 export const metadata: Metadata = { title: "Styleguide (dev)", robots: { index: false } };
 
@@ -129,6 +130,18 @@ export default async function StyleguidePage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section aria-labelledby="sg-overlay">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-overlay">
+          Dialog and side sheet
+        </h2>
+        <p className="mb-4">
+          A centred dialog and a right-hand drawer; below 640px both are a bottom sheet you drag
+          down by its head. Open one on load with <code>?overlay=dialog</code> or{" "}
+          <code>?overlay=side</code>.
+        </p>
+        <OverlayDemo />
       </section>
     </main>
   );

@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- `Overlay`, the dialog and right-hand side sheet (Radix Dialog via `src/components/ui/dialog.tsx`), which becomes a bottom sheet below 640px with drag-to-dismiss; styles in `src/styles/overlay.css`, shadcn colour mapping in `globals.css`, demo at `/dev/styleguide?overlay=dialog|side`. Adds `@radix-ui/react-dialog` and dev dependency `postcss` (for the built-CSS scrim test) (#TBD).
 - Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
   Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React
   and Testing Library setup (#45).
