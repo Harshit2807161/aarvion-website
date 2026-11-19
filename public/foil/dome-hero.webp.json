@@ -1,0 +1,22 @@
+{
+  "prompt": "Procedural, not AI-generated: Clear PVC blister dome overlay (alpha) for the hero pocket at 2x: contact shadow, heat-seal band, crease, light wall refraction, Fresnel reflection, rim light, and a window highlight held to the rim band so the pack under the dome is veiled by at most 15%. Applied as a 9-slice border-image over the pack. Rendered by scripts/render_foil.py (numpy heightfield, environment-lit), seed 2611, 462x424.",
+  "createdAt": "2026-11-16T15:41:59Z",
+  "origin": "procedural",
+  "aiGenerated": false,
+  "generator": "scripts/render_foil.py",
+  "command": ".tools/venv/bin/python -I scripts/render_foil.py --only dome-cat,dome-feature,dome-hero,dome-hero-m,foil-knurl-print,foil-knurl-print-1x",
+  "pixels": [
+    462,
+    424
+  ],
+  "alpha": true,
+  "encode": "cwebp -quiet -m 6 -q 82 -alpha_q 100 -exact -sharp_yuv <master.png> -o dome-hero.webp",
+  "seed": 2611,
+  "params": {
+    "w": 207,
+    "h": 188,
+    "r": 16,
+    "wall": 10,
+    "m": 12
+  }
+}

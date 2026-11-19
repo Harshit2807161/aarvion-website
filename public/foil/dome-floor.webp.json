@@ -1,0 +1,19 @@
+{
+  "prompt": "Procedural, not AI-generated: Smooth pressed-foil floor inside a blister pocket, stretched to the pocket box under the pack cut-out. Rendered by scripts/render_foil.py (numpy heightfield, environment-lit), seed 2611, 488x344.",
+  "createdAt": "2026-11-16T14:44:50Z",
+  "origin": "procedural",
+  "aiGenerated": false,
+  "generator": "scripts/render_foil.py",
+  "command": ".tools/venv/bin/python -I scripts/render_foil.py",
+  "pixels": [
+    488,
+    344
+  ],
+  "alpha": false,
+  "encode": "cwebp -quiet -m 6 -q 78 -sharp_yuv <master.png> -o dome-floor.webp",
+  "seed": 2611,
+  "params": {
+    "w": 488,
+    "h": 344
+  }
+}
