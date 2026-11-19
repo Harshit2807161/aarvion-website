@@ -23,14 +23,14 @@ describe("Icon", () => {
     expect(svg.getAttribute("class")).toContain("extra");
   });
 
-  it("defaults to 20px", () => {
-    const { container } = render(<Icon name="search" />);
-    expect(container.querySelector("svg")!.getAttribute("width")).toBe("20");
-  });
-
   it("sets the rendered size through --i-size, which base.css reads", () => {
     const { container } = render(<Icon name="check" size={28} />);
     expect(container.querySelector("svg")!.style.getPropertyValue("--i-size")).toBe("28px");
+    expect(
+      render(<Icon name="search" />)
+        .container.querySelector("svg")!
+        .getAttribute("width"),
+    ).toBe("20");
     expect(read("src/styles/base.css")).toMatch(
       /\.i \{[^}]*width: var\(--i-size, 20px\);[^}]*height: var\(--i-size, 20px\);/,
     );
