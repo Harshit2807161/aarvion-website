@@ -99,9 +99,18 @@ export const CONSENT_VERSION = POLICY_VERSION;
  * What a new account sends with its first verify: a name with at least one letter, the
  * Terms and Privacy acceptance and the 18+ declaration (both must be true), and the marketing
  * choice (optional in the UI, off by default, but always stated here). Unknown keys are refused.
+ *
+ * After trimming, the name may hold no Unicode control or format character (`\p{C}`): zero-width
+ * and bidi marks survive `trim()` and can hide or reorder a name in staff views and emails.
  */
 export const SignupInput = z.strictObject({
-  name: z.string().trim().min(2).max(80).regex(/\p{L}/u),
+  name: z
+    .string()
+    .trim()
+    .min(2)
+    .max(80)
+    .regex(/\p{L}/u)
+    .regex(/^\P{C}*$/u),
   adult: z.literal(true),
   termsPrivacy: z.literal(true),
   marketing: z.boolean(),

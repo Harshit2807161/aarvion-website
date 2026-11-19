@@ -125,11 +125,13 @@ failure (unknown, expired, consumed, exhausted or mismatched code, or a bad iden
 both with `Retry-After`.
 
 **Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one
-letter), `adult: true`, `termsPrivacy: true` and `marketing` (a boolean; the UI leaves it off). A
-new user stores them as `name` and `consents = { channel, termsPrivacy: { version, at }, adult:
-{ at }, marketing: { optedIn, at } }`, where `version` is `CONSENT_VERSION` (`POLICY_VERSION` in
-`src/config/site.ts`, today `2026-11-17`) and `channel` is the OTP channel verified. They are
-written on insert only; bumping `POLICY_VERSION` does not yet ask existing users again.
+letter, and no Unicode control or format character such as a zero-width space or a bidi
+override, since names show in staff views and emails), `adult: true`, `termsPrivacy: true` and
+`marketing` (a boolean; the UI leaves it off). A new user stores them as `name` and
+`consents = { channel, termsPrivacy: { version, at }, adult: { at }, marketing: { optedIn, at }
+}`, where `version` is `CONSENT_VERSION` (`POLICY_VERSION` in `src/config/site.ts`, today
+`2026-11-17`) and `channel` is the OTP channel verified. They are written on insert only;
+bumping `POLICY_VERSION` does not yet ask existing users again.
 
 **Session resolution** (`getAuth`): read the 43-character token from the cookie → look up by its
 hash → refuse if idle or absolute expiry has passed (and delete it) → touch at most once per
@@ -173,10 +175,13 @@ AVIF/WebP, `images.qualities` 70/75/85). Every GET handler's first statement is
 - Pages prerender from the DB at build time, so every Vercel scope needs a reachable, seeded
   database at build; an empty catalogue throws `CatalogueEmptyError` and fails the build.
 
-**Header auth state** is fetched after hydration from `GET /api/auth/session` (200 with the
-public user or `null`), so pages stay static.
+**Session route:** `GET /api/auth/session` (#107) is the header's auth source: always 200 with
+the public user or `null`, `no-store`. Nothing calls it yet.
 
 **Planned:**
+- Header auth state is fetched after hydration from `GET /api/auth/session`, so pages stay
+  static. Plan Task 43 wires it (the header's `account` slot, `AccountPill`); until then the
+  header shows a static Sign in link.
 - Product images are content-hashed, so the CDN can cache them forever.
 - Client components (`src/components/**`) import at runtime from `src/server/**` only the pure
   `catalogue/pricing.ts`, `catalogue/search.ts` and `catalogue/order.ts`

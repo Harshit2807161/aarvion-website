@@ -120,6 +120,38 @@ describe("sign-up on OTP verify", () => {
     expect(after?.consents?.marketing).toEqual({ optedIn: false, at: T });
   });
 
+  it("stores a new user's marketing opt-in as given", async () => {
+    const identifier = "meera@example.com";
+    const signup = { ...SIGNUP, name: "Meera Iyer", marketing: true };
+    expect((await verify(await sendAndRead(identifier), { identifier, signup })).status).toBe(200);
+    const user = await (await users()).findOne({ email: identifier });
+    expect(user?.consents?.marketing).toEqual({ optedIn: true, at: T });
+  });
+
+  it("accepts real names in Latin and Devanagari", async () => {
+    for (const [identifier, name] of [
+      ["ravi@example.com", "Ravi Kumar"],
+      ["priya@example.com", "प्रिया शर्मा"],
+    ] as const) {
+      const res = await verify(await sendAndRead(identifier), {
+        identifier,
+        signup: { ...SIGNUP, name },
+      });
+      expect(res.status).toBe(200);
+      expect((await (await users()).findOne({ email: identifier }))?.name).toBe(name);
+    }
+  });
+
+  it("until 38c, a first verify without sign-up creates a user with no name or consents", async () => {
+    // Pins today's interim behaviour; 38c changes this to 409 signup_required.
+    const res = await verify(await sendAndRead());
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ isNewUser: true, user: { email: ASHA, name: null } });
+    const user = await (await users()).findOne({ email: ASHA });
+    expect(user).not.toHaveProperty("name");
+    expect(user).not.toHaveProperty("consents");
+  });
+
   it("400 invalid_request for a sign-up without the required consents or a real name", async () => {
     const code = await sendAndRead();
     const without = (key: string) =>
@@ -134,6 +166,10 @@ describe("sign-up on OTP verify", () => {
       { ...SIGNUP, name: "   A   " },
       { ...SIGNUP, name: "12345" },
       { ...SIGNUP, name: "x".repeat(81) },
+      // Control and format characters: they hide or reorder text in staff views and emails.
+      { ...SIGNUP, name: "\u200BA\u200B" },
+      { ...SIGNUP, name: "Asha \u202ERao" },
+      { ...SIGNUP, name: "Asha\nRao" },
       { ...SIGNUP, role: "admin" },
       "Asha Rao",
     ];
@@ -189,6 +225,16 @@ describe("GET /api/auth/session", () => {
 
     await (await getDb()).collection(SESSIONS_COLLECTION).deleteMany({});
     expect(await (await session(token)).json()).toEqual({ user: null });
+  });
+
+  it("is 200 { user: null } once the session has expired", async () => {
+    const token = sessionTokenFrom(await verify(await sendAndRead(), { signup: SIGNUP }))!;
+    clock.advance(30 * 86_400_000 + 1); // past the customer's 30-day idle window
+    const res = await session(token);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toBeNull();
+    expect(await res.json()).toEqual({ user: null });
+    expect(await count(SESSIONS_COLLECTION)).toBe(0);
   });
 
   it("never re-issues a staff session's cookie", async () => {
