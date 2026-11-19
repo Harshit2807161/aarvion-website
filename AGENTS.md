@@ -49,7 +49,7 @@ src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide
 src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms, overlay and toast.css) and the token and CSS tests
 src/lib/            client-safe helpers (cn)
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES)
-src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, feedback/ so far)
+src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, feedback/, shell/ so far)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
 src/components/overlay/  dialog and side sheet: `Overlay` (dialog and side sheet), the drag thresholds and `useDragDismiss`
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local

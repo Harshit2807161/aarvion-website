@@ -5,6 +5,7 @@
 @import "../styles/overlay.css" layer(components);
 @import "../styles/forms.css" layer(components);
 @import "../styles/toast.css" layer(components);
+@import "../styles/footer.css" layer(components);
 
 /*
   Aarvion design tokens: design/prototype/css/tokens.css, verbatim except --font-*

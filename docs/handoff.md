@@ -68,7 +68,7 @@ UI plan tasks:
 | 6 | OTP field, customer toast and live region | `feat/ui-otp-toast` | F6 | not started |
 | 7 | Cache Components, shelf order and the cached, tagged catalogue | `feat/catalogue-cache` | C3 | 7a merged (#60); 7b open (#68) |
 | 8 | Shopper category names | `feat/category-display-names` | v2 brief | merged (#51) |
-| 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | 9a open (#76: config, routes, metadataBase); 9b footer and 9c Operate shell not opened |
+| 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | 9a merged (#76); 9b footer open (#82); 9c Operate shell not opened |
 | 10 | Announcement bar and store header | `feat/store-header` | F7 | not started |
 | 11 | Category bar and mobile chip row | `feat/category-bar` | F7 | not started |
 | 12 | 404 and error pages | `feat/error-pages` | F7 | not started |
@@ -113,7 +113,7 @@ UI plan tasks:
 | 2 | A domain | email OTP and notifications need a verified sender | email in production (N) |
 | 3 | DLT registration with MSG91 (sender ID + 6 SMS templates) | required by Indian law for any SMS; takes days | SMS OTP and order SMS (N) |
 | 4 | Vercel Pro team, linked to GitHub | Hobby is non-commercial | previews and deploy |
-| 5 | MongoDB Atlas, Mumbai; then seed each Vercel database (preview before UI Task 9 merges, `aarvion_prod` before the first deploy) | build-time pages need a seeded DB | previews and deploy |
+| 5 | MongoDB Atlas, Mumbai; then seed each Vercel database with `pnpm db:indexes && pnpm seed` (**Preview before UI Task 9 (the root layout and footer) merges into a Vercel-connected repo**, `aarvion_prod` before the first deploy) | every build reads the catalogue (the footer's categories), so an unseeded scope fails closed | previews and deploy |
 | 6 | Razorpay test keys (by the O phase), then KYC and live keys | online payments | prepaid checkout |
 | 7 | Drug licence numbers, registered pharmacist, grievance officer, GSTIN, customer care details | legal display on footer, contact and policies; Razorpay KYC; the H4 gate | launch |
 | 8 | Who issues the GST invoice (Aarvion or a dispensing partner), HSN codes and GST rates | invoices | order invoices (O) |

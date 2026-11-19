@@ -69,6 +69,9 @@ bottom use commit SHAs.
   gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`) (#76).
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
+- `StoreFooter` and `Brand` in `src/components/shell/` with `src/styles/footer.css`; the root layout
+  renders the footer, with cash on delivery as the only payment line until prepaid is live (#82).
+- The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 - `Checkbox` and `Segmented` in `src/components/form/` (native checkbox and radios; the segmented control has roving tabindex, arrows, Home and End; errors are `role="alert"`), forced-colors and contrast-more rules in `forms.css` (#84).
 - The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live
@@ -86,6 +89,8 @@ bottom use commit SHAs.
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
   resolve to localhost; an unset or invalid value falls back to `http://localhost:3000` instead of
   failing the build (#76).
+- The root layout reads the live categories for the footer, so **every build now needs a seeded
+  database**: seed the Preview DB before this merges into a Vercel-connected repo (#82).
 - `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
   a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).
