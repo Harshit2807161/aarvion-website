@@ -22,26 +22,33 @@ catalogue products without photos are listed in [docs/missing-products.md](../..
 3. Add a transparent cutout of the hero photo at `assets/products/cutout/<slug>.webp` (every
    product needs one; the drift test fails without it). `python3 -I scripts/make_cutouts.py .`
    (Pillow) regenerates **every** cutout from each `heroImage`; keep only yours with
-   `git checkout -- assets/products/cutout/<other>.webp` for the rest (not verified here).
+   `git checkout -- assets/products/cutout/<other>.webp` for the rest (not verified here). Run
+   `git status` and confirm only `assets/products/cutout/<slug>.webp` changed before the next
+   step; otherwise every product's hash and URL churns.
 4. Add the product to `data/products.json` with all 20 fields ([data.md](../data.md#productsjson)):
    - `mrpPaise` in paise from the back panel with `mrpSource: "pack-back-panel"`; if the MRP
      cannot be read, `mrpPaise: null` and `mrpSource: "default"` (the seed stores ₹404, price
      ₹384);
    - `schedule` from the pack; `rxRequired: true` for `H` and `H1`;
    - `familySlug` and `variantLabel` to join an existing family (e.g. another Sacuwin strength);
+   - `sortOrder` after the category's existing products. In cardiology never go below the Sacuwin
+     family (0–2): the Aarvion-printed packs lead Heart care (controller ruling in
+     `docs/decisions/rulings.md`);
    - `imageSource` honestly (`aarvion`, `win2age`, `unbranded`);
    - anything unconfirmed goes in `notes` (internal only).
 5. `pnpm images:sync`. It adds `public/products/<slug>/` and updates `data/product-images.json`.
 6. Update the tests pinned to the catalogue:
    - `src/server/catalogue/pricing.test.ts`: add the slug and its price (MRP − 2000) and the new
-     count;
+     count. It calls `sellingPricePaise(p.mrpPaise)` on the raw JSON, which throws for a `null`
+     MRP, so for an unknown-MRP product make the loop use
+     `sellingPricePaise(p.mrpPaise ?? DEFAULT_MRP_PAISE)` and expect `38400`;
    - `src/server/catalogue/schema.test.ts` and `src/server/catalogue/seed.test.ts`: the product
      count (`toHaveLength(11)`, "all 11 products");
    - `tests/int/seed.test.ts`: the inserted and existing counts and the document count;
    - `tests/int/catalogue-queries.test.ts`: the count, the first and last slugs in order, and
      the family or category lists the product joins.
-7. Update `docs/catalogue.md` (status → Listed) and remove the row from
-   `docs/missing-products.md`.
+7. Update `docs/catalogue.md` (status → Listed), remove the row from
+   `docs/missing-products.md`, and add the product to the table in `docs/dev/data.md`.
 8. Check:
 
    ```sh
@@ -64,4 +71,4 @@ the product after `revalidateCatalogue()` (planned).
 
 `assets/products/original/*`, `assets/products/cutout/<slug>.webp`, `data/products.json`,
 `data/product-images.json`, `public/products/<slug>/*`, the tests in step 6,
-`docs/catalogue.md`, `docs/missing-products.md`, `CHANGELOG.md`.
+`docs/catalogue.md`, `docs/missing-products.md`, `docs/dev/data.md`, `CHANGELOG.md`.

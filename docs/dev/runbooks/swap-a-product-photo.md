@@ -22,7 +22,8 @@ pack carries no mark (`"unbranded"`). This runbook replaces them with Aarvion ph
    them) and `imageSource: "aarvion"`. Clear any `notes` the new photos answer.
 4. Regenerate the cutout at `assets/products/cutout/<slug>.webp` from the new hero.
    `python3 -I scripts/make_cutouts.py .` rewrites every cutout; restore the others with
-   `git checkout -- assets/products/cutout/<other>.webp` (not verified here).
+   `git checkout -- assets/products/cutout/<other>.webp` (not verified here). Run `git status` and
+   confirm only `assets/products/cutout/<slug>.webp` changed, or every product's hash churns.
 5. `pnpm images:sync`. The new files get new content-hash names, so every CDN cache misses; the
    old files under `public/products/<slug>/` are deleted.
 6. Tests that pin photo details: `scripts/sync-product-images.test.ts` expects 3 photos for
@@ -36,22 +37,30 @@ pack carries no mark (`"unbranded"`). This runbook replaces them with Aarvion ph
 7. Banners: if the product is in a banner (the Eye slide shows `hyloage`, `sysnet-ultra`,
    `caftop` and `oloage-kt`), re-composite with
    `python3 -I scripts/composite_store_banners.py .` (Pillow; writes
-   `design/prototype/assets/banners/*` and their `.json` sidecars; not verified here). After UI
-   plan Task 16 the served copies in `public/banners/` must be refreshed too (planned).
-8. CHANGELOG → Changed:
+   `design/prototype/assets/banners/*` and their `.json` sidecars; not verified here). Then copy
+   the served pair **unchanged** into `public/banners/`: `<scene>-1792.webp`, `<scene>-m.webp`
+   and both `.json` sidecars (not the 1280). `scripts/public-provenance.test.ts` (in
+   `pnpm test:unit`) must pass: exact file set, sidecars with `generator`
+   `scripts/composite_store_banners.py`, 1792 × 588 and 840 × 472, at most 120 KB each.
+8. Update the product's Photos column in `docs/dev/data.md`.
+9. CHANGELOG → Changed:
    `- <Name> now shows Aarvion-branded pack photos (imageSource aarvion) (#<pr>).`
 
 ## Existing databases
 
 The seed does not update existing products, so the new `images` and `cutout` reach a database
 only through:
+- **a targeted update before phase D** (not verified here; on Preview or Production only with
+  the owner's OK, recorded in `docs/decisions/rulings.md`): in mongosh,
+  `db.products.updateOne({ slug: "<slug>" }, { $set: { images, cutout, imageSource: "aarvion", updatedAt: new Date() } })`.
+  Build each `images[]` entry as `{ src, width, height, alt }` from the new
+  `data/product-images.json` entry, hero first, and **drop its `from` field** (the public product
+  would otherwise expose the repo path). Alt text follows the seed: `"<Name> pack, photo 1 of N"`
+  for photos and `"<Name> pack"` for the cutout;
 - **phase D admin (planned):** "upload or replace photos", with the "needs photo swap" filter
   listing every `win2age` product, and `revalidateCatalogue()` on save;
-- **a dev database:** drop it and seed again;
-- **a shared database before phase D** (owner's OK; not verified here): `$set` the product's
-  `images`, `cutout` and `imageSource` from the new `data/product-images.json` entry, with alt
-  text in the seed's format ("<Name> pack, photo 1 of N"), and record it in
-  `docs/decisions/rulings.md`.
+- **dropping and reseeding:** only your local docker database (or a fresh one) with no admin
+  edits, orders or carts to keep; check `db.getName()` first; **never Preview or Production**.
 
 ## What changes on the site
 
@@ -63,4 +72,5 @@ only through:
 
 `assets/products/original/*`, `assets/products/cutout/<slug>.webp`, `data/products.json`,
 `data/product-images.json`, `public/products/<slug>/*`, possibly
-`scripts/sync-product-images.test.ts`, `design/prototype/assets/banners/*`, `CHANGELOG.md`.
+`scripts/sync-product-images.test.ts`, `design/prototype/assets/banners/*` and
+`public/banners/*`, `docs/dev/data.md`, `CHANGELOG.md`.

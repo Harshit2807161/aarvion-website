@@ -35,14 +35,19 @@ used, because they are URLs (`/category/<slug>`).
 
 ## B. Change a name, status or order
 
-`CATEGORY_LIST` only seeds empty databases. Changing it updates new databases and the tests, but
-an existing database keeps its old document:
+The seed inserts any category slug a database lacks, but never changes one it already has. So
+editing `CATEGORY_LIST` updates new databases and the tests, while an existing database keeps its
+old document until you change it:
 
-- **dev database:** `db.categories.deleteMany({})` in mongosh, then `pnpm seed` (this is exactly
-  the step UI plan Task 8 prescribes for its renames);
-- **shared database before phase D** (owner's OK; not verified here):
-  `db.categories.updateOne({ slug: "<slug>" }, { $set: { status: "live" } })`, recorded in
-  `docs/decisions/rulings.md`;
+- **a targeted update** (not verified here; on Preview or Production only with the owner's OK,
+  recorded in `docs/decisions/rulings.md`):
+  `db.categories.updateOne({ slug: "<slug>" }, { $set: { status: "live" } })` (or `name`,
+  `sortOrder`);
+- **all names at once:** the procedure #51 recorded in README ("Reseeding after the category
+  rename") and `docs/decisions/rulings.md`: `db.categories.deleteMany({})` then `pnpm seed`,
+  which is safe because nothing references a category document, then per-slug `updateOne` of
+  product `sortOrder` if the shelf order changed. Never `db.products.deleteMany({})` outside a
+  fresh or local database with no admin edits, orders or carts;
 - **after phase D:** the admin (planned).
 
 To take a `coming_soon` category live it also needs active products with photos
