@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react";
+import { act, fireEvent, render } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { useState } from "react";
@@ -75,6 +75,30 @@ describe("OtpField", () => {
     expect(onComplete).toHaveBeenCalledWith("482913");
   });
 
+  it("a pasted full code replaces a partial value instead of landing at the caret", () => {
+    const onChange = vi.fn();
+    const onComplete = vi.fn();
+    render(<Harness initial="48" onChange={onChange} onComplete={onComplete} />);
+    paste(input(), "Your code is 482913");
+    expect(onChange).toHaveBeenLastCalledWith("482913");
+    expect(input().value).toBe("482913");
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledWith("482913");
+  });
+
+  it("a partial paste still goes through input-otp at the caret", () => {
+    const onChange = vi.fn();
+    render(<Harness initial="48" onChange={onChange} />);
+    paste(input(), "29");
+    expect(onChange).toHaveBeenLastCalledWith("4829");
+  });
+
+  it("names the input with ariaLabel and uses the numeric pattern", () => {
+    render(<Harness ariaLabel="Login code" />);
+    expect(input().getAttribute("aria-label")).toBe("Login code");
+    expect(input().getAttribute("pattern")).toBe("^[0-9]*$");
+  });
+
   it.each([
     ["123 456", "123456"],
     ["12a3", "123"],
@@ -108,6 +132,32 @@ describe("OtpField", () => {
     render(<Harness describedBy="hint" autoFocus />);
     expect(input().getAttribute("aria-describedby")).toBe("hint");
     expect(document.activeElement).toBe(input());
+  });
+
+  it("follows a change of the motion preference after mount", () => {
+    const original = window.matchMedia;
+    let matches = false;
+    const listeners = new Set<() => void>();
+    window.matchMedia = ((q: string) => ({
+      get matches() {
+        return matches;
+      },
+      media: q,
+      addEventListener: (_: string, l: () => void) => listeners.add(l),
+      removeEventListener: (_: string, l: () => void) => listeners.delete(l),
+    })) as unknown as typeof window.matchMedia;
+    try {
+      const { container, unmount } = render(<Harness state="invalid" />);
+      const otp = container.querySelector(".otp")!;
+      expect(otp.classList.contains("shake")).toBe(false);
+      matches = true;
+      act(() => listeners.forEach((l) => l()));
+      expect(otp.classList.contains("shake")).toBe(true);
+      unmount();
+      expect(listeners.size).toBe(0);
+    } finally {
+      window.matchMedia = original;
+    }
   });
 
   it("shakes on invalid only when motion is allowed", () => {

@@ -73,8 +73,8 @@ bottom use commit SHAs.
   region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
   `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `OtpField` (`src/components/form/otp-field.tsx`: input-otp behind the generated
-  `src/components/ui/input-otp.tsx`, six `aria-hidden` boxes, paste of a whole SMS through
-  `otpDigits`, once-per-code `onComplete`, shake only when motion is allowed) with
+  `src/components/ui/input-otp.tsx`, six `aria-hidden` boxes, a pasted full code replacing
+  a partial value (native paste listener, `otpDigits`), once-per-code `onComplete`, shake only when motion is allowed) with
   `src/styles/otp.css` (#89).
 
 ### Changed
