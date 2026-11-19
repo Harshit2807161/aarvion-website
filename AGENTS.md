@@ -44,7 +44,7 @@ Why each was chosen: [docs/decisions/stack.md](docs/decisions/stack.md).
 ## Repo map
 
 ```
-src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide}, layout, placeholder home;
+src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide}, layout, (store)/ route group (customer pages and the footer; admin goes in another group), placeholder home;
                     globals.css (Tailwind 4 @theme tokens)
 src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms, overlay and toast.css) and the token and CSS tests
 src/lib/            client-safe helpers (cn)

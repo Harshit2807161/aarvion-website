@@ -1,15 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/fonts", () => ({ fontVariables: "" }));
-vi.mock("@/lib/catalogue/cached", () => ({
-  getCachedCategories: vi.fn(async () => [
-    { slug: "cardiology", name: "Heart care", status: "live", sortOrder: 0 },
-    { slug: "urology", name: "Urinary care", status: "coming_soon", sortOrder: 5 },
-  ]),
-}));
-
-import type { ReactElement } from "react";
-import { StoreFooter } from "@/components/shell/store-footer";
+import { render } from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
 import RootLayout, { generateMetadata } from "./layout";
 
 afterEach(() => vi.unstubAllEnvs());
@@ -42,17 +35,12 @@ describe("root layout metadata", () => {
 });
 
 describe("root layout", () => {
-  it("renders the footer after the children with only the live categories", async () => {
-    const html = (await RootLayout({ children: "page" })) as ReactElement<{
-      children: ReactElement;
-    }>;
-    const body = html.props.children as ReactElement<{ children: ReactElement[] }>;
-    const kids = body.props.children as ReactElement[];
-    const footer = kids.find((k) => k.type === StoreFooter) as ReactElement<{
-      categories: { slug: string }[];
-    }>;
-    expect(kids[0]).toBe("page");
-    expect(footer.type).toBe(StoreFooter);
-    expect(footer.props.categories.map((c) => c.slug)).toEqual(["cardiology"]);
+  it("has no store footer, and mounts exactly one live region", () => {
+    const html = RootLayout({ children: <p>page</p> }) as ReactElement<{ children: ReactElement }>;
+    const body = html.props.children as ReactElement<{ children: ReactNode }>;
+    const { container } = render(<>{body.props.children}</>);
+    expect(container.querySelector("footer")).toBeNull();
+    expect(container.querySelectorAll("#live")).toHaveLength(1);
+    expect(container.textContent).toContain("page");
   });
 });

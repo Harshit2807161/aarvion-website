@@ -81,10 +81,15 @@ bottom use commit SHAs.
 - The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live
   region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
   `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
+- `OperateShell` (`main#main.operate`: forest band with title, sub line and back link, then the
+  white work sheet) with `src/styles/shell.css` (#PR).
 - The `Checkbox` and `Segmented` demo on `/dev/styleguide` (`#styleguide-forms`), alongside the `TextField` states (#91).
 
 ### Changed
 
+- Customer routes live in the `src/app/(store)` route group, whose layout renders the store footer;
+  the root layout keeps only the toast region and the single live region, so admin and staff routes
+  get no store footer. URLs are unchanged (#PR).
 - `main` is now protected on GitHub (nine required checks, linear history, no force pushes or
   deletion) after the repository went public; `scripts/merge-gate.sh` uses `--admin` only for a
   ruled `ALLOW_OVERSIZE=1` exception (#90).
