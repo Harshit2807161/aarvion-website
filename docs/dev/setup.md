@@ -122,6 +122,6 @@ curl -s 'http://localhost:3000/dev/outbox?to=you@example.test'
 | 403 `bad_origin` | A POST without an `Origin` header, or with a different origin. |
 | 415 `unsupported_media_type` | The body is not sent as `application/json`. |
 | 429 `resend_cooldown` | A new code was asked for within 30 s. |
-| 429 `rate_limited` | Send limit (20/h per IP, 3/10 min per identifier) or verify limit (60/h per IP). Locally every request without `x-real-ip` shares the `unknown` IP bucket. |
+| 429 `rate_limited` | Send limit (20/h per IP, 3/10 min per identifier), verify limit (60/h per IP) or search limit (`GET /api/products`, 60/min per IP). Locally every request without `x-real-ip` shares the `unknown` IP bucket, search included. |
 | `scripts/vitest-projects.test.ts` fails | A test file matches no Vitest project, or two. See [testing.md](testing.md). |
 | Int tests fail with "port already in use" | Two int runs at once share the port blocks and retry; run one at a time. |
