@@ -776,7 +776,7 @@ button.prog-step:active .prog-dot { transform: scale(0.94); }
 
 /* Dialog brand, mini summary, review, place-order block */
 .dlg-brand { flex: 1; display: flex; align-items: center; min-height: 44px; }
-.dlg-brand .brand-mark { width: 46px; height: 13px; fill: var(--color-leaf-500); }
+.dlg-brand .brand-mark { display: block; width: 56px; height: auto; }
 .sum--mini > .sum-total { margin-top: 0; padding-top: 0; border-top: 0; }
 .sum--mini .sum-total dd { font-size: 1.625rem; }
 .sum--mini .sum-total .dm { --pitch: 1.9px; }

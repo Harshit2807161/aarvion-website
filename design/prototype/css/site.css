@@ -471,7 +471,7 @@ a.tile:active .tile-in { transform: scale(0.98); }
     radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px,
     var(--color-forest-800);
 }
-.close-swoosh { width: 168px; height: auto; aspect-ratio: 360 / 96; fill: var(--color-leaf-300); overflow: visible; }
+.close-swoosh { width: 184px; height: auto; aspect-ratio: 851.31 / 181.34; overflow: visible; } /* the official mark, in its own mint */
 .close-copy { margin-top: 36px; max-width: 46rem; display: flex; flex-direction: column; align-items: center; }
 .close-copy .h-display { color: var(--color-white); font-size: var(--text-display-xl); line-height: 1; letter-spacing: var(--text-display-xl--letter-spacing); }
 .close-copy .lead { margin-top: 18px; color: var(--color-text-on-dark-muted); max-width: 36rem; }
@@ -516,7 +516,7 @@ a.tile:active .tile-in { transform: scale(0.98); }
 
 /* Close: the swoosh pans in from 14x on forest, then the call to action */
 .film .act-close .stage { justify-content: center; padding: calc(var(--hdr-h) * 0.6) var(--spacing-gutter) 0; }
-.film .close-swoosh { transform-origin: 44% 58%; transform: translate3d(0, calc((1 - var(--ti)) * 6vh), 0) scale(calc(1 + 13 * (1 - var(--ti)))); }
+.film .close-swoosh { transform-origin: 44% 40%; transform: translate3d(0, calc((1 - var(--ti)) * 6vh), 0) scale(calc(1 + 13 * (1 - var(--ti)))); }
 .film .close-copy { opacity: var(--ti); transform: translate3d(0, calc((1 - var(--ti)) * 28px), 0); }
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
