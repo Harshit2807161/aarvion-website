@@ -56,7 +56,7 @@ add a row below, and a line to the CHANGELOG.
 | `MONGODB_URI` | Mongo connection string | dev (for DB routes), e2e (defaults to the local replica set), Preview, Production; int tests set it themselves | `mongodb://localhost:27017/?replicaSet=rs0&directConnection=true` |
 | `MONGODB_DB` | Database name; default `aarvion` | optional locally; e2e forces `aarvion_e2e`; **Production must be `aarvion_prod`**; Preview uses its own name | `aarvion` |
 | `OTP_PEPPER` | HMAC secret mixed into stored OTP hashes; at least 32 characters | wherever OTP send or verify runs (dev, Preview, Production); the e2e build generates one per run | `openssl rand -hex 32` |
-| `APP_URL` | Public base URL; its origin is accepted by `assertSameOrigin` | optional; set it in deployed scopes | `https://aarvion.example` |
+| `APP_URL` | Public base URL; its origin is accepted by `assertSameOrigin` | optional; set it in deployed scopes (it is also the `metadataBase` for Open Graph and icon URLs) | `https://aarvion.example` |
 | `VERCEL_ENV` | `production`, `preview` or `development` | set by Vercel only; `production` forbids mocks | empty locally |
 | `ALLOW_MOCKS_IN_PROD_BUILD` | `1` lets a production build (`pnpm build && pnpm start`) use mocks | the e2e build and the Vercel Preview scope only; **never Production** | `1` |
 | `SMS_PROVIDER` | `mock` or `msg91`; default `mock` | `msg91` is not implemented yet (N phase) and throws | `mock` |

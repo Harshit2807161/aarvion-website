@@ -39,7 +39,7 @@ refuses mocks whenever the database is `aarvion_prod`.
 | `MONGODB_URI` | Atlas production cluster | preview cluster or project |
 | `MONGODB_DB` | `aarvion_prod` | e.g. `aarvion_preview` |
 | `OTP_PEPPER` | its own 64-hex secret | its own, different secret |
-| `APP_URL` | the production URL | optional |
+| `APP_URL` | the production URL (also the base for Open Graph and icon URLs; unset falls back to `http://localhost:3000`) | set it, or shared links point at localhost |
 | `SMS_PROVIDER`, `EMAIL_PROVIDER`, `PAYMENTS_PROVIDER`, `FILE_STORE` | `msg91`, `resend`, `razorpay`, `blob` (once built) | `mock`, `mock`, `fake`, `memory` |
 | `ALLOW_MOCKS_IN_PROD_BUILD` | unset | `1` |
 | Provider keys (MSG91, Resend, Razorpay, Blob) | names defined by the N, O and R phases | test keys |
@@ -80,10 +80,17 @@ and `aarvion_prod` before the first production deploy. Redeploy after a direct d
 
 Nothing below exists yet; each lands before or with the production deploy.
 
-- **H4 production gates:** a startup assertion that `VERCEL_ENV=production` implies
-  `MONGODB_DB=aarvion_prod`; `assertLegalConfigComplete()` (from UI plan Task 9) called from
-  `instrumentation.ts` in production, with `SITE_CONFIG` filled with the drug licence numbers,
-  registered pharmacist, grievance officer, GSTIN and customer care details.
+- **H4 production gates:**
+  - a startup assertion that `VERCEL_ENV=production` implies `MONGODB_DB=aarvion_prod`;
+  - `APP_URL` must be set, and must not be localhost, in production. An unset or invalid value
+    silently gives a localhost `metadataBase`, so shared links and Open Graph images would
+    point at localhost;
+  - `assertLegalConfigComplete()` (in `src/config/site.ts`, UI plan Task 9; the function exists,
+    the call does not yet) called from `instrumentation.ts`. Gate it on
+    `VERCEL_ENV === "production"`, not `NODE_ENV` (Preview builds also run with
+    `NODE_ENV=production`). `SITE_CONFIG` must be filled with the drug licence numbers,
+    registered pharmacist, grievance officer, GSTIN, and both a customer care phone and email
+    (a partial pair counts as pending).
 - **Index drift detection** (compare live index options with the registry) before the H5
   deploy ([docs/decisions/db.md](../decisions/db.md)).
 - **H5 production deploy and runbook**, including how to run `db:indexes` in production.

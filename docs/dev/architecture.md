@@ -29,7 +29,8 @@
 | `src/app/dev/outbox/route.ts` | `GET /dev/outbox?to=` (dev only) |
 | `src/app/dev/styleguide/page.tsx` | `/dev/styleguide` (dev only): every button variant, the Rx badge, tags, stamp and inline prices and the icon grid, for visual review |
 | `src/proxy.ts` | answers a real HTTP 404 for every `/dev/*` request wherever `isMockForbidden()` is true, before anything renders |
-| `src/app/layout.tsx`, `page.tsx` | root layout (`lang="en-IN"`, viewport, theme colour) and the "coming soon" placeholder home |
+| `src/app/layout.tsx`, `page.tsx` | root layout (`lang="en-IN"`, viewport, theme colour, `metadataBase` from `APP_URL`) and the "coming soon" placeholder home |
+| `src/config/` | `site.ts` (`SITE_CONFIG`: legal name, address, and the pending legal facts, all `null` until the owner supplies them; `legalValue()`, `pendingLegalFields()`, and `assertLegalConfigComplete()`, the H4 production gate; `resolveSiteMetadataBase()`) and `routes.ts` (`ROUTES`, the one map of store links, and `PENDING_ROUTES`, the linked pages that must still 404 until built; each page's task deletes its entry) |
 | `src/app/globals.css` | Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored) |
 | `src/styles/` | ported prototype CSS imported by `globals.css` (`base.css`: one merged `@layer base` with resets, focus, type and utilities; `buttons.css`: `.btn*`, `.link`, `.spin`; `stamp.css`: `.dm`, `.stamp*`, `.off`, `.price-inline`, `.rx`, `.tag*`; the last two are imported `layer(components)`), with `tokens.test.ts` and `css-hygiene.test.ts` |
 | `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting) |
@@ -47,7 +48,7 @@
 | `assets/` | source photos and cutouts; `brand/official/` (the traced logo masters, made by `scripts/trace_logo.py`); banner scenes; `fonts/` (source TTFs, OFL licences, `SOURCES.json`, README) |
 | `design/prototype/` | the approved hi-fi prototype (excluded from ESLint) |
 
-Planned folders (UI plan): more of `src/components/**` and `src/lib/**`, and `src/config/`. See
+Planned folders (UI plan): more of `src/components/**` and `src/lib/**`. See
 the plan's "File Structure".
 
 ## Server modules
