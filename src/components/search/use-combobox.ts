@@ -13,12 +13,17 @@ type Options<T> = {
   onClear: () => void;
 };
 
+/** Same length and the same items in the same order, so a fresh but equal array is not a change. */
+function sameItems<T>(a: readonly T[], b: readonly T[]): boolean {
+  return a === b || (a.length === b.length && a.every((x, i) => Object.is(x, b[i])));
+}
+
 /**
  * Keyboard and ARIA wiring for the WAI-ARIA 1.2 combobox with a list popup. DOM focus stays on
  * the input; the highlighted option is named by `aria-activedescendant`. Spread `inputProps` on
  * the input, give the listbox `id={listId}` and each option `id={optionId(i)}` with
  * `aria-selected={i === active}`. Arrows wrap; Enter chooses the active item, or the first when
- * none is active; Escape closes the popup, and once it is closed clears the field. The active
+ * none is active (ignored while an IME is composing); Escape (always default-prevented) closes the popup, and once it is closed clears the field. The active
  * option resets whenever `items` or `open` changes. This hook adds no live region: the result
  * count is spoken through `announce()`.
  */
@@ -30,7 +35,7 @@ export function useCombobox<T>({ items, open, idPrefix, onChoose, onClose, onCle
     active: -1,
   });
   let active = state.active;
-  if (state.items !== items || state.open !== open) {
+  if (!sameItems(state.items, items) || state.open !== open) {
     active = -1;
     setState({ items, open, active });
   }
@@ -40,6 +45,9 @@ export function useCombobox<T>({ items, open, idPrefix, onChoose, onClose, onCle
   const live = open && items.length > 0;
 
   function onKeyDown(e: KeyboardEvent<HTMLElement>) {
+    // An IME owns Enter, the arrows and Escape while composing (keyCode 229 covers Safari, where
+    // compositionend fires before the Enter keydown).
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     switch (e.key) {
       case "ArrowDown":
       case "ArrowUp": {
@@ -58,6 +66,9 @@ export function useCombobox<T>({ items, open, idPrefix, onChoose, onClose, onCle
         return;
       }
       case "Escape": {
+        // A type=search input clears itself on Escape unless the keydown is prevented, which would
+        // close and clear in one press.
+        e.preventDefault();
         if (open) onClose();
         else onClear();
         return;
@@ -72,7 +83,7 @@ export function useCombobox<T>({ items, open, idPrefix, onChoose, onClose, onCle
     inputProps: {
       role: "combobox" as const,
       "aria-autocomplete": "list" as const,
-      "aria-expanded": open,
+      "aria-expanded": live,
       "aria-controls": listId,
       "aria-activedescendant": live && active >= 0 ? optionId(active) : undefined,
       onKeyDown,

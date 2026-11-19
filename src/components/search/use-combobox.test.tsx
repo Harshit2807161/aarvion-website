@@ -97,6 +97,57 @@ describe("useCombobox", () => {
     expect(onChoose).not.toHaveBeenCalled();
   });
 
+  it("aria-expanded is false when open but there is nothing to show", () => {
+    render(<Harness items={[]} />);
+    expect(box()).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("ignores keys while an IME is composing", () => {
+    const onChoose = vi.fn();
+    const onClose = vi.fn();
+    render(<Harness items={["a", "b"]} onChoose={onChoose} onClose={onClose} />);
+    for (const k of ["Enter", "ArrowDown", "Escape"]) {
+      expect(fireEvent.keyDown(box(), { key: k, isComposing: true })).toBe(true);
+      expect(fireEvent.keyDown(box(), { key: k, keyCode: 229 })).toBe(true);
+    }
+    expect(onChoose).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(box()).not.toHaveAttribute("aria-activedescendant");
+  });
+
+  it("Escape is default-prevented, so a search input is not natively cleared on the first press", () => {
+    const onClose = vi.fn();
+    const onClear = vi.fn();
+    const { rerender } = render(<Harness items={["a"]} onClose={onClose} onClear={onClear} />);
+    expect(fireEvent.keyDown(box(), { key: "Escape" })).toBe(false);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClear).not.toHaveBeenCalled();
+    rerender(<Harness items={["a"]} open={false} onClose={onClose} onClear={onClear} />);
+    expect(fireEvent.keyDown(box(), { key: "Escape" })).toBe(false);
+    expect(onClear).toHaveBeenCalledTimes(1);
+  });
+
+  it("a fresh but equal items array does not reset the active option or loop", () => {
+    let renders = 0;
+    function Inline() {
+      renders++;
+      const { active, inputProps } = useCombobox({
+        items: ["a", "b"], // new array every render
+        open: true,
+        idPrefix: "s",
+        onChoose: () => {},
+        onClose: () => {},
+        onClear: () => {},
+      });
+      return <input aria-label="x" {...inputProps} data-active={active} />;
+    }
+    render(<Inline />);
+    const input = screen.getByRole("combobox");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(input).toHaveAttribute("data-active", "0");
+    expect(renders).toBeLessThan(6);
+  });
+
   it("Escape closes first, then clears", () => {
     const onClose = vi.fn();
     const onClear = vi.fn();
