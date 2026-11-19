@@ -4,11 +4,11 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 /**
- * Global Constraints: client-reachable code (`src/components/**`) imports at runtime from
- * `src/server/**` only the pure, framework-free `catalogue/pricing`, `catalogue/search` and
- * `catalogue/order`. Anything else there may pull Mongo, env or auth code into a client bundle,
- * so it may be imported only with a statement-level `import type` (or `export type`), which is
- * always erased. An inline `import { type X }` is not enough: depending on the compiler settings
+ * Global Constraints: client-reachable code (`src/components/**`, and `src/lib/**` but for its
+ * server-only modules) imports at runtime from `src/server/**` only the pure, framework-free
+ * `catalogue/pricing`, `catalogue/search` and `catalogue/order`. Anything else there may pull
+ * Mongo, env or auth code into a client bundle, so it may be imported only with a statement-level
+ * `import type` (or `export type`), which is always erased. An inline `import { type X }` is not enough: depending on the compiler settings
  * it can leave a side-effect import of the module behind.
  */
 const root = path.resolve(import.meta.dirname, "../..");
@@ -63,14 +63,21 @@ function runtimeServerImports(source: string, file: string): string[] {
   return hits;
 }
 
-const files = globSync("src/components/**/*.{ts,tsx}", { cwd: root }).filter(
-  (f) => !/\.test\.tsx?$/.test(f),
-);
+/** Server-only modules under src/lib (they read the DB or env); every other src/lib file is held to the rule. */
+const SERVER_ONLY_LIB = new Set(["src/lib/catalogue/cached.ts", "src/lib/catalogue/errors.ts"]);
+const files = [
+  ...globSync("src/components/**/*.{ts,tsx}", { cwd: root }),
+  ...globSync("src/lib/**/*.{ts,tsx}", { cwd: root }).filter(
+    (f) => !SERVER_ONLY_LIB.has(f.split(path.sep).join("/")),
+  ),
+].filter((f) => !/\.test\.tsx?$/.test(f));
 
-describe("components import no server runtime", () => {
-  it("scans the component sources", () => {
+describe("client-reachable code imports no server runtime", () => {
+  it("scans the component and client-safe lib sources", () => {
     expect(files.length).toBeGreaterThan(10);
     expect(files).toContain(path.join("src", "components", "base", "stamp-price.tsx"));
+    expect(files).toContain(path.join("src", "lib", "catalogue", "display.ts"));
+    expect(files).not.toContain(path.join("src", "lib", "catalogue", "cached.ts"));
   });
 
   it.each(files.map((f) => [f]))("%s", (file) => {

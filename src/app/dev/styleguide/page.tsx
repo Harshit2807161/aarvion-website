@@ -4,10 +4,13 @@ import { RxBadge, StatusTag, type StatusTone } from "@/components/base/badge";
 import { Button, ButtonLink, type ButtonSize, type ButtonVariant } from "@/components/base/button";
 import { ICON_NAMES, Icon } from "@/components/base/icon";
 import { PriceInline, StampPrice } from "@/components/base/stamp-price";
+import { Pocket } from "@/components/catalogue/pocket";
+import { getCachedProducts } from "@/lib/catalogue/cached";
 import { FormsDemo } from "./forms-demo";
 import { OtpDemo } from "./otp-demo";
 import { OverlayDemo } from "./overlay-demo";
 import { ToastDemo } from "./toast-demo";
+import type { PublicProduct } from "@/server/catalogue/queries";
 import { requireDevRoute } from "@/server/dev-only";
 
 export const metadata: Metadata = { title: "Styleguide (dev)", robots: { index: false } };
@@ -56,10 +59,22 @@ function ButtonGrid() {
   );
 }
 
+/** The seeded catalogue, or null when it cannot be read, so the rest of the page still renders. */
+async function catalogueOrNull(): Promise<PublicProduct[] | null> {
+  try {
+    return await getCachedProducts();
+  } catch (error) {
+    // The error name only (AGENTS.md: logs record error names), so a real bug is not hidden.
+    console.error("styleguide: catalogue read failed:", (error as Error)?.name ?? "unknown");
+    return null;
+  }
+}
+
 /** Dev-only page: every base component on one screen, for visual review. 404s when mocks are forbidden. */
 export default async function StyleguidePage() {
   await connection();
   requireDevRoute();
+  const products = await catalogueOrNull();
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-10 p-6">
       <h1 className="h-section">Styleguide</h1>
@@ -119,6 +134,32 @@ export default async function StyleguidePage() {
             <PriceInline key={mrp} mrpPaise={mrp} />
           ))}
         </div>
+      </section>
+
+      <section aria-labelledby="sg-pockets" id="styleguide-pockets">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-pockets">
+          Foil pockets
+        </h2>
+        <p className="mb-4">
+          Every listed product from the cached catalogue, in shelf order, on print-field foil, at
+          the rail widths (248px; 45vw, at least 164px, on phones). The slits between pockets and
+          the smaller phone dome are rail rules, not shown here. Images are lazy unless{" "}
+          <code>priority</code> marks the page&rsquo;s LCP candidate.
+        </p>
+        {products && products.length > 0 ? (
+          <ul className="grid w-fit grid-cols-[repeat(3,248px)] rounded-strip px-[10px] pt-[2px] pb-[4px] shadow-md [background:var(--foil-print)] max-[719px]:-mx-6 max-[719px]:w-auto max-[719px]:grid-cols-[repeat(2,max(164px,45vw))] max-[719px]:justify-center max-[719px]:rounded-none">
+            {products.map((product) => (
+              <Pocket key={product.slug} product={product} />
+            ))}
+          </ul>
+        ) : (
+          <p>
+            {products
+              ? "No products in the catalogue"
+              : "The catalogue could not be read (see the server log)"}
+            : run <code>pnpm db:up && pnpm db:indexes && pnpm seed</code>.
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="sg-forms-title" id="styleguide-forms">

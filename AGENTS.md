@@ -49,7 +49,7 @@ src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide
 src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms, overlay, otp and toast.css) and the token and CSS tests
 src/lib/            helpers: cn, format/, cart/ (session cart), catalogue/ (display.ts wording helpers, client-safe; cached.ts reads, server only)
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES)
-src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/ so far)
+src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/, cart/, catalogue/ so far)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
 src/components/overlay/  dialog and side sheet: `Overlay` (dialog and side sheet), the drag thresholds and `useDragDismiss`
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
@@ -270,10 +270,11 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 
 **Code rules that protect the invariants**
 
-- Components (`src/components/**`) import at runtime from `src/server/**` only the pure
-  `catalogue/pricing`, `catalogue/search` and `catalogue/order`; anything else from there is a
-  statement-level `import type` (`src/components/server-imports.test.ts`, direct imports only:
-  `src/lib/catalogue/cached.ts` is server-only too, so never import it from a `"use client"` module).
+- Components (`src/components/**`) and client-safe `src/lib/**` import at runtime from
+  `src/server/**` only the pure `catalogue/pricing`, `catalogue/search` and `catalogue/order`;
+  anything else from there is a statement-level `import type` (`src/components/server-imports.test.ts`).
+  `src/lib/catalogue/{cached,errors}.ts` are server-only (listed in that test): never import them
+  from a `"use client"` module.
 - Money is integer paise. Inputs reach Mongo only as zod-parsed primitives; no user input becomes
   a regex or an operator object. Public catalogue data never includes `internalNotes`.
 - New code in `src/server/**` never calls `new Date()` or `Date.now()`: take `now: Date`; routes
