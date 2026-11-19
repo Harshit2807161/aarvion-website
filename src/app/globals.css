@@ -3,7 +3,7 @@
 
 /*
   Aarvion design tokens: design/prototype/css/tokens.css, verbatim except --font-*
-  (src/fonts owns those) and the plain custom properties, which live in :root below.
+  (the @theme inline block below points them at the src/fonts variables) and the plain custom properties, which live in :root below.
   `static` emits every token on :root, so ported CSS can read var(--color-forest-800)
   whether or not a utility class uses it. src/styles/tokens.test.ts keeps this in step
   with the prototype and DESIGN.md.
@@ -208,4 +208,16 @@
   --input: var(--color-line-strong);
   --ring: var(--color-forest-700);
   --radius: 0.875rem;
+}
+
+/*
+  Fonts: src/fonts sets the --font-host-grotesk, --font-geist and --font-geist-mono
+  variables on <html>; these tokens put them first in the prototype's fallback lists.
+  `inline` keeps the var() reference literal so the next/font variable resolves at use.
+  There is no wordmark face: the logo is outlined SVG under public/brand.
+*/
+@theme inline {
+  --font-display: var(--font-host-grotesk), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }

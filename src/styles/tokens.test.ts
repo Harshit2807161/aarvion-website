@@ -63,8 +63,18 @@ describe("design tokens in globals.css", () => {
     expect(theme).toContain("--color-*: initial;");
   });
 
-  it("leaves --font-* to the font task", () => {
-    expect(globals).not.toMatch(/--font-(display|sans|mono|wordmark):/);
+  it.each([
+    ["display", /^var\(--font-host-grotesk\), var\(--font-geist\), ui-sans-serif, system-ui, sans-serif$/],
+    ["sans", /^var\(--font-geist\), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif$/],
+    ["mono", /^var\(--font-geist-mono\), ui-monospace, "SF Mono", Menlo, monospace$/],
+  ])("[C14] --font-%s starts with its next/font variable and keeps the prototype fallbacks", (name, re) => {
+    const m = globals.match(new RegExp(`--font-${name}: ([^;]+);`));
+    expect(m, `--font-${name} is missing`).not.toBeNull();
+    expect(m![1]!).toMatch(re);
+  });
+
+  it("has no wordmark font: the logo ships as outlined SVG", () => {
+    expect(globals).not.toMatch(/--font-(wordmark|montserrat)/);
   });
 
   const colors = Object.entries(designColors()).filter(([key]) => !key.startsWith("admin-"));
