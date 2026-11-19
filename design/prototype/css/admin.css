@@ -56,9 +56,8 @@ a { color: var(--color-forest-700); text-underline-offset: 0.18em; }
 .rail :focus-visible { outline-color: var(--color-focus-dark); }
 .rail a { color: inherit; }
 .brand { display: grid; gap: 0.5rem; padding: 0 0.5rem 1.125rem; text-decoration: none; }
-.brand-mark { width: 2.5rem; height: 0.6875rem; fill: var(--color-leaf-300); overflow: visible; }
-.brand-word { font: 800 1.0625rem/1 var(--font-wordmark); letter-spacing: 0.06em; color: var(--color-white); }
-.brand-sub { font: 800 0.5625rem/1 var(--font-wordmark); letter-spacing: 0.3em; color: var(--color-text-on-dark-muted); margin-top: -0.25rem; }
+.brand-logo { display: block; height: 2.5rem; width: auto; } /* reversed logo; the mark alone when the rail collapses */
+.brand-mark { display: none; width: 2.5rem; height: auto; }
 .brand-role { font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-on-dark-muted); }
 /* foil perforation: the one signature rule, used between rail groups and between count cells */
 .perf { border: 0; height: 0; margin: 0.25rem 0.5rem 0.75rem; border-top: 1.5px dashed rgb(149 187 162 / 0.4); }
@@ -392,7 +391,8 @@ dialog.confirm::backdrop { background: rgb(14 30 21 / 0.4); }
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   :root { --adm-rail: 3.75rem; }
-  .brand-word, .brand-sub, .brand-role, .nav .label, .rail-foot { display: none; }
+  .brand-logo, .brand-role, .nav .label, .rail-foot { display: none; }
+  .brand-mark { display: block; }
   .brand { justify-items: center; padding: 0 0 1rem; }
   .nav a { justify-content: center; padding: 0; position: relative; }
   .nav .badge { position: absolute; top: 0.125rem; right: 0.125rem; font-size: 0.5625rem; padding: 0.125rem 0.3125rem; }
