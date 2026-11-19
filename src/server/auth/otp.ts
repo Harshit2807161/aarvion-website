@@ -145,3 +145,25 @@ export async function verifyOtpChallenge(
   );
   return used.modifiedCount === 1 ? { ok: true } : { ok: false, reason: "consumed_concurrently" };
 }
+
+/**
+ * Checks a code without using it up, for a sign-up that still needs the user's details. A
+ * mismatch keeps its spent attempt, exactly as verify does; a match refunds it and leaves the
+ * challenge unconsumed, so the same code can log in once later. The refund matches only the
+ * same live challenge and never takes attempts below 0.
+ */
+export async function checkOtpChallenge(
+  id: Identifier,
+  code: string,
+  now: Date,
+): Promise<VerifyResult> {
+  const spent = await spendAndCompare(id, code, now);
+  if (!spent.ok) return spent;
+  const { doc } = spent;
+  const col = await collection();
+  await col.updateOne(
+    { _id: doc._id, challengeId: doc.challengeId, consumedAt: null, attempts: { $gt: 0 } },
+    { $inc: { attempts: -1 } },
+  );
+  return { ok: true };
+}
