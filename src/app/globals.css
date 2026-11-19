@@ -7,6 +7,7 @@
 @import "../styles/otp.css" layer(components);
 @import "../styles/toast.css" layer(components);
 @import "../styles/footer.css" layer(components);
+@import "../styles/header.css" layer(components);
 @import "../styles/shell.css" layer(components);
 
 /*

@@ -1,3 +1,4 @@
+import { AnnounceBar } from "@/components/shell/announce-bar";
 import { StoreFooter } from "@/components/shell/store-footer";
 import { getCachedCategories } from "@/lib/catalogue/cached";
 
@@ -7,6 +8,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
   const live = (await getCachedCategories()).filter((c) => c.status === "live");
   return (
     <>
+      <AnnounceBar />
       {children}
       <StoreFooter categories={live} />
     </>

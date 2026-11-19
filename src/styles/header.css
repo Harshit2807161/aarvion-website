@@ -1,0 +1,31 @@
+/*
+  Announcement line: port of design/prototype/css/store.css lines 16-37 and the announcement rules
+  of its 720px block, for src/components/shell/announce-bar.tsx. The store header's rules join
+  this file with the header task. The chrome is 1280px everywhere (plan ruling 11); page content
+  stays at --container-page.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.announce .wrap { width: min(80rem, 100% - 2 * var(--spacing-gutter)); }
+
+/* ── Announcement line ── */
+.announce { background: var(--color-forest-900); color: rgb(255 255 255 / 0.92); }
+.announce-in {
+  display: flex; align-items: center; justify-content: center; min-height: 36px; padding-block: 6px;
+  font: 500 0.8125rem/1.25 var(--font-sans); letter-spacing: 0.005em; text-align: center;
+}
+.ann + .ann::before {
+  content: ""; display: inline-block; width: 4px; height: 4px; margin: 0 16px; border-radius: 50%;
+  vertical-align: 0.2em; background: var(--color-leaf-300);
+}
+
+@media (max-width: 720px) {
+  /* one notice at a time, cross-faded slowly (the first one only without JS or motion) */
+  .announce-in { display: grid; min-height: 32px; font-size: 0.75rem; }
+  .ann { grid-area: 1 / 1; opacity: 0; transition: opacity 600ms ease; }
+  .ann:first-child, .ann.is-on { opacity: 1; }
+  .announce.is-rotating .ann:first-child:not(.is-on) { opacity: 0; }
+  .ann + .ann::before { content: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ann { transition: none; }
+}
