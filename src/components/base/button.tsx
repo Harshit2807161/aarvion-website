@@ -1,3 +1,7 @@
+"use client";
+
+// A client module: the busy state attaches a click handler to a plain <button>, and a server
+// component cannot pass event handlers to DOM elements (the /dev/styleguide page failed on it).
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/cn";
