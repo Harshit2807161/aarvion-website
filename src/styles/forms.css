@@ -74,8 +74,13 @@
 /* Keyboard focus must stay visible when forced colours drop the shadow and edge colour. */
 @media (forced-colors: active) {
   .input:focus, .select:focus, .textarea:focus { outline: 2px solid Highlight; outline-offset: 2px; }
+  .check-input:focus-visible + .check-box, .seg-input:focus-visible + .seg-opt { outline-color: Highlight; }
+  .check-input:checked + .check-box { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; }
+  .seg-thumb { border: 2px solid Highlight; }
 }
 @media (prefers-contrast: more) {
   .hint, .label .opt-hint { color: var(--color-neutral-800); }
-  .field-box { border-color: var(--color-neutral-700); }
+  .field-box, .check-box { border-color: var(--color-neutral-700); }
+  .check-text small, .seg-opt .num { color: var(--color-neutral-800); }
+  .seg-input:not(:checked) + .seg-opt { color: var(--color-neutral-900); }
 }
