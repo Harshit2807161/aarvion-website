@@ -11,6 +11,7 @@ describe("countChangedLines", () => {
       "500\t0\tpnpm-lock.yaml",
       "900\t10\tdata/products/x.json",
       "0\t0\tpublic/a.webp",
+      "30\t0\tpublic/banners/eye-m.webp.json",
       "7\t7\tsrc/img/b.png",
       "40\t2\tpublic/icons/c.svg",
       "600\t0\tdocs/superpowers/plans/p.md",
@@ -18,6 +19,17 @@ describe("countChangedLines", () => {
       "4\t1\tsrc/keep.ts",
     ].join("\n");
     expect(countChangedLines(numstat, DEFAULT_EXCLUDES)).toBe(5);
+  });
+
+  it("excludes the font licence texts but not other text files", () => {
+    const numstat = "90\t0\tassets/fonts/OFL-Geist.txt\n6\t0\tassets/other.txt";
+    expect(countChangedLines(numstat, DEFAULT_EXCLUDES)).toBe(6);
+  });
+
+  it("excludes everything under public/", () => {
+    expect(
+      countChangedLines("30\t0\tpublic/banners/eye-m.webp.json", DEFAULT_EXCLUDES),
+    ).toBe(0);
   });
 
   it("counts binary rows as 0", () => {

@@ -1,0 +1,27 @@
+{
+  "prompt": "Procedural, not AI-generated: The print-field knurl area-averaged to 1x for 1x screens (image-set); tile shown at 140px 120px. Rendered by scripts/render_foil.py (numpy heightfield, environment-lit), seed 2611, 140x120.",
+  "createdAt": "2026-11-16T15:41:52Z",
+  "origin": "procedural",
+  "aiGenerated": false,
+  "generator": "scripts/render_foil.py",
+  "command": ".tools/venv/bin/python -I scripts/render_foil.py --only dome-cat,dome-feature,dome-hero,dome-hero-m,foil-knurl-print,foil-knurl-print-1x",
+  "pixels": [
+    140,
+    120
+  ],
+  "alpha": true,
+  "encode": "cwebp -quiet -m 6 -lossless -z 9 -exact <master.png> -o foil-knurl-print-1x.webp",
+  "seed": 2611,
+  "params": {
+    "a": 14,
+    "b": 12,
+    "cells": 20,
+    "amp": 2.3,
+    "soft": 0.5,
+    "jitter": 0.16,
+    "tilt": 0.14,
+    "base": 0.855,
+    "gain": 0.32,
+    "scale": "1x, 2x2 area average of foil-knurl-print"
+  }
+}

@@ -49,7 +49,7 @@ describe("listProducts", () => {
   it("lists all 11 in order with derived prices and no internal fields", async () => {
     const ps = await listProducts();
     expect(ps).toHaveLength(11);
-    expect(ps[0]!.slug).toBe("bemptor-r40");
+    expect(ps[0]!.slug).toBe("sacuwin-50");
     expect(ps[10]!.slug).toBe("mucohelp");
     for (const p of ps) {
       expect(p.pricePaise).toBe(p.mrpPaise - 2000);
@@ -106,7 +106,7 @@ describe("getProductBySlug", () => {
       .collection(PRODUCTS_COLLECTION)
       .updateOne({ slug: "sacuwin-100" }, { $set: { category: "urology" } });
     expect(await getProductBySlug("sacuwin-100")).toBeNull();
-    expect(await listProducts({ q: "sacuwin" })).toHaveLength(2);
+    expect(slugs(await listProducts({ q: "sacuwin" }))).toEqual(["sacuwin-50", "sacuwin-200"]);
   });
 });
 
@@ -115,6 +115,22 @@ describe("getFamily", () => {
     expect(slugs(await getFamily("sacuwin"))).toEqual(["sacuwin-50", "sacuwin-100", "sacuwin-200"]);
     expect(slugs(await getFamily("bemptor"))).toEqual(["bemptor-180", "bemptor-r40"]);
     expect(await getFamily("Bad Slug")).toEqual([]);
+  });
+
+  it("excludes an inactive member", async () => {
+    const db = await getDb();
+    await db
+      .collection(PRODUCTS_COLLECTION)
+      .updateOne({ slug: "sacuwin-100" }, { $set: { active: false } });
+    expect(slugs(await getFamily("sacuwin"))).toEqual(["sacuwin-50", "sacuwin-200"]);
+  });
+
+  it("excludes a member whose category is not live", async () => {
+    const db = await getDb();
+    await db
+      .collection(PRODUCTS_COLLECTION)
+      .updateOne({ slug: "bemptor-r40" }, { $set: { category: "urology" } });
+    expect(slugs(await getFamily("bemptor"))).toEqual(["bemptor-180"]);
   });
 });
 
@@ -131,6 +147,30 @@ describe("categories", () => {
     ]);
     expect(await getCategoryBySlug("pain-management")).toBeNull();
     expect((await getCategoryBySlug("ophthalmology"))?.name).toBe("Eye care");
+    expect((await getCategoryBySlug("cardiology"))?.name).toBe("Heart care");
+  });
+
+  it("lists the shopper-facing names in order", async () => {
+    expect((await listVisibleCategories()).map((c) => c.name)).toEqual([
+      "Heart care",
+      "Diabetes care",
+      "Eye care",
+      "Respiratory care",
+      "Digestive care",
+      "Bone and joint care",
+      "Urinary care",
+    ]);
+  });
+
+  it("leads Heart care with the Aarvion-printed Sacuwin packs", async () => {
+    const cardio = await listProducts({ category: "cardiology" });
+    expect(slugs(cardio)).toEqual([
+      "sacuwin-50",
+      "sacuwin-100",
+      "sacuwin-200",
+      "bemptor-r40",
+      "bemptor-180",
+    ]);
   });
 });
 

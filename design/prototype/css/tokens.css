@@ -21,7 +21,7 @@
   --color-forest-900: #172f21;
   --color-forest-950: #0e1e15;
 
-  /* Leaf: the logo swoosh. 300 on dark ground, 500 on light. */
+  /* Leaf: green accents (dots, toast and rail icons). 300 on dark ground, 500 on light. Not the logo. */
   --color-leaf-300: #7fd3a6;
   --color-leaf-500: #3fa36f;
 
@@ -74,7 +74,6 @@
   --font-display: "Host Grotesk", "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-wordmark: "Montserrat", "Host Grotesk", sans-serif;
 
   --text-display-xl: clamp(2.5rem, 1.05rem + 4.6vw, 5rem);
   --text-display-xl--line-height: 1;

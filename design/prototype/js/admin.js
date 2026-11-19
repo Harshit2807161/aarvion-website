@@ -270,7 +270,7 @@ function endIdle() { if (idleToast) idleToast.dismiss(); idleToast = null; deadl
 function stay() { const wasPreview = previewing; endIdle(); lastActive = Date.now(); toast({ title: wasPreview ? 'Preview ended' : 'Session extended', sub: 'Your 30 minutes start again.' }); }
 function signOut(why) {
   const o = el('div', 'signed-out'); o.setAttribute('role', 'alertdialog'); o.setAttribute('aria-labelledby', 'so-t');
-  o.innerHTML = `<div><svg class="brand-mark" style="width:3.5rem;height:1rem;fill:var(--color-leaf-300)" viewBox="0 0 360 96" aria-hidden="true"><use href="#i-swoosh"/></svg><h2 id="so-t">You have been signed out</h2><p>${why || 'Your session ended after 30 minutes without activity.'} Unsaved changes in the open form were not saved. Sign in again with an OTP to continue.</p><a class="btn primary" href="index.html" id="so-btn">Sign in again</a></div>`;
+  o.innerHTML = `<div><img src="../assets/brand/aarvion-mark.svg" alt="" width="64" height="14"><h2 id="so-t">You have been signed out</h2><p>${why || 'Your session ended after 30 minutes without activity.'} Unsaved changes in the open form were not saved. Sign in again with an OTP to continue.</p><a class="btn primary" href="index.html" id="so-btn">Sign in again</a></div>`;
   $$('dialog[open]').forEach(d => d.close('no')); document.body.appendChild(o); shellEl.inert = true; $$('.drawer, .scrim, #toasts').forEach(x => { x.inert = true; }); $('#so-btn', o).focus();
 }
 ['pointerdown', 'keydown', 'wheel'].forEach(ev => document.addEventListener(ev, () => { if (!idleToast) lastActive = Date.now(); }, { passive: true }));

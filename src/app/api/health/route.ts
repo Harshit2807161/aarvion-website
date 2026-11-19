@@ -1,9 +1,8 @@
+import { connection } from "next/server";
 import pkg from "../../../../package.json";
 import { getDb } from "@/server/db/client";
 import { EnvError, getEnv } from "@/server/env";
 import { isMockForbidden } from "@/server/providers/guard";
-
-export const dynamic = "force-dynamic";
 
 const PING_CAP_MS = 3500;
 
@@ -30,6 +29,7 @@ async function pingDb(): Promise<boolean> {
 }
 
 export async function GET() {
+  await connection();
   const version = pkg.version;
   let uri: string | undefined;
   let productionLike: boolean;

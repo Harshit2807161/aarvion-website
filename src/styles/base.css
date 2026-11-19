@@ -60,8 +60,8 @@
 
   [hidden] { display: none !important; }
   .i {
-    width: 20px;
-    height: 20px;
+    width: var(--i-size, 20px);
+    height: var(--i-size, 20px);
     flex: none;
     fill: none;
     stroke: currentColor;

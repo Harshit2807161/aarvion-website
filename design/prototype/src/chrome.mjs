@@ -13,11 +13,11 @@ const AREAS = [
   ["respiratory-care", "Respiratory care"],
 ];
 const ic = (id, cls = "i") => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
-const paths = (home) => ({ H: home ? "" : "../index.html", P: home ? "pages/" : "" });
+const paths = (home) => ({ H: home ? "" : "../index.html", P: home ? "pages/" : "", A: home ? "assets/brand/" : "../assets/brand/" });
 
 export function chromeHead({ home = false, reduced = false } = {}) {
-  const { H, P } = paths(home);
-  const brand = `<a class="brand" href="${home ? "#top" : "../index.html"}" aria-label="Aarvion Pharmaceuticals, home">${ic("swoosh", "brand-mark")}<span class="brand-word">AARVION</span></a>`;
+  const { H, P, A } = paths(home);
+  const brand = `<a class="brand" href="${home ? "#top" : "../index.html"}" aria-label="Aarvion Pharmaceuticals, home"><img class="brand-logo" src="${A}aarvion-logo.svg" alt="" width="120" height="40"></a>`;
   if (reduced) {
     return `<header class="store-head store-head--reduced">
   <div class="wrap sh-row">
@@ -66,12 +66,12 @@ ${AREAS.map(([id, name]) => `    <li><a href="${H}#${id}">${name}</a></li>`).joi
 }
 
 export function chromeFoot({ home = false, proto = "" } = {}) {
-  const { H, P } = paths(home);
+  const { H, P, A } = paths(home);
   const tba = (s) => `<li><span class="foot-tba">${s}<span class="tba">To be added</span></span></li>`;
   return `<footer class="foot" id="contact">
   <div class="wrap foot-top">
     <div class="foot-brand">
-      <p class="foot-logo">${ic("swoosh", "brand-mark")}<span class="brand-word">AARVION</span><span class="brand-sub">PHARMACEUTICALS</span></p>
+      <p class="foot-logo"><img src="${A}aarvion-logo-reversed.svg" alt="Aarvion" width="156" height="52"></p>
       <p class="foot-about">Aarvion’s own prescription medicines, sold by Aarvion. A pharmacist checks every prescription before an order is packed.</p>
     </div>
     <nav class="foot-col" aria-labelledby="f-shop">

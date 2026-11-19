@@ -203,12 +203,6 @@ typography:
     lineHeight: 1.05
     letterSpacing: "-0.03em"
     fontFeature: "tnum"
-  wordmark:
-    fontFamily: "Montserrat, Host Grotesk, sans-serif"
-    fontSize: "1.0625rem"
-    fontWeight: 800
-    lineHeight: 1
-    letterSpacing: "0.06em"
 rounded:
   badge: "5px"
   xs: "0.375rem"
@@ -603,7 +597,7 @@ The mood is calm, exact and physical. Colour lives on grounds and rules while te
 **Owner-pending (not final; do not treat as settled):**
 - **Banner composites.** The four banners are generated scenes with the real pack cutouts placed by `scripts/composite_store_banners.py`. They read as one photograph at 1280px; the owner has not yet seen them, and the eye scene carries Win2Age-printed packs until Aarvion photos exist.
 - **Real-device frame timing.** The v2 store home has only been measured in headless Chromium at 4× CPU throttle (p95 16.7–16.8 ms; 1.4–1.5% of frames over 17 ms from the top to the end of the close, at 1440 and 390). A rAF log on a mid-range Android phone in Chrome and on a 2× Mac in Safari is still owed.
-- **Logo wordmark.** "AARVION" and "PHARMACEUTICALS" are live Montserrat 800 text beside the inline SVG swoosh (Google Fonts subset `text=AARVIONPHMCEUTLS`). The redrawn logo in `assets/brand/` is a draft awaiting the owner's approval, and its wordmark must be outlined to paths before it ships.
+- **Logo source.** The official logo is traced from the owner's low-resolution phone screenshot (IoU 0.99 per colour layer; `assets/brand/official/README.md`). If the original vector artwork turns up, it replaces the trace.
 
 ## Colors
 
@@ -616,7 +610,7 @@ A green-and-white palette: forest grounds, white work surfaces, sand for paper a
 - **Pine Ink** (#2a4d36, forest-700): links, focus ring on light ground, the Rx badge, icons in notes and boxes, the checked checkbox and radio, done timeline dots, and the current admin rail item.
 - **Strike Green** (#376145, forest-600): the strike across a printed MRP, the solid timeline rail, the selected option card edge, input focus edge and the caret.
 - **Mist Green** (#f1f6f2, forest-50) and **Pale Fern** (#dfebe2, forest-100): selected and hover fills (search option, category link, account tab, admin row hover), the % off tag, the Sacuwin and eye-care banner cards on phones, the current timeline step's card, the success tag and the info note. forest-100 is also the 4px focus halo on inputs and OTP boxes, and the admin current row.
-- **Swoosh Leaf** (#7fd3a6, leaf-300 on dark; #3fa36f, leaf-500 on light): the logo swoosh only, plus icons inside dark toasts and the admin rail's current icon and badges. leaf-500 reaches only 3.1:1 on white, so it never carries text.
+- **Swoosh Leaf** (#7fd3a6, leaf-300 on dark; #3fa36f, leaf-500 on light): small green accents only: the announcement dots, icons inside dark toasts and the admin rail's current icon and badges. It is not the logo's mint (see Logo). leaf-500 reaches only 3.1:1 on white, so it never carries text.
 
 ### Secondary
 - **Label Sand** (#e8dcc4, sand-200): the single primary action on forest ground (Upload prescription, the closing call to action, the skip link, the pressed strength chip, done checkout steps). It is also the focus ring on dark ground and the text-selection colour.
@@ -657,12 +651,27 @@ Ratios are WCAG 2.x, computed from the tokens; text on foil was measured from re
 
 **The Label Paper Rule.** Anything that is a printed document in the real flow (receipt, order slip, shipping label, Rx group head) sits on sand-50 paper with dashed sand-400 rules. Plain work surfaces stay white.
 
+## Logo
+
+The owner's official logo: a mint swoosh (a long arc and a crescent) over a heavy, extended navy AARVION. It is traced artwork, not type; the wordmark is outlined paths and no font sets it. Masters, method and verification: `assets/brand/official/README.md`. App copies and the usage guide: `public/brand/README.md`. Never redraw, recolour, re-space, stretch or outline it, or add effects to it.
+
+**Brand colours (logo only).** **Swoosh Mint** (#68c7a7) and **Wordmark Navy** (#045487) belong to the logo files and appear nowhere else: not as UI fills, text or icons, and not as theme tokens. The UI's greens stay forest and leaf.
+
+**Variants.**
+- `aarvion-logo.svg` (mint and navy): white and light grounds; the store header (40px tall, 34px on phones) and the og-image.
+- `aarvion-logo-reversed.svg` (mint and white): forest grounds (forest-800, forest-900); the store footer (52px) and the admin rail.
+- `aarvion-logo-forest.svg` / `aarvion-logo-white.svg`: one colour, for print, embossing or a ground where mint and navy fail; forest on light, white on dark.
+- `aarvion-mark.svg` / `aarvion-mark-white.svg`: the swoosh alone, where the name is already present or there is no room: the closing act's pan-in, the collapsed admin rail, the signed-out screen and dialog headers. App icons use the mark; at 48px and below they use its head (the crescent and hook).
+
+**Clear space.** x is the height of the wordmark's capitals (31% of the logo's height). Keep x clear on every side, and never less than ½x in UI chrome (the 34px phone header has 9px above and below).
+
+**Minimum size.** The full logo at 24px tall (72px wide) on screen and 20mm wide in print. Below that use the mark, and below 32px wide the favicon's head crop.
+
 ## Typography
 
 **Display Font:** Host Grotesk (with Geist, ui-sans-serif, system-ui)
 **Body Font:** Geist (with ui-sans-serif, system-ui, -apple-system, Segoe UI)
 **Label/Mono Font:** Geist Mono (with ui-monospace, SF Mono, Menlo)
-**Wordmark:** Montserrat 800, subset to the logo letters, used only in the logo lockup
 
 **Character:** A wide, tight-set grotesk for headings next to a clean neutral sans, with a monospace that does the work of a pack printer: every figure, id and code is set in it. Weights loaded are Host Grotesk 600/700, Geist 400/500/600 and Geist Mono 500/600.
 
@@ -768,7 +777,7 @@ Tactile pills that press.
 
 ### Store Header and Category Bar
 - **Announcement line:** forest-900, 36px, Geist 500 0.8125rem white at 92%, the three notices ("Free delivery across India", "Cash on delivery available", "A pharmacist checks every prescription") divided by 4px leaf-300 dots. At 720px and below one notice shows at a time, cross-fading every 5s (first notice only under reduced motion). No marquee.
-- **Header row:** white, 72px, sticky. Logo lockup (40×11 leaf-500 swoosh, forest-900 wordmark), the search, then Upload prescription (44px forest-800 pill, white Geist 600), Sign in and Cart (44px quiet pills, forest-700 icons, neutral-100 hover). The cart count is a 22px forest-800 pill with a white mono figure; it bumps (scale 1.35, 260ms) on change. Signed in, Sign in becomes a 28px sand initial and "Account". The header gains a soft shadow once it sticks (an IntersectionObserver on the announcement line, no scroll listener).
+- **Header row:** white, 72px, sticky. The official logo (`aarvion-logo.svg`, 40px tall, 34px on phones), the search, then Upload prescription (44px forest-800 pill, white Geist 600), Sign in and Cart (44px quiet pills, forest-700 icons, neutral-100 hover). The cart count is a 22px forest-800 pill with a white mono figure; it bumps (scale 1.35, 260ms) on change. Signed in, Sign in becomes a 28px sand initial and "Account". The header gains a soft shadow once it sticks (an IntersectionObserver on the announcement line, no scroll listener).
 - **Category bar:** 44px, hairlines above and below, sticky under the row on desktop. Links are Geist 500 0.9375rem neutral-800 with a forest-50 pill hover; "All medicines" is forest-700 600 with a chevron. On phones it is a row of 36px outlined chips (44px hit area) that starts on the search field's edge, runs off the screen edge, scrolls sideways (`scroll-padding-inline` the gutter) and scrolls away with the page.
 - **Names:** Heart care, Diabetes care, Eye care, Respiratory care. "Therapy area" is industry vocabulary; shoppers name the condition they manage (Apollo's norm). The names describe a category and make no therapeutic claim. Coming-soon categories follow the same rule (Digestive care, Bone and joint care, Urinary care).
 - **Checkout** keeps a reduced header: the logo and a "Secure checkout" note with a shield, no announcement, search or category bar; the band links back to the cart.
@@ -868,7 +877,7 @@ Shipping-label paper with a perforated total.
 
 ### Admin Shell, Tables and Drawer
 Operate density with the world's details only.
-- **Rail:** forest-900 with the white logo lockup, the "Staff admin" role label, and a dashed perforation rule (1.5px, forest-300 at 40%) under the brand. Items are 40px, 6px radius, on-dark-muted Geist 500; hover forest-800; current forest-700 with white text and a leaf-300 icon. Badges are mono leaf-300 on forest-950 pills. Keyboard hints sit at the foot. Focus on the rail is sand.
+- **Rail:** forest-900 with the reversed logo (the mint mark alone when the rail collapses), the "Staff admin" role label, and a dashed perforation rule (1.5px, forest-300 at 40%) under the brand. Items are 40px, 6px radius, on-dark-muted Geist 500; hover forest-800; current forest-700 with white text and a leaf-300 icon. Badges are mono leaf-300 on forest-950 pills. Keyboard hints sit at the foot. Focus on the rail is sand.
 - **Topbar:** 52px sticky, neutral-50 at 92% with an 8px blur and a hairline below, holding the Example tag (amber pill) and the identity chip (36px pill, 28px forest-800 avatar).
 - **Controls:** 36px buttons (6px radius, 1px neutral-300 edge, Geist 600 0.8125rem, press 0.97); primary forest-800 (hover forest-700); danger outline or solid; ghost; small 30px. Inputs and selects are 36px with a 1px neutral-400 edge and a 2px forest-700 focus outline at 1px offset. The search field carries a `/` key hint. Segmented filters are white-on-neutral-100 with mono counts; switches are 36×22.
 - **Status chips:** dot plus text, with the shape coded as well: a round dot (ok, warn), a square (active), a diamond (danger) and a hollow ring (neutral).
@@ -929,3 +938,4 @@ The store home keeps the v1 film's craft where the owner asked for it, on the br
 - **Don't** lead a headline, banner, section or meta title with the ₹20. It is a plain price fact in the stamp pair and the % off tag, nothing more.
 - **Don't** invent ratings, reviews, customer counts, "bestseller", "trending" or certifications, and don't use therapy-area words where a shopper reads: Heart care, Diabetes care, Eye care, Respiratory care.
 - **Don't** let a Win2Age-printed pack lead a banner; the lead banner shows Sacuwin, which carries Aarvion's print.
+- **Don't** redraw, recolour, retype or stretch the logo, or use its mint or navy in the UI; use the files in `public/brand/`.
