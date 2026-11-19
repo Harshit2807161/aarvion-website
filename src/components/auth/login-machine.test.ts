@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CODE_TTL_MS,
   LOGIN_COPY,
   codeMessage,
   identifierOf,
@@ -371,5 +372,171 @@ describe("server limits", () => {
       lockedUntil: T + 60_000,
     });
     expect(JSON.stringify(d)).not.toContain("NaN");
+  });
+});
+
+describe("sign-up", () => {
+  const profile = () =>
+    run([{ type: "verifyStart" }, fail("signup_required", T + 5000)], codeStep());
+  const values = { name: "  Asha Rao ", adult: true, termsPrivacy: true } as const;
+  const submitted = () => loginReducer(profile(), { type: "profileSubmit", values });
+
+  it("signup_required opens the profile step holding the code", () => {
+    expect(profile()).toMatchObject({ step: "profile", code: "482913", busy: false, signup: null });
+  });
+  it("validates the profile fields", () => {
+    const s = loginReducer(profile(), {
+      type: "profileSubmit",
+      values: { name: "A", adult: false, termsPrivacy: false },
+    });
+    expect(s).toMatchObject({
+      busy: false,
+      fieldErrors: {
+        name: LOGIN_COPY.nameInvalid,
+        adult: LOGIN_COPY.adultRequired,
+        termsPrivacy: LOGIN_COPY.termsRequired,
+      },
+    });
+    const digits = loginReducer(profile(), {
+      type: "profileSubmit",
+      values: { ...values, name: "12" },
+    });
+    expect(digits).toMatchObject({ fieldErrors: { name: LOGIN_COPY.nameInvalid } });
+  });
+  it("applies the server's hidden-character rule to the name", () => {
+    for (const name of ["Ashaㅤ", "Asha͏Rao", "Asha​Rao", "A".repeat(81)]) {
+      expect(
+        loginReducer(profile(), { type: "profileSubmit", values: { ...values, name } }),
+      ).toMatchObject({
+        fieldErrors: { name: LOGIN_COPY.nameInvalid },
+      });
+    }
+    const ok = loginReducer(profile(), {
+      type: "profileSubmit",
+      values: { ...values, name: "रा‍म" },
+    });
+    expect(ok).toMatchObject({ busy: true });
+  });
+  it("a valid submit trims the name and goes busy; a second submit is a no-op", () => {
+    const s = submitted();
+    expect(s).toMatchObject({
+      busy: true,
+      fieldErrors: {},
+      signup: { name: "Asha Rao", adult: true, termsPrivacy: true, marketing: false },
+    });
+    expect(loginReducer(s, { type: "profileSubmit", values })).toBe(s);
+  });
+  it("carry a: signup_required after details were sent is a name error, not a sign-up loop", () => {
+    const s = loginReducer(submitted(), fail("signup_required", T + 9000));
+    expect(s).toMatchObject({
+      step: "profile",
+      busy: false,
+      error: null,
+      fieldErrors: { name: LOGIN_COPY.nameRefused },
+      signup: { name: "Asha Rao" },
+    });
+  });
+  it("carry a: the same from the code step after an expiry round trip", () => {
+    const back = loginReducer(submitted(), fail("invalid_code", T + CODE_TTL_MS + 1));
+    expect(back).toMatchObject({
+      step: "code",
+      error: LOGIN_COPY.expired,
+      signup: { name: "Asha Rao" },
+    });
+    const s = run([{ type: "verifyStart" }, fail("signup_required", T + CODE_TTL_MS + 5000)], back);
+    expect(s).toMatchObject({ step: "profile", fieldErrors: { name: LOGIN_COPY.nameRefused } });
+  });
+  it("after the TTL, invalid_code in the profile returns to the code step keeping signup", () => {
+    expect(loginReducer(submitted(), fail("invalid_code", T + CODE_TTL_MS))).toMatchObject({
+      step: "code",
+      error: LOGIN_COPY.expired,
+      tries: 0,
+      busy: false,
+      signup: { name: "Asha Rao", marketing: false },
+    });
+  });
+  it("M1: rate_limited in the profile blocks Create account until the wait ends", () => {
+    const s = loginReducer(submitted(), fail("rate_limited", T, { retryAfterSec: 60 }));
+    expect(s).toMatchObject({
+      step: "profile",
+      busy: false,
+      lockedUntil: T + 60_000,
+      error: "Too many attempts from this network. Try again in 1:00.",
+    });
+    expect(loginReducer(s, { type: "profileSubmit", values })).toBe(s);
+    expect(loginReducer(s, { type: "tick", now: T + 59_000 })).toBe(s);
+    const free = loginReducer(s, { type: "tick", now: T + 60_000 });
+    expect(free).toMatchObject({ lockedUntil: null, error: null });
+    expect(loginReducer(free, { type: "profileSubmit", values })).toMatchObject({ busy: true });
+  });
+  it("Change from the profile returns to the id step, but not while busy", () => {
+    expect(loginReducer(profile(), { type: "change" })).toMatchObject({
+      step: "id",
+      raw: "9876543210",
+    });
+    const s = submitted();
+    expect(loginReducer(s, { type: "change" })).toBe(s);
+  });
+  it("verifyOk is done", () => {
+    expect(loginReducer(submitted(), { type: "verifyOk", isNewUser: true })).toEqual({
+      step: "done",
+      isNewUser: true,
+    });
+    expect(
+      run([{ type: "verifyStart" }, { type: "verifyOk", isNewUser: false }], codeStep()),
+    ).toEqual({ step: "done", isNewUser: false });
+  });
+});
+
+describe("carry c: a network failure may still have signed in", () => {
+  const checking = () => run([{ type: "verifyStart" }, fail("network", T + 1000)], codeStep());
+  it("asks for a session check instead of showing an error", () => {
+    expect(checking()).toMatchObject({
+      step: "code",
+      busy: true,
+      sessionCheck: true,
+      error: null,
+      tries: 0,
+    });
+  });
+  it("ignores another verify result while the session check runs", () => {
+    const s = checking();
+    expect(loginReducer(s, fail("invalid_code", T + 2000))).toBe(s);
+  });
+  it("a session means signed in", () => {
+    expect(loginReducer(checking(), { type: "sessionChecked", session: { name: "Asha" } })).toEqual(
+      {
+        step: "done",
+        isNewUser: false,
+      },
+    );
+  });
+  it("no session shows the network error and frees the form", () => {
+    expect(loginReducer(checking(), { type: "sessionChecked", session: null })).toMatchObject({
+      busy: false,
+      sessionCheck: false,
+      error: LOGIN_COPY.network,
+    });
+  });
+  it("from the profile step a session means a new user", () => {
+    const p = run([{ type: "verifyStart" }, fail("signup_required", T)], codeStep());
+    const sent = loginReducer(p, {
+      type: "profileSubmit",
+      values: { name: "Asha Rao", adult: true, termsPrivacy: true },
+    });
+    const c = loginReducer(sent, fail("network", T));
+    expect(c).toMatchObject({ step: "profile", sessionCheck: true, busy: true });
+    expect(loginReducer(c, { type: "sessionChecked", session: { name: null } })).toEqual({
+      step: "done",
+      isNewUser: true,
+    });
+    expect(loginReducer(c, { type: "sessionChecked", session: null })).toMatchObject({
+      busy: false,
+      error: LOGIN_COPY.network,
+    });
+  });
+  it("a stray sessionChecked is ignored", () => {
+    const s = codeStep();
+    expect(loginReducer(s, { type: "sessionChecked", session: { name: null } })).toBe(s);
   });
 });
