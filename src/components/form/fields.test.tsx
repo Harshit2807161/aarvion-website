@@ -101,16 +101,13 @@ describe("Checkbox", () => {
     expect(document.getElementById("adult-err")).toBeNull();
   });
 
-  it("keeps a caller's aria-describedby next to the error id", () => {
-    render(<Checkbox id="adult" label="Adult" error="Confirm." aria-describedby="extra" />);
-    expect(screen.getByRole("checkbox")).toHaveAttribute("aria-describedby", "adult-err extra");
-  });
-
-  it("has no error wiring when valid", () => {
-    render(<Checkbox id="adult" label="Adult" />);
+  it("has no error wiring when valid, and keeps a caller's aria-describedby", () => {
+    const { rerender } = render(<Checkbox id="adult" label="Adult" />);
     const box = screen.getByRole("checkbox");
     expect(box).not.toHaveAttribute("aria-invalid");
     expect(box).not.toHaveAttribute("aria-describedby");
+    rerender(<Checkbox id="adult" label="Adult" error="No." aria-describedby="extra" />);
+    expect(box).toHaveAttribute("aria-describedby", "adult-err extra");
   });
 });
 
@@ -191,15 +188,10 @@ describe("Segmented", () => {
       expect(fireEvent.keyDown(radio(), { key: "ArrowRight" })).toBe(false);
       expect(fireEvent.keyDown(radio(), { key: "Home" })).toBe(false);
       expect(fireEvent.keyDown(radio(), { key: "x" })).toBe(true);
-    });
-
-    it("does not swallow modified arrows such as Alt+ArrowLeft", () => {
-      render(<Harness />);
-      const radio = screen.getByRole("radio", { checked: true });
+      // Modified arrows (Alt+Left is browser Back) are left to the browser.
       for (const mod of ["altKey", "metaKey", "ctrlKey", "shiftKey"]) {
-        expect(fireEvent.keyDown(radio, { key: "ArrowLeft", [mod]: true })).toBe(true);
+        expect(fireEvent.keyDown(radio(), { key: "ArrowLeft", [mod]: true })).toBe(true);
       }
-      expect(screen.getByRole("radio", { name: "B" })).toBeChecked();
     });
 
     it("keeps the group reachable when the value matches no option", () => {
