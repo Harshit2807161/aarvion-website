@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import PrivacyPage, { metadata as privacyMetadata } from "@/app/(store)/legal/privacy/page";
+import TermsPage, { metadata as termsMetadata } from "@/app/(store)/legal/terms/page";
 import { ROUTES } from "@/config/routes";
+import { SITE_CONFIG } from "@/config/site";
 import { BANNED_CLAIMS, findClaims } from "../../../tests/helpers/claims";
 import {
   Fact,
@@ -174,5 +176,71 @@ describe("Privacy policy", () => {
 
   it("makes no invented claims", () => {
     expect(findClaims(render(<PrivacyPage />).container.textContent!)).toEqual([]);
+  });
+});
+
+describe("Terms of use", () => {
+  const sub = "The terms for using the Aarvion store and ordering medicines.";
+
+  it("has the h1, the sub, the last-updated line and the metadata", () => {
+    const { container } = render(<TermsPage />);
+    expect(screen.getByRole("heading", { level: 1, name: "Terms of use" })).toBeInTheDocument();
+    expect(container.querySelector(".band-sub")?.textContent).toBe(sub);
+    expect(container.textContent).toContain("Last updated 17 November 2026");
+    expect(termsMetadata).toEqual({ title: "Terms of use", description: sub });
+  });
+
+  it("has the 12 sections in order", () => {
+    expect(h2s(render(<TermsPage />).container)).toEqual([
+      "About these terms",
+      "Who can order",
+      "Signing in",
+      "Prescriptions",
+      "Prices",
+      "Orders and payment",
+      "Delivery",
+      "Cancellations and returns",
+      "No medical advice",
+      "Liability and governing law",
+      "Grievances",
+      "Changes",
+    ]);
+  });
+
+  it("states the accepted business rules and the prescription validity ruling", () => {
+    const { container } = render(<TermsPage />);
+    const text = container.textContent!;
+    for (const fact of ["₹20", "₹5,000", "10 packs", "20 packs", "6 months"])
+      expect(text).toContain(fact);
+    expect(text).toContain("registered medical practitioner");
+    expect(text).toContain("confirmed, packed and shipped");
+    expect(text).toContain("Aarvion staff will never ask you for it");
+    expect(container.querySelectorAll(".pending").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("links to the privacy, refunds and grievance pages", () => {
+    render(<TermsPage />);
+    const href = (name: string) => screen.getByRole("link", { name }).getAttribute("href");
+    expect(href("Privacy policy")).toBe(ROUTES.legal.privacy);
+    expect(href("Refunds and cancellation")).toBe(ROUTES.legal.returns);
+    expect(href("Grievances")).toBe(ROUTES.legal.grievance);
+  });
+
+  it("says cash on delivery is the only way to pay until online payments are live", () => {
+    const cashOnly = "Online payment is not available yet";
+    const was = SITE_CONFIG.onlinePayments;
+    try {
+      SITE_CONFIG.onlinePayments = false;
+      expect(render(<TermsPage />).container.textContent).toContain(cashOnly);
+      cleanup();
+      SITE_CONFIG.onlinePayments = true;
+      expect(render(<TermsPage />).container.textContent).not.toContain(cashOnly);
+    } finally {
+      SITE_CONFIG.onlinePayments = was;
+    }
+  });
+
+  it("makes no invented claims", () => {
+    expect(findClaims(render(<TermsPage />).container.textContent!)).toEqual([]);
   });
 });
