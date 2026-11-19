@@ -68,7 +68,8 @@ bottom use commit SHAs.
 ### Changed
 
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
-  resolve to localhost.
+  resolve to localhost; an unset or invalid value falls back to `http://localhost:3000` instead of
+  failing the build (#76).
 - `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
   a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).

@@ -71,6 +71,15 @@ describe("legal config", () => {
     expect(pendingLegalFields({ ...filled, gstin: "  " })).toEqual(["gstin"]);
   });
 
+  it("treats partial customer care details as pending", () => {
+    expect(
+      pendingLegalFields({ ...filled, customerCare: { phone: "+91 11 0000 0000", email: null } }),
+    ).toEqual(["customerCare"]);
+    expect(
+      pendingLegalFields({ ...filled, customerCare: { phone: null, email: "a@b.test" } }),
+    ).toEqual(["customerCare"]);
+  });
+
   it("legalValue shows the placeholder for null and the value otherwise", () => {
     expect(LEGAL_PLACEHOLDER).toBe("To be added");
     expect(legalValue(null)).toBe("To be added");
@@ -87,7 +96,19 @@ describe("resolveSiteMetadataBase", () => {
     );
   });
 
-  it("falls back to the local dev origin when APP_URL is unset", () => {
-    expect(resolveSiteMetadataBase(undefined).origin).toBe("http://localhost:3000");
+  it("falls back to the local dev origin when APP_URL is unset or blank", () => {
+    expect(resolveSiteMetadataBase(undefined).href).toBe("http://localhost:3000/");
+    expect(resolveSiteMetadataBase("").href).toBe("http://localhost:3000/");
+  });
+
+  it("falls back for a malformed or non-http(s) value instead of throwing", () => {
+    for (const bad of [
+      "not a url",
+      "aarvion.example",
+      "ftp://aarvion.example",
+      "javascript:alert(1)",
+    ]) {
+      expect(resolveSiteMetadataBase(bad).href).toBe("http://localhost:3000/");
+    }
   });
 });

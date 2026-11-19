@@ -51,8 +51,9 @@ function isPending(value: SiteConfig[LegalField]): boolean {
   if (value === null) return true;
   if (typeof value === "string") return value.trim() === "";
   if (Array.isArray(value)) return value.length === 0;
+  // Partial customer care details (only a phone, or only an email) are still pending.
   const care = value as NonNullable<SiteConfig["customerCare"]>;
-  return !care.phone && !care.email;
+  return !care.phone?.trim() || !care.email?.trim();
 }
 
 /** The legal fields that are still unset, in display order. */
@@ -87,9 +88,16 @@ const DEV_SITE_URL = "http://localhost:3000";
 
 /**
  * The origin Next resolves relative metadata URLs (opengraph-image, icons) against. Takes
- * APP_URL as an argument so this module stays free of env access; the root layout passes
- * `getEnv().APP_URL`.
+ * APP_URL as an argument so this module stays free of env access; the root layout passes the
+ * raw `process.env.APP_URL`. Falls back to the dev origin on any invalid value.
  */
 export function resolveSiteMetadataBase(appUrl: string | undefined): URL {
-  return new URL(appUrl && appUrl !== "" ? appUrl : DEV_SITE_URL);
+  // Total: a missing, blank or malformed value, or a non-http(s) one, must never break the build.
+  try {
+    const url = new URL(appUrl?.trim() || DEV_SITE_URL);
+    if (url.protocol === "http:" || url.protocol === "https:") return url;
+  } catch {
+    // fall through to the dev origin
+  }
+  return new URL(DEV_SITE_URL);
 }
