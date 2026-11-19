@@ -70,6 +70,10 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    # Pages prerender from the catalogue (Cache Components), so the build needs a seeded Mongo.
+    env:
+      MONGODB_URI: mongodb://localhost:27017/?replicaSet=rs0&directConnection=true
+      MONGODB_DB: aarvion_build
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -78,6 +82,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm db:up
+      - run: pnpm db:indexes
+      - run: pnpm seed
       - run: pnpm build
 
   e2e:
@@ -96,6 +103,7 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm db:up
       - run: pnpm db:indexes
+      - run: pnpm seed
       - run: pnpm test:e2e
         env:
           CI: "true"
