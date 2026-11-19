@@ -18,6 +18,8 @@ bottom use commit SHAs.
 
 ### Added
 
+- `Overlay` (`src/components/overlay/overlay.tsx`), the dialog and right-hand side sheet that becomes a draggable bottom sheet below 640px, with focus return to the opener (#88).
+- `useDragDismiss` (`src/components/overlay/use-drag-dismiss.ts`): drag-to-dismiss for the phone bottom sheet, a hook returning pointer handlers for the sheet head; the panel keeps `is-dragging` while open so a snap-back or a tap never replays the entrance animation (#85).
 - Overlay foundations: the shadcn dialog primitives (`src/components/ui/dialog.tsx`), `src/styles/overlay.css` (dialog, side drawer and phone bottom sheet as keyframes on `[data-state]`, Aarvion scrim), the shadcn colour mapping in `globals.css`, and the pure drag-to-dismiss thresholds in `src/components/overlay/drag.ts`. Adds `@radix-ui/react-dialog` and dev dependency `postcss` (for the built-CSS scrim test) (#81).
 - Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
   Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React
@@ -71,9 +73,14 @@ bottom use commit SHAs.
   renders the footer, with cash on delivery as the only payment line until prepaid is live (#82).
 - The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
+- The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live
+  region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
+  `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 
 ### Changed
 
+- CHANGELOG.md is back on git's default merge; the union driver from #73 silently re-added
+  stale and garbled lines, so conflicts are now resolved by hand (#86).
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
   resolve to localhost; an unset or invalid value falls back to `http://localhost:3000` instead of
   failing the build (#76).
@@ -112,6 +119,9 @@ bottom use commit SHAs.
 - `buttonClass()` and `ButtonLink` are server-safe again: only `Button` is a client module
   (`button.client.tsx`, re-exported from `button.tsx`). The `/dev/*` 404 also sends no-store and
   noindex headers (#77).
+- The toast no longer dismisses a toast its own action raised, its action button meets the 44 px
+  target, a second `<LiveRegion/>` renders nothing, and plain toasts have a Dismiss button and
+  Escape (#87).
 
 ## [0.1.0] - 2026-11-17
 

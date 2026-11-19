@@ -128,6 +128,8 @@ Helpers in `tests/helpers/`:
 | `scripts/subset-fonts.test.ts` | a font subset loses ASCII, typographic or ₹ glyphs, licence name IDs 13/14, its size budget or its axis range, or drifts from a fresh `pnpm fonts:subset` |
 | `scripts/public-provenance.test.ts` | `public/foil/` or `public/banners/` gains or loses a file, a `.json` sidecar is missing or wrong, a raster's pixels differ from its sidecar, or a banner is not 1792 × 588 / 840 × 472, not from `composite_store_banners.py`, or over 120 KB |
 | `src/styles/css-hygiene.test.ts` | a selector repeats within one at-rule context across `src/styles/*.css` |
+| `src/components/overlay/overlay.test.tsx` | the Overlay: dialog role and aria-modal, focus on open, focus trap, Escape and focus return, scrim click, scroll lock and aria-hidden siblings, variants, and the phone drag through the head |
+| `src/components/overlay/use-drag-dismiss.test.tsx` | the drag hook: follows the finger, dismisses over the thresholds, snaps back otherwise, never removes `is-dragging` while open, ignores a second pointer and Close, skips the snap-back transition under reduced motion |
 | `src/styles/overlay.test.ts` | the compiled `globals.css` carries the overlay rules, the Aarvion scrim (not `bg-black/50`) and the shadcn colour mapping |
 | `scripts/deps-policy.test.ts` | a banned animation, carousel, toast or icon library (framer-motion, swiper, gsap, sonner, lucide-react, …) or an unlisted Radix package is added |
 
