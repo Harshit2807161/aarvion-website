@@ -14,6 +14,7 @@
 @import "../styles/prose.css" layer(components);
 @import "../styles/quick-trust.css" layer(components);
 @import "../styles/empty.css" layer(components);
+@import "../styles/steps.css" layer(components);
 
 /*
   Aarvion design tokens: design/prototype/css/tokens.css, verbatim except --font-*

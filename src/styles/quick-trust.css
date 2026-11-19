@@ -8,7 +8,11 @@
 /* ── Quick actions ────────────────────────────────────────────────────── */
 /* v2 home content is 1280 wide: the home root re-points the shared token (plan line 261), so plain
    .wrap sections inside it are 1280 and the global 75rem .wrap is untouched. */
-.home { --container-page: 80rem; }
+.home {
+  --container-page: 80rem;
+  --space-sec: clamp(3.5rem, 2.4rem + 3.2vw, 5.5rem); /* rhythm between store sections */
+  --perforation: 2px dashed rgb(115 124 119 / 0.5);
+}
 .quick { margin-top: 20px; }
 .qa-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .qa-cell { position: relative; display: grid; }

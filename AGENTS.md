@@ -202,6 +202,9 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   expired, consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`.
   The per-IP limit is 429 `rate_limited` and the lockout is 429 `too_many_attempts`, both with
   `Retry-After`; clients treat 429 as its own state.
+- Sign-up consent: `signup` requires Terms and Privacy and 18+; its consents
+  (`CONSENT_VERSION` = `POLICY_VERSION`, times, OTP channel) are written on insert only and never
+  overwritten by a later login.
 - Client IP comes only from `x-real-ip`; IPv6 is bucketed by /64. Never trust
   `x-forwarded-for`.
 - Sessions: a 32-byte random token; only its SHA-256 is stored. Cookie

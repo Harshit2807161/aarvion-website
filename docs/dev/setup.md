@@ -103,7 +103,9 @@ curl -s 'http://localhost:3000/dev/outbox?to=you@example.test'
 - `/dev/*` answers 404 whenever `isMockForbidden()` holds: on Vercel Production, on a production
   build without `ALLOW_MOCKS_IN_PROD_BUILD=1`, or when the database is `aarvion_prod`. Under
   `pnpm dev` it works.
-- Verify with `POST /api/auth/otp/verify` and `{"channel","identifier","code"}`. The session
+- Verify with `POST /api/auth/otp/verify` and `{"channel","identifier","code"}`. A first login
+  also sends `"signup": {"name","adult":true,"termsPrivacy":true,"marketing"}`, stored as the
+  new user's consent. The session
   cookie `__Host-aarv_sid` needs `Secure`: it works on `http://localhost` in Chrome and Firefox,
   but not in Safari, on LAN addresses or on `*.test` hosts. Use `localhost` or https.
 
