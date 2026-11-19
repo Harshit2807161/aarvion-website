@@ -3,6 +3,7 @@ import { cn } from "@/lib/cn";
 /**
  * The storefront icon set: the prototype's sprite symbols (index.src.html plus the login
  * page's additions), one inline SVG each, so no sprite sheet has to be mounted in the page.
+ * `hold` follows the index page; the login page draws it slightly differently.
  * Strokes use currentColor; colour and default size come from the `.i` rule in base.css.
  */
 const GLYPHS = {
@@ -165,6 +166,9 @@ const GLYPHS = {
 
 export type IconName = keyof typeof GLYPHS;
 
+/** Every icon name, for tests and galleries. */
+export const ICON_NAMES = Object.keys(GLYPHS) as IconName[];
+
 export type IconSize = 18 | 20 | 22 | 28;
 
 export function Icon({
@@ -181,35 +185,12 @@ export function Icon({
       className={cn("i", className)}
       width={size}
       height={size}
+      style={{ "--i-size": `${size}px` } as React.CSSProperties}
       viewBox="0 0 24 24"
       aria-hidden="true"
       focusable="false"
     >
       {GLYPHS[name]}
     </svg>
-  );
-}
-
-/**
- * The official Aarvion logo, served from public/brand. `light` is the full-colour logo for
- * light ground; `reversed` is for forest ground. Do not redraw the logo or set it in text.
- */
-export const BRAND_LOGO_SRC = {
-  light: "/brand/aarvion-logo.svg",
-  reversed: "/brand/aarvion-logo-reversed.svg",
-} as const;
-
-export function BrandMark({
-  className,
-  variant = "light",
-  alt = "Aarvion Pharmaceuticals",
-}: {
-  className?: string;
-  variant?: keyof typeof BRAND_LOGO_SRC;
-  alt?: string;
-}) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element -- static SVG; next/image would not optimise it
-    <img className={className} src={BRAND_LOGO_SRC[variant]} alt={alt} />
   );
 }

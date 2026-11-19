@@ -8,6 +8,11 @@ describe("formatRupees", () => {
     [10000000, "₹1,00,000"],
     [38750, "₹387.50"],
     [5, "₹0.05"],
+    [99, "₹0.99"],
+    [100, "₹1"],
+    [12345678, "₹1,23,456.78"],
+    [1000000000, "₹1,00,00,000"],
+    [Number.MAX_SAFE_INTEGER, "₹9,00,71,99,25,47,409.91"],
     [0, "₹0"],
   ])("formats %i paise as %s", (paise, text) => {
     expect(formatRupees(paise)).toBe(text);

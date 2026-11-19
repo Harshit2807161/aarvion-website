@@ -16,14 +16,15 @@ const ascii = Array.from({ length: 0x7f - 0x20 }, (_, i) => String.fromCodePoint
 const extras = "₹’“”–—·×→…•−";
 
 describe("subset fonts", () => {
-  it("keeps the next/font weight ranges in src/fonts/index.ts equal to the baked axes", () => {
+  it("keeps each next/font weight range in src/fonts/index.ts equal to its job's baked axis", () => {
     const source = readFileSync(path.join(root, "src/fonts/index.ts"), "utf8");
-    const weights = [...source.matchAll(/weight: "(\d+) (\d+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
-    const baked = FONT_JOBS.map((j) => {
-      const wght = j.axes.wght as { min: number; max: number };
-      return [wght.min, wght.max];
-    });
-    expect(weights).toEqual(baked);
+    const jobs = { hostGrotesk: "host-grotesk.woff2", geist: "geist.woff2", geistMono: "geist-mono.woff2" };
+    for (const [name, out] of Object.entries(jobs)) {
+      const m = source.match(new RegExp(`export const ${name} = localFont\\(\\{[^}]*?src: "\\./${out}"[^}]*?weight: "(\\d+) (\\d+)"`));
+      expect(m, `${name} declares ${out} with a weight range`).not.toBeNull();
+      const wght = FONT_JOBS.find((j) => j.out === out)!.axes.wght as { min: number; max: number };
+      expect([Number(m![1]), Number(m![2])], name).toEqual([wght.min, wght.max]);
+    }
   });
 
   it("covers the core ranges the storefront needs", () => {

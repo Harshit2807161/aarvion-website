@@ -1,6 +1,10 @@
 import { render } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { BrandMark, Icon, type IconName } from "./icon";
+import { ICON_NAMES, Icon } from "./icon";
+
+const read = (p: string) => readFileSync(path.resolve(import.meta.dirname, "../../..", p), "utf8");
 
 describe("Icon", () => {
   it("renders a decorative 24-unit svg with a path", () => {
@@ -24,61 +28,33 @@ describe("Icon", () => {
     expect(container.querySelector("svg")!.getAttribute("width")).toBe("20");
   });
 
-  it("draws every named symbol", () => {
-    const names: IconName[] = [
-      "search",
-      "upload",
-      "cart",
-      "user",
-      "arrow",
-      "back",
-      "go",
-      "plus",
-      "minus",
-      "check",
-      "chev",
-      "hold",
-      "play",
-      "file",
-      "box",
-      "chat",
-      "shield",
-      "pharm",
-      "truck",
-      "cash",
-      "menu",
-      "close",
-      "alert",
-      "info",
-      "phone",
-      "mail",
-      "clock",
-    ];
-    for (const name of names) {
+  it("sets the rendered size through --i-size, which base.css reads", () => {
+    const { container } = render(<Icon name="check" size={28} />);
+    expect(container.querySelector("svg")!.style.getPropertyValue("--i-size")).toBe("28px");
+    expect(read("src/styles/base.css")).toMatch(
+      /\.i \{[^}]*width: var\(--i-size, 20px\);[^}]*height: var\(--i-size, 20px\);/,
+    );
+  });
+
+  it("draws every symbol exactly as the prototype sprite does", () => {
+    const sprite =
+      read("design/prototype/src/index.src.html") + read("design/prototype/pages/login.html");
+    expect(ICON_NAMES).toHaveLength(27);
+    for (const name of ICON_NAMES) {
+      const m = sprite.match(
+        new RegExp(`<symbol id="i-${name}" viewBox="0 0 24 24">(.*?)</symbol>`),
+      );
+      expect(m, `${name} is in the prototype sprite`).not.toBeNull();
+      const holder = document.createElement("div");
+      holder.innerHTML = `<svg>${m![1]!}</svg>`;
+      const expected = holder.querySelector("svg")!;
       const { container } = render(<Icon name={name} />);
-      expect(container.querySelector("svg path, svg circle, svg rect"), name).not.toBeNull();
+      expect(container.querySelector("svg")!.innerHTML, name).toBe(expected.innerHTML);
     }
   });
 
   it("rejects unknown names at compile time", () => {
     // @ts-expect-error "nope" is not an IconName
     render(<Icon name="nope" />);
-  });
-});
-
-describe("BrandMark", () => {
-  it("shows the full-colour logo by default", () => {
-    const { container } = render(<BrandMark className="m" />);
-    const img = container.querySelector("img")!;
-    expect(img.getAttribute("src")).toBe("/brand/aarvion-logo.svg");
-    expect(img.getAttribute("alt")).toBe("Aarvion Pharmaceuticals");
-    expect(img.getAttribute("class")).toBe("m");
-  });
-
-  it("uses the reversed logo on forest ground", () => {
-    const { container } = render(<BrandMark variant="reversed" />);
-    expect(container.querySelector("img")!.getAttribute("src")).toBe(
-      "/brand/aarvion-logo-reversed.svg",
-    );
   });
 });
