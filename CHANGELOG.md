@@ -19,6 +19,7 @@ bottom use commit SHAs.
 ### Added
 
 - 404 and error pages: `src/app/not-found.tsx` (inside the store chrome, shared with the `(store)` layout through `withStoreChrome()` in `src/components/shell/store-chrome.tsx`), `error.tsx` (client; "Try again" calls `retry()`, which re-fetches, where `reset()` would not; logs only the error name and digest) and `global-error.tsx` (own `<html>`, inline styles); `EmptyState` (`src/components/shell/empty-state.tsx`, `src/styles/empty.css`) with a dot-matrix count at 3.6px pitch; and the e2e helper `collectConsoleErrors(page)` in `e2e/helpers/console.ts`, which ignores the page's own 404 line and `?_rsc=` prefetches of `PENDING_ROUTES` only (#104).
+- Privacy policy at `/legal/privacy` (`src/app/(store)/legal/privacy/page.tsx`): what is collected and why, DPDP Act 2023 consent and rights, sharing, OTP, session and prescription protection as built, and "To be added" for the grievance officer, customer care, storage location and retention periods (#103).
 - Category bar (`src/components/shell/category-bar.tsx`, `src/styles/catbar.css`), mounted in the `(store)` layout under the header: one link per live category in sortOrder, then All medicines. Category pages are still pending (Task 30), so those links stay in `PENDING_ROUTES`. At 880px and below it is a 36px chip row that scrolls away with the page, starting on the search field's edge and running off the screen edge (`margin-inline: 0`, gutter `padding-inline` and `scroll-padding-inline`) (#100).
 - Legal page layout for every policy page: `LegalPage`, `LegalSection`, `Pending` and `Fact` in `src/components/legal/legal-page.tsx` (the Operate shell, a 62ch `.prose` column from `src/styles/prose.css`, "Last updated" from `POLICY_VERSION`, and a "To be added" chip for each unsupplied fact), and `findClaims` in `tests/helpers/claims.ts`, the invented-claims check for page tests, which also flags copy saying every medicine needs a prescription unless the page passes `allRx` from catalogue data [C25] (#98).
 - Sticky store header (`src/components/shell/{store-header,skip-link}.tsx`, rest of `src/styles/header.css`): logo, search field, Upload prescription, Sign in and Cart, with a skip link before the announcement line. `search`, `account` and `cart` are slots that the live search, account and cart tasks fill. The shadow comes from an IntersectionObserver on the announcement line (no scroll listener); `--hdr-h` is 117px (108px at 880px and below) and base.css stays the only `scroll-padding-top` rule. `Brand` gained `placement="header"` (#97).
@@ -95,6 +96,10 @@ bottom use commit SHAs.
 - `OtpField` takes Android SMS autofill at the caret (a native `beforeinput` listener, since React's
   `onBeforeInput` never carries `inputType`), shortens its boxes to 54 px at 400 px and narrower, and
   the styleguide has an OTP section (#95).
+- Sign-up building blocks in `src/server/auth/`: `checkOtpChallenge` confirms a code without
+  consuming it (a match refunds its attempt), `findUserByIdentifier`, and users gain an optional
+  `name` and a DPDP `consents` record (policy version, times, OTP channel) written on insert only;
+  `PublicUser` gains `name`. Login tests send `DEFAULT_SIGNUP` from `tests/helpers/auth.ts` (#99).
 
 ### Changed
 
@@ -149,6 +154,9 @@ bottom use commit SHAs.
 - The toast no longer dismisses a toast its own action raised, its action button meets the 44 px
   target, a second `<LiveRegion/>` renders nothing, and plain toasts have a Dismiss button and
   Escape (#87).
+- A rate-limit store error while clearing the failure counter after a successful OTP verify no
+  longer turns the login into a 500 with a session the client never receives; it is logged by
+  error name, like a failed audit write (#99).
 
 ## [0.1.0] - 2026-11-17
 
