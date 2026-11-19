@@ -6,6 +6,9 @@
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
 /* ── Quick actions ────────────────────────────────────────────────────── */
+/* v2 home content is 1280 wide (site.css sets --container-page: 80rem on the home page); here the
+   two sections carry that width themselves so the global 75rem .wrap is untouched. */
+.quick.wrap, .trust.wrap { width: min(80rem, 100% - 2 * var(--spacing-gutter)); }
 .quick { margin-top: 20px; }
 .qa-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .qa-cell { position: relative; display: grid; }
