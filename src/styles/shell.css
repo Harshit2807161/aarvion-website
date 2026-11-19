@@ -1,0 +1,44 @@
+/*
+  Operate shell: port of design/prototype/css/flows.css (Shell block, forest band and the white
+  work sheet rising out of it) for src/components/shell/operate-shell.tsx.
+  `.work` is 1280px wide (the chrome width, plan ruling 11); its content (`.work-in`) stays at
+  --container-page, 75rem.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.band {
+  position: relative; isolation: isolate; color: var(--color-white);
+  padding: 40px 0 96px;
+  background:
+    radial-gradient(60% 90% at 50% -20%, rgb(127 211 166 / 0.13), transparent 70%),
+    radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px,
+    var(--color-forest-800);
+}
+.band-in { display: grid; gap: 10px; }
+.band-back {
+  display: inline-flex; align-items: center; gap: 8px; justify-self: start; min-height: 44px; margin: -10px 0 0 -4px; padding: 0 12px 0 4px;
+  border-radius: var(--radius-pill); color: var(--color-text-on-dark-muted); font-weight: 500; font-size: 0.9375rem; text-decoration: none;
+  transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+.band-back .i { width: 18px; height: 18px; }
+@media (hover: hover) and (pointer: fine) { .band-back:hover { color: var(--color-white); } }
+.band-title { font: 700 var(--text-display-m)/var(--text-display-m--line-height) var(--font-display); letter-spacing: var(--text-display-m--letter-spacing); text-wrap: balance; }
+.band-sub { max-width: 46rem; color: var(--color-text-on-dark-muted); text-wrap: pretty; }
+.band-sub b { color: var(--color-white); font-weight: 600; }
+.work { position: relative; width: min(1280px, 100%); margin: -56px auto 0; background: var(--color-white); border-radius: 24px 24px 0 0; }
+.work-in { width: min(var(--container-page), 100% - 2 * var(--spacing-gutter)); margin-inline: auto; padding: 44px 0 96px; }
+
+/* Example tag (home's .doc-tag) */
+.ex-tag { display: inline-flex; align-items: center; width: max-content; padding: 5px 10px; border-radius: var(--radius-pill); background: var(--color-forest-50); color: var(--color-forest-700); font: 500 0.75rem/1 var(--font-sans); }
+.band .ex-tag { background: rgb(255 255 255 / 0.1); color: var(--color-text-on-dark-muted); }
+.band-sub .ex-tag { display: inline-flex; margin-left: 10px; vertical-align: 1px; }
+.band .slip .ex-tag { background: var(--color-sand-100); color: var(--color-wait-ink); }
+
+
+/* Phone: flows.css 827-832 (the shell rules of its 720px block), outside the brief's 124-152 range. */
+@media (max-width: 720px) {
+  .band { padding: 28px 0 64px; }
+  .band-title { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.125rem); }
+  .band-sub { font-size: 0.9375rem; }
+  .work { margin-top: -32px; border-radius: 22px 22px 0 0; }
+  .work-in { padding: 28px 0 72px; }
+}
