@@ -61,7 +61,7 @@ bottom use commit SHAs.
 ### Changed
 
 - `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
-  a line no longer conflict when a branch merges `origin/main` (#PRNUM).
+  a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).
 - Categories use shopper names (Heart care, Diabetes care, Eye care, Respiratory care, Digestive
   care, Bone and joint care, Urinary care), and the seed puts Sacuwin 50, 100 and 200 first in
