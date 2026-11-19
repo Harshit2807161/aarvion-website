@@ -21,7 +21,7 @@ describe("price source", () => {
   it.each([["pricePaise"], ["MRP_DISCOUNT_PAISE"], ["- 2000"]])(
     "no UI file contains %s",
     (needle) => {
-      const hits = files.filter((f) => readFileSync(path.join(root, f), "utf8").includes(needle));
+      const hits = files.filter((f) => readFileSync(path.join(root, f), "utf8").match(needle));
       expect(hits).toEqual([]);
     },
   );

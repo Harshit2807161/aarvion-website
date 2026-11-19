@@ -19,6 +19,19 @@ describe("StampPrice", () => {
     expect(container.querySelector(".stamp-price .dm")?.textContent).toBe("₹189");
   });
 
+  it("omits the % off tag when the floor is 0, keeping the MRP and price", () => {
+    const { container } = render(<StampPrice mrpPaise={200001} />);
+    expect(container.querySelector(".off")).toBeNull();
+    expect(container.textContent).not.toContain("0% off");
+    expect(container.querySelector("s.stamp-mrp")?.textContent).toBe("Printed MRP ₹2,000.01");
+    expect(container.querySelector(".stamp-price .dm")?.textContent).toBe("₹1,980.01");
+  });
+
+  it("still shows 1% off at exactly Rs 2,000 MRP", () => {
+    const { container } = render(<StampPrice mrpPaise={200000} />);
+    expect(container.querySelector(".off")?.textContent).toBe(", 1% off");
+  });
+
   it("merges className", () => {
     const { container } = render(<StampPrice mrpPaise={40700} className="x" />);
     expect(container.querySelector("p.stamp.x")).not.toBeNull();
@@ -35,6 +48,15 @@ describe("PriceInline", () => {
     expect(container.querySelector("span.price-inline > s")?.textContent).toBe("MRP ₹1,179");
     expect(container.querySelector("span.price-inline > b")?.textContent).toBe("₹1,159");
     expect(container.querySelectorAll("span.cm")).toHaveLength(2);
+  });
+
+  it("reads as Printed MRP, then our price, with the hidden words outside s and b", () => {
+    const { container } = render(<PriceInline mrpPaise={117900} />);
+    expect(container.querySelector("span.price-inline")?.textContent).toBe(
+      "Printed MRP ₹1,179, our price ₹1,159",
+    );
+    expect(container.querySelectorAll("span.price-inline > span.sr-only")).toHaveLength(2);
+    expect(container.querySelector("s .sr-only, b .sr-only")).toBeNull();
   });
 });
 

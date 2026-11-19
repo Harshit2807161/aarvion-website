@@ -19,10 +19,13 @@ export function StampPrice({ mrpPaise, className }: { mrpPaise: number; classNam
             MRP <Rupees paise={mrpPaise} />
           </span>
         </s>
-        <span className="off">
-          <span className="sr-only">, </span>
-          {off}% off
-        </span>
+        {/* A floor of 0 (MRP above Rs 2,000) is no saving to advertise: never render "0% off". */}
+        {off >= 1 && (
+          <span className="off">
+            <span className="sr-only">, </span>
+            {off}% off
+          </span>
+        )}
       </span>
       <span className="stamp-price">
         <span className="sr-only">, our price </span>
@@ -38,9 +41,11 @@ export function StampPrice({ mrpPaise, className }: { mrpPaise: number; classNam
 export function PriceInline({ mrpPaise }: { mrpPaise: number }) {
   return (
     <span className="price-inline">
+      <span className="sr-only">Printed </span>
       <s>
         MRP <Rupees paise={mrpPaise} />
       </s>
+      <span className="sr-only">, our price </span>
       <b>
         <Rupees paise={sellingPricePaise(mrpPaise)} />
       </b>

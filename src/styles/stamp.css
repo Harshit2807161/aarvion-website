@@ -20,6 +20,13 @@
 .stamp-price { font-size: 2.125rem; font-weight: 600; letter-spacing: -0.02em; color: var(--color-ink); }
 .stamp-price .dm { display: inline-block; }
 
+/* Phone pockets are about 45vw wide: a 34px price would overflow (site.css 719px block). */
+@media (max-width: 719px) {
+  .stamp-price { font-size: 1.75rem; }
+  .stamp-price .dm { --pitch: 2.1px; }
+  .stamp-mrp { font-size: 0.9375rem; }
+}
+
 .price-inline { display: inline-flex; align-items: baseline; gap: 8px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .price-inline s { font-size: 0.9375rem; font-weight: 500; color: var(--color-ink-muted); text-decoration-line: line-through; text-decoration-color: var(--color-forest-600); text-decoration-thickness: 1.5px; }
 .price-inline b { font-weight: 600; color: var(--color-ink); letter-spacing: -0.01em; }
@@ -43,3 +50,8 @@
 .tag--off { background: var(--color-neutral-100); color: var(--color-neutral-600); }
 .tag--done { background: var(--color-forest-800); color: var(--color-white); }
 .tag--done .tag-dot { background: var(--color-leaf-300); }
+/* Forced colours drop backgrounds and shadows: keep the dot and the Rx ring visible. */
+@media (forced-colors: active) {
+  .tag-dot { background: currentColor; forced-color-adjust: none; border: 1px solid CanvasText; }
+  .rx { border: 1.5px solid currentColor; }
+}

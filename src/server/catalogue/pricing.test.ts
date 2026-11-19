@@ -55,6 +55,12 @@ describe("percentOff", () => {
     expect(percentOff(mrp)).toBe(pct);
   });
 
+  it("handles the range edges: 95% at the smallest valid MRP, 1% at Rs 2,000, 0 above", () => {
+    expect(percentOff(2100)).toBe(95);
+    expect(percentOff(200000)).toBe(1);
+    expect(percentOff(200001)).toBe(0);
+  });
+
   it("floors: 4.9% off shows 4%", () => {
     expect(percentOff(40800)).toBe(4);
   });
