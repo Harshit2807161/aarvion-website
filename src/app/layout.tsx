@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { LiveRegion } from "@/components/feedback/live-region";
+import { Toaster } from "@/components/feedback/toast";
 import { resolveSiteMetadataBase, SITE_CONFIG } from "@/config/site";
 import { fontVariables } from "@/fonts";
 import "./globals.css";
@@ -25,7 +27,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={fontVariables}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster />
+        <LiveRegion />
+      </body>
     </html>
   );
 }
