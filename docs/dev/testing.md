@@ -119,6 +119,7 @@ Helpers in `tests/helpers/`:
 | `src/server/runtime.test.ts` | server unit tests run under a browser emulation |
 | `scripts/sync-product-images.test.ts` | a photo or `products.json` changed without `pnpm images:sync` |
 | `src/server/catalogue/pricing.test.ts` | any listed product's price is not MRP − ₹20 |
+| `src/lib/price-source.test.ts` | UI code under `src/app/**` or `src/components/**` reads `pricePaise` or `MRP_DISCOUNT_PAISE` or subtracts 2000 itself |
 | `src/server/auth/cookie.test.ts` | the cookie `Max-Age` drifts from `SESSION_POLICY` |
 | `scripts/pr-size.test.ts`, `tests/int/pr-size.test.ts` | the size counter or its excludes change |
 | `scripts/vitest-projects.test.ts` | a test file matches no Vitest project, or more than one |

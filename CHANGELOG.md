@@ -54,6 +54,9 @@ bottom use commit SHAs.
   switched to it, and `scripts/brand-assets.test.ts` (#67).
 - Logo tracing script `scripts/trace_logo.py`, which regenerates the masters, `public/brand/`
   and the app icons (#70).
+- `percentOff()` (floored, never rounds up) and the base components `RxBadge`, `StatusTag`, `Rupees`,
+  `StampPrice` and `PriceInline` in `src/components/base/`, with `src/styles/stamp.css`; the stamp
+  hides its tag below 1% and `src/lib/price-source.test.ts` keeps UI code from recomputing prices (#71).
 
 ### Changed
 

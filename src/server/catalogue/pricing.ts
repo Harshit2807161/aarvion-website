@@ -10,3 +10,13 @@ export function sellingPricePaise(mrpPaise: number): number {
   }
   return mrpPaise - MRP_DISCOUNT_PAISE;
 }
+
+/**
+ * The "% off" tag: how much of the MRP the Rs 20 discount is, as a whole percent. Floored,
+ * never rounded, so the tag can never promise more than the shopper saves (MRP Rs 408 saves
+ * 4.9% and shows 4%). Throws like sellingPricePaise for an MRP that cannot carry a price.
+ */
+export function percentOff(mrpPaise: number): number {
+  sellingPricePaise(mrpPaise);
+  return Math.floor((MRP_DISCOUNT_PAISE * 100) / mrpPaise);
+}

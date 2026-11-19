@@ -147,7 +147,8 @@ categories with `status` and `sortOrder`:
   `MRP_DISCOUNT_PAISE = 2000`, `MIN_MRP_PAISE = 2100`, `DEFAULT_MRP_PAISE = 40400`.
 - The price is never stored. `toPublicProduct()` adds `pricePaise` at read time and strips
   `internalNotes`, `mrpSource`, `createdAt` and `updatedAt`.
-- Planned (UI plan): `percentOff(mrpPaise) = Math.floor(200000 / mrpPaise)` beside it; UI code
+- `percentOff(mrpPaise) = Math.floor(200000 / mrpPaise)` sits beside it (same `RangeError`; 0 above
+  ₹2,000, where `StampPrice` omits the tag); UI code
   renders prices only through `StampPrice`, `PriceInline` or `Rupees`, and
   `src/lib/price-source.test.ts` forbids `pricePaise`, `MRP_DISCOUNT_PAISE` or `- 2000` under
   `src/app/**` and `src/components/**`.
