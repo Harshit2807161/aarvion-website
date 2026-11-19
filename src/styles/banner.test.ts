@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import postcss, { type AtRule, type Rule } from "postcss";
 import { describe, expect, it } from "vitest";
-import { AUTOPLAY_MS } from "./carousel";
+import { AUTOPLAY_MS } from "@/components/home/carousel";
 
 const root = postcss.parse(readFileSync(path.resolve(import.meta.dirname, "banner.css"), "utf8"));
 

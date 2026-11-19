@@ -7,17 +7,16 @@
     state before hydration (and without JS) is slide 1 alone.
   - `is-auto` means motion is allowed. The user's pause (`is-stopped`) pauses the current dot's
     fill where it stands, like a hold, instead of dropping it, so play resumes the same clock.
-    Its 6s duration is AUTOPLAY_MS in carousel.ts (banner-css.test.ts keeps them equal).
-  - The phone block's two `.slide-line` rules are one.
+    Its 6s duration is AUTOPLAY_MS in carousel.ts (banner.test.ts keeps them equal).
+  - Repeated selectors are merged into one rule each (C12): the phone block's two `.slide-line`
+    rules, the two `.hero-ctl` rules, and `.slide-img img`.
   The banner is a plain `.wrap`, so its 1280px width comes from the one home root rule
   (`.home`, src/styles/quick-trust.css); there is no section-level width here.
-  Ignored by Prettier (see .prettierignore); imported by banner-carousel.tsx.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
-@layer components {
 /* the controls come first in the DOM (the rotation control leads the tab order, per the APG
    carousel pattern) and sit below the slides on screen */
 .hero { display: flex; flex-direction: column; margin-top: 20px; }
-.hero-ctl { order: 1; }
 .hero-track {
   position: relative; display: grid; isolation: isolate; overflow: clip;
   width: 100%; aspect-ratio: 1280 / 420; min-height: 300px; border-radius: var(--radius-strip);   /* a definite width, so min-height never widens it through the ratio */
@@ -31,8 +30,8 @@
 .hero .slide.is-current { z-index: 1; opacity: 1; visibility: visible; transition-delay: 0s; }
 .hero .slide.is-leaving { opacity: 1; visibility: visible; transition: none; }
 .slide:not(.is-current) .slide-copy { pointer-events: none; }
-.slide-img, .slide-img img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.slide-img img { object-fit: cover; object-position: 100% 50%; }
+.slide-img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.slide-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 100% 50%; }
 .slide-copy {
   position: relative; z-index: 1; height: 100%;
   display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 12px;
@@ -52,7 +51,7 @@
   .hero .slide.is-current .slide-copy > :nth-child(3) { transition-delay: 260ms; }
 }
 
-.hero-ctl { display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 8px; }
+.hero-ctl { order: 1; display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 8px; }
 .hero:not(.is-ready) .hero-ctl { visibility: hidden; }
 .hero-btn {
   display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: var(--color-ink);
@@ -98,5 +97,4 @@
   .slide-line { margin-bottom: 8px; font-size: 0.875rem; line-height: 1.4; }
   .slide-copy .btn { margin-top: auto; min-height: 44px; padding: 0 18px; font-size: 0.875rem; }
   .hero-ctl { margin-top: 4px; }
-}
 }
