@@ -9,6 +9,9 @@ export const SEARCH_DEBOUNCE_MS = 150;
 
 export type SearchStatus = "idle" | "loading" | "done" | "limited" | "error";
 
+/** One shared empty list, so a caller passing `results` on as a prop never sees a new array per render. */
+const NONE: SearchResult[] = [];
+
 type Settled = { key: string; results: SearchResult[]; status: "done" | "limited" | "error" };
 
 /** The request URL for a query, or null when there is nothing to ask (no tokens and no strength). */
@@ -81,7 +84,7 @@ export function useProductSearch(
     };
   }, [key]);
 
-  if (key === null) return { results: [], status: "idle" };
+  if (key === null) return { results: NONE, status: "idle" };
   if (settled?.key === key) return { results: settled.results, status: settled.status };
-  return { results: settled?.results ?? [], status: "loading" };
+  return { results: settled?.results ?? NONE, status: "loading" };
 }

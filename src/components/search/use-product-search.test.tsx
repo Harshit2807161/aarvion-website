@@ -1,6 +1,8 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SearchResult } from "@/lib/catalogue/search-result";
+import { useCombobox } from "./use-combobox";
 import { SEARCH_DEBOUNCE_MS, useProductSearch } from "./use-product-search";
 
 const hit = (slug: string): SearchResult => ({
@@ -192,5 +194,74 @@ describe("useProductSearch", () => {
     expect(result.current.results).toHaveLength(1);
     rerender({ q: "" });
     expect(result.current).toEqual({ results: [], status: "idle" });
+  });
+
+  it("returns the same empty array on every render, idle or loading", async () => {
+    const { result, rerender } = renderHook(({ q }) => useProductSearch(q, null), {
+      initialProps: { q: "" },
+    });
+    const idle = result.current.results;
+    rerender({ q: "" });
+    expect(result.current.results).toBe(idle);
+    rerender({ q: "sacu" });
+    expect(result.current.status).toBe("loading");
+    expect(result.current.results).toBe(idle);
+  });
+
+  it("does not send a request after unmount, and aborts one in flight", async () => {
+    const early = renderHook(() => useProductSearch("sacu", null));
+    await flush(100);
+    early.unmount();
+    await flush(200);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const signals: AbortSignal[] = [];
+    fetchMock.mockImplementation(
+      (_u: string, init: RequestInit) =>
+        new Promise(() => {
+          signals.push(init.signal!);
+        }),
+    );
+    const late = renderHook(() => useProductSearch("sacu", null));
+    await flush();
+    expect(signals).toHaveLength(1);
+    late.unmount();
+    expect(signals[0]!.aborted).toBe(true);
+  });
+
+  it("works with useCombobox in one component without a render loop", async () => {
+    let renders = 0;
+    function Header() {
+      renders++;
+      const [q, setQ] = useState("");
+      const { results, status } = useProductSearch(q, null);
+      const { inputProps, active } = useCombobox({
+        items: results, // passed straight through, as the header will
+        open: q !== "",
+        idPrefix: "h",
+        onChoose: () => {},
+        onClose: () => {},
+        onClear: () => {},
+      });
+      return (
+        <input
+          aria-label="q"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          data-status={status}
+          data-active={active}
+          {...inputProps}
+        />
+      );
+    }
+    render(<Header />);
+    const input = screen.getByRole("combobox");
+    fireEvent.change(input, { target: { value: "sacu" } });
+    expect(renders).toBeLessThan(10);
+    await flush();
+    expect(input).toHaveAttribute("data-status", "done");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(input).toHaveAttribute("data-active", "0");
+    expect(renders).toBeLessThan(15);
   });
 });
