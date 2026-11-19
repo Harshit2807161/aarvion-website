@@ -25,6 +25,7 @@
 | `src/app/api/auth/otp/send/route.ts` | `POST /api/auth/otp/send` |
 | `src/app/api/auth/otp/verify/route.ts` | `POST /api/auth/otp/verify` (sets the session cookie) |
 | `src/app/api/auth/me/route.ts` | `GET /api/auth/me` (re-issues a sliding customer cookie) |
+| `src/app/api/auth/session/route.ts` | `GET /api/auth/session` for the header: always 200 `{ user }` or `{ user: null }` (never 401), `no-store`, re-issues a sliding customer cookie |
 | `src/app/api/auth/logout/route.ts` | `POST /api/auth/logout` (204, clears the cookie) |
 | `src/app/dev/outbox/route.ts` | `GET /dev/outbox?to=` (dev only) |
 | `src/app/dev/styleguide/page.tsx` | `/dev/styleguide` (dev only): every button variant, the Rx badge, tags, stamp and inline prices, the OTP field (`otp-demo.tsx`), the toast demo (`toast-demo.tsx`) the dialog / side sheet demo (`?overlay=dialog` or `side` opens one on load; read client-side in `overlay-demo.tsx`, never via page `searchParams`) and the icon grid, for visual review |
@@ -172,9 +173,11 @@ AVIF/WebP, `images.qualities` 70/75/85). Every GET handler's first statement is
 - Pages prerender from the DB at build time, so every Vercel scope needs a reachable, seeded
   database at build; an empty catalogue throws `CatalogueEmptyError` and fails the build.
 
+**Header auth state** is fetched after hydration from `GET /api/auth/session` (200 with the
+public user or `null`), so pages stay static.
+
 **Planned:**
-- Header auth state is fetched after hydration from `GET /api/auth/session`, so pages stay
-  static. Product images are content-hashed, so the CDN can cache them forever.
+- Product images are content-hashed, so the CDN can cache them forever.
 - Client components (`src/components/**`) import at runtime from `src/server/**` only the pure
   `catalogue/pricing.ts`, `catalogue/search.ts` and `catalogue/order.ts`
   (`src/components/server-imports.test.ts`).

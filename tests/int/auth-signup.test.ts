@@ -1,8 +1,10 @@
+import { connection } from "next/server";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as SEND } from "@/app/api/auth/otp/send/route";
 import { POST as VERIFY } from "@/app/api/auth/otp/verify/route";
+import { GET as SESSION } from "@/app/api/auth/session/route";
 import { OTP_COLLECTION } from "@/server/auth/otp";
-import { SESSIONS_COLLECTION } from "@/server/auth/sessions";
+import { SESSIONS_COLLECTION, createSession } from "@/server/auth/sessions";
 import { USERS_COLLECTION, type UserDoc } from "@/server/auth/users";
 import { getDb } from "@/server/db/client";
 import { resetDepsForTests } from "@/server/deps";
@@ -11,7 +13,7 @@ import { resetEnvForTests } from "@/server/env";
 import { OUTBOX_COLLECTION } from "@/server/providers/outbox";
 import { RATE_LIMITS_COLLECTION } from "@/server/security/rate-limit";
 import { installClock } from "../helpers/clock";
-import { jsonPost, sessionTokenFrom } from "../helpers/http";
+import { getReq, jsonPost, sessionTokenFrom } from "../helpers/http";
 import { clearCollections, startMemoryReplSet, stopMemoryReplSet } from "../helpers/mongo";
 import { lastOtpCode } from "../helpers/otp";
 
@@ -147,5 +149,75 @@ describe("sign-up on OTP verify", () => {
     const ok = await verify(code, { signup: { ...SIGNUP, name: "  Asha Rao  " } });
     expect(ok.status).toBe(200);
     expect((await (await users()).findOne({ email: ASHA }))?.name).toBe("Asha Rao");
+  });
+});
+
+describe("GET /api/auth/session", () => {
+  const session = (token?: string) =>
+    SESSION(getReq("/api/auth/session", token ? { cookie: `__Host-aarv_sid=${token}` } : {}));
+
+  it("is 200 { user: null }, uncached, without a usable session (never 401)", async () => {
+    for (const token of [undefined, "B".repeat(43), "not-a-token"]) {
+      const res = await session(token);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("cache-control")).toBe("no-store");
+      expect(res.headers.get("set-cookie")).toBeNull();
+      expect(await res.json()).toEqual({ user: null });
+    }
+  });
+
+  it("returns the public user after a login, slides the cookie, and is null once revoked", async () => {
+    const token = sessionTokenFrom(await verify(await sendAndRead(), { signup: SIGNUP }))!;
+    const res = await session(token);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(res.headers.get("set-cookie")).toBeNull();
+    expect(await res.json()).toEqual({
+      user: {
+        id: expect.stringMatching(/^[0-9a-f]{24}$/),
+        phone: null,
+        email: ASHA,
+        role: "customer",
+        name: "Asha Rao",
+      },
+    });
+
+    clock.advance(2 * 60_000);
+    expect((await session(token)).headers.get("set-cookie")).toBe(
+      `__Host-aarv_sid=${token}; Path=/; Max-Age=2592000; Secure; HttpOnly; SameSite=Lax`,
+    );
+
+    await (await getDb()).collection(SESSIONS_COLLECTION).deleteMany({});
+    expect(await (await session(token)).json()).toEqual({ user: null });
+  });
+
+  it("never re-issues a staff session's cookie", async () => {
+    const { insertedId } = await (
+      await users()
+    ).insertOne({
+      email: "pharm@example.com",
+      role: "pharmacist",
+      createdAt: T,
+      updatedAt: T,
+      lastLoginAt: T,
+    } as UserDoc);
+    const { token } = await createSession({ _id: insertedId, role: "pharmacist" }, T);
+    clock.advance(2 * 60_000);
+    const res = await session(token);
+    expect(((await res.json()) as { user: { role: string } }).user.role).toBe("pharmacist");
+    expect(res.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("calls connection() before any read and rethrows Next's prerender abort", async () => {
+    const abort = Object.assign(new Error("prerender"), { digest: "HANGING_PROMISE_REJECTION" });
+    vi.mocked(connection).mockRejectedValueOnce(abort);
+    const { Collection } = await import("mongodb");
+    const read = vi.spyOn(Collection.prototype, "findOne");
+    try {
+      await expect(session("B".repeat(43))).rejects.toBe(abort);
+      expect(read).not.toHaveBeenCalled();
+    } finally {
+      read.mockRestore();
+    }
   });
 });
