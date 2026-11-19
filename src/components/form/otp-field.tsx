@@ -88,9 +88,9 @@ export function OtpField({
   // insertion at the caret. With a partial value already typed, maxlength would truncate it
   // ("12" + "482913" gives "124829"), so take the digits instead.
   //
-  // paste: A pasted full code replaces the value. Stopping the native event keeps input-otp's own paste
-  // handler (and its completion effect) from also seeing a truncated value; partial pastes still
-  // reach it. React's onPaste cannot do this: input-otp's handler runs first.
+  // paste: a pasted full code replaces the value. Stopping the native event keeps input-otp's
+  // own paste handler (and its completion effect) from also seeing a truncated value; partial
+  // pastes still reach it.
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;

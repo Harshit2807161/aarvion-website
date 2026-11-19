@@ -15,7 +15,7 @@ export function OtpDemo() {
         <div key={state} className="flex flex-col gap-2">
           <label htmlFor={`sg-otp-${state}`}>
             <code>{state}</code>
-            {i === 0 && " (type, paste or autofill a 6-digit code)"}
+            {i === 0 ? " (type, paste or autofill a 6-digit code)" : " (static)"}
           </label>
           <OtpField
             id={`sg-otp-${state}`}

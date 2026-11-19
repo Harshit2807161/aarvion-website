@@ -164,6 +164,15 @@ describe("OtpField", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it("attaches exactly one paste and one beforeinput listener", () => {
+    const spy = vi.spyOn(HTMLInputElement.prototype, "addEventListener");
+    render(<Harness />);
+    const types = spy.mock.calls.map((c) => c[0]);
+    spy.mockRestore();
+    expect(types.filter((t) => t === "paste")).toHaveLength(1);
+    expect(types.filter((t) => t === "beforeinput")).toHaveLength(1);
+  });
+
   it("removes the native paste and beforeinput listeners on unmount", () => {
     const onChange = vi.fn();
     const onComplete = vi.fn();

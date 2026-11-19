@@ -128,7 +128,7 @@ export default async function StyleguidePage() {
         <FormsDemo />
       </section>
 
-      <section aria-labelledby="sg-otp">
+      <section aria-labelledby="sg-otp" id="styleguide-otp">
         <h2 className="mb-4 text-lg font-semibold" id="sg-otp">
           OTP field
         </h2>
