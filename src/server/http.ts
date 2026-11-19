@@ -1,3 +1,5 @@
+// Ruling F15: `next/navigation` is the single framework import allowed under src/server/**.
+import { unstable_rethrow } from "next/navigation";
 import type { z } from "zod";
 import { EnvError } from "./env.ts";
 
@@ -63,7 +65,10 @@ export async function readJson<T>(req: Request, schema: z.ZodType<T>): Promise<T
   return parsed.data;
 }
 
-/** Wraps a route handler so every failure becomes a safe JSON error response. */
+/**
+ * Wraps a route handler so every failure becomes a safe JSON error response. Next's control flow
+ * (notFound(), redirect(), a prerender abort from connection()) is rethrown untouched and unlogged.
+ */
 export function withErrors(
   handler: (req: Request) => Promise<Response>,
 ): (req: Request) => Promise<Response> {
@@ -71,6 +76,7 @@ export function withErrors(
     try {
       return await handler(req);
     } catch (err) {
+      unstable_rethrow(err);
       if (err instanceof HttpError) {
         const headers = new Headers();
         if (err.retryAfterSec !== undefined) headers.set("Retry-After", String(err.retryAfterSec));

@@ -1,3 +1,6 @@
+import { notFound, redirect } from "next/navigation";
+// Private Next path (the promise connection() returns in a prerender); an upgrade may move it.
+import { makeDynamicHangingPromise } from "next/dist/server/dynamic-rendering-utils";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { EnvError } from "./env";
@@ -146,6 +149,31 @@ describe("withErrors", () => {
     expect(text).not.toContain("secret detail");
     expect(JSON.stringify(spy.mock.calls)).not.toContain("secret detail");
     expect(spy).toHaveBeenCalledWith("route error", "Error");
+    spy.mockRestore();
+  });
+
+  it.each([
+    ["notFound()", "NEXT_HTTP_ERROR_FALLBACK;404", () => notFound()],
+    ["redirect()", "NEXT_REDIRECT;replace;/login;307;", () => redirect("/login")],
+    [
+      "a prerender abort from connection()",
+      "HANGING_PROMISE_REJECTION",
+      () => {
+        const ac = new AbortController();
+        const hanging = makeDynamicHangingPromise(ac.signal, "/api/x", "`connection()`");
+        ac.abort();
+        return hanging;
+      },
+    ],
+  ])("rethrows Next's %s untouched and unlogged", async (_name, digest, raise) => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(
+      call(async () => {
+        await raise();
+        return jsonResponse({ ok: 1 });
+      }),
+    ).rejects.toMatchObject({ digest });
+    expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
 

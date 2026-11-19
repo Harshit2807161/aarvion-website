@@ -13,8 +13,8 @@ to the same PR cancels the older run; runs on `main` are never cancelled. Permis
 | `typecheck` | `pnpm typecheck` | |
 | `unit` | `pnpm test:unit` | the `unit` and `ui` Vitest projects |
 | `int` | `pnpm test:int` | caches the mongod binary in `MONGOMS_DOWNLOAD_DIR` (`actions/cache@v6`, keyed on the lockfile) |
-| `build` | `pnpm build` | |
-| `e2e` | `playwright install --with-deps chromium`, `pnpm db:up`, `pnpm db:indexes`, `pnpm test:e2e` | `MONGODB_DB=aarvion_e2e`, `CI=true`; uploads the `playwright-report` artifact on failure (7 days) |
+| `build` | `pnpm db:up`, `pnpm db:indexes`, `pnpm seed`, `pnpm build` | `MONGODB_DB=aarvion_build`: pages prerender from the catalogue (Cache Components) |
+| `e2e` | `playwright install --with-deps chromium`, `pnpm db:up`, `pnpm db:indexes`, `pnpm seed`, `pnpm test:e2e` | `MONGODB_DB=aarvion_e2e`, `CI=true`; uploads the `playwright-report` artifact on failure (7 days) |
 
 **`.github/workflows/pr-guards.yml`** runs when a PR is opened, edited, synchronised or
 reopened.
