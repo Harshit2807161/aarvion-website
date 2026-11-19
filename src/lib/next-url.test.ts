@@ -31,6 +31,8 @@ describe("sanitizeNext", () => {
     "/./login",
     "/x/../api/auth/logout",
     "/%6Cogin",
+    "/%6cogin/%ZZ",
+    "/%61pi/auth/logout%ff",
     "/API/auth/logout",
     "/" + "a".repeat(600),
   ])("falls back to / for %j", (p) => {

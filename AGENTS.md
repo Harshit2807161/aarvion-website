@@ -47,7 +47,7 @@ Why each was chosen: [docs/decisions/stack.md](docs/decisions/stack.md).
 src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide}, layout, (store)/ route group (customer pages and the footer; admin goes in another group), placeholder home;
                     globals.css (Tailwind 4 @theme tokens)
 src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms, overlay, otp and toast.css) and the token and CSS tests
-src/lib/            client-safe helpers (cn)
+src/lib/            helpers: cn, format/, cart/ (session cart), catalogue/ (display.ts wording helpers, client-safe; cached.ts reads, server only)
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES)
 src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/ so far)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
@@ -195,13 +195,20 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 - Send order is fixed: validate → resend cooldown (spends no budget) → 20/h per IP → 3/10 min
   per identifier → issue → deliver; a failed delivery deletes the challenge. The answer never
   depends on whether an account exists.
-- Verify order is fixed: normalise → 60/h per IP → peek the 10-per-24 h failure cap → verify →
-  only a mismatch on a live challenge counts → find or create the user → revoke any presented
-  session → new session → clear the failure counter (a failing reset or audit write is logged
-  by error name, never fails the login). Every code-check failure (unknown,
-  expired, consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`.
-  The per-IP limit is 429 `rate_limited` and the lockout is 429 `too_many_attempts`, both with
-  `Retry-After`; clients treat 429 as its own state.
+- Verify order is fixed: normalise → 60/h per IP (before any challenge or user read) → peek the
+  10-per-24 h failure cap → check the code → only a mismatch on a live challenge counts → only then,
+  without `signup`, look up the user → find or create the user → revoke any presented session → new
+  session → clear the failure counter (a failing reset or audit write is logged by error name, never
+  fails the login). Every code-check failure (unknown, expired, consumed, exhausted or mismatched
+  code, or a bad identifier) is 400 `invalid_code`. The per-IP limit is 429 `rate_limited` and the
+  lockout is 429 `too_many_attempts`, both with `Retry-After`; clients treat 429 as its own state.
+- Sign-up: the right code for an unknown identifier without `signup` is 409 `signup_required`,
+  with no user, session or audit row. That check never consumes the code (a match refunds its
+  attempt), so the same code logs in exactly once with `signup`. Junk verifies for an unknown
+  identifier must behave exactly like a known one's (same 400, same counter, no 429 oracle), so
+  they never reveal whether an account exists: nothing reads `users` before the code matches,
+  and identifier lookups stay index-backed (`{ $eq, $type: "string" }` hits the partial unique
+  index; a plain equality is a collection scan whose time depends on the account).
 - Sign-up consent: `signup` requires Terms and Privacy and 18+; its consents
   (`CONSENT_VERSION` = `POLICY_VERSION`, times, OTP channel) are written on insert only and never
   overwritten by a later login.
@@ -262,6 +269,10 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 
 **Code rules that protect the invariants**
 
+- Components (`src/components/**`) import at runtime from `src/server/**` only the pure
+  `catalogue/pricing`, `catalogue/search` and `catalogue/order`; anything else from there is a
+  statement-level `import type` (`src/components/server-imports.test.ts`, direct imports only:
+  `src/lib/catalogue/cached.ts` is server-only too, so never import it from a `"use client"` module).
 - Money is integer paise. Inputs reach Mongo only as zod-parsed primitives; no user input becomes
   a regex or an operator object. Public catalogue data never includes `internalNotes`.
 - New code in `src/server/**` never calls `new Date()` or `Date.now()`: take `now: Date`; routes
