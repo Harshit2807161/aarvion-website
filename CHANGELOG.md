@@ -17,6 +17,7 @@ bottom use commit SHAs.
 ## [Unreleased]
 
 ### Added
+- Search combobox parts, part 1 of 3 (not wired into the header yet; Task 37 does that), in `src/components/search/`: `highlight` (pure, literal `indexOf`, no RegExp, returns `{ text, mark }` segments to render as `<mark>`) and `useCombobox` (WAI-ARIA 1.2 keys and ids; arrows wrap, Enter takes the active or first item, Escape closes then clears; adds no live region, result counts go through `announce()`). `useProductSearch` and `SuggestionList` follow (#PR)
 
 - `GET /api/products?q=&strength=`: the header search's data. Reads the cached catalogue, matches by query tokens and variant strength in shelf order, returns at most 20 `SearchResult`s (`src/lib/catalogue/search-result.ts`), `no-store`, 60 requests a minute per IP bucket (429 `rate_limited`), and never logs the query. (#123)
 - Banner carousel shell (`src/components/home/banner-carousel.tsx`, client) and its styles (`src/styles/banner.css`, a port of the v2 site.css banner rules, imported by `globals.css` and covered by `css-hygiene.test.ts`): the play/pause, previous, dot and next controls come first in the DOM, the track's `aria-live` follows `liveMode()`, and the root gains `is-ready`, `is-auto`, `is-held`, `is-stopped` or `no-auto` only after mount. The current dot's 6 s `dot-run` fill is the autoplay clock and pauses under a hold or the user's pause. The banner takes its 1280px width from the one home root rule (`.home` in `src/styles/quick-trust.css`); it sets no width of its own (#126).
