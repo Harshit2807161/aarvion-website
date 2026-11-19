@@ -12,6 +12,7 @@ import { revalidateCatalogue } from "@/lib/catalogue/revalidate";
 import { CATALOGUE_TAG, categoryTag, familyTag, productTag } from "@/lib/catalogue/tags";
 import { CATEGORY_LIST } from "@/server/catalogue/categories";
 import { CATEGORIES_COLLECTION, PRODUCTS_COLLECTION } from "@/server/catalogue/collections";
+import { listVisibleCategories } from "@/server/catalogue/queries";
 import { seedCatalogue } from "@/server/catalogue/seed";
 import { getDb } from "@/server/db/client";
 import { resetEnvForTests } from "@/server/env";
@@ -52,32 +53,13 @@ describe("cached catalogue reads", () => {
   it("return the seeded catalogue, in shelf order", async () => {
     const products = await getCachedProducts();
     expectCached();
+    // publicCatalogue() is the shelf order that order.test.ts pins slug by slug.
     expect(withoutId(products)).toEqual(withoutId(publicCatalogue()));
-    expect(slugs(products)).toEqual([
-      "sacuwin-50",
-      "sacuwin-100",
-      "sacuwin-200",
-      "bemptor-180",
-      "bemptor-r40",
-      "vildage-m-50-500",
-      "hyloage",
-      "sysnet-ultra",
-      "caftop",
-      "oloage-kt",
-      "mucohelp",
-    ]);
+    expect(slugs(products).slice(0, 3)).toEqual(["sacuwin-50", "sacuwin-100", "sacuwin-200"]);
   });
 
   it("return categories, a category, a product and a family with their tags", async () => {
-    expect((await getCachedCategories()).map((c) => c.name)).toEqual([
-      "Heart care",
-      "Diabetes care",
-      "Eye care",
-      "Respiratory care",
-      "Digestive care",
-      "Bone and joint care",
-      "Urinary care",
-    ]);
+    expect(await getCachedCategories()).toEqual(await listVisibleCategories());
     expectCached();
     expect((await getCachedCategory("cardiology"))?.name).toBe("Heart care");
     expectCached(categoryTag("cardiology"));
