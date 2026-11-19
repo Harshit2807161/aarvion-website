@@ -106,7 +106,7 @@ describe("getProductBySlug", () => {
       .collection(PRODUCTS_COLLECTION)
       .updateOne({ slug: "sacuwin-100" }, { $set: { category: "urology" } });
     expect(await getProductBySlug("sacuwin-100")).toBeNull();
-    expect(await listProducts({ q: "sacuwin" })).toHaveLength(2);
+    expect(slugs(await listProducts({ q: "sacuwin" }))).toEqual(["sacuwin-50", "sacuwin-200"]);
   });
 });
 
@@ -115,6 +115,22 @@ describe("getFamily", () => {
     expect(slugs(await getFamily("sacuwin"))).toEqual(["sacuwin-50", "sacuwin-100", "sacuwin-200"]);
     expect(slugs(await getFamily("bemptor"))).toEqual(["bemptor-180", "bemptor-r40"]);
     expect(await getFamily("Bad Slug")).toEqual([]);
+  });
+
+  it("excludes an inactive member", async () => {
+    const db = await getDb();
+    await db
+      .collection(PRODUCTS_COLLECTION)
+      .updateOne({ slug: "sacuwin-100" }, { $set: { active: false } });
+    expect(slugs(await getFamily("sacuwin"))).toEqual(["sacuwin-50", "sacuwin-200"]);
+  });
+
+  it("excludes a member whose category is not live", async () => {
+    const db = await getDb();
+    await db
+      .collection(PRODUCTS_COLLECTION)
+      .updateOne({ slug: "bemptor-r40" }, { $set: { category: "urology" } });
+    expect(slugs(await getFamily("bemptor"))).toEqual(["bemptor-180"]);
   });
 });
 
