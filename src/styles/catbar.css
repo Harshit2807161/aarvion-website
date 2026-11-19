@@ -1,0 +1,41 @@
+/*
+  Category bar: port of design/prototype/css/store.css lines 127-147 and the catbar parts of the
+  880px block (176-232) for src/components/shell/category-bar.tsx. --row-h and --cat-h live in
+  header.css. The chrome is 1280px everywhere (plan ruling 11).
+  At 880px and below the bar is a chip row: 36px outlined chips with a 44px hit area (::before),
+  starting on the search field's edge (padding-inline = the page gutter, margin-inline 0 so the
+  row runs to the screen edge) and scrolling away with the page. scroll-padding-inline keeps a
+  snapped or focused chip off the edge.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.catbar {
+  position: sticky; top: var(--row-h); z-index: calc(var(--z-nav) - 1);
+  background: var(--color-white); box-shadow: inset 0 1px 0 var(--color-neutral-200), inset 0 -1px 0 var(--color-neutral-200);
+  transition: box-shadow var(--duration-base) ease;
+}
+.catbar.is-stuck { box-shadow: inset 0 1px 0 var(--color-neutral-200), 0 10px 22px -16px rgb(14 30 21 / 0.45); }
+.catbar-in { display: flex; align-items: center; gap: 2px; height: calc(var(--cat-h) - 1px); margin-left: auto; margin-right: auto; }
+.catbar .wrap { width: min(80rem, 100% - 2 * var(--spacing-gutter)); }
+.catbar a {
+  display: inline-flex; align-items: center; gap: 4px; height: 44px; padding: 0 14px; border-radius: var(--radius-pill);
+  font: 500 0.9375rem/1 var(--font-sans); color: var(--color-neutral-800); text-decoration: none; white-space: nowrap;
+  transition: background-color var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+.catbar li:first-child a { margin-left: -14px; }
+.catbar li:last-child a { color: var(--color-forest-700); font-weight: 600; }
+.catbar a .i { width: 16px; height: 16px; }
+@media (hover: hover) and (pointer: fine) { .catbar a:hover { background: var(--color-forest-50); color: var(--color-forest-900); } }
+
+@media (max-width: 880px) {
+  /* the chips scroll away with the page; only the logo row and search stay */
+  .catbar { position: relative; top: auto; z-index: auto; box-shadow: none; }
+  .catbar .catbar-in { width: auto; height: auto; gap: 8px; margin-inline: 0; padding: 2px var(--spacing-gutter) 10px; scroll-padding-inline: var(--spacing-gutter); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+  .catbar-in::-webkit-scrollbar { display: none; }
+  .catbar li:first-child a { margin-left: 0; }
+  .catbar a { height: 36px; padding: 0 14px; box-shadow: inset 0 0 0 1px var(--color-neutral-300); position: relative; }
+  .catbar a::before { content: ""; position: absolute; inset: -4px 0; }
+  .catbar li:last-child a { box-shadow: inset 0 0 0 1px var(--color-forest-300); }
+}
+@media (prefers-contrast: more) {
+  .catbar a { color: var(--color-ink); }
+}
