@@ -59,7 +59,7 @@ Planned folders (UI plan): more of `src/components/**` and `src/lib/**`, `src/co
 | `db/client.ts` | one cached `MongoClient` per process on `globalThis` (survives HMR, drops a failed connect); `getDb()` uses `MONGODB_DB` |
 | `db/indexes.ts` | `registerIndexes(collection, specs)` (names mandatory), `ensureIndexes(db)` (creates missing indexes by name) |
 | `db/register-all.ts` | imports every module that registers indexes, for `pnpm db:indexes` and int tests |
-| `catalogue/` | `schema.ts` (zod), `pricing.ts`, `categories.ts`, `collections.ts`, `seed.ts`, `search.ts`, `queries.ts` |
+| `catalogue/` | `schema.ts` (zod), `pricing.ts`, `categories.ts`, `collections.ts`, `seed.ts`, `search.ts`, `queries.ts`, `order.ts` (pure `compareVariants`, `orderForShelf`; client-safe) |
 | `auth/` | `identifier.ts`, `otp.ts`, `users.ts`, `sessions.ts`, `cookie.ts`, `login.ts` (`sendOtp`, `verifyOtpAndLogin`), `guards.ts` (`getAuth`, `requireUser`, `requireRole`), `roles.ts` |
 | `security/` | `rate-limit.ts` (`hitRateLimit`, `peekRateLimit`, `resetRateLimit`), `client-ip.ts` (`clientIp`, `ipBucket`), `origin.ts` (`assertSameOrigin`) |
 | `audit.ts` | `appendAudit()`, the only writer of `audit_logs` |
@@ -141,17 +141,18 @@ parts with `setDepsForTests({ now, sms, … })` and restore with `resetDepsForTe
 
 ## Caching
 
-**Now (until UI Task 7):** nothing is cached. Every API and dev route exports `dynamic = "force-dynamic"`; the
-placeholder home is static.
+**Now (since #60, UI Task 7a):** Cache Components is on (`next.config.ts`: `cacheComponents`,
+AVIF/WebP, `images.qualities` 70/75/85). Every GET handler's first statement is
+`await connection()`, then `requireDevRoute()` in `src/app/dev/**`; `export const dynamic`,
+`revalidate` and `fetchCache` are banned (`src/server/route-config.test.ts`). Int tests mock
+`connection()` and `next/cache` through `tests/helpers/next-mocks.ts`. Nothing is cached yet.
 
-**Planned (UI plan Task 7 onward):**
-- Cache Components on. Catalogue reads go through `'use cache'` wrappers in
+**Planned (UI Task 7b onward):**
+- Catalogue reads go through `'use cache'` wrappers in
   `src/lib/catalogue/cached.ts`, tagged `catalogue`, with `cacheLife("hours")` as a backstop.
 - `revalidateCatalogue()` calls `revalidateTag("catalogue", { expire: 0 })`, so the next request
   after an MRP, photo, active or category write shows the new value. Phase D's admin writes must
   call it.
-- Every GET handler's first statement is `await connection()`; `export const dynamic`,
-  `revalidate` and `fetchCache` are banned (`src/server/route-config.test.ts`).
 - Pages prerender from the DB at build time, so every Vercel scope needs a reachable, seeded
   database at build; an empty catalogue throws `CatalogueEmptyError` and fails the build.
 - Header auth state is fetched after hydration from `GET /api/auth/session`, so pages stay
