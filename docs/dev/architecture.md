@@ -34,7 +34,7 @@
 | `src/config/` | `site.ts` (`SITE_CONFIG`: legal name, address, and the pending legal facts, all `null` until the owner supplies them; `legalValue()`, `pendingLegalFields()`, and `assertLegalConfigComplete()`, the H4 production gate; `resolveSiteMetadataBase()`) and `routes.ts` (`ROUTES`, the one map of store links, and `PENDING_ROUTES`, the linked pages that must still 404 until built; each page's task deletes its entry) |
 | `src/app/globals.css` | Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored) |
 | `src/styles/` | ported prototype CSS imported by `globals.css` (`base.css`: one merged `@layer base` with resets, focus, type and utilities; `buttons.css`: `.btn*`, `.link`, `.spin`; `stamp.css`: `.dm`, `.stamp*`, `.off`, `.price-inline`, `.rx`, `.tag*`; `otp.css`: `.otp*`; `toast.css`: `.toast*`; `overlay.css`: `.sheet-*` dialog, side drawer and phone bottom sheet, as `@keyframes` on Radix `[data-state]`; `forms.css`: `.field`, `.field-box`, `.input`, `.check*`, `.seg*`; `footer.css`: the store footer, `.foot*`; `header.css`: the announcement line and store header, `.announce*`, `.store-head`, `.sh-*`, `--row-h` and `--hdr-h`; `catbar.css`: the category bar and the 880px chip row, `.catbar*`; `shell.css`: the Operate shell, `.band*` and `.work*`; `prose.css`: the policy reading column, `.prose*` (62ch, title-size h2, hairlines between sections) and the `.pending` "To be added" chip; all but `base.css` are imported `layer(components)`), with `tokens.test.ts`, `css-hygiene.test.ts`, `overlay.test.ts` (compiles `globals.css` and checks the scrim rule), `shell.test.ts` and `prose.test.ts` |
-| `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting) |
+| `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting), `cart/` (the session-only UI cart: `cart.ts` pure rules and limits, `store.ts` `cartStore` over `sessionStorage` key `aarv-cart-ui-v0` with a cached `getSnapshot` and a frozen `{}` server snapshot, `use-cart-lines.ts` the client hook). It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. It stands in until the real server cart arrives in phase K, which replaces it |
 | `components.json` | shadcn/ui config; only `dialog` and `input-otp` may be added (UI plan ruling). After `shadcn add`, swap `lucide-react` for `Icon`, import Radix as `@radix-ui/react-dialog`, remove any `lucide-react`, `tw-animate-css` or `cn` package the CLI adds, revert its `globals.css` edits, and put `// @generated shadcn` on line 1 |
 | `src/components/ui/dialog.tsx` | the shadcn dialog primitives, restyled for Aarvion (generated, edited) |
 | `src/components/ui/input-otp.tsx` | the shadcn `InputOTP` wrapper, trimmed to the one part `OtpField` uses (generated, edited; no `lucide-react`) |
@@ -82,8 +82,8 @@ the plan's "File Structure".
 | `products` | ObjectId | `slug_unique`, `category_active_sortOrder`, `familySlug_active` | seed |
 | `categories` | ObjectId | `slug_unique` | seed |
 | `rate_limits` | the limiter key | `expiresAt_ttl` | `hitRateLimit` |
-| `otp_challenges` | `<channel>:<value>` (one live challenge per identifier) | `expiresAt_ttl` | `issueOtpChallenge`, `verifyOtpChallenge` |
-| `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier`, `setUserRole` |
+| `otp_challenges` | `<channel>:<value>` (one live challenge per identifier) | `expiresAt_ttl` | `issueOtpChallenge`, `verifyOtpChallenge`, `checkOtpChallenge` (refunds a matching check's attempt) |
+| `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole` |
 | `sessions` | SHA-256 of the token | `expiresAt_ttl`, `userId_1` | `createSession`, `resolveSession`, `revokeSession` |
 | `audit_logs` | ObjectId | `at_desc`, `actorUserId_at_desc` | `appendAudit` |
 | `dev_outbox` | `mock_<uuid>` | `expiresAt_1` (TTL 24 h), `to_1_createdAt_1` | mock SMS and email |
@@ -117,7 +117,8 @@ exists.
 (429 `too_many_attempts`) → spend an attempt atomically and compare in constant time → only a
 mismatch on a live challenge hits the failure counter → flip `consumedAt` (single use) → find or
 create the user → revoke any presented session → create a session → clear the failure counter →
-audit `auth.login` (a failed audit write is logged, never fails the login). Every code-check
+audit `auth.login` (a failed counter reset or audit write is logged by error name and never fails
+the login). Every code-check
 failure (unknown, expired, consumed, exhausted or mismatched code, or a bad identifier) is 400
 `invalid_code`; the per-IP limit is 429 `rate_limited` and the lockout 429 `too_many_attempts`,
 both with `Retry-After`.

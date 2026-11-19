@@ -3,9 +3,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   USERS_COLLECTION,
   findOrCreateUserByIdentifier,
+  findUserByIdentifier,
   getUserById,
   setUserRole,
   toPublicUser,
+  type UserConsents,
+  type UserDoc,
 } from "@/server/auth/users";
 import { SESSIONS_COLLECTION, createSession, resolveSession } from "@/server/auth/sessions";
 import { getDb } from "@/server/db/client";
@@ -67,6 +70,44 @@ describe("findOrCreateUserByIdentifier", () => {
     expect(await getUserById(user._id)).toMatchObject({ phone: phone.value });
     expect(await getUserById(new ObjectId())).toBeNull();
   });
+
+  it("writes the sign-up name and consents on insert only", async () => {
+    const consents: UserConsents = {
+      channel: "email",
+      termsPrivacy: { version: "2026-11-17", at: T },
+      adult: { at: T },
+      marketing: { optedIn: false, at: T },
+    };
+    const a = await findOrCreateUserByIdentifier(email, T, { name: "Asha Rao", consents });
+    expect(a.created).toBe(true);
+    expect(a.user).toMatchObject({ name: "Asha Rao", consents });
+
+    const later = new Date(T.getTime() + H);
+    const b = await findOrCreateUserByIdentifier(email, later, {
+      name: "Someone Else",
+      consents: { ...consents, marketing: { optedIn: true, at: later } },
+    });
+    expect(b.created).toBe(false);
+    expect(b.user.name).toBe("Asha Rao");
+    expect(b.user.consents).toEqual(consents);
+    expect(b.user.lastLoginAt).toEqual(later);
+  });
+});
+
+describe("findUserByIdentifier", () => {
+  it("finds by the verified identifier and never creates", async () => {
+    expect(await findUserByIdentifier(phone)).toBeNull();
+    expect(await (await getDb()).collection(USERS_COLLECTION).countDocuments()).toBe(0);
+    const { user } = await findOrCreateUserByIdentifier(phone, T);
+    expect((await findUserByIdentifier(phone))?._id).toEqual(user._id);
+    expect(await findUserByIdentifier(email)).toBeNull();
+  });
+
+  it("rejects a channel outside the fixed table", async () => {
+    await expect(findUserByIdentifier({ channel: "$where", value: "x" } as never)).rejects.toThrow(
+      "unsupported channel",
+    );
+  });
 });
 
 describe("toPublicUser", () => {
@@ -77,7 +118,13 @@ describe("toPublicUser", () => {
       phone: "+919876543210",
       email: null,
       role: "customer",
+      name: null,
     });
+  });
+
+  it("includes the sign-up name", () => {
+    const user = { _id: new ObjectId(), email: email.value, role: "customer", name: "Asha Rao" };
+    expect(toPublicUser(user as UserDoc).name).toBe("Asha Rao");
   });
 });
 
