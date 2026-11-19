@@ -185,6 +185,7 @@ export function Icon({
       className={cn("i", className)}
       width={size}
       height={size}
+      // base.css `.i` reads --i-size; a plain width attribute would lose to its fixed 20px.
       style={{ "--i-size": `${size}px` } as React.CSSProperties}
       viewBox="0 0 24 24"
       aria-hidden="true"

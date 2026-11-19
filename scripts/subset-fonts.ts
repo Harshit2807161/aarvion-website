@@ -29,6 +29,7 @@ export type FontJob = {
   out: string;
   /** Source font: a path under the repo root, or a module path resolved from node_modules. */
   from: string;
+  text: "core";
   axes: Record<string, number | { min: number; max: number }>;
 };
 
@@ -36,25 +37,32 @@ export const FONT_JOBS: FontJob[] = [
   {
     out: "host-grotesk.woff2",
     from: "assets/fonts/src/HostGrotesk[wght].ttf",
+    text: "core",
     axes: { wght: { min: 600, max: 700 } },
   },
   {
     out: "geist.woff2",
     from: "geist/dist/fonts/geist-sans/Geist-Variable.woff2",
+    text: "core",
     axes: { wght: { min: 400, max: 600 } },
   },
   {
     out: "geist-mono.woff2",
     from: "geist/dist/fonts/geist-mono/GeistMono-Variable.woff2",
+    text: "core",
     axes: { wght: { min: 500, max: 600 } },
   },
 ];
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const CORE_TEXT = CORE_RANGES.flatMap(([lo, hi]) =>
-  Array.from({ length: hi - lo + 1 }, (_, i) => String.fromCodePoint(lo + i)),
-).join("");
+const textFor = (kind: FontJob["text"]): string => {
+  const chars: string[] = [];
+  for (const [lo, hi] of CORE_RANGES) {
+    for (let cp = lo; cp <= hi; cp++) chars.push(String.fromCodePoint(cp));
+  }
+  return kind === "core" ? chars.join("") : "";
+};
 
 /** Paths are repo-relative, or `<package>/...` under node_modules (geist's exports map hides its files). */
 const sourcePath = (from: string) =>
@@ -62,7 +70,7 @@ const sourcePath = (from: string) =>
 
 /** Subset one font to woff2. Name IDs 13 and 14 (licence text and URL) are kept for the OFL. */
 export async function subsetFont(job: FontJob): Promise<Buffer> {
-  return subset(readFileSync(sourcePath(job.from)), CORE_TEXT, {
+  return subset(readFileSync(sourcePath(job.from)), textFor(job.text), {
     targetFormat: "woff2",
     preserveNameIds: [13, 14],
     variationAxes: job.axes,
