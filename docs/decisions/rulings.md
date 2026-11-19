@@ -105,7 +105,7 @@ Copied from the Phase UI plan's "Decisions taken in this plan" (`docs/superpower
 **Store format (new in rev 2)**
 - **Category display names:** Heart care, Diabetes care, Eye care, Respiratory care, plus the coming-soon names Digestive care, Bone and joint care and Urinary care (DESIGN.md "Names"). Pain Management (hidden) is unchanged; slugs are unchanged.
   - The seed is insert-only, so existing DBs keep the old names until `db.categories.deleteMany({})` and `pnpm seed` are run. README and the owner action say so.
-  - **Owner action:** reseed existing DBs (`db.categories.deleteMany({})`, plus `db.products.deleteMany({})` if no admin edits exist, then `pnpm seed`). New DBs and CI need nothing.
+  - **Owner action:** the seed is insert-only, so an existing database keeps the old names and product order. (1) Always safe: in `mongosh`, run `db.categories.deleteMany({})`, then `pnpm seed`. (2) Product order, non-destructive: run `db.products.updateOne({ slug: "sacuwin-50" }, { $set: { sortOrder: 0 } })` and the same for `sacuwin-100` (1), `sacuwin-200` (2), `bemptor-r40` (3), `bemptor-180` (4). (3) `db.products.deleteMany({})` is only for a fresh or dev database with no admin edits, orders or carts, because product `_id` and `createdAt` change.
 - **Header search** is the C5 search UI, on every customer page, desktop and phone. It queries `GET /api/products?q=&strength=` (debounced 150 ms, stale responses dropped).
   - This replaces the prototype's `catalogue.js` embedded on every page, and revision 1's search dialog.
   - Choosing a result on `/` reveals that product's pocket (scroll, outline, focus its cart control). On other pages it goes to `/product/<slug>`.

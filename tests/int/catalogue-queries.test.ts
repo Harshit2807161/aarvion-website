@@ -148,7 +148,13 @@ describe("categories", () => {
 
   it("leads Heart care with the Aarvion-printed Sacuwin packs", async () => {
     const cardio = await listProducts({ category: "cardiology" });
-    expect(slugs(cardio).slice(0, 3)).toEqual(["sacuwin-50", "sacuwin-100", "sacuwin-200"]);
+    expect(slugs(cardio)).toEqual([
+      "sacuwin-50",
+      "sacuwin-100",
+      "sacuwin-200",
+      "bemptor-r40",
+      "bemptor-180",
+    ]);
   });
 });
 
