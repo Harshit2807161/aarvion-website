@@ -124,8 +124,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   A missing or pending check blocks. Every PR, docs included, stays at or under 400 changed lines
   (owner, 2026-11-18). `scripts/merge-gate.sh <n>` checks all nine and squash-merges;
   `ALLOW_OVERSIZE=1` is allowed only with a ruling recorded in `docs/decisions/rulings.md`.
-  GitHub branch protection is not applied (private free repo), so the gate is enforced by
-  process. Details: [docs/dev/ci.md](docs/dev/ci.md).
+  GitHub branch protection on `main` requires the same nine checks and linear history, and
+  blocks force pushes and deletion (repo public since 2026-11-19). Details: [docs/dev/ci.md](docs/dev/ci.md).
 
 ## Branches, commits and PRs
 

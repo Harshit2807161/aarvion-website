@@ -47,9 +47,10 @@ changed to pass.
 
 ## The merge gate
 
-GitHub branch protection is **not applied**: the API answers 403 for a private repo on the free
-plan ([docs/decisions/repo.md](../decisions/repo.md), which also holds the protection payload for
-when the repo goes public or Pro). The gate is enforced by process.
+GitHub branch protection **is applied** on `main` (since 2026-11-19, when the repo went public):
+the nine checks below are required by name, history must be linear, and force pushes and branch
+deletion are blocked. Settings and payload: [docs/decisions/repo.md](../decisions/repo.md).
+`scripts/merge-gate.sh` still verifies the checks by name before merging.
 
 1. Wait for the checks: `gh pr checks <n> --watch --interval 20`. A brand-new PR may report "no
    checks" for a few seconds.

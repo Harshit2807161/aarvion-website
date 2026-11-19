@@ -70,6 +70,7 @@ bottom use commit SHAs.
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
+- `Checkbox` and `Segmented` in `src/components/form/` (native checkbox and radios; the segmented control has roving tabindex, arrows, Home and End; errors are `role="alert"`), forced-colors and contrast-more rules in `forms.css` (#84).
 - The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live
   region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
   `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
@@ -80,6 +81,9 @@ bottom use commit SHAs.
 
 ### Changed
 
+- `main` is now protected on GitHub (nine required checks, linear history, no force pushes or
+  deletion) after the repository went public; `scripts/merge-gate.sh` uses `--admin` only for a
+  ruled `ALLOW_OVERSIZE=1` exception (#90).
 - CHANGELOG.md is back on git's default merge; the union driver from #73 silently re-added
   stale and garbled lines, so conflicts are now resolved by hand (#86).
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
