@@ -40,7 +40,9 @@ export function Segmented<T extends string>({
               : -1;
     if (target < 0) return;
     e.preventDefault();
-    onChange(options[target].value);
+    const next = options[target];
+    if (!next) return;
+    onChange(next.value);
     ref.current?.querySelectorAll<HTMLInputElement>("input.seg-input")[target]?.focus();
   }
 
