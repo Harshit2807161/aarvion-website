@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- Styleguide demo of the Overlay (`/dev/styleguide?overlay=dialog` or `side` opens one on load, read client-side) and a phone-width Playwright check that a short drag or a tap on the sheet head replays no animation (#93).
 - `Overlay` (`src/components/overlay/overlay.tsx`), the dialog and right-hand side sheet that becomes a draggable bottom sheet below 640px, with focus return to the opener (#88).
 - `useDragDismiss` (`src/components/overlay/use-drag-dismiss.ts`): drag-to-dismiss for the phone bottom sheet, a hook returning pointer handlers for the sheet head; the panel keeps `is-dragging` while open so a snap-back or a tap never replays the entrance animation (#85).
 - Overlay foundations: the shadcn dialog primitives (`src/components/ui/dialog.tsx`), `src/styles/overlay.css` (dialog, side drawer and phone bottom sheet as keyframes on `[data-state]`, Aarvion scrim), the shadcn colour mapping in `globals.css`, and the pure drag-to-dismiss thresholds in `src/components/overlay/drag.ts`. Adds `@radix-ui/react-dialog` and dev dependency `postcss` (for the built-CSS scrim test) (#81).
@@ -69,11 +70,18 @@ bottom use commit SHAs.
   gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`) (#76).
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
+- `StoreFooter` and `Brand` in `src/components/shell/` with `src/styles/footer.css`; the root layout
+  renders the footer (#82).
+- `SITE_CONFIG.onlinePayments` (default `false`) drives the footer's payment line: cash on delivery
+  only until it is set to `true`, then UPI, cards and netbanking through Razorpay too. `ROUTES` also
+  has the home anchors `how`, `questions` and `faqWin2age` (#92).
+- The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 - `Checkbox` and `Segmented` in `src/components/form/` (native checkbox and radios; the segmented control has roving tabindex, arrows, Home and End; errors are `role="alert"`), forced-colors and contrast-more rules in `forms.css` (#84).
 - The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live
   region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
   `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
+- The `Checkbox` and `Segmented` demo on `/dev/styleguide` (`#styleguide-forms`), alongside the `TextField` states (#91).
 - `OtpField` (`src/components/form/otp-field.tsx`: input-otp behind the generated
   `src/components/ui/input-otp.tsx`, six `aria-hidden` boxes, a pasted full code replacing
   a partial value (native paste listener, `otpDigits`), once-per-code `onComplete`, shake only when motion is allowed) with
@@ -89,6 +97,8 @@ bottom use commit SHAs.
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
   resolve to localhost; an unset or invalid value falls back to `http://localhost:3000` instead of
   failing the build (#76).
+- The root layout reads the live categories for the footer, so **every build now needs a seeded
+  database**: seed the Preview DB before this merges into a Vercel-connected repo (#82).
 - `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
   a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).

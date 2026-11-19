@@ -1,8 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/fonts", () => ({ fontVariables: "" }));
+vi.mock("@/lib/catalogue/cached", () => ({
+  getCachedCategories: vi.fn(async () => [
+    { slug: "cardiology", name: "Heart care", status: "live", sortOrder: 0 },
+    { slug: "urology", name: "Urinary care", status: "coming_soon", sortOrder: 5 },
+  ]),
+}));
 
-import { generateMetadata } from "./layout";
+import type { ReactElement } from "react";
+import { StoreFooter } from "@/components/shell/store-footer";
+import RootLayout, { generateMetadata } from "./layout";
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -30,5 +38,21 @@ describe("root layout metadata", () => {
     vi.stubEnv("VERCEL_ENV", "bogus");
     vi.stubEnv("SMS_PROVIDER", "nope");
     expect(await base()).toBe("https://aarvion.example/");
+  });
+});
+
+describe("root layout", () => {
+  it("renders the footer after the children with only the live categories", async () => {
+    const html = (await RootLayout({ children: "page" })) as ReactElement<{
+      children: ReactElement;
+    }>;
+    const body = html.props.children as ReactElement<{ children: ReactElement[] }>;
+    const kids = body.props.children as ReactElement[];
+    const footer = kids.find((k) => k.type === StoreFooter) as ReactElement<{
+      categories: { slug: string }[];
+    }>;
+    expect(kids[0]).toBe("page");
+    expect(footer.type).toBe(StoreFooter);
+    expect(footer.props.categories.map((c) => c.slug)).toEqual(["cardiology"]);
   });
 });

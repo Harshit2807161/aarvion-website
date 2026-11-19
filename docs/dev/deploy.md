@@ -49,8 +49,7 @@ refuses mocks whenever the database is `aarvion_prod`.
 **Build-time database (UI plan Task 7, ruling C11):** pages prerender from the DB, so
 every Vercel scope needs `MONGODB_URI` and `MONGODB_DB` at build time, a seeded database, and
 Atlas network access for Vercel builds. An empty catalogue throws `CatalogueEmptyError` and fails
-the build instead of deploying an empty store. Seed the preview database before UI Task 9 merges,
-and `aarvion_prod` before the first production deploy. Redeploy after a direct database edit.
+the build instead of deploying an empty store. The root layout (UI Task 9) renders the footer from the live categories, so from that PR on every page build reads the DB. **Seed the Preview database before that PR merges into a Vercel-connected repo** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
 
 ## First deploy (planned)
 
@@ -91,6 +90,11 @@ Nothing below exists yet; each lands before or with the production deploy.
     `NODE_ENV=production`). `SITE_CONFIG` must be filled with the drug licence numbers,
     registered pharmacist, grievance officer, GSTIN, and both a customer care phone and email
     (a partial pair counts as pending).
+- **Go-live: online payments.** `SITE_CONFIG.onlinePayments` (`src/config/site.ts`) is `false`, so
+  the footer's payment line says only "Cash on delivery". Once live Razorpay keys exist and prepaid
+  checkout works (plan Stage 6), flip it to `true` in the same PR: the line then adds UPI, cards
+  and netbanking through Razorpay. Never flip it earlier; the site must not claim methods that do
+  not work.
 - **Index drift detection** (compare live index options with the registry) before the H5
   deploy ([docs/decisions/db.md](../decisions/db.md)).
 - **H5 production deploy and runbook**, including how to run `db:indexes` in production.
