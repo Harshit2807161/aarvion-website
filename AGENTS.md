@@ -49,7 +49,7 @@ src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide
 src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms, overlay, otp and toast.css) and the token and CSS tests
 src/lib/            client-safe helpers (cn)
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES)
-src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, form/, feedback/, shell/ so far)
+src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/ so far)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
 src/components/overlay/  dialog and side sheet: `Overlay` (dialog and side sheet), the drag thresholds and `useDragDismiss`
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
@@ -221,7 +221,9 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 
 - No invented claims: no ratings, reviews, customer or order counts, "bestseller", "trending",
   delivery-time promises, certifications or "licensed". No therapeutic or cure claims (Drugs and
-  Magic Remedies Act). Facts not yet supplied render "To be added".
+  Magic Remedies Act). Facts not yet supplied render "To be added" (`Pending` or `Fact` from
+  `src/components/legal/legal-page.tsx`). Every page and section test runs `findClaims`
+  (`tests/helpers/claims.ts`) over its rendered text and expects `[]`.
 - Shoppers read category names as Heart care, Diabetes care, Eye care, Respiratory care (and
   Digestive care, Bone and joint care, Urinary care), never therapy-area words such as
   Cardiology. `CATEGORY_LIST` holds the shopper names since #51. The seed is insert-only, so an
