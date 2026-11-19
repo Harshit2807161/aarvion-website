@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  images: { formats: ["image/avif", "image/webp"], qualities: [70, 75, 85] },
+};
 
 export default nextConfig;
