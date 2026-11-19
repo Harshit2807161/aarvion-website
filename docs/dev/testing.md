@@ -116,6 +116,7 @@ Helpers in `tests/helpers/`:
 | Test | Fails when |
 | --- | --- |
 | `src/server/db/register-all.test.ts` | a module calls `registerIndexes` but `register-all.ts` does not import it |
+| `src/components/shell/error-pages.test.tsx` | the 404, `error.tsx` (retry once, no message or stack shown or logged), `global-error.tsx` and `EmptyState` |
 | `src/proxy.test.ts` | `/dev/*` stops answering 404 when mocks are forbidden |
 | `src/server/dev-routes.test.ts` | a route or page under `src/app/dev/` does not call `requireDevRoute()` |
 | `src/server/deps.test.ts`, `providers/guard.test.ts` | mocks become reachable in a production-like runtime |
