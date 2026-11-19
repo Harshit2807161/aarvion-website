@@ -30,7 +30,7 @@
 | `src/app/layout.tsx`, `page.tsx` | root layout (`lang="en-IN"`, viewport, theme colour) and the "coming soon" placeholder home |
 | `src/app/globals.css` | Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored) |
 | `src/styles/` | ported prototype CSS imported by `globals.css` (today `base.css`, one merged `@layer base`), with `tokens.test.ts` and `css-hygiene.test.ts` |
-| `src/lib/cn.ts` | `cn(...)`: `clsx` + `tailwind-merge` class helper |
+| `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting) |
 | `components.json` | shadcn/ui config; only `dialog` and `input-otp` may be added (UI plan ruling) |
 | `src/server/` | business logic (below) |
 | `tests/int/`, `tests/helpers/` | integration tests and their helpers |
@@ -39,13 +39,14 @@
 | `data/` | `products.json` (seed source), `product-images.json` (generated), `source/` (Drive analysis) |
 | `public/products/` | generated, content-hashed product images |
 | `public/foil/`, `public/banners/` | foil, dome and banner rasters copied unchanged from `design/prototype/assets/`, each with a `.json` provenance sidecar (`scripts/public-provenance.test.ts`) |
-| `src/components/` | React components, added task by task (today `home/`: the banner carousel reducer and controller hook; `film/`: the scroll film's progress maths and engine) |
+| `src/components/` | React components, added task by task (today `base/`: the icon set and `BrandMark`; `home/`: the banner carousel reducer and controller hook; `film/`: the scroll film's progress maths and engine) |
+| `public/brand/` | the official logo variants and app icons served to the site, copied from the masters (usage guide in its README) |
 | `src/fonts/` | committed `.woff2` subsets and `index.ts` (`next/font/local`), built by `pnpm fonts:subset` from `assets/fonts/` |
-| `assets/` | source photos and cutouts, brand SVG drafts, banner scenes, `fonts/` (source TTFs, OFL licences, `SOURCES.json`) |
+| `assets/` | source photos and cutouts; `brand/official/` (the traced logo masters, made by `scripts/trace_logo.py`); banner scenes; `fonts/` (source TTFs, OFL licences, `SOURCES.json`, README) |
 | `design/prototype/` | the approved hi-fi prototype (excluded from ESLint) |
 
-Planned folders (UI plan): more of `src/components/**` and `src/lib/**`, `src/config/`,
-`public/brand/`. See the plan's "File Structure".
+Planned folders (UI plan): more of `src/components/**` and `src/lib/**`, and `src/config/`. See
+the plan's "File Structure".
 
 ## Server modules
 
