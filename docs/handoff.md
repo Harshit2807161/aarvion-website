@@ -12,7 +12,7 @@ PRs ([project plan](plan/project-plan.md), Context, point 3); every ruling made 
 
 ## Current state
 
-**As of 2026-11-19, `main` is at `432d860` (#119).** What a visitor sees: the store
+**As of 2026-11-19, `main` is at `72831d5` (#126).** What a visitor sees: the store
 chrome, a home page with the rotating hero banner, quick actions, the trust strip and How
 ordering works (rails, bento, FAQ and the close still to come), and the JSON APIs below. No
 deployment exists.

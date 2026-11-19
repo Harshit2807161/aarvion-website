@@ -170,7 +170,6 @@ bottom use commit SHAs.
 
 ### Fixed
 
-- The footer logo no longer competes with a page's LCP image: the footer passes `loading="lazy"` through `BrandMark`'s new `loading` prop, so React stops preloading it ahead of the content (the header logo stays eager).
 - `ui` tests run under Vitest 5 again: the `next/navigation` mock state moved to
   `tests/helpers/navigation-mocks.ts`, because Vitest 5 rejects exported `vi.hoisted` values
   (#57).
@@ -194,6 +193,7 @@ bottom use commit SHAs.
 - `findUserByIdentifier` and `findOrCreateUserByIdentifier` filter `{ $eq, $type: "string" }`, so
   they use the partial unique indexes instead of scanning every user (#116).
 - The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen. A dot fill that ends in the frame a hold or the pause starts is kept as `due` and advances once autoplay can run again, so the banner can no longer stall on one slide (#113).
+- The footer logo no longer competes with a page's LCP image: the footer passes `loading="lazy"` through `BrandMark`'s new `loading` prop, so React stops preloading it ahead of the content (the header logo stays eager).
 
 ## [0.1.0] - 2026-11-17
 
