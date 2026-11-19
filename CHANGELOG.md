@@ -97,6 +97,9 @@ bottom use commit SHAs.
   (#57).
 - The banner carousel reducer keeps a user's pause across motion changes and guards bad input
   (#64).
+- `buttonClass()` and `ButtonLink` are server-safe again: only `Button` is a client module
+  (`button.client.tsx`, re-exported from `button.tsx`). The `/dev/*` 404 also sends `Cache-Control:
+  no-store` and `X-Robots-Tag: noindex` (#PR).
 
 ## [0.1.0] - 2026-11-17
 
