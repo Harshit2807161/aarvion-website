@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CART_LIMITS, CART_UI_STORAGE_KEY, applyCart, cartCount, type CartLines } from "./cart";
 import { cartStore } from "./store";
 
@@ -35,6 +35,14 @@ describe("applyCart", () => {
     expect(applyCart(lines, dec("zzz"))).toEqual({ lines, blocked: null });
   });
 
+  it("treats slugs that match Object.prototype members as ordinary keys", () => {
+    for (const slug of ["constructor", "toString", "__proto__"]) {
+      const added = applyCart({}, inc(slug));
+      expect(Object.entries(added.lines)).toEqual([[slug, 1]]);
+      expect(Object.entries(applyCart(added.lines, dec(slug)).lines)).toEqual([]);
+    }
+  });
+
   it("never mutates its input", () => {
     const lines = Object.freeze({ a: 1 });
     expect(applyCart(lines, inc("a")).lines).toEqual({ a: 2 });
@@ -58,6 +66,8 @@ describe("cartStore", () => {
     });
     cartStore.reset();
   });
+
+  afterEach(() => vi.unstubAllGlobals());
 
   it("returns the same object from getSnapshot until a dispatch (no useSyncExternalStore loop)", () => {
     expect(cartStore.getSnapshot()).toBe(cartStore.getSnapshot());
@@ -83,6 +93,19 @@ describe("cartStore", () => {
     expect(cartStore.getSnapshot()).toEqual({ a: 2 });
     cartStore.dispatch(inc("a"));
     expect(JSON.parse(sessionStorage.getItem(CART_UI_STORAGE_KEY)!)).toEqual({ a: 3 });
+  });
+
+  it("re-caps stored data: negative and fractional values dropped, order total cut to 20", () => {
+    sessionStorage.setItem(
+      CART_UI_STORAGE_KEY,
+      JSON.stringify({ neg: -1, frac: 1.5, a: 10, b: 10, c: 5 }),
+    );
+    const lines = cartStore.getSnapshot();
+    expect(Object.entries(lines)).toEqual([
+      ["a", 10],
+      ["b", 10],
+    ]);
+    expect(cartCount(lines)).toBe(CART_LIMITS.perOrder);
   });
 
   it("drops malformed stored data and survives broken storage", () => {

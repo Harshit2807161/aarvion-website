@@ -1,6 +1,3 @@
-"use client";
-
-import { useSyncExternalStore } from "react";
 import {
   CART_LIMITS,
   CART_UI_STORAGE_KEY,
@@ -13,14 +10,21 @@ import {
 /** What the server (and the first hydration render) sees: an empty cart. Frozen and shared. */
 const SERVER_LINES: CartLines = Object.freeze({});
 
-/** Keep only well-formed lines: integer quantities 1..perProduct. Anything else is dropped. */
+/**
+ * Keep only well-formed lines: integer quantities 1..perProduct, and no more than perOrder packs
+ * in all (later lines are cut). Anything else is dropped. The result has no prototype, so a slug
+ * such as "constructor" or "__proto__" is just a key.
+ */
 function sanitize(raw: unknown): CartLines {
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return {};
-  const out: Record<string, number> = {};
+  const out: Record<string, number> = Object.create(null);
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return out;
+  let total = 0;
   for (const [slug, n] of Object.entries(raw)) {
-    if (typeof n === "number" && Number.isInteger(n) && n > 0) {
-      out[slug] = Math.min(n, CART_LIMITS.perProduct);
-    }
+    if (typeof n !== "number" || !Number.isInteger(n) || n <= 0) continue;
+    const keep = Math.min(n, CART_LIMITS.perProduct, CART_LIMITS.perOrder - total);
+    if (keep <= 0) break;
+    out[slug] = keep;
+    total += keep;
   }
   return out;
 }
@@ -28,9 +32,9 @@ function sanitize(raw: unknown): CartLines {
 function read(): CartLines {
   try {
     const text = sessionStorage.getItem(CART_UI_STORAGE_KEY);
-    return text ? sanitize(JSON.parse(text)) : {};
+    return sanitize(text ? JSON.parse(text) : null);
   } catch {
-    return {}; // storage blocked or the text is not JSON: start empty
+    return sanitize(null); // storage blocked or the text is not JSON: start empty
   }
 }
 
@@ -70,16 +74,8 @@ export const cartStore = {
     }
     return blocked;
   },
-  /** Forget the cached lines so the next read goes back to sessionStorage. For tests. */
+  /** TEST ONLY: forget the cached lines so the next read goes back to sessionStorage. */
   reset(): void {
     cache = null;
   },
 };
-
-export function useCartLines(): CartLines {
-  return useSyncExternalStore(
-    cartStore.subscribe,
-    cartStore.getSnapshot,
-    cartStore.getServerSnapshot,
-  );
-}

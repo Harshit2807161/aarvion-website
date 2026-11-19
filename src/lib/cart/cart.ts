@@ -27,7 +27,8 @@ export function cartCount(lines: CartLines): number {
  * tell "nothing changed" by identity. Never mutates.
  */
 export function applyCart(lines: CartLines, action: CartAction): CartResult {
-  const have = lines[action.slug] ?? 0;
+  // Own keys only: a slug like "constructor" must not reach Object.prototype.
+  const have = Object.hasOwn(lines, action.slug) ? lines[action.slug]! : 0;
   if (action.type === "inc") {
     if (have >= CART_LIMITS.perProduct) return { lines, blocked: "product_limit" };
     if (cartCount(lines) >= CART_LIMITS.perOrder) return { lines, blocked: "order_limit" };
