@@ -38,6 +38,8 @@ bottom use commit SHAs.
   `pnpm fonts:subset`, drift-tested), and the screenshot tool `scripts/shoot.mjs` (#57).
 - Banner carousel reducer `src/components/home/carousel.ts` (#58).
 - Scroll film progress maths `src/components/film/progress.ts` (#59).
+- Shared shelf order in `src/server/catalogue/order.ts` (`compareVariants`, `orderForShelf`), which
+  client code may import (#60).
 - The approved project plan, committed as `docs/plan/project-plan.md` (#61).
 - Banner carousel controller hook `src/components/home/use-carousel.ts`: autoplay, holds and
   reduced motion (#63).
@@ -52,6 +54,9 @@ bottom use commit SHAs.
 - Categories use shopper names (Heart care, Diabetes care, Eye care, Respiratory care, Digestive
   care, Bone and joint care, Urinary care), and the seed puts Sacuwin 50, 100 and 200 first in
   Heart care (`sortOrder` 0–2). Existing databases need the README reseed (#51).
+- Cache Components is on: every GET handler starts with `await connection()`, route files no
+  longer export `dynamic` (`src/server/route-config.test.ts`), and int tests mock `next/server`
+  and `next/cache` (#60).
 - `pr-size` is required for every PR, docs included; `docs/decisions/repo.md` lists the nine
   required checks (#52).
 - `docs/progress.md` is retired to a pointer at the handoff, the changelog and the decisions
