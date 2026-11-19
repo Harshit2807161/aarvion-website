@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { collectConsoleErrors } from "./helpers/console";
 
 const hero = (page: Page) => page.locator("section.hero");
 const dot = (page: Page, n: number) => page.locator(".hero-dot").nth(n - 1);
@@ -6,15 +7,10 @@ const dot = (page: Page, n: number) => page.locator(".hero-dot").nth(n - 1);
 test.describe("home banner with motion at 1440", () => {
   test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "no-preference" });
 
-  test("moves from slide 1 to slide 2 within 7 s of starting, with no hydration error", async ({
+  test("moves from slide 1 to slide 2 within 7 s of starting, with no console or page error", async ({
     page,
   }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (e) => errors.push(e.message));
-    page.on("console", (m) => {
-      if (m.type() === "error" && /hydrat|Minified React error/i.test(m.text()))
-        errors.push(m.text());
-    });
+    const errors = collectConsoleErrors(page);
     await page.goto("/");
     await expect(hero(page)).toHaveClass(/is-auto/);
     await expect(dot(page, 1)).toHaveAttribute("aria-current", "true");
@@ -26,7 +22,7 @@ test.describe("home banner with motion at 1440", () => {
       { timeout: 7_000 },
     );
     await expect(dot(page, 1)).not.toHaveAttribute("aria-current");
-    expect(errors).toEqual([]);
+    expect(errors()).toEqual([]);
   });
 
   test("holds while the pointer is over the banner", async ({ page }) => {
