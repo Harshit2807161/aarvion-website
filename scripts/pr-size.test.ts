@@ -21,6 +21,11 @@ describe("countChangedLines", () => {
     expect(countChangedLines(numstat, DEFAULT_EXCLUDES)).toBe(5);
   });
 
+  it("excludes the font licence texts but not other text files", () => {
+    const numstat = "90\t0\tassets/fonts/OFL-Geist.txt\n6\t0\tassets/other.txt";
+    expect(countChangedLines(numstat, DEFAULT_EXCLUDES)).toBe(6);
+  });
+
   it("excludes everything under public/", () => {
     expect(
       countChangedLines("30\t0\tpublic/banners/eye-m.webp.json", DEFAULT_EXCLUDES),

@@ -12,6 +12,7 @@ export const DEFAULT_EXCLUDES = [
   "**/*.svg",
   "docs/superpowers/**",
   "docs/decisions/**",
+  "assets/fonts/*.txt",
   "public/**",
 ];
 
