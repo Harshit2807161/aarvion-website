@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- `TextField`, `Checkbox` and `Segmented` in `src/components/form/` with the ported `src/styles/forms.css`: 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, 44 px targets, and a styleguide demo (#TBD).
 - Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
   Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React
   and Testing Library setup (#45).
