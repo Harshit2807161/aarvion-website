@@ -68,6 +68,7 @@ bottom use commit SHAs.
   URL a real HTTP 404 where mocks are forbidden (#75).
 - `StoreFooter` and `Brand` in `src/components/shell/` with `src/styles/footer.css`; the root layout
   renders the footer (#82).
+- `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 
 ### Changed
 

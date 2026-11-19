@@ -1,0 +1,81 @@
+/* Forms: fields, checkbox, switch, segmented control, option cards, error summary.
+   Ported from design/prototype/css/flows.css lines 207-329 (the switch, option-card, error-summary and .field-ok rules are left out until a task uses them), with the old line-strong
+   custom property renamed to --color-line-strong [C13]. Imported by globals.css
+   inside @layer components. */
+.form { display: grid; gap: 20px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
+.form-grid .span-2 { grid-column: 1 / -1; }
+.field { display: grid; gap: 8px; align-content: start; }
+.label { font: 500 0.9375rem/1.3 var(--font-sans); color: var(--color-ink); }
+.label .opt-hint { font-weight: 400; color: var(--color-text-muted); }
+.hint { margin-top: -2px; font-size: var(--text-sm); line-height: 1.45; color: var(--color-text-muted); }
+/* The shared field box, defined once. Controls add .input/.select/.textarea for their own differences. */
+.field-box {
+  width: 100%; height: 52px; padding: 0 16px; border-radius: 12px;
+  border: 1.5px solid var(--color-line-strong); background: var(--color-white); color: var(--color-ink);
+  font-size: 16px; line-height: 1.3; caret-color: var(--color-forest-600);
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+.textarea { height: auto; min-height: 96px; padding: 14px 16px; resize: vertical; }
+.input::placeholder, .textarea::placeholder { color: var(--color-neutral-500); opacity: 1; }
+.input:focus, .select:focus, .textarea:focus { border-color: var(--color-forest-600); box-shadow: 0 0 0 1px var(--color-forest-600), 0 0 0 4px var(--color-forest-100); outline: 2px solid transparent; outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { .input:hover:not(:focus), .select:hover:not(:focus), .textarea:hover:not(:focus) { border-color: var(--color-neutral-600); } }
+.select {
+  -webkit-appearance: none; appearance: none; padding-right: 44px; cursor: pointer;
+  background: var(--color-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a4d36' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9.5 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 20px;
+}
+.input-wrap { position: relative; }
+.prefix {
+  position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; display: flex; align-items: center; padding: 0 12px 0 15px;
+  border-right: 1px solid var(--color-neutral-200); color: var(--color-ink); font: 500 1rem/1 var(--font-mono); pointer-events: none;
+}
+.has-prefix .input { padding-left: 70px; }
+.input.mono { font-family: var(--font-mono); letter-spacing: 0.02em; }
+.field.is-invalid .input, .field.is-invalid .select, .field.is-invalid .textarea { border-color: var(--color-danger); }
+.field.is-invalid .input:focus, .field.is-invalid .select:focus, .field.is-invalid .textarea:focus { box-shadow: 0 0 0 1px var(--color-danger), 0 0 0 4px var(--color-danger-50); }
+.field-err { display: flex; align-items: flex-start; gap: 6px; color: var(--color-danger-ink); font-size: var(--text-sm); line-height: 1.4; font-weight: 500; }
+.field-err .i { width: 18px; height: 18px; margin-top: 0.5px; color: var(--color-danger); }
+
+/* Checkbox */
+.check { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 12px; align-items: start; min-height: 44px; padding: 10px 0; cursor: pointer; font-size: 0.9375rem; line-height: 1.45; color: var(--color-ink); }
+.check-input { position: absolute; z-index: 1; left: 0; top: 10px; width: 24px; height: 24px; margin: 0; opacity: 0; cursor: pointer; }
+.check-box { pointer-events: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; border: 1.5px solid var(--color-line-strong); background: var(--color-white); color: var(--color-white); transition: background-color var(--duration-fast) ease, border-color var(--duration-fast) ease; }
+.check-box .i { width: 16px; height: 16px; stroke-width: 2.5; opacity: 0; transform: scale(0.7); transition: opacity var(--duration-press) var(--ease-out), transform var(--duration-press) var(--ease-out); }
+.check-input:checked + .check-box { background: var(--color-forest-700); border-color: var(--color-forest-700); }
+.check-input:checked + .check-box .i { opacity: 1; transform: none; }
+.check-input:focus-visible + .check-box { outline: 2px solid var(--color-focus-light); outline-offset: 2px; }
+.check.is-invalid .check-box { border-color: var(--color-danger); }
+.check-text small { display: block; margin-top: 2px; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* Segmented control (radios) with a sliding thumb */
+.seg {
+  --n: 2; position: relative; isolation: isolate; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  padding: 4px; border-radius: var(--radius-pill); background: var(--color-neutral-100);
+}
+.seg-input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.seg-opt {
+  position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 10px;
+  border-radius: var(--radius-pill); font: 600 0.9375rem/1.1 var(--font-sans); color: var(--color-neutral-700); text-align: center; cursor: pointer;
+  transition: color var(--duration-fast) ease;
+}
+.seg-opt .i { width: 18px; height: 18px; }
+.seg-opt .num { font-size: 0.8125rem; color: var(--color-text-muted); }
+.seg-input:checked + .seg-opt { color: var(--color-forest-900); }
+.seg-input:focus-visible + .seg-opt { outline: 2px solid var(--color-focus-light); outline-offset: 1px; }
+.seg-thumb {
+  position: absolute; z-index: 0; left: 4px; top: 4px; bottom: 4px; width: calc((100% - 8px) / var(--n));
+  border-radius: var(--radius-pill); background: var(--color-white); box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.seg:has(.seg-input:nth-of-type(2):checked) .seg-thumb { transform: translateX(100%); }
+.seg:has(.seg-input:nth-of-type(3):checked) .seg-thumb { transform: translateX(200%); }
+@media (hover: hover) and (pointer: fine) { .seg-input:not(:checked) + .seg-opt:hover { color: var(--color-ink); } }
+
+/* Keyboard focus must stay visible when forced colours drop the shadow and edge colour. */
+@media (forced-colors: active) {
+  .input:focus, .select:focus, .textarea:focus { outline: 2px solid Highlight; outline-offset: 2px; }
+}
+@media (prefers-contrast: more) {
+  .hint, .label .opt-hint { color: var(--color-neutral-800); }
+  .field-box { border-color: var(--color-neutral-700); }
+}

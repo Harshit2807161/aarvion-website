@@ -2,6 +2,7 @@
 @import "../styles/base.css";
 @import "../styles/buttons.css" layer(components);
 @import "../styles/stamp.css" layer(components);
+@import "../styles/forms.css" layer(components);
 @import "../styles/footer.css" layer(components);
 
 /*
