@@ -77,6 +77,27 @@ describe("orderForShelf", () => {
     ]);
   });
 
+  it("puts products of an unknown category last", () => {
+    const ps = shuffled().map((p) =>
+      p.slug === "mucohelp" ? { ...p, category: "urology" as const, sortOrder: -5 } : p,
+    );
+    expect(slugs(orderForShelf(ps, catalogueCategories())).at(-1)).toBe("mucohelp");
+  });
+
+  it("keeps tied families together, ordered by familySlug", () => {
+    const ps = shuffled().map((p) => (p.slug === "bemptor-r40" ? { ...p, sortOrder: 0 } : p));
+    const cardio = orderForShelf(ps, catalogueCategories()).filter(
+      (p) => p.category === "cardiology",
+    );
+    expect(slugs(cardio)).toEqual([
+      "bemptor-180",
+      "bemptor-r40",
+      "sacuwin-50",
+      "sacuwin-100",
+      "sacuwin-200",
+    ]);
+  });
+
   it("ranks categories by their sortOrder", () => {
     const categories = catalogueCategories().map((c) =>
       c.slug === "respiratory" ? { ...c, sortOrder: 0 } : c,
