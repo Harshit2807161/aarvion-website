@@ -1,0 +1,297 @@
+# AGENTS.md
+
+The operating manual for every coding agent (and human) working in this repo. Read it fully
+before you change anything. It links to the detail rather than repeating it.
+
+## What this is
+
+The online store of Aarvion Pharmaceuticals (New Delhi). Customers in India log in with an OTP,
+upload a prescription, and buy Aarvion's own prescription medicines at **MRP − ₹20** with free
+delivery; a pharmacist checks every prescription before an order ships. Staff work in an admin
+dashboard. Product facts: [PRODUCT.md](PRODUCT.md), [docs/requirements.md](docs/requirements.md).
+
+Where the build stands and what is next: [docs/handoff.md](docs/handoff.md).
+
+## Read first
+
+1. [docs/handoff.md](docs/handoff.md): current state, the plan in flight, owner blockers.
+2. [docs/dev/README.md](docs/dev/README.md): setup, architecture, testing, CI, data, deploy,
+   runbooks.
+3. [docs/decisions/rulings.md](docs/decisions/rulings.md): every ruling made for the owner.
+4. The active plan under [docs/superpowers/plans/](docs/superpowers/plans/), especially its
+   "Global Constraints" section.
+5. [DESIGN.md](DESIGN.md) before any UI work.
+
+## Stack
+
+| Area              | Choice (version in use)                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| Runtime           | Node 24 (`.nvmrc`, `engines >=24`), pnpm 12.10.1 (`packageManager`)                                          |
+| App               | Next.js 16.4 App Router, React 19.3, TypeScript 6.0 strict (held below 7)                                    |
+| Data              | MongoDB 8 (docker `mongo:8` locally), `mongodb` driver 7.9, zod 4.6                                          |
+| Images            | sharp 0.35                                                                                                   |
+| Styling           | Tailwind CSS 4.3 (`@tailwindcss/postcss`); design tokens in `src/app/globals.css` `@theme`                   |
+| Tests             | Vitest 5.1 (`unit`, `ui`, `int`), Testing Library 16, mongodb-memory-server 11.3, Playwright 1.65 (Chromium) |
+| Lint and format   | ESLint 9 (`eslint-config-next`), Prettier 3                                                                  |
+| Hosting (planned) | Vercel + MongoDB Atlas (Mumbai); see [docs/dev/deploy.md](docs/dev/deploy.md)                                |
+
+Why each was chosen: [docs/decisions/stack.md](docs/decisions/stack.md).
+
+## Repo map
+
+```
+src/app/            Next.js routes: api/{health,auth/**}, dev/outbox, layout, placeholder home;
+                    globals.css (Tailwind 4 @theme tokens)
+src/styles/         ported prototype CSS (base.css, one @layer base) and the token and CSS tests
+src/lib/            client-safe helpers (cn)
+src/server/         framework-free business logic (the only place rules live)
+  catalogue/        schema, pricing, categories, seed, search, queries
+  auth/             identifier, otp, users, sessions, cookie, login, guards, roles
+  security/         rate-limit, client-ip, origin
+  orders/           status (state machine), order-number
+  prescriptions/    validity (IST, 6 months)
+  providers/        mock SMS/email, fake payments, memory files, the production guard
+  db/               client, index registry, register-all
+  env.ts deps.ts http.ts audit.ts dev-only.ts
+tests/int/          integration tests (in-memory Mongo replica set); tests/helpers/ shared helpers
+e2e/                Playwright specs (production build)
+scripts/            pr-size, sync-product-images, seed, db-indexes (+ Python asset tools)
+data/               products.json (seed source), product-images.json (generated), source/
+public/products/    generated, content-hashed product images (never edit by hand)
+assets/             source photos, cutouts, brand SVG drafts, banner scenes
+design/prototype/   approved hi-fi prototype (reference, not app code)
+docs/               requirements, catalogue, decisions/, superpowers/plans/, dev/, handoff.md
+```
+
+Details: [docs/dev/architecture.md](docs/dev/architecture.md).
+
+## Commands
+
+| Command                        | Does                                                      | Needs                    |
+| ------------------------------ | --------------------------------------------------------- | ------------------------ |
+| `pnpm install`                 | install dependencies                                      | Node 24, pnpm 12         |
+| `pnpm dev`                     | dev server on :3000                                       | `.env.local`             |
+| `pnpm build` / `pnpm start`    | production build and server                               |                          |
+| `pnpm lint` / `pnpm typecheck` | ESLint / `tsc --noEmit`                                   |                          |
+| `pnpm format`                  | Prettier, writes files                                    |                          |
+| `pnpm test:unit`               | Vitest `unit` + `ui` projects                             |                          |
+| `pnpm test:int`                | Vitest `int` project                                      | downloads mongod once    |
+| `pnpm test:e2e`                | Playwright against `pnpm build && pnpm start` on :3100    | Mongo (`pnpm db:up`)     |
+| `pnpm db:up` / `pnpm db:down`  | start / stop the local replica set                        | Docker (colima on macOS) |
+| `pnpm db:indexes`              | create missing indexes                                    | `MONGODB_URI`            |
+| `pnpm seed`                    | insert-only catalogue seed                                | `MONGODB_URI`            |
+| `pnpm images:sync`             | rebuild `public/products/` and `data/product-images.json` |                          |
+| `pnpm pr-size origin/main`     | count changed lines against the 400 cap                   |                          |
+
+The full local check before every push:
+
+```sh
+pnpm lint && pnpm typecheck && pnpm test:unit && pnpm test:int && pnpm build
+pnpm db:up && MONGODB_DB=aarvion_e2e pnpm db:indexes && pnpm test:e2e   # routes, auth, pages, e2e
+```
+
+## Tests
+
+| Project                        | Files                                      | Run it when                  |
+| ------------------------------ | ------------------------------------------ | ---------------------------- |
+| `unit` (Node)                  | `src/**/*.test.ts`, `scripts/**/*.test.ts` | every change                 |
+| `ui` (happy-dom, React)        | `src/**/*.test.tsx`                        | every component change       |
+| `int` (Node + in-memory Mongo) | `tests/int/**/*.test.ts`                   | any DB, route or auth change |
+| e2e (Playwright)               | `e2e/*.spec.ts`                            | routes, auth, pages, budgets |
+
+Every test file must belong to exactly one project (`scripts/vitest-projects.test.ts` fails
+otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
+
+## CI and the merge gate
+
+- `ci.yml`: `lint`, `typecheck`, `unit`, `int`, `build`, `e2e`. `pr-guards.yml`: `pr-title`,
+  `branch-name`, `pr-size`.
+- **Merge gate:** `lint`, `typecheck`, `unit`, `int`, `build`, `e2e`, `pr-title` and
+  `branch-name` must each show `pass` by name in `gh pr checks <n>`. A missing or pending check
+  blocks. `pr-size` must pass too: every PR, docs included, stays at or under 400 changed lines
+  (owner, 2026-11-18). GitHub branch protection is not applied (private free repo), so the gate
+  is enforced by process. Details: [docs/dev/ci.md](docs/dev/ci.md).
+
+## Branches, commits and PRs
+
+- Branch from up-to-date `origin/main` as `type/short-desc` (lowercase, digits, hyphens;
+  types `feat|fix|chore|ci|test|docs|refactor|perf|build`). Never commit to `main`.
+- Conventional Commits: `type(scope): imperative summary` (≤ 72 chars), a blank line, then a
+  body that explains why. Small atomic commits; keep refactors, formatting and behaviour changes
+  apart.
+- **No `Co-Authored-By` trailer and no "Generated with" line**, in commits or PR bodies.
+- Keep each PR at or under 400 changed lines (`pnpm pr-size origin/main`), docs included. Over
+  the cap, split along commit or file seams into PRs on fresh branches cut from `origin/main`.
+  Never drop tests to fit, and never change the guard to pass.
+- PR title = a Conventional Commit; body sections What / Why / How tested (with command output)
+  / Risks and rollback ([template](.github/pull_request_template.md)).
+- PRs are **squash-merged** with `gh pr merge <n> --squash`, without `--delete-branch`.
+- **Never force-push, never rewrite pushed history** (`rebase`, `reset --hard`, amending pushed
+  commits), never delete remote branches or tags. To bring in `main`, merge it (a merge commit).
+- **Ask a human before merging to `main`** unless the owner has authorised you for this work.
+  The owner authorised the build controller to merge PRs whose checks are green
+  ([docs/progress.md](docs/progress.md)); implementers never merge their own PRs.
+- Never change git config, remotes, hooks, repo settings, collaborators, secrets or branch
+  protection without asking.
+
+## Business invariants (never break these)
+
+**Prices**
+
+- Selling price = MRP − ₹20, in integer paise, computed only by `sellingPricePaise(mrpPaise)`
+  in [src/server/catalogue/pricing.ts](src/server/catalogue/pricing.ts). It is derived at read
+  time and never stored. MRP must be at least ₹21 (2100 paise).
+- A pack whose MRP is unknown gets ₹404 (`DEFAULT_MRP_PAISE = 40400`, price ₹384), with
+  `mrpSource: "default"`.
+- % off is `floor(2000 / mrpPaise × 100)`, never rounded up. No headline, banner, section or
+  meta title leads with the ₹20.
+
+**Prescriptions** ([validity.ts](src/server/prescriptions/validity.ts))
+
+- An Rx is valid only when approved and `rxDate ≤ t < min(validUntil, rxDate + 6 months)`.
+  Months are calendar months on the IST (Asia/Kolkata) wall clock, the end is exclusive, and
+  the day clamps to the month end (31 Aug + 6 months = 28 or 29 Feb).
+- `confirm`, `pack` and `ship` judge the Rx **currently attached** to the order at the
+  transition time (`ctx.at`) only. Order placement judges it at the order's `createdAt` (O
+  phase). `ctx.at` is server time.
+
+**Order state machine** ([status.ts](src/server/orders/status.ts), pure, no DB, no clock)
+
+- Edges: `pending_payment → placed | cancelled`; `placed → confirmed | on_hold | cancelled`;
+  `on_hold → confirmed | cancelled`; `confirmed → packed | on_hold | cancelled`;
+  `packed → shipped | on_hold`; `shipped → delivered`. `delivered` and `cancelled` are final.
+  An unknown status fails closed.
+- `ship` needs an AWB and courier; then the Rx is checked; then payment (precedence
+  `awb_required → rx_not_valid → payment_required`). `confirm` and `ship` need COD or a paid
+  order; `pack` checks the Rx only. `hold` and `cancel` need a 1–500 character reason.
+- `hold` or `cancel` on a paid order returns a `refund` effect. When the O phase persists this:
+  `hold` is staff-only; the customer may cancel only until packed (enforced by actor in the API);
+  `refund_pending` is set in the same write as the hold; refunds are idempotent; each transition
+  is a conditional update on `{ _id, status: from }`.
+- Order numbers are `AAR-YYMM-NNNNN`: IST month, monthly sequence, at least 5 digits, never
+  truncated.
+
+**OTP and sessions** ([src/server/auth/](src/server/auth/))
+
+- OTP: 6 digits from `randomInt`; only an HMAC-SHA256 with `OTP_PEPPER` is stored; 5-minute
+  expiry, 5 attempts, single use, 30 s resend cooldown, all enforced in code (the TTL monitor
+  is not a security boundary).
+- Send order is fixed: validate → resend cooldown (spends no budget) → 20/h per IP → 3/10 min
+  per identifier → issue → deliver; a failed delivery deletes the challenge. The answer never
+  depends on whether an account exists.
+- Verify order is fixed: normalise → 60/h per IP → peek the 10-per-24 h failure cap → verify →
+  only a mismatch on a live challenge counts → find or create the user → revoke any presented
+  session → new session → clear the failure counter. Every failure is 400 `invalid_code`.
+- Client IP comes only from `x-real-ip`; IPv6 is bucketed by /64. Never trust
+  `x-forwarded-for`.
+- Sessions: a 32-byte random token; only its SHA-256 is stored. Cookie
+  `__Host-aarv_sid; Path=/; Secure; HttpOnly; SameSite=Lax`. Customer: 30-day sliding, cookie
+  re-issued when the session slides. Staff: no `Max-Age`, 30-minute idle, 12-hour absolute.
+- `requireRole` needs a staff-kind session and the role fresh from the DB; a role change revokes
+  every session of that user.
+- Every mutation calls `assertSameOrigin(req)` inside `withErrors`; auth responses use
+  `jsonResponse` (`no-store`); cookies are read from `req.headers`, never `cookies()`.
+- Never log or return an OTP code, a session token, a full phone number or email, or
+  prescription content. Logs record error names only. The audit log is append-only through
+  `appendAudit()` and holds ids and flags only.
+
+**Content**
+
+- No invented claims: no ratings, reviews, customer or order counts, "bestseller", "trending",
+  delivery-time promises, certifications or "licensed". No therapeutic or cure claims (Drugs and
+  Magic Remedies Act). Facts not yet supplied render "To be added".
+- Shoppers read category names as Heart care, Diabetes care, Eye care, Respiratory care (and
+  Digestive care, Bone and joint care, Urinary care), never therapy-area words such as
+  Cardiology. The code still holds the old names until UI plan Task 8.
+- **Win2Age placeholder photos:** only the Sacuwin packs are Aarvion-printed. 7 products show
+  packs printed under Win2Age (Aarvion's earlier marketer) and Caftop's pack is unbranded.
+  `imageSource` in `data/products.json` marks each; keep it accurate. A Win2Age pack
+  never leads a banner, and product pages will caption Win2Age photos (UI plan Task 32). Swap them with
+  [the runbook](docs/dev/runbooks/swap-a-product-photo.md).
+
+**Environments**
+
+- Mock providers are never allowed in production. `isMockForbidden()`
+  ([guard.ts](src/server/providers/guard.ts)) refuses them when `VERCEL_ENV=production`, when a
+  production build lacks `ALLOW_MOCKS_IN_PROD_BUILD=1`, or when the database is `aarvion_prod`.
+  Set `ALLOW_MOCKS_IN_PROD_BUILD=1` only for the e2e build and the Vercel Preview scope.
+- Production sets `MONGODB_DB=aarvion_prod`. Previews use a separate database.
+- Every dev-only route under `src/app/dev/` calls `requireDevRoute()` first and is not wrapped in
+  `withErrors`.
+
+**Code rules that protect the invariants**
+
+- Money is integer paise. Inputs reach Mongo only as zod-parsed primitives; no user input becomes
+  a regex or an operator object. Public catalogue data never includes `internalNotes`.
+- New code in `src/server/**` never calls `new Date()` or `Date.now()`: take `now: Date`; routes
+  read `getDeps().now()` once per request.
+- Writes that can race are single-document atomic operations (`$inc`, conditional updates,
+  upserts with one E11000 retry). Never read-then-write.
+- Never throw on missing env at import time; `getEnv()` is the only env authority.
+- Every index has an explicit `name`; to change one, rename it, never change it in place
+  ([docs/decisions/db.md](docs/decisions/db.md)); every module that calls `registerIndexes` is
+  imported by `src/server/db/register-all.ts`.
+
+## Secrets
+
+- Never commit secrets. `.env*` is gitignored except `.env.example`, which holds names and safe
+  local defaults only. Local values live in `.env.local`; deployed values live in the Vercel
+  project's environment variables, per scope.
+- Generate `OTP_PEPPER` with `openssl rand -hex 32`. The e2e run uses a random one.
+- If you see a key, token, password or connection string with credentials in the working tree, a
+  diff, a log or a PR, stop and flag it. Rotation: [runbook](docs/dev/runbooks/rotate-a-secret.md).
+
+## Design truth
+
+- [DESIGN.md](DESIGN.md) and `.impeccable/design.json`: tokens, type, components, Do's and
+  Don'ts. They win over any other description of the look.
+- Tokens: `src/app/globals.css` carries `design/prototype/css/tokens.css` verbatim in `@theme`
+  (fonts excepted); `src/styles/tokens.test.ts` keeps it in step with the prototype and
+  DESIGN.md. It is Prettier-ignored so values stay byte-identical: never reformat it.
+- [design/prototype/](design/prototype/): the approved hi-fi prototype (store v2, approved by the
+  owner on 2026-11-18). The app ports its CSS class names; diff against it.
+- Logo: draft SVGs in `assets/brand/`; the official high-resolution logo assets land in
+  `public/brand/` with the logo PR (in flight). Do not edit `public/brand/` or
+  `design/prototype/assets/brand/` unless your task says so.
+- UI tasks follow the visual check and finish-review gates in the UI plan.
+
+## Decisions
+
+- Rulings made for the owner: [docs/decisions/rulings.md](docs/decisions/rulings.md). Topic
+  records: `stack.md`, `db.md`, `environments.md`, `repo.md`. Phase ledgers:
+  `phase-f-ledger.md`, `phase-ca-ledger.md`.
+- To record a decision, add one bullet to the right section of `rulings.md`: **the ruling (date)**,
+  the reason, and "Cost if wrong: …". If it replaces an older ruling, say "supersedes …" and edit
+  the old line to point at the new one. Never delete history.
+- Do not reverse a ruling silently. If a task conflicts with one, stop and ask.
+
+## Definition of done
+
+A change is done only when all of these hold:
+
+1. Tests added or updated, written first where practical, and the full local check passes.
+2. A line under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md), ending with the PR number.
+3. The matching page under [docs/dev/](docs/dev/README.md) is updated for any new or changed
+   command, script, env var, route, data rule, folder, convention or procedure; AGENTS.md too if
+   it changes how agents work; a ruling recorded if a rule changed.
+4. The PR body has What / Why / How tested (command output) / Risks and rollback.
+5. `pnpm pr-size origin/main` is at or under 400, or the PR is split.
+6. CI is green by name (the merge gate above), with no secrets in the diff.
+
+## Do not
+
+- Do not store, hard-code or recompute a price outside `sellingPricePaise()`; never write
+  `- 2000` in UI code.
+- Do not let mocks, `/dev/*` routes or `ALLOW_MOCKS_IN_PROD_BUILD` reach production.
+- Do not log codes, tokens, phone numbers, emails or prescription content.
+- Do not invent ratings, reviews, counts, badges, certifications or medical claims.
+- Do not hand-edit `public/products/` or `data/product-images.json`; run `pnpm images:sync`.
+- Do not re-run `scripts/build_stage0_docs.py`: it overwrites `data/products.json` and the
+  catalogue docs.
+- Do not change an existing index in place, or add a collection index without a name.
+- Do not trust `x-forwarded-for`, and do not call `cookies()` in route handlers.
+- Do not add animation, carousel or toast libraries (framer-motion, swiper, gsap, sonner and the
+  rest; `scripts/deps-policy.test.ts` enforces it); motion uses `transform` and `opacity` only.
+- Do not force-push, rewrite pushed history, delete branches, or merge without the gate.
+- Do not add `Co-Authored-By` or "Generated with" lines.
+- Do not skip, weaken or delete a failing test to get green; fix the cause or ask.
