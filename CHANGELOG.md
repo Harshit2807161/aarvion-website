@@ -64,6 +64,8 @@ bottom use commit SHAs.
   drops clicks) with `src/styles/buttons.css` (#74).
 - `src/config/site.ts` (`SITE_CONFIG`, `legalValue`, `assertLegalConfigComplete`, the H4 production
   gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`) (#76).
+- `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
+  URL a real HTTP 404 where mocks are forbidden (#75).
 
 ### Changed
 
@@ -100,6 +102,9 @@ bottom use commit SHAs.
   (#57).
 - The banner carousel reducer keeps a user's pause across motion changes and guards bad input
   (#64).
+- `buttonClass()` and `ButtonLink` are server-safe again: only `Button` is a client module
+  (`button.client.tsx`, re-exported from `button.tsx`). The `/dev/*` 404 also sends no-store and
+  noindex headers (#77).
 
 ## [0.1.0] - 2026-11-17
 

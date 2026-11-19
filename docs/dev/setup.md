@@ -71,6 +71,17 @@ add a row below, and a line to the CHANGELOG.
 `.env.example` holds names and safe local defaults only. Never commit `.env.local` (`.env.*` is
 gitignored).
 
+## Dev pages (`/dev/*`)
+
+`/dev/outbox` and `/dev/styleguide` (every base component on one screen; open it after changing
+a component or `src/styles/*.css`) exist only where mocks are allowed. Where `isMockForbidden()`
+is true (production, or the production database) `src/proxy.ts` answers a real HTTP 404 for
+every `/dev/*` request before anything renders; `requireDevRoute()` in each page or route is the
+second guard. A new dev page needs both (the proxy already matches `/dev/:path*`) and
+`export const instant = false` if it calls `connection()` first. `src/proxy.test.ts` covers the 404 (the e2e harness allows mocks, so a mocks-forbidden production
+check is manual: `pnpm build && pnpm start`, then curl `/dev/styleguide` without the flag). Any component
+that attaches an event handler must be a `"use client"` module; keep pure helpers out of it.
+
 ## The dev outbox (reading OTPs locally)
 
 With the mock providers, an OTP is not sent anywhere: `mockSms` and `mockEmail` write it to the
