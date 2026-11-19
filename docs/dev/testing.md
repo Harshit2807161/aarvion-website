@@ -125,7 +125,7 @@ Helpers in `tests/helpers/`:
 | `scripts/sync-product-images.test.ts` | a photo or `products.json` changed without `pnpm images:sync` |
 | `src/server/catalogue/pricing.test.ts` | any listed product's price is not MRP − ₹20 |
 | `src/lib/price-source.test.ts` | UI code under `src/app/**` or `src/components/**` reads `pricePaise` or `MRP_DISCOUNT_PAISE` or subtracts 2000 itself |
-| `src/components/server-imports.test.ts` | a non-test file under `src/components/**` imports from `src/server/**` (by `@/server/…` or a relative path) other than `catalogue/pricing`, `catalogue/search` or `catalogue/order` without a statement-level `import type` / `export type` (an inline `import { type X }` does not count); it parses with the TypeScript compiler API and also catches side-effect imports, re-exports, `import()` and `require()` |
+| `src/components/server-imports.test.ts` | a non-test file under `src/components/**`, or under `src/lib/**` other than the server-only `catalogue/cached.ts` and `catalogue/errors.ts`, imports from `src/server/**` (by `@/server/…` or a relative path) other than `catalogue/pricing`, `catalogue/search` or `catalogue/order` without a statement-level `import type` / `export type` (an inline `import { type X }` does not count); it parses with the TypeScript compiler API and also catches side-effect imports, re-exports, `import()` and `require()` |
 | `src/server/auth/cookie.test.ts` | the cookie `Max-Age` drifts from `SESSION_POLICY` |
 | `scripts/pr-size.test.ts`, `tests/int/pr-size.test.ts` | the size counter or its excludes change |
 | `scripts/vitest-projects.test.ts` | a test file matches no Vitest project, or more than one |

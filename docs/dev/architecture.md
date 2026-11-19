@@ -189,9 +189,10 @@ the public user or `null`, `no-store`. Nothing calls it yet.
   header shows a static Sign in link.
 - Product images are content-hashed, so the CDN can cache them forever.
 
-**Client imports (now):** components (`src/components/**`) import at runtime from
-`src/server/**` only the pure `catalogue/pricing.ts`, `catalogue/search.ts` and
-`catalogue/order.ts`; anything else from there is a statement-level `import type`
-(`src/components/server-imports.test.ts`). The test sees direct imports only: a server-only
-module reached through `src/lib/` (for example `catalogue/cached.ts`, which `withStoreChrome`
-calls) must still never be imported by a `"use client"` module.
+**Client imports (now):** components (`src/components/**`) and the client-safe `src/lib/**`
+modules import at runtime from `src/server/**` only the pure `catalogue/pricing.ts`,
+`catalogue/search.ts` and `catalogue/order.ts`; anything else from there is a statement-level
+`import type` (`src/components/server-imports.test.ts`). The server-only
+`src/lib/catalogue/cached.ts` and `errors.ts` are exempt by name, and must never be imported by a
+`"use client"` module (the test sees direct imports only); a new server-only `src/lib` file joins
+that list.
