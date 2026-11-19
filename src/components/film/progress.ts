@@ -18,19 +18,26 @@ export const EASE: Record<EaseName, Ease> = {
 /** [start, end, ease] in act progress (0..1). */
 export type Range = [start: number, end: number, ease: Ease];
 
-export const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
+/** Clamps to 0..1; NaN maps to 0 so callers never see a non-finite value. */
+export const clamp01 = (v: number): number => (v > 0 ? (v < 1 ? v : 1) : 0);
 
 /** Parses "start end [ease]" (as in data-in / data-out); linear by default. */
 export function parseRange(spec: string | undefined | null): Range | null {
   if (!spec) return null;
   const [s, e, name] = spec.split(" ");
-  const ease = (name && EASE[name as EaseName]) || EASE.lin;
-  return [Number(s), Number(e), ease];
+  const start = Number(s);
+  const end = Number(e);
+  if (!s || !e || !Number.isFinite(start) || !Number.isFinite(end)) return null;
+  const ease = name && Object.hasOwn(EASE, name) ? EASE[name as EaseName] : EASE.lin;
+  return [start, end, ease];
 }
 
 /** Eased value of a range at act progress p, clamped and rounded to 4 places. */
 export function rangeValue(r: Range, p: number): number {
-  return +r[2](clamp01((p - r[0]) / (r[1] - r[0]))).toFixed(4);
+  const span = r[1] - r[0];
+  // A zero-width (or non-finite) range is a step: 0 before the point, 1 at or after it.
+  if (!(span > 0) || !Number.isFinite(span)) return p >= r[0] ? 1 : 0;
+  return +r[2](clamp01((p - r[0]) / span)).toFixed(4);
 }
 
 /** Scroll box of an act: it starts at `top` and runs for `len` pixels. */
@@ -48,8 +55,10 @@ export type MeasureInput = {
 };
 
 export function measureAct(m: MeasureInput): ActBox {
-  let top = m.rectTop + m.scrollY - (m.pinned ? 0 : m.vh);
-  let len = Math.max(1, m.pinned ? m.offsetHeight - m.stageHeight : m.height + m.vh);
+  const t = m.rectTop + m.scrollY - (m.pinned ? 0 : m.vh);
+  let top = Number.isFinite(t) ? t : 0;
+  const raw = m.pinned ? m.offsetHeight - m.stageHeight : m.height + m.vh;
+  let len = Number.isFinite(raw) ? Math.max(1, raw) : 1;
   if (m.lead) {
     top -= m.vh;
     len += m.vh;
@@ -59,7 +68,8 @@ export function measureAct(m: MeasureInput): ActBox {
 
 /** Unclamped progress through an act; clamp via rangeValue. */
 export function actProgress(scrollY: number, a: ActBox): number {
-  return (scrollY - a.top) / a.len;
+  const p = (scrollY - a.top) / a.len;
+  return Number.isFinite(p) ? p : 0;
 }
 
 /** Which of the three "How ordering works" steps is active. */
@@ -72,10 +82,11 @@ export const ACT_NUMBER = { how: 3, areas: 4, close: 5 } as const;
 
 /** Scroll target for a `?p=<act>:<progress>` deep link, or null. */
 export function deepLinkTarget(search: string, acts: (ActBox & { id: string })[]): number | null {
-  const m = /[?&]p=(\d):([\d.]+)/.exec(search);
+  const m = /[?&]p=(\d):(\d*\.?\d+)(?![\d.])/.exec(search);
   if (!m) return null;
   const n = Number(m[1]);
   const act = acts.find((a) => ACT_NUMBER[a.id as keyof typeof ACT_NUMBER] === n);
   if (!act) return null;
-  return Math.round(act.top + clamp01(Number(m[2])) * act.len);
+  const target = Math.round(act.top + clamp01(Number(m[2])) * act.len);
+  return Number.isFinite(target) ? target : null;
 }
