@@ -18,7 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
-- Legal page layout for every policy page: `LegalPage`, `LegalSection`, `Pending` and `Fact` in `src/components/legal/legal-page.tsx` (the Operate shell, a 62ch `.prose` column from `src/styles/prose.css`, "Last updated" from `POLICY_VERSION`, and a "To be added" chip for each unsupplied fact), and `findClaims` in `tests/helpers/claims.ts`, the invented-claims check every page test runs.
+- Legal page layout for every policy page: `LegalPage`, `LegalSection`, `Pending` and `Fact` in `src/components/legal/legal-page.tsx` (the Operate shell, a 62ch `.prose` column from `src/styles/prose.css`, "Last updated" from `POLICY_VERSION`, and a "To be added" chip for each unsupplied fact), and `findClaims` in `tests/helpers/claims.ts`, the invented-claims check every page test runs (#98).
 - Announcement line (`src/components/shell/announce-bar.tsx`, `src/styles/header.css`), mounted in the `(store)` layout: all three notices on desktop; at 720px and below one notice cross-fades every 5 s (skipped while the tab is hidden, and under reduced motion only the first shows) (#96).
 - Styleguide demo of the Overlay (`/dev/styleguide?overlay=dialog` or `side` opens one on load, read client-side) and a phone-width Playwright check that a short drag or a tap on the sheet head replays no animation (#93).
 - `Overlay` (`src/components/overlay/overlay.tsx`), the dialog and right-hand side sheet that becomes a draggable bottom sheet below 640px, with focus return to the opener (#88).
