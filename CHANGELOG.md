@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- Home banner slides and the banner fallback (`src/lib/catalogue/banners.ts`): `BANNER_SLIDES` holds the four slides' copy, links, alt text and rasters; `bannerSlides(products)` shows a slide only while every pack it names is live, and without Sacuwin the prescription slide leads, so a Win2Age-printed pack never leads the banner. The delivery line says "Cash on delivery available." until `SITE_CONFIG.onlinePayments` is on.
 - Category bar (`src/components/shell/category-bar.tsx`, `src/styles/catbar.css`), mounted in the `(store)` layout under the header: one link per live category in sortOrder, then All medicines. Category pages are still pending (Task 30), so those links stay in `PENDING_ROUTES`. At 880px and below it is a 36px chip row that scrolls away with the page, starting on the search field's edge and running off the screen edge (`margin-inline: 0`, gutter `padding-inline` and `scroll-padding-inline`) (#100).
 - Legal page layout for every policy page: `LegalPage`, `LegalSection`, `Pending` and `Fact` in `src/components/legal/legal-page.tsx` (the Operate shell, a 62ch `.prose` column from `src/styles/prose.css`, "Last updated" from `POLICY_VERSION`, and a "To be added" chip for each unsupplied fact), and `findClaims` in `tests/helpers/claims.ts`, the invented-claims check for page tests, which also flags copy saying every medicine needs a prescription unless the page passes `allRx` from catalogue data [C25] (#98).
 - Sticky store header (`src/components/shell/{store-header,skip-link}.tsx`, rest of `src/styles/header.css`): logo, search field, Upload prescription, Sign in and Cart, with a skip link before the announcement line. `search`, `account` and `cart` are slots that the live search, account and cart tasks fill. The shadow comes from an IntersectionObserver on the announcement line (no scroll listener); `--hdr-h` is 117px (108px at 880px and below) and base.css stays the only `scroll-padding-top` rule. `Brand` gained `placement="header"` (#97).
@@ -148,6 +149,7 @@ bottom use commit SHAs.
 - The toast no longer dismisses a toast its own action raised, its action button meets the 44 px
   target, a second `<LiveRegion/>` renders nothing, and plain toasts have a Dismiss button and
   Escape (#87).
+- The banner carousel hook's `go()` ignores a non-integer index on phones too (it used to scroll the track to slide 1), and a tab opened in the background starts with the `hidden` hold, so autoplay never runs unseen.
 
 ## [0.1.0] - 2026-11-17
 
