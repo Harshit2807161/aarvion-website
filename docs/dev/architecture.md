@@ -39,7 +39,7 @@
 | `data/` | `products.json` (seed source), `product-images.json` (generated), `source/` (Drive analysis) |
 | `public/products/` | generated, content-hashed product images |
 | `public/foil/`, `public/banners/` | foil, dome and banner rasters copied unchanged from `design/prototype/assets/`, each with a `.json` provenance sidecar (`scripts/public-provenance.test.ts`) |
-| `src/components/` | React components, added task by task (today `home/carousel.ts`, the banner carousel reducer, and `film/progress.ts`, the scroll film's pure progress maths) |
+| `src/components/` | React components, added task by task (today `home/`: the banner carousel reducer and controller hook; `film/`: the scroll film's progress maths and engine) |
 | `src/fonts/` | committed `.woff2` subsets and `index.ts` (`next/font/local`), built by `pnpm fonts:subset` from `assets/fonts/` |
 | `assets/` | source photos and cutouts, brand SVG drafts, banner scenes, `fonts/` (source TTFs, OFL licences, `SOURCES.json`) |
 | `design/prototype/` | the approved hi-fi prototype (excluded from ESLint) |
