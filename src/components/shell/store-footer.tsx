@@ -133,11 +133,27 @@ export function StoreFooter({
         </dl>
       </div>
       <div className="wrap foot-pay">
-        {/* Online payments stay hidden until live Razorpay keys exist (plan Stage 6). */}
-        <p className="foot-pay-label">Pay with</p>
-        <ul className="pay">
-          <li>Cash on delivery</li>
-        </ul>
+        {config.onlinePayments ? (
+          <>
+            <p className="foot-pay-label">Pay with</p>
+            <ul className="pay">
+              <li>UPI</li>
+              <li>Cards</li>
+              <li>Netbanking</li>
+            </ul>
+            <p>through Razorpay, or</p>
+            <ul className="pay">
+              <li>Cash on delivery</li>
+            </ul>
+          </>
+        ) : (
+          <>
+            <p className="foot-pay-label">Pay with</p>
+            <ul className="pay">
+              <li>Cash on delivery</li>
+            </ul>
+          </>
+        )}
       </div>
       <div className="wrap foot-base">
         <p>
