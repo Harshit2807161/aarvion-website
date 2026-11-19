@@ -47,6 +47,7 @@ src/app/            Next.js routes: api/{health,auth/**}, dev/outbox, layout, pl
                     globals.css (Tailwind 4 @theme tokens)
 src/styles/         ported prototype CSS (base.css, one @layer base) and the token and CSS tests
 src/lib/            client-safe helpers (cn)
+src/components/     React components, built task by task by the UI plan (home/carousel.ts so far)
 src/server/         framework-free business logic (the only place rules live)
   catalogue/        schema, pricing, categories, seed, search, queries
   auth/             identifier, otp, users, sessions, cookie, login, guards, roles
@@ -58,7 +59,7 @@ src/server/         framework-free business logic (the only place rules live)
   env.ts deps.ts http.ts audit.ts dev-only.ts
 tests/int/          integration tests (in-memory Mongo replica set); tests/helpers/ shared helpers
 e2e/                Playwright specs (production build)
-scripts/            pr-size, sync-product-images, seed, db-indexes (+ Python asset tools)
+scripts/            pr-size, merge-gate.sh, sync-product-images, seed, db-indexes (+ Python asset tools)
 data/               products.json (seed source), product-images.json (generated), source/
 public/products/    generated, content-hashed product images (never edit by hand)
 public/foil/, public/banners/  rasters copied unchanged from design/prototype/assets/, with .json
