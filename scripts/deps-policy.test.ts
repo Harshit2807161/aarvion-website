@@ -2,11 +2,31 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
+type Deps = Record<string, string>;
 const pkg = JSON.parse(
   readFileSync(path.resolve(import.meta.dirname, "../package.json"), "utf8"),
-) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+) as {
+  dependencies?: Deps;
+  devDependencies?: Deps;
+  optionalDependencies?: Deps;
+  peerDependencies?: Deps;
+  pnpm?: { overrides?: Deps };
+};
 
-const keys = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
+// An override can pull a banned package in just as a dependency can; overrides may be
+// keyed "pkg@range", so only the name part counts.
+const overrideNames = Object.keys(pkg.pnpm?.overrides ?? {}).map((k) =>
+  k.replace(/^(@?[^@]+)@.*$/, "$1"),
+);
+const keys = [
+  ...Object.keys({
+    ...pkg.dependencies,
+    ...pkg.devDependencies,
+    ...pkg.optionalDependencies,
+    ...pkg.peerDependencies,
+  }),
+  ...overrideNames,
+];
 
 const FORBIDDEN = [
   "framer-motion",
@@ -20,6 +40,7 @@ const FORBIDDEN = [
   "sonner",
   "lucide-react",
   "tw-animate-css",
+  "tailwindcss-animate",
 ];
 
 const RADIX_ALLOWED = ["radix-ui", "@radix-ui/react-dialog", "@radix-ui/react-slot"];
