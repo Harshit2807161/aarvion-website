@@ -54,6 +54,9 @@ bottom use commit SHAs.
   switched to it, and `scripts/brand-assets.test.ts` (#67).
 - Logo tracing script `scripts/trace_logo.py`, which regenerates the masters, `public/brand/`
   and the app icons (#70).
+- Cached catalogue reads in `src/lib/catalogue/cached.ts` (`'use cache'`, `cacheLife("hours")`,
+  tag `catalogue` plus a per-slug tag for valid slugs), `revalidateCatalogue()` (expires at once),
+  `assertCatalogue()` and the dev-only `POST /dev/catalogue/revalidate` (#68).
 
 ### Changed
 
@@ -64,6 +67,8 @@ bottom use commit SHAs.
 - Cache Components is on: every GET handler starts with `await connection()`, route files no
   longer export `dynamic` (`src/server/route-config.test.ts`), and int tests mock `next/server`
   and `next/cache` (#60).
+- The CI `build` job seeds Mongo (`aarvion_build`) and `e2e` seeds `aarvion_e2e`; `withErrors`
+  rethrows Next's control flow (`unstable_rethrow`); `partialPrefetching` is on (#68).
 - `pr-size` is required for every PR, docs included; `docs/decisions/repo.md` lists the nine
   required checks (#52).
 - `docs/progress.md` is retired to a pointer at the handoff, the changelog and the decisions
