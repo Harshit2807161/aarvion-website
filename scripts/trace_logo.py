@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 """Trace the owner's official Aarvion logo (a low-resolution phone screenshot) into vector assets.
 
-    python3 scripts/trace_logo.py [--root .]      # needs numpy, Pillow, scipy, scikit-image
+Needs Python 3 and four PyPI packages, no potrace or inkscape (tested with Python 3.14, numpy 2.5,
+Pillow 13, scipy 1.18, scikit-image 0.26). From the repo root, with a venv kept outside the repo:
+    python3 -m venv ~/.venvs/logo && ~/.venvs/logo/bin/pip install numpy pillow scipy scikit-image
+    ~/.venvs/logo/bin/python scripts/trace_logo.py [--root <checkout>]
 
-It traces the image; it never redraws the logo or sets type. Per colour layer: coverage of the flat
-colour (the mode of the shapes' eroded interiors) -> light blur against JPEG and staircase noise ->
-4x bicubic -> the 0.5 contour (the layer's mask edge) -> straight runs, snapped to exact H/V and to
-shared heights (baseline, cap height) -> corners the blur rounded off rebuilt by intersecting the
-neighbouring edges, thin tips rebuilt from coverage sections (blur keeps area) -> cubic Beziers
-(Schneider) for the curves. Writes the SVG variants, PNG exports, app icons and the og-image.
+It traces the image, never redraws it or sets type. Per colour: coverage of the flat colour (mode of
+the shapes' interiors) -> light blur against JPEG noise -> 4x bicubic -> 0.5 contour (the mask edge)
+-> straight runs snapped to exact H/V and shared heights -> blurred corners rebuilt by intersecting
+edges, thin tips from coverage sections (blur keeps area) -> cubic Beziers (Schneider). Writes the
+SVGs, PNGs, icons and og-image into assets/brand/official, public/brand and src/app.
 """
 import argparse
 from pathlib import Path
 
-import numpy as np
-from PIL import Image, ImageDraw
-from scipy import ndimage as ndi
-from skimage import measure
+try:
+    import numpy as np
+    from PIL import Image, ImageDraw
+    from scipy import ndimage as ndi
+    from skimage import measure
+except ImportError as e:
+    raise SystemExit(f"trace_logo: {e.name} is not installed; pip install numpy pillow scipy scikit-image") from None
 
 H = 0.2  # contour sample spacing, source px
 SRC = "assets/brand/official/source/aarvion-logo-source.jpg"
@@ -339,6 +344,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     root = ap.parse_args().root
+    if not (root / SRC).is_file():
+        raise SystemExit(f"trace_logo: no logo source at {root / SRC} (added by #67); use --root <checkout>.")
     rgb = np.asarray(Image.open(root / SRC).convert("RGB")).astype(float)
     cols, paths = {}, {}
     for name, (y0, y1, x0, x1) in BOXES.items():
@@ -353,10 +360,8 @@ def main():
         a, b = cov > 0.5, np.asarray(raster([(paths[name], WHITE)], 1, 0, rgb.shape[1::-1], 8))[..., 3] > 127
         print(f"{name} {cols[name]}: {sum(map(len, paths[name]))} segments, IoU vs source mask {(a & b).sum() / (a | b).sum():.4f}")
     mint, navy = paths["mint"], paths["navy"]
-    variants = {"aarvion-logo": [(mint, cols["mint"]), (navy, cols["navy"])],
-                "aarvion-logo-reversed": [(mint, cols["mint"]), (navy, WHITE)],
-                "aarvion-logo-forest": [(mint, FOREST), (navy, FOREST)],
-                "aarvion-logo-white": [(mint, WHITE), (navy, WHITE)],
+    variants = {"aarvion-logo": [(mint, cols["mint"]), (navy, cols["navy"])], "aarvion-logo-reversed": [(mint, cols["mint"]), (navy, WHITE)],
+                "aarvion-logo-forest": [(mint, FOREST), (navy, FOREST)], "aarvion-logo-white": [(mint, WHITE), (navy, WHITE)],
                 "aarvion-mark": [(mint, cols["mint"])], "aarvion-mark-white": [(mint, WHITE)]}
     out, pub, app = root / "assets/brand/official", root / "public/brand", root / "src/app"
     for d in (out / "png", out / "icons", pub / "png", app):
@@ -376,8 +381,7 @@ def main():
     head = (np.array([700.0, lo[1]]), hi)  # the swoosh's head: it reads at 16px, where the thin arc cannot
     ico = [placed(mark, (s, s), (s * 0.88, s * 0.88), WHITE, head) for s in (16, 32, 48)]
     ico[2].save(out / "icons/favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)], append_images=ico[:2])
-    w, h = hi - head[0]
-    k = 42 / w
+    (w, h), k = hi - head[0], 42 / (hi - head[0])[0]
     inner = svg(mark, head, title=False)
     (out / "icons/icon.svg").write_text(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img"><title>Aarvion</title>'
