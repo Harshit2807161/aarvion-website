@@ -25,9 +25,9 @@ type Options = {
  * this hook owns the autoplay clock holds and the imperative slide DOM state: `is-current`,
  * `is-leaving`, `inert` and the lazy-to-eager image switch. React must not render those on the
  * slides; the one exception is the server markup's `is-current` on the first slide, so slide 1
- * shows before hydration (`banner.tsx`). The component hides the pause control when
- * `!state.motion`. Autoplay itself is CSS: the current dot's 6 s `dot-run` animation ends and
- * advances (`banner.css`), so `AUTOPLAY_MS` only documents that duration.
+ * shows before hydration (the Task 19 banner renders it), which also hides the pause control
+ * when `!state.motion`. Autoplay itself is CSS: the current dot's 6 s `dot-run` animation ends
+ * and advances (the banner stylesheet), so `AUTOPLAY_MS` only documents that duration.
  *
  * Browser APIs are read in effects only, so server and first client render agree. Until the
  * reduced-motion preference is read, `ready` is false and nothing autoplays.
