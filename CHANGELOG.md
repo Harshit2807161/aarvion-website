@@ -41,12 +41,19 @@ bottom use commit SHAs.
 - Shared shelf order in `src/server/catalogue/order.ts` (`compareVariants`, `orderForShelf`), which
   client code may import (#60).
 - The approved project plan, committed as `docs/plan/project-plan.md` (#61).
+- Inline SVG icon set (`src/components/base/icon.tsx`), the `BrandMark` component and Indian
+  rupee formatting (`src/lib/format/rupees.ts`) (#62).
 - Banner carousel controller hook `src/components/home/use-carousel.ts`: autoplay, holds and
   reduced motion (#63).
 - Scroll film engine `src/components/film/engine.ts` for the ordering act, bento, rails and
   close (#65).
 - `scripts/merge-gate.sh`: merges only when all nine checks pass by name, `pr-size` included
   (#66).
+- The official Aarvion logo traced to vectors: masters in `assets/brand/official/`, served
+  variants in `public/brand/`, app icons and the Open Graph image in `src/app/`, the prototype
+  switched to it, and `scripts/brand-assets.test.ts` (#67).
+- Logo tracing script `scripts/trace_logo.py`, which regenerates the masters, `public/brand/`
+  and the app icons (#70).
 
 ### Changed
 
@@ -61,6 +68,13 @@ bottom use commit SHAs.
   required checks (#52).
 - `docs/progress.md` is retired to a pointer at the handoff, the changelog and the decisions
   (#55).
+- Font subset script tightened, a test ties the `next/font` weight ranges to the baked axes, and
+  `assets/fonts/README.md` documents the font sources, licences and regeneration (#69).
+
+### Removed
+
+- The draft logo redraw (`assets/brand/*.svg` with live Montserrat text), replaced by the
+  official logo (#67).
 
 ### Fixed
 
