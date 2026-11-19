@@ -8,6 +8,7 @@ vi.mock("@/lib/catalogue/cached", () => ({
     { slug: "cardiology", name: "Heart care", status: "live", sortOrder: 0 },
     { slug: "urology", name: "Urinary care", status: "coming_soon", sortOrder: 5 },
   ]),
+  getCachedProducts: vi.fn(async () => [{ slug: "sacuwin-100" }]),
 }));
 
 import RootLayout from "../layout";

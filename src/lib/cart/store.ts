@@ -74,6 +74,18 @@ export const cartStore = {
     }
     return blocked;
   },
+  /**
+   * Drop lines whose slug is not in the catalogue (a product retired since the cart was saved),
+   * so they never count toward the 20-pack cap or show in the cart. Run by CartReconcile.
+   */
+  reconcile(known: ReadonlySet<string>): void {
+    const current = cartStore.getSnapshot();
+    const kept = Object.entries(current).filter(([slug]) => known.has(slug));
+    if (kept.length === Object.keys(current).length) return;
+    cache = Object.assign(Object.create(null), Object.fromEntries(kept));
+    write(cache!);
+    listeners.forEach((l) => l());
+  },
   /** TEST ONLY: forget the cached lines so the next read goes back to sessionStorage. */
   reset(): void {
     cache = null;

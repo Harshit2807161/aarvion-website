@@ -1,0 +1,15 @@
+/* Cart control: Add becomes the stepper (ported from v2 site.css "Cart control"; the shared .btn-add/.stepper rule is inlined into each, as selectors may not repeat) */
+.cart-ctl { display: flex; }
+.cart-ctl:not([data-qty="0"]) .btn-add, .cart-ctl[data-qty="0"] .stepper { height: 44px; border-radius: var(--radius-pill); background: var(--color-forest-800); color: var(--color-white); font: 600 0.875rem/1 var(--font-sans); display: none; }
+.btn-add { height: 44px; border-radius: var(--radius-pill); background: var(--color-forest-800); color: var(--color-white); font: 600 0.875rem/1 var(--font-sans); display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 0 16px; transition: background-color var(--duration-fast) ease; }
+.btn-add .i { width: 18px; height: 18px; }
+.btn-add[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+.stepper { height: 44px; border-radius: var(--radius-pill); background: var(--color-forest-800); color: var(--color-white); font: 600 0.875rem/1 var(--font-sans); display: inline-flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 2px; }
+.stepper button { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; transition: transform var(--duration-press) var(--ease-out); }
+.stepper button:active { transform: scale(0.9); }
+.stepper button[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+.stepper output { font: 600 1rem/1 var(--font-mono); min-width: 2ch; text-align: center; }
+@media (hover: hover) and (pointer: fine) {
+  .btn-add:hover { background: var(--color-forest-700); }
+  .stepper button:hover { background: rgb(255 255 255 / 0.1); }
+}
