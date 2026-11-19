@@ -140,8 +140,33 @@ describe("sign-up on OTP verify", () => {
     expect((await verify(code)).status).toBe(409);
     // A 409 neither counts as a failure nor clears the counter: only a login clears it.
     expect(await failCount()).toBe(4);
+    expect(await attempts()).toBe(4);
     expect((await verify(code, { signup: SIGNUP })).status).toBe(200);
     expect(await failCount()).toBe(0);
+  });
+
+  it("a 409 between mismatches grants no extra guess: the 5-attempt budget still runs out", async () => {
+    const code = await sendAndRead();
+    for (let n = 0; n < 4; n++) await expectInvalidCode(await verify(WRONG(code)));
+    expect((await verify(code)).status).toBe(409);
+    await expectInvalidCode(await verify(WRONG(code)));
+    expect(await attempts()).toBe(5);
+    // Exhausted: even the right code with sign-up details no longer logs in.
+    await expectInvalidCode(await verify(code, { signup: SIGNUP }));
+    expect(await count(USERS_COLLECTION)).toBe(0);
+  });
+
+  it("answers 409 on the phone channel too, and stores the phone channel with the consent", async () => {
+    const phone = "+919876543210";
+    const post = (route: "send" | "verify", body: object = {}) =>
+      (route === "send" ? SEND : VERIFY)(
+        jsonPost(`/api/auth/otp/${route}`, { channel: "phone", identifier: phone, ...body }),
+      );
+    expect((await post("send")).status).toBe(200);
+    const code = await lastOtpCode(phone);
+    expect((await post("verify", { code })).status).toBe(409);
+    expect((await post("verify", { code, signup: SIGNUP })).status).toBe(200);
+    expect((await (await users()).findOne({ phone }))?.consents?.channel).toBe("phone");
   });
 
   it("C1 (iii): a code a 409 checked is not consumed and logs in exactly once", async () => {
@@ -202,6 +227,28 @@ describe("sign-up on OTP verify", () => {
       await expectInvalidCode(await verify(WRONG(code), { identifier }));
       expect(await failCount(identifier)).toBe(1);
       expect(await attempts(identifier)).toBe(1);
+    }
+  });
+
+  it("a verify without the right code never reads the users collection", async () => {
+    await insertKnown();
+    const { Collection } = await import("mongodb");
+    const junk = async (identifier: string, guess: string, signup?: typeof SIGNUP) => {
+      const spy = vi.spyOn(Collection.prototype, "findOne");
+      try {
+        await expectInvalidCode(await verify(guess, { identifier, signup }));
+        const read = spy.mock.contexts.map(
+          (c) => (c as InstanceType<typeof Collection>).collectionName,
+        );
+        expect(read).not.toContain(USERS_COLLECTION);
+      } finally {
+        spy.mockRestore();
+      }
+    };
+    for (const identifier of [ASHA, KNOWN]) {
+      for (const signup of [undefined, SIGNUP]) await junk(identifier, "123456", signup);
+      const code = await sendAndRead(identifier);
+      for (const signup of [undefined, SIGNUP]) await junk(identifier, WRONG(code), signup);
     }
   });
 

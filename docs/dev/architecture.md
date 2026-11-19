@@ -126,7 +126,9 @@ session → clear the failure counter → audit `auth.login` (a failed counter r
 logged by error name and never fails the login). Every code-check failure (unknown, expired,
 consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`, for unknown and
 known identifiers alike; the per-IP limit is 429 `rate_limited` and the lockout 429
-`too_many_attempts`, both with `Retry-After`.
+`too_many_attempts`, both with `Retry-After`. A 409 keeps the code's original 5-minute expiry and
+its attempt budget (mismatches before and after it count toward the 5), and a resend replaces the
+challenge, so the held code stops working.
 
 **Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one letter,
 and no Unicode control or format character such as a zero-width space or a bidi override, since
