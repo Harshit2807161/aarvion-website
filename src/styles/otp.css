@@ -33,3 +33,7 @@
   .otp.is-focused .otp-box.is-active:empty::after { animation: none; }
   .otp.shake .otp-boxes { animation: none; }
 }
+/* flows.css 878-880: phones at 400px and narrower get shorter boxes (DESIGN.md "Boxes"). */
+@media (max-width: 400px) {
+  .otp-box { height: 54px; font-size: 1.375rem; border-radius: 12px; }
+}

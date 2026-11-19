@@ -5,6 +5,7 @@ import { Button, ButtonLink, type ButtonSize, type ButtonVariant } from "@/compo
 import { ICON_NAMES, Icon } from "@/components/base/icon";
 import { PriceInline, StampPrice } from "@/components/base/stamp-price";
 import { FormsDemo } from "./forms-demo";
+import { OtpDemo } from "./otp-demo";
 import { OverlayDemo } from "./overlay-demo";
 import { ToastDemo } from "./toast-demo";
 import { requireDevRoute } from "@/server/dev-only";
@@ -125,6 +126,13 @@ export default async function StyleguidePage() {
           Form fields
         </h2>
         <FormsDemo />
+      </section>
+
+      <section aria-labelledby="sg-otp">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-otp">
+          OTP field
+        </h2>
+        <OtpDemo />
       </section>
 
       <section aria-labelledby="sg-toast">

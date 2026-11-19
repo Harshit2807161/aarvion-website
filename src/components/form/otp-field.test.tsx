@@ -118,6 +118,73 @@ describe("OtpField", () => {
     expect(onComplete).toHaveBeenCalledTimes(2);
   });
 
+  it.each(["insertText", "insertReplacementText", "insertFromPaste"])(
+    "autofill at the caret (%s) replaces a partial value and completes once",
+    (inputType) => {
+      const onChange = vi.fn();
+      const onComplete = vi.fn();
+      render(<Harness initial="12" onChange={onChange} onComplete={onComplete} />);
+      const ev = new InputEvent("beforeinput", {
+        inputType,
+        data: "482913",
+        cancelable: true,
+        bubbles: true,
+      });
+      act(() => {
+        input().dispatchEvent(ev);
+      });
+      expect(ev.defaultPrevented).toBe(true);
+      expect(onChange).toHaveBeenCalledWith("482913");
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith("482913");
+    },
+  );
+
+  it("leaves ordinary typing and deletion alone", () => {
+    const onChange = vi.fn();
+    render(<Harness initial="12" onChange={onChange} />);
+    const one = new InputEvent("beforeinput", {
+      inputType: "insertText",
+      data: "3",
+      cancelable: true,
+      bubbles: true,
+    });
+    const del = new InputEvent("beforeinput", {
+      inputType: "deleteContentBackward",
+      data: null,
+      cancelable: true,
+      bubbles: true,
+    });
+    act(() => {
+      input().dispatchEvent(one);
+      input().dispatchEvent(del);
+    });
+    expect(one.defaultPrevented).toBe(false);
+    expect(del.defaultPrevented).toBe(false);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("removes the native paste and beforeinput listeners on unmount", () => {
+    const onChange = vi.fn();
+    const onComplete = vi.fn();
+    const { unmount } = render(
+      <Harness initial="12" onChange={onChange} onComplete={onComplete} />,
+    );
+    const el = input();
+    unmount();
+    el.dispatchEvent(
+      new InputEvent("beforeinput", {
+        inputType: "insertText",
+        data: "482913",
+        cancelable: true,
+        bubbles: true,
+      }),
+    );
+    paste(el, "482913");
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+
   it("locked disables the input; invalid adds is-invalid", () => {
     const { container, rerender } = render(<Harness state="locked" />);
     expect(input().disabled).toBe(true);
@@ -185,6 +252,10 @@ describe("OtpField", () => {
 
 describe("otp.css", () => {
   const css = readFileSync(path.resolve(import.meta.dirname, "../../styles/otp.css"), "utf8");
+
+  it("shortens the boxes to 54px at 400px and narrower", () => {
+    expect(css).toMatch(/@media \(max-width: 400px\)\s*\{[^}]*\.otp-box[^}]*height: 54px/);
+  });
 
   it("keeps the input at 16px so iOS never zooms, and renames --line-strong [C13]", () => {
     expect(css).toMatch(/\.otp-input[^{]*\{[^}]*font-size: 16px !important/);

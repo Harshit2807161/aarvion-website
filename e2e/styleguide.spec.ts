@@ -63,3 +63,30 @@ test.describe("overlay on a phone", () => {
     await expect(panel).toBeVisible();
   });
 });
+
+test("styleguide OTP field takes a pasted code over a partial value", async ({ page }) => {
+  await page.goto("/dev/styleguide");
+  const otp = page.locator("#sg-otp-idle");
+  await expect(otp).toHaveAttribute("autocomplete", "one-time-code");
+  await otp.click();
+  await page.keyboard.type("48");
+  await otp.evaluate((el) => {
+    const dt = new DataTransfer();
+    dt.setData("text/plain", "482913 is your Aarvion login code.");
+    el.dispatchEvent(
+      new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }),
+    );
+  });
+  await expect(page.getByTestId("sg-otp-complete")).toHaveText("Completed: 482913");
+});
+
+test("styleguide OTP field takes an autofilled code at the caret (insertText)", async ({
+  page,
+}) => {
+  await page.goto("/dev/styleguide");
+  await page.locator("#sg-otp-idle").click();
+  await page.keyboard.type("48");
+  // insertText fires a native beforeinput of type insertText with the whole code, as Android SMS autofill does.
+  await page.keyboard.insertText("482913");
+  await expect(page.getByTestId("sg-otp-complete")).toHaveText("Completed: 482913");
+});
