@@ -49,8 +49,8 @@ refuses mocks whenever the database is `aarvion_prod`.
 **Build-time database (UI plan Task 7, ruling C11):** pages prerender from the DB, so
 every Vercel scope needs `MONGODB_URI` and `MONGODB_DB` at build time, a seeded database, and
 Atlas network access for Vercel builds. An empty catalogue throws `CatalogueEmptyError` and fails
-the build instead of deploying an empty store. Seed the preview database before UI Task 9 merges,
-and `aarvion_prod` before the first production deploy. Redeploy after a direct database edit.
+the build instead of deploying an empty store. The root layout (UI Task 9) renders the footer from the live categories, so from that PR on every page build reads the DB. **Seed the Preview database before that PR merges into a Vercel-connected repo** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed
+and `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
 
 ## First deploy (planned)
 

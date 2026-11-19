@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { StoreFooter } from "@/components/shell/store-footer";
 import { resolveSiteMetadataBase, SITE_CONFIG } from "@/config/site";
 import { fontVariables } from "@/fonts";
+import { getCachedCategories } from "@/lib/catalogue/cached";
 import "./globals.css";
 
 // metadataBase is what Next resolves opengraph-image and icon URLs against; without it they
@@ -22,10 +24,15 @@ export const viewport: Viewport = {
   themeColor: "#172f21",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Read at build time (cached, tagged `catalogue`): the build needs a seeded database.
+  const live = (await getCachedCategories()).filter((c) => c.status === "live");
   return (
     <html lang="en-IN" className={fontVariables}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <StoreFooter categories={live} />
+      </body>
     </html>
   );
 }

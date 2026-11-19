@@ -1,0 +1,46 @@
+/*
+  Store footer: port of design/prototype/css/store.css (Footer block and the footer rules of
+  its 1100px and 720px responsive blocks) for src/components/shell/store-footer.tsx.
+  The chrome is 1280px everywhere (plan ruling 11), so `.foot .wrap` is 80rem while customer
+  page content (`.wrap`, `.work-in`) stays at --container-page, 75rem.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.foot .wrap { width: min(80rem, 100% - 2 * var(--spacing-gutter)); }
+.foot { background: var(--color-forest-900); color: var(--color-text-on-dark-muted); padding: 56px 0 28px; font-size: var(--text-sm); line-height: 1.5; }
+.foot-top { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr)); gap: 32px 40px; }
+.foot-logo { display: grid; justify-items: start; gap: 8px; color: var(--color-white); }
+.foot-logo img { display: block; height: 52px; width: auto; } /* reversed logo on forest */
+.foot-about { margin-top: 18px; max-width: 34ch; text-wrap: pretty; }
+.foot-h { margin-bottom: 8px; font: 600 1rem/1.3 var(--font-display); letter-spacing: -0.01em; color: var(--color-white); }
+.foot-col ul { display: grid; }
+.foot-col a, .foot-tba { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; min-height: 44px; color: var(--color-white); text-decoration: none; }
+/* a pending item is muted text, not a link: this beats the shared rule above on specificity */
+.foot-col .foot-tba { color: var(--color-text-on-dark-muted); }
+.tba { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: var(--radius-pill); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22); font-size: 0.6875rem; font-weight: 500; }
+@media (hover: hover) and (pointer: fine) { .foot-col a:hover { text-decoration: underline; } }
+.foot address { font-style: normal; color: var(--color-white); }
+.foot-dl { display: grid; gap: 10px; }
+.foot-col .foot-dl { margin-top: 14px; }
+.foot-dl div { display: grid; gap: 1px; }
+.foot-dl dt { color: var(--color-text-on-dark-muted); font-size: var(--text-xs); }
+.foot-dl dd { color: var(--color-white); }
+.foot-legal { margin-top: 40px; padding-top: 24px; border-top: 1px dashed rgb(255 255 255 / 0.22); }
+.foot-legal .foot-dl { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 32px; }
+.foot-pay { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 24px; }
+.foot-pay-label { color: var(--color-white); font-weight: 500; margin-right: 2px; }
+.pay { display: flex; flex-wrap: wrap; gap: 6px; }
+.pay li { display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: var(--radius-pill); background: rgb(255 255 255 / 0.06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2); color: var(--color-white); font: 600 0.8125rem/1 var(--font-sans); }
+.foot-base { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 28px; padding-top: 20px; border-top: 1px solid rgb(255 255 255 / 0.12); font-size: var(--text-xs); }
+
+@media (max-width: 1100px) {
+  .foot-top { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .foot-brand { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 32px; }
+  .foot-about { margin-top: 0; }
+}
+@media (max-width: 720px) {
+  .foot { padding-top: 44px; }
+  .foot-top { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+  .foot-brand { display: block; }
+  .foot-about { margin-top: 14px; }
+  .foot-legal .foot-dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

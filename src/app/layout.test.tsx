@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/fonts", () => ({ fontVariables: "" }));
+vi.mock("@/lib/catalogue/cached", () => ({ getCachedCategories: vi.fn(async () => []) }));
 
 import { generateMetadata } from "./layout";
 
