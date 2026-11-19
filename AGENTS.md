@@ -35,6 +35,7 @@ Where the build stands and what is next: [docs/handoff.md](docs/handoff.md).
 | Images            | sharp 0.35                                                                                                   |
 | Styling           | Tailwind CSS 4.3 (`@tailwindcss/postcss`); design tokens in `src/app/globals.css` `@theme`                   |
 | Tests             | Vitest 5.1 (`unit`, `ui`, `int`), Testing Library 16, mongodb-memory-server 11.3, Playwright 1.65 (Chromium) |
+| Fonts             | self-hosted subsets through `next/font/local` (`src/fonts/`); never Google Fonts                             |
 | Lint and format   | ESLint 9 (`eslint-config-next`), Prettier 3                                                                  |
 | Hosting (planned) | Vercel + MongoDB Atlas (Mumbai); see [docs/dev/deploy.md](docs/dev/deploy.md)                                |
 
@@ -47,7 +48,8 @@ src/app/            Next.js routes: api/{health,auth/**}, dev/outbox, layout, pl
                     globals.css (Tailwind 4 @theme tokens)
 src/styles/         ported prototype CSS (base.css, one @layer base) and the token and CSS tests
 src/lib/            client-safe helpers (cn)
-src/components/     React components, built task by task by the UI plan (home/carousel.ts so far)
+src/components/     React components, built task by task by the UI plan (home/, film/ so far)
+src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
 src/server/         framework-free business logic (the only place rules live)
   catalogue/        schema, pricing, categories, seed, search, queries
   auth/             identifier, otp, users, sessions, cookie, login, guards, roles
@@ -64,7 +66,7 @@ data/               products.json (seed source), product-images.json (generated)
 public/products/    generated, content-hashed product images (never edit by hand)
 public/foil/, public/banners/  rasters copied unchanged from design/prototype/assets/, with .json
                     provenance sidecars (pinned by scripts/public-provenance.test.ts)
-assets/             source photos, cutouts, brand SVG drafts, banner scenes
+assets/             source photos, cutouts, brand SVG drafts, banner scenes, fonts/ (source TTFs, OFL)
 design/prototype/   approved hi-fi prototype (reference, not app code)
 docs/               requirements, catalogue, decisions/, superpowers/plans/, dev/, handoff.md
 ```
@@ -73,21 +75,23 @@ Details: [docs/dev/architecture.md](docs/dev/architecture.md).
 
 ## Commands
 
-| Command                        | Does                                                      | Needs                    |
-| ------------------------------ | --------------------------------------------------------- | ------------------------ |
-| `pnpm install`                 | install dependencies                                      | Node 24, pnpm 12         |
-| `pnpm dev`                     | dev server on :3000                                       | `.env.local`             |
-| `pnpm build` / `pnpm start`    | production build and server                               |                          |
-| `pnpm lint` / `pnpm typecheck` | ESLint / `tsc --noEmit`                                   |                          |
-| `pnpm format`                  | Prettier, writes files                                    |                          |
-| `pnpm test:unit`               | Vitest `unit` + `ui` projects                             |                          |
-| `pnpm test:int`                | Vitest `int` project                                      | downloads mongod once    |
-| `pnpm test:e2e`                | Playwright against `pnpm build && pnpm start` on :3100    | Mongo (`pnpm db:up`)     |
-| `pnpm db:up` / `pnpm db:down`  | start / stop the local replica set                        | Docker (colima on macOS) |
-| `pnpm db:indexes`              | create missing indexes                                    | `MONGODB_URI`            |
-| `pnpm seed`                    | insert-only catalogue seed                                | `MONGODB_URI`            |
-| `pnpm images:sync`             | rebuild `public/products/` and `data/product-images.json` |                          |
-| `pnpm pr-size origin/main`     | count changed lines against the 400 cap                   |                          |
+| Command                                       | Does                                                         | Needs                    |
+| --------------------------------------------- | ------------------------------------------------------------ | ------------------------ |
+| `pnpm install`                                | install dependencies                                         | Node 24, pnpm 12         |
+| `pnpm dev`                                    | dev server on :3000                                          | `.env.local`             |
+| `pnpm build` / `pnpm start`                   | production build and server                                  |                          |
+| `pnpm lint` / `pnpm typecheck`                | ESLint / `tsc --noEmit`                                      |                          |
+| `pnpm format`                                 | Prettier, writes files                                       |                          |
+| `pnpm test:unit`                              | Vitest `unit` + `ui` projects                                |                          |
+| `pnpm test:int`                               | Vitest `int` project                                         | downloads mongod once    |
+| `pnpm test:e2e`                               | Playwright against `pnpm build && pnpm start` on :3100       | Mongo (`pnpm db:up`)     |
+| `pnpm db:up` / `pnpm db:down`                 | start / stop the local replica set                           | Docker (colima on macOS) |
+| `pnpm db:indexes`                             | create missing indexes                                       | `MONGODB_URI`            |
+| `pnpm seed`                                   | insert-only catalogue seed                                   | `MONGODB_URI`            |
+| `pnpm images:sync`                            | rebuild `public/products/` and `data/product-images.json`    |                          |
+| `pnpm fonts:subset`                           | rebuild the `src/fonts/*.woff2` subsets from `assets/fonts/` |                          |
+| `node scripts/shoot.mjs <url> <out> [widths]` | screenshots for the UI plan's visual checks                  | Playwright Chromium      |
+| `pnpm pr-size origin/main`                    | count changed lines against the 400 cap                      |                          |
 
 The full local check before every push:
 
