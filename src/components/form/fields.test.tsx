@@ -192,6 +192,7 @@ describe("Segmented", () => {
       for (const mod of ["altKey", "metaKey", "ctrlKey", "shiftKey"]) {
         expect(fireEvent.keyDown(radio(), { key: "ArrowLeft", [mod]: true })).toBe(true);
       }
+      expect(screen.getByRole("radio", { name: "B" })).toBeChecked();
     });
 
     it("keeps the group reachable when the value matches no option", () => {
