@@ -48,7 +48,7 @@ export function TextField({
         <input
           {...input}
           id={id}
-          className={cn("input", mono && "mono", className)}
+          className={cn("field-box", "input", mono && "mono", className)}
           aria-describedby={describedBy}
           aria-invalid={hasError ? true : undefined}
         />
@@ -59,7 +59,7 @@ export function TextField({
         </p>
       ) : null}
       {hasError ? (
-        <p className="field-err" id={`${id}-err`}>
+        <p className="field-err" id={`${id}-err`} role="alert">
           <Icon name="alert" size={18} />
           {error}
         </p>

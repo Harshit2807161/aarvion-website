@@ -18,7 +18,6 @@ bottom use commit SHAs.
 
 ### Added
 
-- `TextField` (the forms stylesheet is ported whole) in `src/components/form/` with the ported `src/styles/forms.css`: 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, 44 px targets, and a styleguide demo (#79).
 - Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
   Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React
   and Testing Library setup (#45).
@@ -65,6 +64,7 @@ bottom use commit SHAs.
   drops clicks) with `src/styles/buttons.css` (#74).
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
+- `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 
 ### Changed
 
