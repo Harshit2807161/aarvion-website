@@ -110,6 +110,9 @@ bottom use commit SHAs.
 - `buttonClass()` and `ButtonLink` are server-safe again: only `Button` is a client module
   (`button.client.tsx`, re-exported from `button.tsx`). The `/dev/*` 404 also sends no-store and
   noindex headers (#77).
+- The toast no longer dismisses a toast its own action raised, its action button meets the 44 px
+  target, a second `<LiveRegion/>` renders nothing, and plain toasts have a Dismiss button and
+  Escape (#87).
 
 ## [0.1.0] - 2026-11-17
 
