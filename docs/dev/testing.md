@@ -78,6 +78,7 @@ Helpers in `tests/helpers/`:
 | `clock.ts` | `installClock(iso)` → `{ now, advance(ms) }`, installed as `deps.now` |
 | `http.ts` | `jsonPost(path, body, { origin, ip, cookie, contentType })`, `getReq`, `sessionTokenFrom(res)`, `TEST_ORIGIN` |
 | `otp.ts` | `lastOtpCode(to)`, reading the mock outbox |
+| `claims.ts` | `BANNED_CLAIMS`, `RX_UNIVERSAL_CLAIMS` and `findClaims(text, { allRx })`: every invented claim in rendered copy (licences, certifications, positive guarantees (a negated "we do not guarantee" passes), cure claims, ratings, reviews, counts, "bestseller", "trending", therapy-area words), plus copy saying every medicine needs a prescription [C25], skipped only with `allRx: true`, which a page passes only when it computed that from catalogue data. The review patterns are narrow because "Under review" is a real Rx status. It reads only the text given, so check `alt`, `aria-label` and metadata separately. The legal page tests use it now; each page or section task adds it to its tests as it lands |
 
 - Call route handlers directly: `import { POST } from "@/app/api/auth/otp/send/route"` and
   `await POST(jsonPost("/api/auth/otp/send", body))`. Handlers read cookies from `req.headers`
@@ -136,8 +137,7 @@ Helpers in `tests/helpers/`:
 
 `src/server/route-config.test.ts` (#60) fails when a route file exports `dynamic`, `revalidate`
 or `fetchCache`, or a GET does not start with `await connection()`.
-Planned: `src/lib/price-source.test.ts` (no UI price maths), `src/components/server-imports.test.ts`, and
-`tests/helpers/claims.ts` (`findClaims`, no invented claims).
+Planned: `src/components/server-imports.test.ts` (client code imports no server runtime).
 
 ## Last verified
 

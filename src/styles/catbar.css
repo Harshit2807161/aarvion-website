@@ -27,9 +27,11 @@
 @media (hover: hover) and (pointer: fine) { .catbar a:hover { background: var(--color-forest-50); color: var(--color-forest-900); } }
 
 @media (max-width: 880px) {
-  /* the chips scroll away with the page; only the logo row and search stay */
-  .catbar { position: relative; top: auto; z-index: auto; box-shadow: none; }
-  .catbar .catbar-in { width: auto; height: auto; gap: 8px; margin-inline: 0; padding: 2px var(--spacing-gutter) 10px; scroll-padding-inline: var(--spacing-gutter); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+  /* the chips scroll away with the page; only the logo row and search stay. The row clips
+     overflow, so its block padding (6px / 10px) must clear the 2px focus ring + 3px offset; the
+     header's `is-stuck` class reaches this nav too, hence the shadow reset. */
+  .catbar, .catbar.is-stuck { position: relative; top: auto; z-index: auto; box-shadow: none; }
+  .catbar .catbar-in { width: auto; height: auto; gap: 8px; margin-inline: 0; padding: 6px var(--spacing-gutter) 10px; scroll-padding-inline: var(--spacing-gutter); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
   .catbar-in::-webkit-scrollbar { display: none; }
   .catbar li:first-child a { margin-left: 0; }
   .catbar a { height: 36px; padding: 0 14px; box-shadow: inset 0 0 0 1px var(--color-neutral-300); position: relative; }
