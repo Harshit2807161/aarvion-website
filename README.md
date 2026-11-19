@@ -28,3 +28,10 @@ Requires Node 24 (`.nvmrc`) and pnpm 12. Copy `.env.example` to `.env.local`.
 - `pnpm db:up && pnpm db:indexes && pnpm seed`: start Mongo, create indexes, seed the catalogue (insert-only, safe to re-run)
 
 Stack decisions: `docs/decisions/stack.md`.
+
+## For maintainers and agents
+
+- [AGENTS.md](AGENTS.md): the operating manual every coding agent (and human) reads first.
+- [docs/dev/](docs/dev/README.md): setup, architecture, testing, CI, data, deploy and runbooks.
+- [docs/handoff.md](docs/handoff.md): current state, what is next, open owner actions.
+- [CHANGELOG.md](CHANGELOG.md): what changed, PR by PR.
