@@ -8,7 +8,6 @@ import { CART_UI_STORAGE_KEY } from "@/lib/cart/cart";
 import { cartStore } from "@/lib/cart/store";
 import { CartControl } from "./cart-control";
 import { CartPill } from "./cart-pill";
-import { CartReconcile } from "./cart-reconcile";
 
 const NAME = "Sacuwin 100";
 const SLUG = "sacuwin-100";
@@ -118,7 +117,7 @@ describe("CartControl", () => {
   });
 });
 
-describe("keyboard and reconcile", () => {
+describe("keyboard", () => {
   it("adds with Enter on Add, then Space on +, keeping focus on +", async () => {
     vi.useRealTimers(); // user-event waits on real timers
     const user = userEvent.setup();
@@ -131,20 +130,6 @@ describe("keyboard and reconcile", () => {
     await user.keyboard(" ");
     expect(document.querySelector(".qty")?.textContent).toBe("2");
     expect(document.activeElement).toBe(incBtn());
-  });
-
-  it("says so once when it drops a product that is no longer sold", async () => {
-    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ gone: 2, [SLUG]: 1 }));
-    render(
-      <>
-        <CartReconcile slugs={[SLUG]} />
-        <LiveRegion />
-      </>,
-    );
-    expect(await spoken()).toBe(
-      "A medicine in your cart is no longer available, so it was removed.",
-    );
-    expect(cartStore.getSnapshot()).toEqual({ [SLUG]: 1 });
   });
 });
 

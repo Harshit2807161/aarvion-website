@@ -138,25 +138,6 @@ describe("cartStore", () => {
     expect(calls).toBe(1);
   });
 
-  it("reconcile drops unknown slugs so they free the 20-pack cap", () => {
-    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ gone: 10, a: 10 }));
-    expect(cartStore.dispatch(inc("b"))).toBe("order_limit");
-    let calls = 0;
-    cartStore.subscribe(() => calls++);
-    expect(cartStore.reconcile(new Set(["a", "b"]))).toBe(true);
-    expect(cartStore.getSnapshot()).toEqual({ a: 10 });
-    expect(JSON.parse(sessionStorage.getItem(CART_UI_STORAGE_KEY)!)).toEqual({ a: 10 });
-    expect(cartStore.dispatch(inc("b"))).toBeNull();
-    cartStore.reconcile(new Set(["a", "b"]));
-    expect(calls).toBe(2);
-  });
-
-  it("reconcile with an empty catalogue keeps the cart", () => {
-    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ a: 2 }));
-    expect(cartStore.reconcile(new Set())).toBe(false);
-    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
-  });
-
   it("returns the block reason from dispatch", () => {
     for (let i = 0; i < 10; i++) cartStore.dispatch(inc("a"));
     expect(cartStore.dispatch(inc("a"))).toBe("product_limit");

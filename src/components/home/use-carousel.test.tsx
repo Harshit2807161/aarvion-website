@@ -8,7 +8,9 @@ type Api = ReturnType<typeof useCarousel>;
 const holder: { current: Api | null } = { current: null };
 /** Latest hook value, captured in an effect so render stays pure. */
 const live = {
-  get state() { return holder.current!.state; },
+  get state() {
+    return holder.current!.state;
+  },
   go: (i: number) => holder.current!.go(i),
   toggleStop: () => holder.current!.toggleStop(),
 };
@@ -17,7 +19,9 @@ function Fixture() {
   const rootRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const value = useCarousel({ count: 4, rootRef, trackRef });
-  useEffect(() => { holder.current = value; });
+  useEffect(() => {
+    holder.current = value;
+  });
   return (
     <div ref={rootRef} data-testid="root">
       <div ref={trackRef} className="hero-track" data-testid="track">
@@ -34,7 +38,11 @@ function Fixture() {
 
 function mockMedia({ reduced, phone }: { reduced: boolean; phone: boolean }) {
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: query.includes("prefers-reduced-motion") ? reduced : query === "(max-width: 719px)" ? phone : false,
+    matches: query.includes("prefers-reduced-motion")
+      ? reduced
+      : query === "(max-width: 719px)"
+        ? phone
+        : false,
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
@@ -179,7 +187,9 @@ describe("useCarousel DOM", () => {
 
   it("phone: a settled scroll sets current to the nearest slide, the last at the end", () => {
     const m = mount({ reduced: false, phone: true });
-    [0, 1, 2, 3].forEach((i) => Object.defineProperty(m.slide(i), "offsetLeft", { configurable: true, value: i * 300 }));
+    [0, 1, 2, 3].forEach((i) =>
+      Object.defineProperty(m.slide(i), "offsetLeft", { configurable: true, value: i * 300 }),
+    );
     Object.defineProperty(m.track, "clientWidth", { configurable: true, value: 400 });
     Object.defineProperty(m.track, "scrollWidth", { configurable: true, value: 1200 });
     m.track.scrollLeft = 330;

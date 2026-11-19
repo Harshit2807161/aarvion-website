@@ -30,7 +30,9 @@ type Options = {
  * reduced-motion preference is read, `ready` is false and nothing autoplays.
  */
 export function useCarousel({ count, rootRef, trackRef }: Options) {
-  const [state, dispatch] = useReducer(carouselReducer, undefined, () => initialCarousel(count, true));
+  const [state, dispatch] = useReducer(carouselReducer, undefined, () =>
+    initialCarousel(count, true),
+  );
   const phone = useRef(false);
   const prev = useRef(0);
   const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -64,7 +66,12 @@ export function useCarousel({ count, rootRef, trackRef }: Options) {
     if (!root || !track) return;
     const hold = (why: Hold, on: boolean) => dispatch({ type: "hold", why, on });
     const cleanups: Array<() => void> = [];
-    const listen = <T extends EventTarget>(t: T, type: string, fn: (e: never) => void, opts?: AddEventListenerOptions) => {
+    const listen = <T extends EventTarget>(
+      t: T,
+      type: string,
+      fn: (e: never) => void,
+      opts?: AddEventListenerOptions,
+    ) => {
       t.addEventListener(type, fn as EventListener, opts);
       cleanups.push(() => t.removeEventListener(type, fn as EventListener, opts));
     };
@@ -80,8 +87,16 @@ export function useCarousel({ count, rootRef, trackRef }: Options) {
       if (phone.current) track.scrollLeft = left(stateRef.current.current);
     });
 
-    listen(root, "pointerenter", (e: PointerEvent) => e.pointerType === "mouse" && hold("hover", true));
-    listen(root, "pointerleave", (e: PointerEvent) => e.pointerType === "mouse" && hold("hover", false));
+    listen(
+      root,
+      "pointerenter",
+      (e: PointerEvent) => e.pointerType === "mouse" && hold("hover", true),
+    );
+    listen(
+      root,
+      "pointerleave",
+      (e: PointerEvent) => e.pointerType === "mouse" && hold("hover", false),
+    );
     listen(root, "focusin", () => hold("focus", true));
     listen(root, "focusout", (e: FocusEvent) => {
       if (!root.contains(e.relatedTarget as Node | null)) hold("focus", false);
@@ -167,7 +182,10 @@ export function useCarousel({ count, rootRef, trackRef }: Options) {
     if (animate && !phone.current && from !== to && slides[from]) {
       const out = slides[from];
       out.classList.add("is-leaving");
-      leaveTimer.current = setTimeout(() => out.classList.remove("is-leaving"), stateRef.current.motion ? LEAVE_MS : 0);
+      leaveTimer.current = setTimeout(
+        () => out.classList.remove("is-leaving"),
+        stateRef.current.motion ? LEAVE_MS : 0,
+      );
     }
   }
 
@@ -177,7 +195,8 @@ export function useCarousel({ count, rootRef, trackRef }: Options) {
     if (from === state.current) return;
     applyDom(from, state.current, true);
     const track = trackRef.current;
-    if (phone.current && track && Math.abs(track.scrollLeft - left(state.current)) > 2) scrollToSlide(state.current);
+    if (phone.current && track && Math.abs(track.scrollLeft - left(state.current)) > 2)
+      scrollToSlide(state.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.current]);
 

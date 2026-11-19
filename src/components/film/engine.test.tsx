@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createFilm } from "./engine";
 
-type IOInstance = { cb: IntersectionObserverCallback; opts?: IntersectionObserverInit; disconnect: () => void };
+type IOInstance = {
+  cb: IntersectionObserverCallback;
+  opts?: IntersectionObserverInit;
+  disconnect: () => void;
+};
 let ios: IOInstance[];
 let ros: { disconnect: () => void; cb: () => void }[];
 let rafQueue: FrameRequestCallback[];
@@ -9,7 +13,8 @@ let scrollY = 0;
 
 function setBox(el: Element, o: { top?: number; height?: number; offsetHeight?: number }) {
   el.getBoundingClientRect = () => ({ top: o.top ?? 0, height: o.height ?? 0 }) as DOMRect;
-  if (o.offsetHeight !== undefined) Object.defineProperty(el, "offsetHeight", { value: o.offsetHeight, configurable: true });
+  if (o.offsetHeight !== undefined)
+    Object.defineProperty(el, "offsetHeight", { value: o.offsetHeight, configurable: true });
 }
 
 function flushRaf() {
@@ -60,7 +65,10 @@ beforeEach(() => {
         ios.push(this.inst);
       }
       observe(t: Element) {
-        this.inst.cb([{ target: t, isIntersecting: true } as IntersectionObserverEntry], this as never);
+        this.inst.cb(
+          [{ target: t, isIntersecting: true } as IntersectionObserverEntry],
+          this as never,
+        );
       }
       disconnect() {
         this.inst.disconnect();
@@ -169,7 +177,9 @@ describe("createFilm with film on", () => {
   });
 
   it("destroy removes listeners and disconnects observers", () => {
-    const remove = vi.spyOn(window, "removeEventListener") as unknown as { mock: { calls: unknown[][] } };
+    const remove = vi.spyOn(window, "removeEventListener") as unknown as {
+      mock: { calls: unknown[][] };
+    };
     const film = createFilm(build(), { film: true });
     film.destroy();
     const names = remove.mock.calls.map((c) => c[0]);
