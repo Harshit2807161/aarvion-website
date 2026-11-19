@@ -107,8 +107,10 @@ Helpers in `tests/helpers/`:
   rate limits never collide; read codes from `/dev/outbox`.
 - In CI a failed run uploads `playwright-report/` and `test-results/` as the `playwright-report`
   artifact for 7 days.
+- `e2e/home.spec.ts` checks the hero banner: it rotates within 7 s with no hydration error, holds
+  on hover, answers the keyboard, stays put under reduced motion, and is a scroll-snap row at 390px.
 - Planned (UI plan): `e2e/budgets.spec.ts` (LCP, CLS, first-load JS), `freshness.spec.ts`, and
-  specs for the home, shell, catalogue, search and login.
+  specs for the shell, catalogue, search and login.
 
 ## Guard tests (they enforce conventions)
 
