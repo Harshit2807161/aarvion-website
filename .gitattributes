@@ -1,0 +1,4 @@
+# Keep both sides when parallel PRs each add a CHANGELOG line (built-in union driver).
+# GitHub ignores this; it applies when a branch merges origin/main locally.
+# After a union merge, check CHANGELOG.md for duplicated or misplaced lines.
+CHANGELOG.md merge=union
