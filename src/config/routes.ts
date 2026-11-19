@@ -11,6 +11,10 @@ export const ROUTES = {
   account: "/account",
   uploadRx: "/account/prescriptions",
   contact: "/contact",
+  /** Sections of the home page. */
+  how: "/#how",
+  questions: "/#questions",
+  faqWin2age: "/#faq-win2age",
   category: (slug: string) => `/category/${slug}`,
   product: (slug: string) => `/product/${slug}`,
   legal: {

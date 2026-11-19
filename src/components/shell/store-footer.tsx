@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { ROUTES } from "@/config/routes";
-import { LEGAL_PLACEHOLDER, legalValue, SITE_CONFIG } from "@/config/site";
+import { LEGAL_PLACEHOLDER, legalValue, SITE_CONFIG, type SiteConfig } from "@/config/site";
 import type { Category } from "@/server/catalogue/schema";
 import { Brand } from "./brand";
-
-const { legalName, address, copyrightYear } = SITE_CONFIG;
 
 /** A footer item whose page does not exist yet: the label with a "To be added" pill. */
 function Pending({ label }: { label: string }) {
@@ -26,20 +24,25 @@ function FootLink({ href, children }: { href: string; children: string }) {
   );
 }
 
-/** Aarvion's licence numbers may be several; print them as one comma-separated line. */
-const licences = SITE_CONFIG.drugLicenceNumbers?.join(", ");
-
 /**
  * The store footer, ported from the prototype's chromeFoot. A server component: pass the
  * live categories (the root layout reads them from the cached catalogue).
  */
-export function StoreFooter({ categories }: { categories: readonly Category[] }) {
-  const care = SITE_CONFIG.customerCare;
+export function StoreFooter({
+  categories,
+  config = SITE_CONFIG,
+}: {
+  categories: readonly Category[];
+  config?: SiteConfig;
+}) {
+  const { legalName, address, copyrightYear, customerCare: care } = config;
+  // Licence numbers may be several; print them as one comma-separated line.
+  const licences = config.drugLicenceNumbers?.join(", ");
   return (
     <footer className="foot" id="contact">
       <div className="wrap foot-top">
         <div className="foot-brand">
-          <Brand variant="foot" />
+          <Brand />
           <p className="foot-about">
             Aarvion’s own prescription medicines, sold by Aarvion. A pharmacist checks every
             prescription before an order is packed.
@@ -63,8 +66,8 @@ export function StoreFooter({ categories }: { categories: readonly Category[] })
             Help and policies
           </h2>
           <ul>
-            <FootLink href="/#how">How ordering works</FootLink>
-            <FootLink href="/#questions">Questions</FootLink>
+            <FootLink href={ROUTES.how}>How ordering works</FootLink>
+            <FootLink href={ROUTES.questions}>Questions</FootLink>
             <FootLink href={ROUTES.account}>Track an order</FootLink>
             <FootLink href={ROUTES.legal.returns}>Refunds and cancellation</FootLink>
             <FootLink href={ROUTES.legal.shipping}>Shipping</FootLink>
@@ -80,7 +83,7 @@ export function StoreFooter({ categories }: { categories: readonly Category[] })
           </h2>
           <ul>
             <Pending label="About Aarvion" />
-            <FootLink href="/#faq-win2age">Why some packs say Win2Age</FootLink>
+            <FootLink href={ROUTES.faqWin2age}>Why some packs say Win2Age</FootLink>
             <FootLink href={ROUTES.account}>Your account</FootLink>
             <FootLink href={ROUTES.contact}>Contact</FootLink>
           </ul>
@@ -117,29 +120,40 @@ export function StoreFooter({ categories }: { categories: readonly Category[] })
           </div>
           <div>
             <dt>Registered pharmacist</dt>
-            <dd>{legalValue(SITE_CONFIG.registeredPharmacist)}</dd>
+            <dd>{legalValue(config.registeredPharmacist)}</dd>
           </div>
           <div>
             <dt>Grievance officer</dt>
-            <dd>{legalValue(SITE_CONFIG.grievanceOfficer)}</dd>
+            <dd>{legalValue(config.grievanceOfficer)}</dd>
           </div>
           <div>
             <dt>GSTIN</dt>
-            <dd>{legalValue(SITE_CONFIG.gstin)}</dd>
+            <dd>{legalValue(config.gstin)}</dd>
           </div>
         </dl>
       </div>
       <div className="wrap foot-pay">
-        <p className="foot-pay-label">Pay with</p>
-        <ul className="pay">
-          <li>UPI</li>
-          <li>Cards</li>
-          <li>Netbanking</li>
-        </ul>
-        <p>through Razorpay, or</p>
-        <ul className="pay">
-          <li>Cash on delivery</li>
-        </ul>
+        {config.onlinePayments ? (
+          <>
+            <p className="foot-pay-label">Pay with</p>
+            <ul className="pay">
+              <li>UPI</li>
+              <li>Cards</li>
+              <li>Netbanking</li>
+            </ul>
+            <p>through Razorpay, or</p>
+            <ul className="pay">
+              <li>Cash on delivery</li>
+            </ul>
+          </>
+        ) : (
+          <>
+            <p className="foot-pay-label">Pay with</p>
+            <ul className="pay">
+              <li>Cash on delivery</li>
+            </ul>
+          </>
+        )}
       </div>
       <div className="wrap foot-base">
         <p>

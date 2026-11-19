@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { SITE_CONFIG, type SiteConfig } from "@/config/site";
 import type { Category } from "@/server/catalogue/schema";
 import { StoreFooter } from "./store-footer";
 
@@ -89,14 +90,43 @@ describe("StoreFooter", () => {
     expect(contact.getByText("Email").nextElementSibling?.textContent).toBe("To be added");
   });
 
-  it("lists the payment methods", () => {
+  it("offers cash on delivery only while online payments are off", () => {
     const { container } = render(<StoreFooter categories={categories} />);
     const pay = container.querySelector(".foot-pay")!;
-    expect(pay.textContent).toContain("Pay with");
+    expect(pay.textContent).toBe("Pay withCash on delivery");
+    expect(pay.textContent).not.toMatch(/UPI|Cards|Netbanking|Razorpay/);
+  });
+
+  it("lists the online methods once online payments are on", () => {
+    const { container } = render(
+      <StoreFooter categories={categories} config={{ ...SITE_CONFIG, onlinePayments: true }} />,
+    );
+    const pay = container.querySelector(".foot-pay")!;
     for (const m of ["UPI", "Cards", "Netbanking", "Cash on delivery"]) {
       expect(pay.textContent).toContain(m);
     }
     expect(pay.textContent).toContain("through Razorpay, or");
+  });
+
+  it("prints supplied legal facts and contact details instead of the placeholder", () => {
+    const config: SiteConfig = {
+      ...SITE_CONFIG,
+      drugLicenceNumbers: ["DL-20B-1", "DL-21B-2"],
+      registeredPharmacist: "A. Pharmacist",
+      grievanceOfficer: "B. Officer",
+      gstin: "07AAAAA0000A1Z5",
+      customerCare: { phone: "+91 11 0000 0000", email: "care@example.test" },
+    };
+    const { container } = render(<StoreFooter categories={categories} config={config} />);
+    const dds = [...container.querySelectorAll("dd")].map((d) => d.textContent);
+    expect(dds).toEqual([
+      "+91 11 0000 0000",
+      "care@example.test",
+      "DL-20B-1, DL-21B-2",
+      "A. Pharmacist",
+      "B. Officer",
+      "07AAAAA0000A1Z5",
+    ]);
   });
 
   it("ends with the exact copyright line", () => {

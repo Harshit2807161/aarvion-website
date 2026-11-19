@@ -68,7 +68,7 @@ UI plan tasks:
 | 6 | OTP field, customer toast and live region | `feat/ui-otp-toast` | F6 | not started |
 | 7 | Cache Components, shelf order and the cached, tagged catalogue | `feat/catalogue-cache` | C3 | 7a merged (#60); 7b open (#68) |
 | 8 | Shopper category names | `feat/category-display-names` | v2 brief | merged (#51) |
-| 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | 9a open (#76: config, routes, metadataBase); 9b footer and 9c Operate shell not opened |
+| 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | 9a merged (#76); 9b footer open (#82); 9c Operate shell not opened |
 | 10 | Announcement bar and store header | `feat/store-header` | F7 | not started |
 | 11 | Category bar and mobile chip row | `feat/category-bar` | F7 | not started |
 | 12 | 404 and error pages | `feat/error-pages` | F7 | not started |
