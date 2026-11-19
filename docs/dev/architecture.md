@@ -127,14 +127,15 @@ login). Every code-check failure (unknown, expired, consumed, exhausted or misma
 bad identifier) is 400 `invalid_code`, for unknown and known identifiers alike; the per-IP limit
 is 429 `rate_limited` and the lockout 429 `too_many_attempts`, both with `Retry-After`.
 
-**Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one
-letter, and no Unicode control or format character such as a zero-width space or a bidi
-override, since names show in staff views and emails), `adult: true`, `termsPrivacy: true` and
-`marketing` (a boolean; the UI leaves it off). A new user stores them as `name` and
-`consents = { channel, termsPrivacy: { version, at }, adult: { at }, marketing: { optedIn, at }
-}`, where `version` is `CONSENT_VERSION` (`POLICY_VERSION` in `src/config/site.ts`, today
-`2026-11-17`) and `channel` is the OTP channel verified. They are written on insert only;
-bumping `POLICY_VERSION` does not yet ask existing users again.
+**Sign-up consent** (`SignupInput`, strict): `name` (trimmed, 2–80 characters, at least one letter,
+and no Unicode control or format character such as a zero-width space or a bidi override, since
+names show in staff views and emails; only a zero-width joiner or non-joiner with a letter or mark
+on both sides is allowed, for Indic spellings), `adult: true`, `termsPrivacy: true` and `marketing`
+(a boolean; the UI leaves it off). A new user stores them as `name` and `consents = { channel,
+termsPrivacy: { version, at }, adult: { at }, marketing: { optedIn, at } }`, where `version` is
+`CONSENT_VERSION` (`POLICY_VERSION` in `src/config/site.ts`, today `2026-11-17`) and `channel` is
+the OTP channel verified. They are written on insert only; bumping `POLICY_VERSION` does not yet ask
+existing users again.
 
 **Session resolution** (`getAuth`): read the 43-character token from the cookie → look up by its
 hash → refuse if idle or absolute expiry has passed (and delete it) → touch at most once per

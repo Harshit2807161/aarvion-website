@@ -107,16 +107,14 @@ export const CONSENT_VERSION = POLICY_VERSION;
  * choice (optional in the UI, off by default, but always stated here). Unknown keys are refused.
  *
  * After trimming, the name may hold no Unicode control or format character (`\p{C}`): zero-width
- * and bidi marks survive `trim()` and can hide or reorder a name in staff views and emails.
+ * and bidi marks survive `trim()` and can hide or reorder a name in staff views and emails. The
+ * one exception is a zero-width non-joiner or joiner (U+200C, U+200D) with a letter or mark on
+ * both sides, which Indic spellings need (the Marathi eyelash ra, an explicit virama).
  */
+const NO_HIDDEN_CHARS = /^(?:\P{C}|(?<=[\p{L}\p{M}])[\u200C\u200D](?=[\p{L}\p{M}]))*$/u;
+
 export const SignupInput = z.strictObject({
-  name: z
-    .string()
-    .trim()
-    .min(2)
-    .max(80)
-    .regex(/\p{L}/u)
-    .regex(/^\P{C}*$/u),
+  name: z.string().trim().min(2).max(80).regex(/\p{L}/u).regex(NO_HIDDEN_CHARS),
   adult: z.literal(true),
   termsPrivacy: z.literal(true),
   marketing: z.boolean(),

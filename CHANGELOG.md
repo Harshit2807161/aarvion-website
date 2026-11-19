@@ -174,6 +174,9 @@ bottom use commit SHAs.
 - A rate-limit store error while clearing the failure counter after a successful OTP verify no
   longer turns the login into a 500 with a session the client never receives; it is logged by
   error name, like a failed audit write (#99).
+- Sign-up names may hold a zero-width joiner or non-joiner (U+200D, U+200C) between two letters
+  or marks, as Indic spellings such as the Marathi eyelash ra need; #107 refused them. Every other
+  control or format character is still refused.
 
 ## [0.1.0] - 2026-11-17
 

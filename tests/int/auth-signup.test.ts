@@ -249,10 +249,14 @@ describe("sign-up on OTP verify", () => {
     expect(user?.consents?.marketing).toEqual({ optedIn: true, at: T });
   });
 
-  it("accepts real names in Latin and Devanagari", async () => {
+  it("accepts real names in Latin and Indic scripts, joiners between letters included", async () => {
     for (const [identifier, name] of [
       ["ravi@example.com", "Ravi Kumar"],
       ["priya@example.com", "प्रिया शर्मा"],
+      // Marathi eyelash ra: a zero-width joiner between a virama and a letter.
+      ["aarya@example.com", "\u0906\u0930\u094D\u200D\u092F\u093E"],
+      // A zero-width non-joiner keeps an explicit virama (Dwarka, in Devanagari).
+      ["dwarka@example.com", "\u0926\u094D\u200C\u0935\u093E\u0930\u0915\u093E"],
     ] as const) {
       const res = await verify(await sendAndRead(identifier), {
         identifier,
@@ -289,6 +293,10 @@ describe("sign-up on OTP verify", () => {
       { ...SIGNUP, name: "\u200BA\u200B" },
       { ...SIGNUP, name: "Asha \u202ERao" },
       { ...SIGNUP, name: "Asha\nRao" },
+      // A joiner is allowed only between two letters or marks.
+      { ...SIGNUP, name: "\u200DRavi" },
+      { ...SIGNUP, name: "Ravi\u200D" },
+      { ...SIGNUP, name: "\u0906\u0930\u094D\u200D\u200D\u092F\u093E" },
       { ...SIGNUP, role: "admin" },
       "Asha Rao",
     ];
