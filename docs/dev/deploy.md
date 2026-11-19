@@ -90,9 +90,11 @@ Nothing below exists yet; each lands before or with the production deploy.
     `NODE_ENV=production`). `SITE_CONFIG` must be filled with the drug licence numbers,
     registered pharmacist, grievance officer, GSTIN, and both a customer care phone and email
     (a partial pair counts as pending).
-- **Go-live: online payments.** The footer's payment line says only "Cash on delivery" and must
-  keep doing so until live Razorpay keys exist (plan Stage 6), so the site never claims UPI, cards
-  or netbanking before they work. The PR that enables prepaid checkout changes the line.
+- **Go-live: online payments.** `SITE_CONFIG.onlinePayments` (`src/config/site.ts`) is `false`, so
+  the footer's payment line says only "Cash on delivery". Once live Razorpay keys exist and prepaid
+  checkout works (plan Stage 6), flip it to `true` in the same PR: the line then adds UPI, cards
+  and netbanking through Razorpay. Never flip it earlier; the site must not claim methods that do
+  not work.
 - **Index drift detection** (compare live index options with the registry) before the H5
   deploy ([docs/decisions/db.md](../decisions/db.md)).
 - **H5 production deploy and runbook**, including how to run `db:indexes` in production.
