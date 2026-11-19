@@ -31,6 +31,23 @@ function designColors(): Record<string, string> {
   return out;
 }
 
+/** The text between the braces of the first block whose prelude starts with `prelude`. */
+function block(css: string, prelude: string): string {
+  const start = css.indexOf(prelude);
+  if (start < 0) return "";
+  let depth = 0;
+  for (let i = css.indexOf("{", start); i < css.length; i++) {
+    if (css[i] === "{") depth++;
+    if (css[i] === "}" && --depth === 0) return css.slice(css.indexOf("{", start) + 1, i);
+  }
+  return "";
+}
+
+/** Durations, stagger and z-layers have no Tailwind namespace, so they live in :root. */
+const isPlain = (d: string) => /^--(duration-|stagger-|z-)/.test(d);
+const theme = block(globals, "@theme static");
+const rootBlock = block(globals, ":root");
+
 describe("design tokens in globals.css", () => {
   const declarations = tokenDeclarations().filter((d) => !d.startsWith("--font-"));
 
@@ -39,7 +56,11 @@ describe("design tokens in globals.css", () => {
   });
 
   it.each(declarations.map((d) => [d]))("carries %s verbatim", (declaration) => {
-    expect(globals).toContain(declaration);
+    expect(isPlain(declaration) ? rootBlock : theme).toContain(declaration);
+  });
+
+  it("resets Tailwind's default palette", () => {
+    expect(theme).toContain("--color-*: initial;");
   });
 
   it("leaves --font-* to the font task", () => {
@@ -72,7 +93,7 @@ describe("design tokens in globals.css", () => {
 
   it("[C13] no stylesheet reads the bare --line-strong", () => {
     const files = globSync("src/**/*.css", { cwd: root });
-    expect(files.length).toBeGreaterThan(0);
+    expect(files.length).toBeGreaterThan(1);
     for (const file of files) {
       expect(read(file), file).not.toContain("var(--line-strong)");
     }

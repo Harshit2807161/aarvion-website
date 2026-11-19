@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/base.css";
 
 /*
   Aarvion design tokens: design/prototype/css/tokens.css, verbatim except --font-*
@@ -8,6 +9,9 @@
   with the prototype and DESIGN.md.
 */
 @theme static {
+  /* Only Aarvion colours exist: drop Tailwind's default palette. */
+  --color-*: initial;
+
   /* ── Forest: the field colour. 800 is the brand ground. ─────────────── */
   --color-forest-50: #f1f6f2;
   --color-forest-100: #dfebe2;

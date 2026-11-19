@@ -4,6 +4,8 @@ import { afterEach, vi } from "vitest";
 
 /** Mutable pathname the mocked `usePathname` reads; tests set `mockPathname.value`. */
 export const mockPathname = vi.hoisted(() => ({ value: "/" }));
+/** Search params the mocked `useSearchParams` returns; one stable object, settable per test. */
+export const mockSearchParams = vi.hoisted(() => ({ value: new URLSearchParams() }));
 export const routerSpies = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
@@ -13,12 +15,13 @@ export const routerSpies = vi.hoisted(() => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => routerSpies,
   usePathname: () => mockPathname.value,
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => mockSearchParams.value,
 }));
 
 afterEach(() => {
   cleanup();
   mockPathname.value = "/";
+  mockSearchParams.value = new URLSearchParams();
   routerSpies.push.mockClear();
   routerSpies.replace.mockClear();
   routerSpies.refresh.mockClear();
