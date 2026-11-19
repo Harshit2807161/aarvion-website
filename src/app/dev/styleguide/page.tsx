@@ -4,6 +4,7 @@ import { RxBadge, StatusTag, type StatusTone } from "@/components/base/badge";
 import { Button, ButtonLink, type ButtonSize, type ButtonVariant } from "@/components/base/button";
 import { ICON_NAMES, Icon } from "@/components/base/icon";
 import { PriceInline, StampPrice } from "@/components/base/stamp-price";
+import { FormsDemo } from "./forms-demo";
 import { requireDevRoute } from "@/server/dev-only";
 
 export const metadata: Metadata = { title: "Styleguide (dev)", robots: { index: false } };
@@ -115,6 +116,13 @@ export default async function StyleguidePage() {
             <PriceInline key={mrp} mrpPaise={mrp} />
           ))}
         </div>
+      </section>
+
+      <section aria-labelledby="sg-forms-title" id="styleguide-forms">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-forms-title">
+          Form fields
+        </h2>
+        <FormsDemo />
       </section>
 
       <section aria-labelledby="sg-icons">

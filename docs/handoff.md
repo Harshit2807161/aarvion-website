@@ -68,7 +68,7 @@ UI plan tasks:
 | 6 | OTP field, customer toast and live region | `feat/ui-otp-toast` | F6 | not started |
 | 7 | Cache Components, shelf order and the cached, tagged catalogue | `feat/catalogue-cache` | C3 | 7a merged (#60); 7b open (#68) |
 | 8 | Shopper category names | `feat/category-display-names` | v2 brief | merged (#51) |
-| 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | not started |
+| 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | 9a open (#76: config, routes, metadataBase); 9b footer and 9c Operate shell not opened |
 | 10 | Announcement bar and store header | `feat/store-header` | F7 | not started |
 | 11 | Category bar and mobile chip row | `feat/category-bar` | F7 | not started |
 | 12 | 404 and error pages | `feat/error-pages` | F7 | not started |
@@ -130,6 +130,7 @@ UI plan tasks:
 | 19 | Review the official logo now in `public/brand/` (#67; it replaced the redrawn draft and the "outlined wordmark" input) | brand use everywhere | header and footer |
 | 20 | Legally reviewed product information copy (uses, storage, precautions) | sections are omitted until then (no claims) | product pages |
 | 21 | Sacuwin leads the Heart care rail through `sortOrder` 0–2 (controller ruling, landed in #51); override if wanted, and review the other rulings in `rulings.md` | owner's override | — |
+| 22 | Set `APP_URL` to the real site URL in the Production scope (H4 gate) | without it `metadataBase` falls back to localhost and Open Graph links point there | launch |
 
 ## What is next
 

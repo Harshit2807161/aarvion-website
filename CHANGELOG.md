@@ -63,11 +63,17 @@ bottom use commit SHAs.
   hides its tag below 1% and `src/lib/price-source.test.ts` keeps UI code from recomputing prices (#71).
 - `Button` and `ButtonLink` in `src/components/base/` (seven variants, three sizes, a busy state that
   drops clicks) with `src/styles/buttons.css` (#74).
+- `src/config/site.ts` (`SITE_CONFIG`, `legalValue`, `assertLegalConfigComplete`, the H4 production
+  gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`) (#76).
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
+- `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 
 ### Changed
 
+- The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
+  resolve to localhost; an unset or invalid value falls back to `http://localhost:3000` instead of
+  failing the build (#76).
 - `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
   a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).

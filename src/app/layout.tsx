@@ -1,11 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { resolveSiteMetadataBase, SITE_CONFIG } from "@/config/site";
 import { fontVariables } from "@/fonts";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Aarvion Pharmaceuticals",
-  description: "Aarvion Pharmaceuticals storefront",
-};
+// metadataBase is what Next resolves opengraph-image and icon URLs against; without it they
+// point at localhost. It reads the raw APP_URL, not getEnv(): getEnv validates every variable, and
+// a bad unrelated one (or a bad APP_URL) must not take down the build and every page, the 404
+// included. resolveSiteMetadataBase validates the value and falls back to localhost.
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    metadataBase: resolveSiteMetadataBase(process.env.APP_URL),
+    title: SITE_CONFIG.legalName,
+    description: `${SITE_CONFIG.legalName} storefront`,
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
