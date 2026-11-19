@@ -28,10 +28,16 @@ curl -s http://localhost:3000/api/health   # {"status":"ok","version":"0.1.0","d
 - `pnpm db:up` waits for the container healthcheck, which also runs `rs.initiate` the first time.
   Data persists in the `mongo-data` Docker volume. `pnpm db:down` stops the container and keeps
   the volume.
-- The seed is **insert-only**: re-running it never changes existing documents. To start a dev
-  database over, drop it and seed again (not verified here):
+- The seed is **insert-only**: re-running it never changes existing documents. To apply a data
+  change to a database that already has it, prefer a targeted `updateOne` (the runbooks give
+  each one, and README "Reseeding after the category rename" gives the category one).
+- Starting a database over is **only for the local docker database** (or a fresh one) with no
+  admin edits, orders or carts you want to keep, and **never for Preview or Production**. Check
+  the name first, then drop it and seed again (not verified here):
 
   ```sh
+  # replace aarvion with your MONGODB_DB if you changed it
+  docker compose exec mongo mongosh --quiet --eval 'db.getSiblingDB("aarvion").getName()'
   docker compose exec mongo mongosh --quiet --eval 'db.getSiblingDB("aarvion").dropDatabase()'
   pnpm db:indexes && pnpm seed
   ```
@@ -79,7 +85,7 @@ curl -s 'http://localhost:3000/dev/outbox?to=you@example.test'
 ```
 
 - `to` is the **normalised** identifier: an email trimmed and lowercased, or a phone as
-  `+91XXXXXXXXXX` (URL-encode the plus: `to=%2B919876543210`). SMS messages carry the code in
+  `+91XXXXXXXXXX` (URL-encode the plus: `to=%2B91XXXXXXXXXX`). SMS messages carry the code in
   `payload.vars.code`; emails in `payload.text`.
 - `/dev/*` answers 404 whenever `isMockForbidden()` holds: on Vercel Production, on a production
   build without `ALLOW_MOCKS_IN_PROD_BUILD=1`, or when the database is `aarvion_prod`. Under

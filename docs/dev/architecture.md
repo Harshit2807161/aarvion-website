@@ -35,14 +35,16 @@
 | `src/server/` | business logic (below) |
 | `tests/int/`, `tests/helpers/` | integration tests and their helpers |
 | `e2e/` | Playwright specs |
-| `scripts/` | `pr-size.ts`, `sync-product-images.ts`, `seed.ts`, `db-indexes.ts`; Python asset tools (`render_foil.py`, `make_cutouts.py`, `composite_store_banners.py`, `build_stage0_docs.py`, …) |
+| `scripts/` | `pr-size.ts`, `merge-gate.sh`, `sync-product-images.ts`, `seed.ts`, `db-indexes.ts`; Python asset tools (`render_foil.py`, `make_cutouts.py`, `composite_store_banners.py`, `build_stage0_docs.py`, …) |
 | `data/` | `products.json` (seed source), `product-images.json` (generated), `source/` (Drive analysis) |
 | `public/products/` | generated, content-hashed product images |
+| `public/foil/`, `public/banners/` | foil, dome and banner rasters copied unchanged from `design/prototype/assets/`, each with a `.json` provenance sidecar (`scripts/public-provenance.test.ts`) |
+| `src/components/` | React components, added task by task (today `home/carousel.ts`, the banner carousel reducer) |
 | `assets/` | source photos and cutouts, brand SVG drafts, banner scenes |
 | `design/prototype/` | the approved hi-fi prototype (excluded from ESLint) |
 
-Planned folders (UI plan): `src/components/**`, more of `src/lib/**`, `src/fonts/`,
-`src/config/`, `public/{foil,banners,brand}/`. See the plan's "File Structure".
+Planned folders (UI plan): more of `src/components/**` and `src/lib/**`, `src/fonts/`,
+`src/config/`, `public/brand/`. See the plan's "File Structure".
 
 ## Server modules
 
@@ -106,8 +108,10 @@ exists.
 (429 `too_many_attempts`) → spend an attempt atomically and compare in constant time → only a
 mismatch on a live challenge hits the failure counter → flip `consumedAt` (single use) → find or
 create the user → revoke any presented session → create a session → clear the failure counter →
-audit `auth.login` (a failed audit write is logged, never fails the login). All failures are 400
-`invalid_code`.
+audit `auth.login` (a failed audit write is logged, never fails the login). Every code-check
+failure (unknown, expired, consumed, exhausted or mismatched code, or a bad identifier) is 400
+`invalid_code`; the per-IP limit is 429 `rate_limited` and the lockout 429 `too_many_attempts`,
+both with `Retry-After`.
 
 **Session resolution** (`getAuth`): read the 43-character token from the cookie → look up by its
 hash → refuse if idle or absolute expiry has passed (and delete it) → touch at most once per
@@ -136,7 +140,7 @@ parts with `setDepsForTests({ now, sms, … })` and restore with `resetDepsForTe
 
 ## Caching
 
-**Now:** nothing is cached. Every API and dev route exports `dynamic = "force-dynamic"`; the
+**Now (until UI Task 7):** nothing is cached. Every API and dev route exports `dynamic = "force-dynamic"`; the
 placeholder home is static.
 
 **Planned (UI plan Task 7 onward):**
