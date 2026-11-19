@@ -20,6 +20,11 @@ describe("countChangedLines", () => {
     expect(countChangedLines(numstat, DEFAULT_EXCLUDES)).toBe(5);
   });
 
+  it("excludes the font licence texts but not other text files", () => {
+    const numstat = "90\t0\tassets/fonts/OFL-Geist.txt\n6\t0\tassets/other.txt";
+    expect(countChangedLines(numstat, DEFAULT_EXCLUDES)).toBe(6);
+  });
+
   it("counts binary rows as 0", () => {
     expect(countChangedLines("-\t-\tsrc/logo.bin\n2\t2\tsrc/a.ts", [])).toBe(4);
   });
