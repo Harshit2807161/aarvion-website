@@ -18,7 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
-- Terms of use at `/legal/terms` (`src/app/(store)/legal/terms/page.tsx`): who can order, OTP sign-in, the prescription rule and validity ruling, prices, payment and quantity limits, delivery, cancellations and returns, no medical advice, and "To be added" for liability and governing law; the payment section says cash on delivery only while `onlinePayments` is false.
+- Terms of use at `/legal/terms` (`src/app/(store)/legal/terms/page.tsx`): who can order, OTP sign-in, the prescription rule and validity ruling, prices, payment and quantity limits, delivery, cancellations and returns, no medical advice, and "To be added" for liability and governing law; the payment section says cash on delivery only while `onlinePayments` is false (#105).
 - Privacy policy at `/legal/privacy` (`src/app/(store)/legal/privacy/page.tsx`): what is collected and why, DPDP Act 2023 consent and rights, sharing, OTP, session and prescription protection as built, and "To be added" for the grievance officer, customer care, storage location and retention periods (#103).
 - Category bar (`src/components/shell/category-bar.tsx`, `src/styles/catbar.css`), mounted in the `(store)` layout under the header: one link per live category in sortOrder, then All medicines. Category pages are still pending (Task 30), so those links stay in `PENDING_ROUTES`. At 880px and below it is a 36px chip row that scrolls away with the page, starting on the search field's edge and running off the screen edge (`margin-inline: 0`, gutter `padding-inline` and `scroll-padding-inline`) (#100).
 - Legal page layout for every policy page: `LegalPage`, `LegalSection`, `Pending` and `Fact` in `src/components/legal/legal-page.tsx` (the Operate shell, a 62ch `.prose` column from `src/styles/prose.css`, "Last updated" from `POLICY_VERSION`, and a "To be added" chip for each unsupplied fact), and `findClaims` in `tests/helpers/claims.ts`, the invented-claims check for page tests, which also flags copy saying every medicine needs a prescription unless the page passes `allRx` from catalogue data [C25] (#98).
@@ -99,7 +99,7 @@ bottom use commit SHAs.
 
 ### Changed
 
-- Privacy policy copy: how sign-in codes and sessions are stored now reads "scrambled (hashed) form" instead of "keyed hash (HMAC)", and the last-updated date is stated once, at the top.
+- Privacy policy copy: how sign-in codes and sessions are stored now reads "scrambled (hashed) form" instead of "keyed hash (HMAC)", and the last-updated date is stated once, at the top (#105).
 - Customer routes live in the `src/app/(store)` route group, whose layout renders the store footer;
   the root layout keeps only the toast region and the single live region, so admin and staff routes
   get no store footer (this includes `/dev/*` and the 404 page). The seeded-database build
