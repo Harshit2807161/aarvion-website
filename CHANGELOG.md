@@ -94,7 +94,7 @@ bottom use commit SHAs.
 - Sign-up building blocks in `src/server/auth/`: `checkOtpChallenge` confirms a code without
   consuming it (a match refunds its attempt), `findUserByIdentifier`, and users gain an optional
   `name` and a DPDP `consents` record (policy version, times, OTP channel) written on insert only;
-  `PublicUser` gains `name`. Login tests send `DEFAULT_SIGNUP` from `tests/helpers/auth.ts`.
+  `PublicUser` gains `name`. Login tests send `DEFAULT_SIGNUP` from `tests/helpers/auth.ts` (#99).
 
 ### Changed
 
@@ -151,7 +151,7 @@ bottom use commit SHAs.
   Escape (#87).
 - A rate-limit store error while clearing the failure counter after a successful OTP verify no
   longer turns the login into a 500 with a session the client never receives; it is logged by
-  error name, like a failed audit write.
+  error name, like a failed audit write (#99).
 
 ## [0.1.0] - 2026-11-17
 
