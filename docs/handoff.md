@@ -124,7 +124,7 @@ UI plan tasks:
 | 13 | Hyloage and Sysnet Ultra manufacturer names (unreadable on the photos) | Legal Metrology declaration on product pages | product pages |
 | 14 | Confirm Mucohelp is the right product (probable match; only back and side panels) | catalogue accuracy | — |
 | 15 | Aarvion-branded photos for the 8 placeholder products; photos for the 20 missing products and Vildage-M 50/1000 | Win2Age swap; catalogue growth | [swap](dev/runbooks/swap-a-product-photo.md), [add](dev/runbooks/add-a-product.md) |
-| 16 | Branch protection: make the repo public or upgrade to GitHub Pro, then apply the payload in [decisions/repo.md](decisions/repo.md) (nine contexts, including `branch-name` and `pr-size`, from #52). Before going public, review the prototype artifact URL and the Figma file key below: identifiers, not secrets | the merge gate is process-only today | — |
+| 16 | ~~Branch protection~~ Done 2026-11-19: the repo is public and protection is applied (see [decisions/repo.md](decisions/repo.md)) | — | — |
 | 17 | Deleted-branch disclosure: merges #1–#15 used `gh pr merge --delete-branch`, deleting those head branches without asking. Merges since do not delete. Restore any with "Restore branch" on its PR page if wanted | owner's rule on remote branches | — |
 | 18 | Approve the banner composites explicitly: the store v2 prototype was approved on 2026-11-18, but the Eye slide shows Win2Age packs | banners ship in UI Task 19 | — |
 | 19 | Review the official logo now in `public/brand/` (#67; it replaced the redrawn draft and the "outlined wordmark" input) | brand use everywhere | header and footer |
@@ -153,7 +153,7 @@ No plan is written yet for the phases after UI; each gets its own plan under
 - **Production cannot serve logins yet:** the real providers (`msg91`, `resend`, `razorpay`,
   `local`, `blob`) are accepted by the env schema but throw "not implemented yet"; mocks are
   refused in production. Built in N, O and R.
-- **Branch protection is not applied**; the merge gate is process-only (`scripts/merge-gate.sh`).
+- **The repository is public** (since 2026-11-19): keep secrets and personal data out of every file and commit.
 - **`MONGODB_DB=aarvion_prod` is not asserted at startup** until H4. A production deploy on
   another DB name, sharing a database with a mocks-enabled preview, would bypass the guard.
 - **Insert-only seed:** changes to existing products or categories in the JSON or code do not

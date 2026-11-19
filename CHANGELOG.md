@@ -76,6 +76,9 @@ bottom use commit SHAs.
 
 ### Changed
 
+- `main` is now protected on GitHub (nine required checks, linear history, no force pushes or
+  deletion) after the repository went public; `scripts/merge-gate.sh` uses `--admin` only for a
+  ruled `ALLOW_OVERSIZE=1` exception (#90).
 - CHANGELOG.md is back on git's default merge; the union driver from #73 silently re-added
   stale and garbled lines, so conflicts are now resolved by hand (#86).
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
