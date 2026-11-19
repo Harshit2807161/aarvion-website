@@ -26,5 +26,6 @@ Requires Node 24 (`.nvmrc`) and pnpm 12. Copy `.env.example` to `.env.local`.
 - `pnpm test:int`: Vitest `int` project (node, `tests/int/**/*.test.ts`)
 - `pnpm test:e2e`: Playwright (Chromium) against a production build; needs Mongo, so run `pnpm db:up` first (it uses the `aarvion_e2e` database and a random `OTP_PEPPER`)
 - `pnpm db:up && pnpm db:indexes && pnpm seed`: start Mongo, create indexes, seed the catalogue (insert-only, safe to re-run)
+  - Category names changed to shopper names (Heart care, Diabetes care, Eye care, Respiratory care, ...) and the Sacuwin packs now lead Heart care. The seed never overwrites, so an existing database keeps the old names and order until you reseed it: in `mongosh`, run `db.categories.deleteMany({})` and `db.products.deleteMany({})` (products too, for the order), then `pnpm seed`. Skip this on a database holding admin edits to products; set `sortOrder` there instead.
 
 Stack decisions: `docs/decisions/stack.md`.

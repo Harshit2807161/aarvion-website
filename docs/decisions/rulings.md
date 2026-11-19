@@ -105,10 +105,11 @@ Copied from the Phase UI plan's "Decisions taken in this plan" (`docs/superpower
 **Store format (new in rev 2)**
 - **Category display names:** Heart care, Diabetes care, Eye care, Respiratory care, plus the coming-soon names Digestive care, Bone and joint care and Urinary care (DESIGN.md "Names"). Pain Management (hidden) is unchanged; slugs are unchanged.
   - The seed is insert-only, so existing DBs keep the old names until `db.categories.deleteMany({})` and `pnpm seed` are run. README and the owner action say so.
+  - **Owner action:** reseed existing DBs (`db.categories.deleteMany({})`, plus `db.products.deleteMany({})` if no admin edits exist, then `pnpm seed`). New DBs and CI need nothing.
 - **Header search** is the C5 search UI, on every customer page, desktop and phone. It queries `GET /api/products?q=&strength=` (debounced 150 ms, stale responses dropped).
   - This replaces the prototype's `catalogue.js` embedded on every page, and revision 1's search dialog.
   - Choosing a result on `/` reveals that product's pocket (scroll, outline, focus its cart control). On other pages it goes to `/product/<slug>`.
-- **Shelf order** for rails, category pages and search: category `sortOrder`, then families by their lowest DB `sortOrder`, then `compareVariants` within a family (`orderForShelf`, Task 7). Heart care therefore reads Bemptor-180, Bemptor-R40, Sacuwin 50, 100, 200. The prototype's build hard-codes Sacuwin first; the admin owns the order through `sortOrder`.
+- **Shelf order** for rails, category pages and search: category `sortOrder`, then families by their lowest DB `sortOrder`, then `compareVariants` within a family (`orderForShelf`, Task 7). Heart care therefore reads Sacuwin 50, 100, 200, then Bemptor-180, Bemptor-R40 (controller ruling: the seed gives the Sacuwin family the lowest `sortOrder`, 0 to 2, so the Aarvion-printed packs lead). The prototype's build hard-codes Sacuwin first; the admin owns the order through `sortOrder`.
 - **Rails plan:**
   - each live category with 2 or more products gets its own rail, titled with its display name, in `sortOrder`;
   - single-product categories share one rail, titled by joining their names: "Diabetes and respiratory care" (the brief); with three or more it is "More medicines";
