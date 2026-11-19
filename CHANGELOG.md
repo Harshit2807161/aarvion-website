@@ -73,7 +73,7 @@ bottom use commit SHAs.
   renders the footer (#82).
 - `SITE_CONFIG.onlinePayments` (default `false`) drives the footer's payment line: cash on delivery
   only until it is set to `true`, then UPI, cards and netbanking through Razorpay too. `ROUTES` also
-  has the home anchors `how`, `questions` and `faqWin2age` (#PR).
+  has the home anchors `how`, `questions` and `faqWin2age` (#92).
 - The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 - `Checkbox` and `Segmented` in `src/components/form/` (native checkbox and radios; the segmented control has roving tabindex, arrows, Home and End; errors are `role="alert"`), forced-colors and contrast-more rules in `forms.css` (#84).
