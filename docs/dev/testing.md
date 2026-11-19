@@ -11,7 +11,7 @@ Configured in `vitest.config.ts` (Vitest 5) and `playwright.config.ts` (Playwrig
 | --- | --- | --- | --- |
 | `unit` | Node | `src/**/*.test.ts`, `scripts/**/*.test.ts` | `pnpm test:unit` |
 | `ui` | happy-dom, React plugin, `tests/helpers/ui-setup.ts` | `src/**/*.test.tsx` | `pnpm test:unit` (runs `unit` and `ui`) |
-| `int` | Node + in-memory Mongo replica set | `tests/int/**/*.test.ts` | `pnpm test:int` |
+| `int` | Node + in-memory Mongo replica set; `tests/helpers/next-mocks.ts` mocks `connection()` and `next/cache` | `tests/int/**/*.test.ts` | `pnpm test:int` |
 | e2e | Chromium against the production build | `e2e/*.spec.ts` | `pnpm test:e2e` |
 
 - **Every test file belongs to exactly one project:** `scripts/vitest-projects.test.ts` globs
@@ -128,8 +128,9 @@ Helpers in `tests/helpers/`:
 | `src/styles/css-hygiene.test.ts` | a selector repeats within one at-rule context across `src/styles/*.css` |
 | `scripts/deps-policy.test.ts` | a banned animation, carousel, toast or icon library (framer-motion, swiper, gsap, sonner, lucide-react, …) or an unlisted Radix package is added |
 
-Planned by the UI plan: `src/lib/price-source.test.ts` (no UI price
-maths), `src/server/route-config.test.ts`, `src/components/server-imports.test.ts`, and
+`src/server/route-config.test.ts` (#60) fails when a route file exports `dynamic`, `revalidate`
+or `fetchCache`, or a GET does not start with `await connection()`.
+Planned: `src/lib/price-source.test.ts` (no UI price maths), `src/components/server-imports.test.ts`, and
 `tests/helpers/claims.ts` (`findClaims`, no invented claims).
 
 ## Last verified
