@@ -262,6 +262,10 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 
 **Code rules that protect the invariants**
 
+- Components (`src/components/**`) import at runtime from `src/server/**` only the pure
+  `catalogue/pricing`, `catalogue/search` and `catalogue/order`; anything else from there is a
+  statement-level `import type` (`src/components/server-imports.test.ts`, direct imports only:
+  `src/lib/catalogue/cached.ts` is server-only too, so never import it from a `"use client"` module).
 - Money is integer paise. Inputs reach Mongo only as zod-parsed primitives; no user input becomes
   a regex or an operator object. Public catalogue data never includes `internalNotes`.
 - New code in `src/server/**` never calls `new Date()` or `Date.now()`: take `now: Date`; routes

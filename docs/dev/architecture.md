@@ -183,6 +183,10 @@ the public user or `null`, `no-store`. Nothing calls it yet.
   static. Plan Task 43 wires it (the header's `account` slot, `AccountPill`); until then the
   header shows a static Sign in link.
 - Product images are content-hashed, so the CDN can cache them forever.
-- Client components (`src/components/**`) import at runtime from `src/server/**` only the pure
-  `catalogue/pricing.ts`, `catalogue/search.ts` and `catalogue/order.ts`
-  (`src/components/server-imports.test.ts`).
+
+**Client imports (now):** components (`src/components/**`) import at runtime from
+`src/server/**` only the pure `catalogue/pricing.ts`, `catalogue/search.ts` and
+`catalogue/order.ts`; anything else from there is a statement-level `import type`
+(`src/components/server-imports.test.ts`). The test sees direct imports only: a server-only
+module reached through `src/lib/` (for example `catalogue/cached.ts`, which `withStoreChrome`
+calls) must still never be imported by a `"use client"` module.
