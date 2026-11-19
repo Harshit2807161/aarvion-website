@@ -1,0 +1,45 @@
+/*
+  The stamp price, the Rx mark and status tags: ports of design/prototype/css/site.css
+  (stamp, .dm) and flows.css (.rx, .tag*). `.dm` is the dot-matrix mask, ported once (the
+  site.css 0.36 radius; flows.css had a 0.38 twin). Solid Geist Mono is used below 24px
+  for legibility (`.price-inline`); the dot matrix is for the large stamp figures.
+  Tags draw their dot as a real aria-hidden span (.tag-dot) rather than ::before.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.dm {
+  --pitch: 2.4px;
+  -webkit-mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch);
+  mask: radial-gradient(circle, #000 calc(var(--pitch) * 0.36), transparent calc(var(--pitch) * 0.36 + 0.55px)) 0 0 / var(--pitch) var(--pitch);
+}
+.stamp { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-family: var(--font-mono); line-height: 1; }
+.stamp-top { display: flex; align-items: center; gap: 8px; }
+.stamp-mrp { position: relative; text-decoration: none; font-size: 1.0625rem; font-weight: 600; color: var(--color-ink); padding: 2px 0; }
+.stamp-mrp .dm { --pitch: 1.2px; display: inline-block; }
+.stamp-mrp::after { content: ""; position: absolute; left: -3px; right: -3px; top: 50%; height: 2px; margin-top: -1px; border-radius: 2px; background: var(--color-forest-600); }
+.off { display: inline-flex; align-items: center; height: 22px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--color-forest-50); color: var(--color-forest-700); font: 600 0.75rem/1 var(--font-mono); white-space: nowrap; }
+.stamp-price { font-size: 2.125rem; font-weight: 600; letter-spacing: -0.02em; color: var(--color-ink); }
+.stamp-price .dm { display: inline-block; }
+
+.price-inline { display: inline-flex; align-items: baseline; gap: 8px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.price-inline s { font-size: 0.9375rem; font-weight: 500; color: var(--color-ink-muted); text-decoration-line: line-through; text-decoration-color: var(--color-forest-600); text-decoration-thickness: 1.5px; }
+.price-inline b { font-weight: 600; color: var(--color-ink); letter-spacing: -0.01em; }
+
+.rx {
+  flex: none; display: inline-block; padding: 4px 5px 3px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px currentColor;
+  font: 600 0.6875rem/1 var(--font-mono); letter-spacing: 0.02em; color: var(--color-forest-700); vertical-align: 0.15em;
+}
+.rx--lg { font-size: 0.8125rem; }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 7px; width: fit-content; max-width: 100%; min-height: 28px; padding: 4px 11px 4px 9px;
+  border-radius: var(--radius-pill); font: 600 0.8125rem/1.25 var(--font-sans); white-space: normal;
+  background: var(--color-neutral-100); color: var(--color-neutral-700);
+}
+.tag-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.tag--ok { background: var(--color-forest-50); color: var(--color-forest-700); box-shadow: inset 0 0 0 1px var(--color-forest-100); }
+.tag--wait { background: var(--color-sand-100); color: var(--color-wait-ink); }
+.tag--hold { background: var(--color-hold-50); color: var(--color-hold-ink); }
+.tag--bad { background: var(--color-danger-50); color: var(--color-danger-ink); }
+.tag--off { background: var(--color-neutral-100); color: var(--color-neutral-600); }
+.tag--done { background: var(--color-forest-800); color: var(--color-white); }
+.tag--done .tag-dot { background: var(--color-leaf-300); }
