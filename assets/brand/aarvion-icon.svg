@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Aarvion">
-  <!-- DRAFT icon: swoosh in a rounded square -->
-  <rect width="120" height="120" rx="28" fill="#14432F"/>
-  <g transform="translate(12,30) scale(0.27)" fill="#7FD3A6"><path d="M 8 90 C 95 40, 225 6, 300 10 C 330 12, 352 30, 344 58 C 334 44, 318 34, 294 32 C 215 28, 110 54, 8 90 Z"/><path d="M 170 62 C 215 44, 262 36, 286 38 C 296 40, 300 48, 296 58 C 288 50, 274 46, 254 47 C 222 50, 196 56, 170 62 Z"/></g>
-  <text x="60" y="96" text-anchor="middle" font-family="Montserrat, 'Arial Black', Arial, sans-serif" font-weight="800" font-size="34" fill="#FFFFFF">A</text>
-</svg>

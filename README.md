@@ -33,3 +33,10 @@ Route handlers (Cache Components is on): no `dynamic`, `revalidate` or `fetchCac
 Catalogue caching: pages read the catalogue only through `src/lib/catalogue/cached.ts` (`'use cache'`, `cacheLife("hours")`, tag `catalogue`). Every catalogue write must call `revalidateCatalogue()`, which expires the tag at once; locally, `POST /dev/catalogue/revalidate` (same-origin, dev only) does the same.
 
 Stack decisions: `docs/decisions/stack.md`.
+
+## For maintainers and agents
+
+- [AGENTS.md](AGENTS.md): the operating manual every coding agent (and human) reads first.
+- [docs/dev/](docs/dev/README.md): setup, architecture, testing, CI, data, deploy and runbooks.
+- [docs/handoff.md](docs/handoff.md): current state, what is next, open owner actions.
+- [CHANGELOG.md](CHANGELOG.md): what changed, PR by PR.
