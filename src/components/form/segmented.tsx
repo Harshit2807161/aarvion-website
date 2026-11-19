@@ -5,7 +5,8 @@ export type SegmentedOption<T extends string> = { value: T; label: string; icon?
 
 /**
  * A segmented control built from native radios, so arrow keys and form posts work for free.
- * The thumb slides with CSS `:has()`; the stylesheet supports up to three options.
+ * The thumb is placed by `--i` (selected index) and `--n` (count), so any number of options works.
+ * Left-to-right only: the arrows and the thumb are not mirrored for RTL.
  * `name` also prefixes each radio id. Keyboard: arrows move and select (wrapping), Home and End
  * jump to the first and last option, and only the selected radio is in the tab order.
  */
@@ -24,10 +25,12 @@ export function Segmented<T extends string>({
   onChange: (value: T) => void;
 }) {
   const ref = useRef<HTMLFieldSetElement>(null);
+  const current = options.findIndex((o) => o.value === value);
 
   function onKeyDown(e: KeyboardEvent<HTMLFieldSetElement>) {
+    // Leave Alt/Cmd/Ctrl/Shift combinations (browser back/forward, shortcuts) to the browser.
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     const last = options.length - 1;
-    const current = options.findIndex((o) => o.value === value);
     const target =
       e.key === "ArrowRight" || e.key === "ArrowDown"
         ? (current + 1) % options.length
@@ -50,16 +53,17 @@ export function Segmented<T extends string>({
     <fieldset
       ref={ref}
       className="seg"
-      style={{ "--n": options.length } as CSSProperties}
+      style={{ "--n": options.length, "--i": Math.max(current, 0) } as CSSProperties}
       onKeyDown={onKeyDown}
     >
       <legend className="sr-only">{legend}</legend>
-      {options.map((o) => (
+      {options.map((o, i) => (
         <SegItem
           key={o.value}
           name={name}
           option={o}
           checked={o.value === value}
+          tabbable={current < 0 ? i === 0 : o.value === value}
           onChange={onChange}
         />
       ))}
@@ -72,11 +76,14 @@ function SegItem<T extends string>({
   name,
   option,
   checked,
+  tabbable,
   onChange,
 }: {
   name: string;
   option: SegmentedOption<T>;
   checked: boolean;
+  /** Roving tabindex: the selected radio, or the first when `value` matches no option. */
+  tabbable: boolean;
   onChange: (value: T) => void;
 }) {
   const id = `${name}-${option.value}`;
@@ -87,7 +94,7 @@ function SegItem<T extends string>({
         type="radio"
         name={name}
         id={id}
-        tabIndex={checked ? 0 : -1}
+        tabIndex={tabbable ? 0 : -1}
         value={option.value}
         checked={checked}
         onChange={() => onChange(option.value)}

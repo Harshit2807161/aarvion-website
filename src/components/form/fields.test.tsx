@@ -101,6 +101,11 @@ describe("Checkbox", () => {
     expect(document.getElementById("adult-err")).toBeNull();
   });
 
+  it("keeps a caller's aria-describedby next to the error id", () => {
+    render(<Checkbox id="adult" label="Adult" error="Confirm." aria-describedby="extra" />);
+    expect(screen.getByRole("checkbox")).toHaveAttribute("aria-describedby", "adult-err extra");
+  });
+
   it("has no error wiring when valid", () => {
     render(<Checkbox id="adult" label="Adult" />);
     const box = screen.getByRole("checkbox");
@@ -180,6 +185,37 @@ describe("Segmented", () => {
       expect(screen.getByRole("radio", { name: "B" })).toBeChecked();
     });
 
+    it("prevents the default for handled keys and leaves the rest alone", () => {
+      render(<Harness />);
+      const radio = () => screen.getByRole("radio", { checked: true });
+      expect(fireEvent.keyDown(radio(), { key: "ArrowRight" })).toBe(false);
+      expect(fireEvent.keyDown(radio(), { key: "Home" })).toBe(false);
+      expect(fireEvent.keyDown(radio(), { key: "x" })).toBe(true);
+    });
+
+    it("does not swallow modified arrows such as Alt+ArrowLeft", () => {
+      render(<Harness />);
+      const radio = screen.getByRole("radio", { checked: true });
+      for (const mod of ["altKey", "metaKey", "ctrlKey", "shiftKey"]) {
+        expect(fireEvent.keyDown(radio, { key: "ArrowLeft", [mod]: true })).toBe(true);
+      }
+      expect(screen.getByRole("radio", { name: "B" })).toBeChecked();
+    });
+
+    it("keeps the group reachable when the value matches no option", () => {
+      render(
+        <Segmented
+          name="k"
+          legend="Pick"
+          options={THREE}
+          value={"zzz" as "a"}
+          onChange={() => {}}
+        />,
+      );
+      expect(screen.getByRole("radio", { name: "A" })).toHaveAttribute("tabindex", "0");
+      expect(screen.getByRole("radio", { name: "B" })).toHaveAttribute("tabindex", "-1");
+    });
+
     it("jumps with Home and End and ignores other keys", () => {
       render(<Harness />);
       press("End");
@@ -189,6 +225,16 @@ describe("Segmented", () => {
       press("x");
       expect(screen.getByRole("radio", { name: "A" })).toBeChecked();
     });
+  });
+
+  it("sets --i and --n for any option count", () => {
+    const four = ["a", "b", "c", "d"].map((v) => ({ value: v, label: v.toUpperCase() }));
+    const { container } = render(
+      <Segmented name="four" legend="Four" options={four} value="d" onChange={() => {}} />,
+    );
+    const seg = container.querySelector("fieldset.seg") as HTMLElement;
+    expect(seg.style.getPropertyValue("--n")).toBe("4");
+    expect(seg.style.getPropertyValue("--i")).toBe("3");
   });
 
   it("moves the selection when controlled", () => {
@@ -217,6 +263,11 @@ describe("forms.css", () => {
     );
     expect(css).toMatch(/@media \(forced-colors: active\)[^@]*\.seg-thumb \{ border/);
     expect(css).toMatch(/@media \(prefers-contrast: more\)[^@]*\.check-box/);
+  });
+
+  it("styles a disabled checkbox as unavailable", () => {
+    expect(css).toMatch(/\.check-input:is\(:disabled, \[aria-disabled="true"\]\) \+ \.check-box/);
+    expect(css).not.toMatch(/seg:has\(\.seg-input:nth-of-type/);
   });
 
   it("keeps the shared field box in one rule", () => {

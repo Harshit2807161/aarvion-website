@@ -14,8 +14,18 @@ export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "
  * A native checkbox drawn as a 24 px box inside a 44 px-tall label, so the whole row is the
  * target. The real input stays focusable and carries `aria-invalid` and the error link.
  */
-export function Checkbox({ id, label, sub, error, className, ...input }: CheckboxProps) {
+export function Checkbox({
+  id,
+  label,
+  sub,
+  error,
+  className,
+  "aria-describedby": extraDescribedBy,
+  ...input
+}: CheckboxProps) {
   const hasError = Boolean(error);
+  const describedBy =
+    [hasError ? `${id}-err` : null, extraDescribedBy].filter(Boolean).join(" ") || undefined;
   return (
     <div>
       <label className={cn("check", hasError && "is-invalid", className)} htmlFor={id}>
@@ -24,7 +34,7 @@ export function Checkbox({ id, label, sub, error, className, ...input }: Checkbo
           id={id}
           type="checkbox"
           className="check-input"
-          aria-describedby={hasError ? `${id}-err` : undefined}
+          aria-describedby={describedBy}
           aria-invalid={hasError ? true : undefined}
         />
         <span className="check-box" aria-hidden="true">
