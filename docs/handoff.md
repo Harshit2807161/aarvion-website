@@ -131,6 +131,7 @@ UI plan tasks:
 | 20 | Legally reviewed product information copy (uses, storage, precautions) | sections are omitted until then (no claims) | product pages |
 | 21 | Sacuwin leads the Heart care rail through `sortOrder` 0–2 (controller ruling, landed in #51); override if wanted, and review the other rulings in `rulings.md` | owner's override | — |
 | 22 | Set `APP_URL` to the real site URL in the Production scope (H4 gate) | without it `metadataBase` falls back to localhost and Open Graph links point there | launch |
+| 23 | Where personal data is stored and how long each kind is kept; then a legal review of the privacy policy | `/legal/privacy` shows "To be added" for both (DPDP Act retention limits); the H4 gate does not check page copy | launch |
 
 ## What is next
 
