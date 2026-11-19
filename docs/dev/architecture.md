@@ -39,7 +39,7 @@
 | `data/` | `products.json` (seed source), `product-images.json` (generated), `source/` (Drive analysis) |
 | `public/products/` | generated, content-hashed product images |
 | `public/foil/`, `public/banners/` | foil, dome and banner rasters copied unchanged from `design/prototype/assets/`, each with a `.json` provenance sidecar (`scripts/public-provenance.test.ts`) |
-| `src/components/` | React components, added task by task (today `base/`: the icon set and `BrandMark`; `home/`: the banner carousel reducer and controller hook; `film/`: the scroll film's progress maths and engine) |
+| `src/components/` | React components, added task by task (today `base/`: the icon set, `BrandMark`, `RxBadge`, `StatusTag`, `Rupees`, `StampPrice` and `PriceInline`; `home/`: the banner carousel reducer and controller hook; `film/`: the scroll film's progress maths and engine) |
 | `public/brand/` | the official logo variants and app icons served to the site, copied from the masters (usage guide in its README) |
 | `src/fonts/` | committed `.woff2` subsets and `index.ts` (`next/font/local`), built by `pnpm fonts:subset` from `assets/fonts/` |
 | `assets/` | source photos and cutouts; `brand/official/` (the traced logo masters, made by `scripts/trace_logo.py`); banner scenes; `fonts/` (source TTFs, OFL licences, `SOURCES.json`, README) |
