@@ -95,11 +95,14 @@ export async function cancelOtpChallenge(id: Identifier, challengeId: string): P
   await (await collection()).deleteOne({ _id: identifierKey(id), challengeId });
 }
 
-export async function verifyOtpChallenge(
-  id: Identifier,
-  code: string,
-  now: Date,
-): Promise<VerifyResult> {
+type SpendResult =
+  { ok: true; doc: OtpDoc } | { ok: false; reason: "no_active_challenge" | "mismatch" };
+
+/**
+ * The one code check every caller shares: spend an attempt atomically, then compare the hashes
+ * in constant time. It never consumes the challenge; the caller decides what a match means.
+ */
+async function spendAndCompare(id: Identifier, code: string, now: Date): Promise<SpendResult> {
   const col = await collection();
   // Spend an attempt atomically; null means missing, expired, used or locked.
   const doc = await col.findOneAndUpdate(
@@ -122,6 +125,18 @@ export async function verifyOtpChallenge(
   if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
     return { ok: false, reason: "mismatch" };
   }
+  return { ok: true, doc };
+}
+
+export async function verifyOtpChallenge(
+  id: Identifier,
+  code: string,
+  now: Date,
+): Promise<VerifyResult> {
+  const spent = await spendAndCompare(id, code, now);
+  if (!spent.ok) return spent;
+  const { doc } = spent;
+  const col = await collection();
 
   // Single use: only one racer flips consumedAt.
   const used = await col.updateOne(
