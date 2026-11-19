@@ -29,6 +29,7 @@
     "@tailwindcss/postcss": "^4.3.5",
     "@vercel/functions": "^3.11.3",
     "clsx": "^2.1.1",
+    "input-otp": "^1.5.0",
     "mongodb": "^7.9.0",
     "next": "^16.4.6",
     "react": "^19.3.1",

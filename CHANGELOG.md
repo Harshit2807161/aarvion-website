@@ -83,6 +83,10 @@ bottom use commit SHAs.
 - `OperateShell` (`main#main.operate`: forest band with title, sub line and back link, then the
   white work sheet) with `src/styles/shell.css`, including its phone rules (#94).
 - The `Checkbox` and `Segmented` demo on `/dev/styleguide` (`#styleguide-forms`), alongside the `TextField` states (#91).
+- `OtpField` (`src/components/form/otp-field.tsx`: input-otp behind the generated
+  `src/components/ui/input-otp.tsx`, six `aria-hidden` boxes, a pasted full code replacing
+  a partial value (native paste listener, `otpDigits`), once-per-code `onComplete`, shake only when motion is allowed) with
+  `src/styles/otp.css` (#89).
 
 ### Changed
 
