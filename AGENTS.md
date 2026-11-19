@@ -156,8 +156,7 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   time and never stored. MRP must be at least ₹21 (2100 paise).
 - A pack whose MRP is unknown gets ₹404 (`DEFAULT_MRP_PAISE = 40400`, price ₹384), with
   `mrpSource: "default"`.
-- % off is floored, never rounded up: use `percentOff(mrpPaise)` in `pricing.ts` (planned, UI
-  Task 3), never inline the maths in UI code. No headline, banner, section or
+- % off is floored, never rounded up: use `percentOff(mrpPaise)` in `pricing.ts`, never inline the maths in UI code. No headline, banner, section or
   meta title leads with the ₹20.
 
 **Prescriptions** ([validity.ts](src/server/prescriptions/validity.ts))

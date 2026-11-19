@@ -57,6 +57,9 @@ bottom use commit SHAs.
 - Cached catalogue reads in `src/lib/catalogue/cached.ts` (`'use cache'`, `cacheLife("hours")`,
   tag `catalogue` plus a per-slug tag for valid slugs), `revalidateCatalogue()` (expires at once),
   `assertCatalogue()` and the dev-only `POST /dev/catalogue/revalidate` (#68).
+- `percentOff()` (floored, never rounds up) and the base components `RxBadge`, `StatusTag`, `Rupees`,
+  `StampPrice` and `PriceInline` in `src/components/base/`, with `src/styles/stamp.css`; the stamp
+  hides its tag below 1% and `src/lib/price-source.test.ts` keeps UI code from recomputing prices (#71).
 
 ### Changed
 
