@@ -1,6 +1,6 @@
 # Deploy
 
-**Status (2026-11-18): nothing is deployed.** No Vercel project or Atlas cluster exists yet; both
+**Status (2026-11-19): nothing is deployed.** No Vercel project or Atlas cluster exists yet; both
 wait on owner actions ([handoff.md](../handoff.md#open-owner-actions-and-blockers)). Everything
 on this page is the plan, assembled from `docs/decisions/` and the plans, and is **not verified
 here**.
@@ -8,7 +8,9 @@ here**.
 ## Target
 
 - **Vercel**, on a Pro team linked to the GitHub repo (the Hobby plan does not allow commercial
-  sites, and its cron runs once a day). Functions in Mumbai (`bom1`), next to the database.
+  sites, and its cron runs once a day). Functions in Mumbai (`bom1`), next to the database. Both
+  facts come from the [project plan](../plan/project-plan.md) ("What the user needs to provide",
+  "Performance") and are not verified here.
 - **MongoDB Atlas**, Mumbai region.
 - Real providers: MSG91 (SMS, needs DLT registration), Resend (email, needs a verified domain),
   Razorpay (test keys first, live keys after KYC), Vercel Blob (private) for prescription files.
@@ -58,20 +60,21 @@ and `aarvion_prod` before the first production deploy.
 3. From a checkout with dev dependencies (`tsx` is a devDependency), point the shell at the
    target database and prepare it:
    `MONGODB_URI=… MONGODB_DB=aarvion_prod pnpm db:indexes && MONGODB_URI=… MONGODB_DB=aarvion_prod pnpm seed`.
-4. Deploy `main`. Check `GET /api/health` returns 200 `{"status":"ok","db":"ok"}`.
+4. Deploy `main`. Check `GET /api/health` returns 200 with `"status":"ok"` and `"db":"ok"`.
 5. Run the production smoke from the project plan: pages load; a real OTP reaches a team number;
    a staff COD test order is placed, then cancelled; security headers present; Rich Results test
    and a WhatsApp link preview pass; Lighthouse.
 
-`/api/health` answers:
+`/api/health` answers with one of these bodies; every body also carries `"version"` (for example
+`{"status":"ok","version":"0.1.0","db":"ok"}`), so match fields, never the whole string:
 
-| Body | Status | Meaning |
+| Fields | Status | Meaning |
 | --- | --- | --- |
-| `{"status":"ok","db":"ok"}` | 200 | env valid, DB pinged within 3.5 s |
-| `{"status":"ok","db":"skipped"}` | 200 | no `MONGODB_URI` outside production |
-| `{"status":"error","db":"unconfigured"}` | 503 | no `MONGODB_URI` in a production-like runtime |
-| `{"status":"error","db":"misconfigured"}` | 503 | an env var is invalid (the log names the key) |
-| `{"status":"degraded","db":"down"}` | 503 | the DB did not answer the ping |
+| `status: "ok", db: "ok"` | 200 | env valid, DB pinged within 3.5 s |
+| `status: "ok", db: "skipped"` | 200 | no `MONGODB_URI` outside production |
+| `status: "error", db: "unconfigured"` | 503 | no `MONGODB_URI` in a production-like runtime |
+| `status: "error", db: "misconfigured"` | 503 | an env var is invalid (the log names the key) |
+| `status: "degraded", db: "down"` | 503 | the DB did not answer the ping |
 
 ## Production gates (phase H, planned)
 

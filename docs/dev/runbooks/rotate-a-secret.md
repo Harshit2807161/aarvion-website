@@ -13,7 +13,9 @@ provider's current docs when you first do it, then update this page.
 | MSG91, Resend, Razorpay and Vercel Blob keys | Vercel env (names defined when the N, O and R phases build the providers) | depends on the provider |
 
 Sessions have no secret: only the SHA-256 of each random token is stored, so no key rotation
-logs anyone out. To log everyone out, delete the `sessions` documents.
+logs anyone out. To log everyone out of one scope, run `db.sessions.deleteMany({})` in mongosh
+against that scope's database (`MONGODB_DB`, e.g. `aarvion_prod`). It logs out staff as well as
+customers; they sign in again with a new OTP.
 
 ## Rotate `OTP_PEPPER`
 
@@ -31,11 +33,17 @@ the 10-per-24 h lockout. Clear the live challenges so users simply ask for a new
 6. CHANGELOG: nothing (no code change). Note the date and scope in your operations log; never
    the value.
 
-## Rotate the database password
+## Rotate the database password (no outage)
 
-1. In Atlas, create a new password (or user) for the database user (not verified here).
-2. Update `MONGODB_URI` in the Vercel scope and redeploy.
-3. Check `GET /api/health` returns `db: "ok"`, then remove the old password.
+Changing a database user's password invalidates the old one at once, which would break every
+running deployment (and, after UI Task 7, every build) until a redeploy. Rotate by user instead:
+
+1. In Atlas, create a **second** database user with the same roles (not verified here).
+2. Update `MONGODB_URI` in that one Vercel scope to the new user, and redeploy.
+3. Check `GET /api/health` shows `db: "ok"` on the new deployment, and that its build (which
+   prerenders from the DB once UI Task 7 lands) succeeded.
+4. Only then delete the old user in Atlas.
+5. Repeat per scope. CHANGELOG: nothing; note the date and scope in your operations log.
 
 ## If a secret leaked
 
