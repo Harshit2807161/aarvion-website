@@ -10,7 +10,10 @@ export type Hold = "hover" | "focus" | "touch" | "hidden" | "away";
 export type CarouselState = {
   count: number;
   current: number;
+  /** True when autoplay is off: the user paused it, or motion is reduced. */
   stopped: boolean;
+  /** The user's own pause, kept apart so a motion flip never clears it. */
+  userPaused: boolean;
   holds: readonly Hold[];
   ready: boolean;
   motion: boolean;
@@ -28,7 +31,7 @@ export type CarouselEvent =
   | { type: "motion"; on: boolean };
 
 export function initialCarousel(count: number, motion: boolean): CarouselState {
-  return { count, current: 0, stopped: !motion, holds: [], ready: false, motion };
+  return { count, current: 0, stopped: !motion, userPaused: false, holds: [], ready: false, motion };
 }
 
 const wrap = (i: number, count: number) => (count > 0 ? ((i % count) + count) % count : 0);
@@ -48,13 +51,14 @@ export function playLabel(s: CarouselState): string {
 export function carouselReducer(s: CarouselState, e: CarouselEvent): CarouselState {
   switch (e.type) {
     case "go":
+      if (!Number.isInteger(e.index)) return s;
       return { ...s, current: wrap(e.index, s.count) };
     case "next":
       return { ...s, current: wrap(s.current + 1, s.count) };
     case "prev":
       return { ...s, current: wrap(s.current - 1, s.count) };
     case "toggleStop":
-      return s.motion ? { ...s, stopped: !s.stopped } : s;
+      return s.motion ? { ...s, userPaused: !s.userPaused, stopped: !s.userPaused } : s;
     case "hold": {
       const has = s.holds.includes(e.why);
       if (e.on === has) return s;
@@ -65,6 +69,6 @@ export function carouselReducer(s: CarouselState, e: CarouselEvent): CarouselSta
     case "tickEnd":
       return autoplaying(s) ? { ...s, current: wrap(s.current + 1, s.count) } : s;
     case "motion":
-      return e.on === s.motion ? s : { ...s, motion: e.on, stopped: !e.on };
+      return e.on === s.motion ? s : { ...s, motion: e.on, stopped: !e.on || s.userPaused };
   }
 }

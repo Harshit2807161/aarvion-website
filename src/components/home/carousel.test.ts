@@ -91,3 +91,47 @@ describe("labels", () => {
     expect(playLabel(carouselReducer(running(), { type: "toggleStop" }))).toBe("Start automatic slide show");
   });
 });
+
+describe("carouselReducer hardening", () => {
+  it("ignores a NaN or non-integer go index", () => {
+    const s = running();
+    expect(carouselReducer(s, { type: "go", index: NaN })).toBe(s);
+    expect(carouselReducer(s, { type: "go", index: 1.5 })).toBe(s);
+  });
+
+  it("keeps the user's pause across a motion off then on", () => {
+    let s = carouselReducer(running(), { type: "toggleStop" });
+    s = carouselReducer(s, { type: "motion", on: false });
+    s = carouselReducer(s, { type: "motion", on: true });
+    expect(s).toMatchObject({ stopped: true, userPaused: true });
+    expect(autoplaying(s)).toBe(false);
+    s = carouselReducer(s, { type: "toggleStop" });
+    expect(autoplaying(s)).toBe(true);
+  });
+
+  it("never resumes under a hold when motion comes back", () => {
+    let s = carouselReducer(running(), { type: "hold", why: "hover", on: true });
+    s = carouselReducer(s, { type: "motion", on: false });
+    expect(s.holds).toEqual(["hover"]);
+    s = carouselReducer(s, { type: "motion", on: true });
+    expect(autoplaying(s)).toBe(false);
+    expect(carouselReducer(s, { type: "tickEnd" }).current).toBe(0);
+    s = carouselReducer(s, { type: "hold", why: "hover", on: false });
+    expect(autoplaying(s)).toBe(true);
+  });
+
+  it("ready is idempotent and gates autoplay", () => {
+    const s = initialCarousel(4, true);
+    const r = carouselReducer(s, { type: "ready" });
+    expect(r.ready).toBe(true);
+    expect(autoplaying(r)).toBe(true);
+    expect(carouselReducer(r, { type: "ready" })).toBe(r);
+  });
+
+  it("a hold that changes nothing returns the same state", () => {
+    const s = running();
+    expect(carouselReducer(s, { type: "hold", why: "hover", on: false })).toBe(s);
+    const held = carouselReducer(s, { type: "hold", why: "hover", on: true });
+    expect(carouselReducer(held, { type: "hold", why: "hover", on: true })).toBe(held);
+  });
+});
