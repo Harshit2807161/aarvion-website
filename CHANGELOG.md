@@ -70,26 +70,26 @@ bottom use commit SHAs.
   gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`) (#76).
 - `/dev/styleguide` (every base component on one screen) and `src/proxy.ts`, which makes every `/dev/*`
   URL a real HTTP 404 where mocks are forbidden (#75).
-- `StoreFooter` and `Brand` in `src/components/shell/` with `src/styles/footer.css`; the root layout
-  renders the footer (#82).
+- `StoreFooter` and `Brand` in `src/components/shell/` with `src/styles/footer.css`; the `(store)`
+  layout renders the footer (#82, #94).
 - `SITE_CONFIG.onlinePayments` (default `false`) drives the footer's payment line: cash on delivery
   only until it is set to `true`, then UPI, cards and netbanking through Razorpay too. `ROUTES` also
   has the home anchors `how`, `questions` and `faqWin2age` (#92).
-- The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `TextField` and the ported forms stylesheet (`src/styles/forms.css`, with the shared `.field-box`): 16 px text, visible labels, errors tied by `aria-describedby` and `aria-invalid`, forced-colors focus, 44 px targets, and a styleguide demo (#79).
 - `Checkbox` and `Segmented` in `src/components/form/` (native checkbox and radios; the segmented control has roving tabindex, arrows, Home and End; errors are `role="alert"`), forced-colors and contrast-more rules in `forms.css` (#84).
 - The customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's one polite live
   region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
   `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - `OperateShell` (`main#main.operate`: forest band with title, sub line and back link, then the
-  white work sheet) with `src/styles/shell.css` (#94).
+  white work sheet) with `src/styles/shell.css`, including its phone rules (#94).
 - The `Checkbox` and `Segmented` demo on `/dev/styleguide` (`#styleguide-forms`), alongside the `TextField` states (#91).
 
 ### Changed
 
 - Customer routes live in the `src/app/(store)` route group, whose layout renders the store footer;
   the root layout keeps only the toast region and the single live region, so admin and staff routes
-  get no store footer. URLs are unchanged (#94).
+  get no store footer (this includes `/dev/*` and the 404 page). The seeded-database build
+  requirement still holds, now through the `(store)` layout. URLs are unchanged (#94).
 - `main` is now protected on GitHub (nine required checks, linear history, no force pushes or
   deletion) after the repository went public; `scripts/merge-gate.sh` uses `--admin` only for a
   ruled `ALLOW_OVERSIZE=1` exception (#90).
@@ -98,8 +98,9 @@ bottom use commit SHAs.
 - The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
   resolve to localhost; an unset or invalid value falls back to `http://localhost:3000` instead of
   failing the build (#76).
-- The root layout reads the live categories for the footer, so **every build now needs a seeded
-  database**: seed the Preview DB before this merges into a Vercel-connected repo (#82).
+- The `(store)` layout reads the live categories for the footer, so **every build of a customer
+  route needs a seeded database**: seed the Preview DB before this merges into a Vercel-connected
+  repo (#82; the read moved from the root layout to `src/app/(store)/layout.tsx` in #94).
 - `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
   a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).

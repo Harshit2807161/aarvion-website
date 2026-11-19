@@ -113,7 +113,7 @@ UI plan tasks:
 | 2 | A domain | email OTP and notifications need a verified sender | email in production (N) |
 | 3 | DLT registration with MSG91 (sender ID + 6 SMS templates) | required by Indian law for any SMS; takes days | SMS OTP and order SMS (N) |
 | 4 | Vercel Pro team, linked to GitHub | Hobby is non-commercial | previews and deploy |
-| 5 | MongoDB Atlas, Mumbai; then seed each Vercel database with `pnpm db:indexes && pnpm seed` (**Preview before UI Task 9 (the root layout and footer) merges into a Vercel-connected repo**, `aarvion_prod` before the first deploy) | every build reads the catalogue (the footer's categories), so an unseeded scope fails closed | previews and deploy |
+| 5 | MongoDB Atlas, Mumbai; then seed each Vercel database with `pnpm db:indexes && pnpm seed` (**Preview before UI Task 9 (the footer, read by the `(store)` layout) merges into a Vercel-connected repo**, `aarvion_prod` before the first deploy) | every build reads the catalogue (the footer's categories), so an unseeded scope fails closed | previews and deploy |
 | 6 | Razorpay test keys (by the O phase), then KYC and live keys | online payments | prepaid checkout |
 | 7 | Drug licence numbers, registered pharmacist, grievance officer, GSTIN, customer care details | legal display on footer, contact and policies; Razorpay KYC; the H4 gate | launch |
 | 8 | Who issues the GST invoice (Aarvion or a dispensing partner), HSN codes and GST rates | invoices | order invoices (O) |

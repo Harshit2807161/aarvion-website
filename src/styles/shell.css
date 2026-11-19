@@ -33,3 +33,12 @@
 .band-sub .ex-tag { display: inline-flex; margin-left: 10px; vertical-align: 1px; }
 .band .slip .ex-tag { background: var(--color-sand-100); color: var(--color-wait-ink); }
 
+
+/* Phone: flows.css 827-832 (the shell rules of its 720px block), outside the brief's 124-152 range. */
+@media (max-width: 720px) {
+  .band { padding: 28px 0 64px; }
+  .band-title { font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.125rem); }
+  .band-sub { font-size: 0.9375rem; }
+  .work { margin-top: -32px; border-radius: 22px 22px 0 0; }
+  .work-in { padding: 28px 0 72px; }
+}
