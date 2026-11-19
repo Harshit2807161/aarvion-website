@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
-import { mockPathname, mockSearchParams, routerSpies } from "./next-mocks";
+import { mockPathname, mockSearchParams, routerSpies } from "./navigation-mocks";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerSpies,
