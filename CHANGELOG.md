@@ -18,6 +18,7 @@ bottom use commit SHAs.
 
 ### Added
 
+- Terms of use at `/legal/terms` (`src/app/(store)/legal/terms/page.tsx`): who can order, OTP sign-in, the prescription rule and validity ruling, prices, payment and quantity limits, delivery, cancellations and returns, no medical advice, and "To be added" for liability and governing law; the payment section offers only cash on delivery and names no online method until `onlinePayments` is true, then Razorpay as well (#105).
 - E2E: `e2e/shell.spec.ts` (an unknown URL is a 404 inside the store chrome) and `collectConsoleErrors(page)` in `e2e/helpers/console.ts`, which ignores only a 404 on the page's own URL and 404 `?_rsc=` prefetches of `PENDING_ROUTES` (unit tested in `scripts/e2e-console.test.ts`) (#111).
 - 404 and error pages: `src/app/not-found.tsx` (inside the store chrome, shared with the `(store)` layout through `withStoreChrome()` in `src/components/shell/store-chrome.tsx`), `error.tsx` (client; "Try again" calls `retry()`, which re-fetches, where `reset()` would not; logs only the error name and digest) and `global-error.tsx` (own `<html>`, inline styles); `EmptyState` (`src/components/shell/empty-state.tsx`, `src/styles/empty.css`) with a dot-matrix count at 3.6px pitch (#109).
 - Cart controls and header pill (`src/components/cart/{cart-control,cart-pill,cart-reconcile}.tsx`, `src/styles/cart-control.css`): Add to cart becomes a stepper, limits and changes are announced through the single `#live` region (the stepper `<output>` has no `aria-live`), the header Cart pill reads the session cart and bumps on change, and `CartReconcile` in the `(store)` layout drops stored lines for products the catalogue no longer has. `cartStore.reconcile` is new (#110).
@@ -107,6 +108,7 @@ bottom use commit SHAs.
 
 ### Changed
 
+- Privacy policy copy: how sign-in codes and sessions are stored now reads "scrambled (hashed) form" instead of "keyed hash (HMAC)", and the last-updated date is stated once, at the top (#105).
 - Customer routes live in the `src/app/(store)` route group, whose layout renders the store footer;
   the root layout keeps only the toast region and the single live region, so admin and staff routes
   get no store footer (this includes `/dev/*` and the 404 page). The seeded-database build
