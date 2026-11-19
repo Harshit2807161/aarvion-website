@@ -155,7 +155,12 @@ export async function verifyOtpAndLogin(i: {
   const { user, created } = await findOrCreateUserByIdentifier(id, i.now);
   if (i.existingToken) await revokeSession(i.existingToken);
   const { token } = await createSession(user, i.now);
-  await resetRateLimit(failureKey);
+  // C6: the user is logged in by now, so a failing counter reset is logged, never a 500.
+  try {
+    await resetRateLimit(failureKey);
+  } catch (err) {
+    console.error("rate limit reset failed", err instanceof Error ? err.name : "unknown");
+  }
   // F7: the audit trail must not be able to break a login that already succeeded.
   try {
     await appendAudit({

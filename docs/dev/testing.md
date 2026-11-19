@@ -78,6 +78,7 @@ Helpers in `tests/helpers/`:
 | `clock.ts` | `installClock(iso)` → `{ now, advance(ms) }`, installed as `deps.now` |
 | `http.ts` | `jsonPost(path, body, { origin, ip, cookie, contentType })`, `getReq`, `sessionTokenFrom(res)`, `TEST_ORIGIN` |
 | `otp.ts` | `lastOtpCode(to)`, reading the mock outbox |
+| `auth.ts` | `DEFAULT_SIGNUP`, the sign-up details every login test sends by default; an existing user ignores them |
 | `claims.ts` | `BANNED_CLAIMS`, `RX_UNIVERSAL_CLAIMS` and `findClaims(text, { allRx })`: every invented claim in rendered copy (licences, certifications, positive guarantees (a negated "we do not guarantee" passes), cure claims, ratings, reviews, counts, "bestseller", "trending", therapy-area words), plus copy saying every medicine needs a prescription [C25], skipped only with `allRx: true`, which a page passes only when it computed that from catalogue data. The review patterns are narrow because "Under review" is a real Rx status. It reads only the text given, so check `alt`, `aria-label` and metadata separately. The legal page tests use it now; each page or section task adds it to its tests as it lands |
 
 - Call route handlers directly: `import { POST } from "@/app/api/auth/otp/send/route"` and
@@ -117,6 +118,8 @@ Helpers in `tests/helpers/`:
 | Test | Fails when |
 | --- | --- |
 | `src/server/db/register-all.test.ts` | a module calls `registerIndexes` but `register-all.ts` does not import it |
+| `src/components/shell/error-pages.test.tsx` | the 404, `error.tsx` (retry once, no message or stack shown or logged), `global-error.tsx` and `EmptyState` |
+| `scripts/e2e-console.test.ts` | `isExpectedNotFound` in `e2e/helpers/console.ts`: only a 404 on the page's own URL or a pending route's `_rsc` prefetch is ignored |
 | `src/proxy.test.ts` | `/dev/*` stops answering 404 when mocks are forbidden |
 | `src/server/dev-routes.test.ts` | a route or page under `src/app/dev/` does not call `requireDevRoute()` |
 | `src/server/deps.test.ts`, `providers/guard.test.ts` | mocks become reachable in a production-like runtime |
@@ -134,6 +137,7 @@ Helpers in `tests/helpers/`:
 | `src/components/overlay/overlay.test.tsx` | the Overlay: dialog role and aria-modal, focus on open, focus trap, Escape and focus return, scrim click, scroll lock and aria-hidden siblings, variants, and the phone drag through the head |
 | `e2e/styleguide.spec.ts` | also: at 390px a short drag or a tap on the overlay head leaves no running animation and the transform at identity |
 | `src/components/overlay/use-drag-dismiss.test.tsx` | the drag hook: follows the finger, dismisses over the thresholds, snaps back otherwise, never removes `is-dragging` while open, ignores a second pointer and Close, skips the snap-back transition under reduced motion |
+| `e2e/links.spec.ts` | a same-origin link on `/`, `/contact` or a `/legal/*` page does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START` as their tasks land (runs in CI against the seeded server) |
 | `src/styles/overlay.test.ts` | the compiled `globals.css` carries the overlay rules, the Aarvion scrim (not `bg-black/50`) and the shadcn colour mapping |
 | `scripts/deps-policy.test.ts` | a banned animation, carousel, toast or icon library (framer-motion, swiper, gsap, sonner, lucide-react, …) or an unlisted Radix package is added |
 

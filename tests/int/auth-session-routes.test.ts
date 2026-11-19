@@ -14,6 +14,7 @@ import "@/server/db/register-all.ts";
 import { resetEnvForTests } from "@/server/env";
 import { OUTBOX_COLLECTION } from "@/server/providers/outbox";
 import { RATE_LIMITS_COLLECTION } from "@/server/security/rate-limit";
+import { DEFAULT_SIGNUP } from "../helpers/auth";
 import { installClock } from "../helpers/clock";
 import { getReq, jsonPost, sessionTokenFrom } from "../helpers/http";
 import { clearCollections, startMemoryReplSet, stopMemoryReplSet } from "../helpers/mongo";
@@ -57,7 +58,12 @@ async function loginCustomer(): Promise<string> {
   await SEND(jsonPost("/api/auth/otp/send", { channel: "phone", identifier: PHONE }));
   const code = await lastOtpCode(PHONE);
   const res = await VERIFY(
-    jsonPost("/api/auth/otp/verify", { channel: "phone", identifier: PHONE, code }),
+    jsonPost("/api/auth/otp/verify", {
+      channel: "phone",
+      identifier: PHONE,
+      code,
+      signup: DEFAULT_SIGNUP,
+    }),
   );
   expect(res.status).toBe(200);
   return sessionTokenFrom(res)!;
@@ -95,6 +101,7 @@ describe("GET /api/auth/me", () => {
         phone: PHONE,
         email: null,
         role: "customer",
+        name: null,
       },
     });
   });

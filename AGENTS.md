@@ -197,7 +197,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   depends on whether an account exists.
 - Verify order is fixed: normalise → 60/h per IP → peek the 10-per-24 h failure cap → verify →
   only a mismatch on a live challenge counts → find or create the user → revoke any presented
-  session → new session → clear the failure counter. Every code-check failure (unknown,
+  session → new session → clear the failure counter (a failing reset or audit write is logged
+  by error name, never fails the login). Every code-check failure (unknown,
   expired, consumed, exhausted or mismatched code, or a bad identifier) is 400 `invalid_code`.
   The per-IP limit is 429 `rate_limited` and the lockout is 429 `too_many_attempts`, both with
   `Retry-After`; clients treat 429 as its own state.
@@ -247,6 +248,11 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   production build lacks `ALLOW_MOCKS_IN_PROD_BUILD=1`, or when the database is `aarvion_prod`.
   Set `ALLOW_MOCKS_IN_PROD_BUILD=1` only for the e2e build and the Vercel Preview scope.
 - Production sets `MONGODB_DB=aarvion_prod`. Previews use a separate database.
+- Customer chrome (skip link, announcement, header, category bar, footer) is `withStoreChrome()` in
+  `src/components/shell/store-chrome.tsx`, used by the `(store)` layout and by the root
+  `not-found.tsx`, which sits outside the group. A new page that renders outside `(store)` and
+  wants the chrome calls it; never copy the chrome. Keep exactly one `<LiveRegion/>` (root layout).
+  Error boundaries use `retry()` (Next 16.3+), and log only `error.name` and `error.digest`.
 - `/dev/*` answers a real 404 where mocks are forbidden, decided by `src/proxy.ts` before anything
   renders. Every dev-only route under `src/app/dev/` also calls `requireDevRoute()` before any
   work (right after `await connection()` in a GET), outside `withErrors`.
