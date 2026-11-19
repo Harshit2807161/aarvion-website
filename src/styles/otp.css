@@ -1,0 +1,35 @@
+/*
+  OTP: port of design/prototype/css/flows.css lines 330-359 for src/components/form/otp-field.tsx.
+  One real input drawn as six boxes. The input itself is input-otp's: it is absolutely positioned,
+  transparent and on top of the boxes through inline styles, so the prototype's position/colour
+  rules for .otp-input are not repeated. Only what the inline styles get wrong stays here:
+  input-otp sizes the font to the box height, and anything under 16px makes iOS zoom the page,
+  so the size is pinned (!important beats the inline style). [C13]: --line-strong is --color-line-strong.
+  Under reduced motion there is no caret blink and no shake (DESIGN.md "Preferences").
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.otp { position: relative; width: 100%; max-width: 380px; }
+.otp-input { font-size: 16px !important; }
+.otp-input::selection { background: transparent; }
+.otp-boxes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(6px, 2vw, 10px); }
+.otp-box {
+  position: relative; display: grid; place-items: center; height: 60px; border-radius: 14px;
+  background: var(--color-white); box-shadow: inset 0 0 0 1.5px var(--color-line-strong);
+  font: 600 1.625rem/1 var(--font-mono); color: var(--color-ink);
+  transition: box-shadow var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+.otp-box.is-filled { box-shadow: inset 0 0 0 1.5px var(--color-forest-600); background: var(--color-forest-50); }
+.otp.is-focused .otp-box.is-active { box-shadow: inset 0 0 0 2px var(--color-forest-600), 0 0 0 4px var(--color-forest-100); background: var(--color-white); }
+.otp.is-focused .otp-box.is-active:empty::after { content: ""; width: 2px; height: 26px; border-radius: 2px; background: var(--color-forest-600); animation: caret 1s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+.otp.is-invalid .otp-box { box-shadow: inset 0 0 0 1.5px var(--color-danger); background: var(--color-danger-50); }
+/* The prototype listed this selector in the rule above too; [C12] bans repeats, so its background is here. */
+.otp.is-invalid.is-focused .otp-box.is-active { box-shadow: inset 0 0 0 2px var(--color-danger), 0 0 0 4px var(--color-danger-50); background: var(--color-danger-50); }
+.otp.is-locked .otp-box { background: var(--color-neutral-100); box-shadow: inset 0 0 0 1.5px var(--color-neutral-200); color: var(--color-neutral-500); }
+.otp.is-locked .otp-input { cursor: not-allowed; }
+.otp.shake .otp-boxes { animation: shake 300ms var(--ease-out); }
+@keyframes shake { 20% { transform: translateX(-6px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-3px); } 90% { transform: translateX(1px); } }
+@media (prefers-reduced-motion: reduce) {
+  .otp.is-focused .otp-box.is-active:empty::after { animation: none; }
+  .otp.shake .otp-boxes { animation: none; }
+}

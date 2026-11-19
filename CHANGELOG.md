@@ -82,6 +82,10 @@ bottom use commit SHAs.
   region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in
   `src/app/layout.tsx`, with `src/styles/toast.css` and a styleguide demo (#83).
 - The `Checkbox` and `Segmented` demo on `/dev/styleguide` (`#styleguide-forms`), alongside the `TextField` states (#91).
+- `OtpField` (`src/components/form/otp-field.tsx`: input-otp behind the generated
+  `src/components/ui/input-otp.tsx`, six `aria-hidden` boxes, a pasted full code replacing
+  a partial value (native paste listener, `otpDigits`), once-per-code `onComplete`, shake only when motion is allowed) with
+  `src/styles/otp.css` (#89).
 
 ### Changed
 
