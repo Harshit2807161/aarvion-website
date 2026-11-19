@@ -57,6 +57,14 @@ describe("StoreHeader", () => {
     ).toBe("0");
   });
 
+  it("keeps the Sign in name when the visible label is hidden", () => {
+    render(<StoreHeader />);
+    const link = screen.getByRole("link", { name: "Sign in" });
+    expect(link).toHaveAttribute("aria-label", "Sign in");
+    link.querySelector(".acct-label")!.remove();
+    expect(screen.getByRole("link", { name: "Sign in" })).toBe(link);
+  });
+
   it("lets Tasks 15, 37 and 43 replace the cart, search and account slots", () => {
     render(<StoreHeader search={<p>S</p>} account={<p>A</p>} cart={<p>C</p>} />);
     expect(screen.getByText("S")).toBeInTheDocument();

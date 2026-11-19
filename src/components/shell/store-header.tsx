@@ -27,9 +27,10 @@ function StaticSearch() {
   );
 }
 
+/** The link carries its own name: `.acct-label` is hidden at 1100px and below. */
 function SignIn() {
   return (
-    <Link className="sh-btn sh-acct" href={ROUTES.login}>
+    <Link className="sh-btn sh-acct" href={ROUTES.login} aria-label="Sign in">
       <Icon className="acct-icon" name="user" />
       <span className="acct-label">Sign in</span>
     </Link>
