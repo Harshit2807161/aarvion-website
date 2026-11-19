@@ -11,3 +11,6 @@ README.md
 scripts
 design
 DESIGN.md
+src/styles/
+src/components/**/*.css
+src/app/globals.css
