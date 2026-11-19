@@ -62,9 +62,13 @@ bottom use commit SHAs.
   hides its tag below 1% and `src/lib/price-source.test.ts` keeps UI code from recomputing prices (#71).
 - `Button` and `ButtonLink` in `src/components/base/` (seven variants, three sizes, a busy state that
   drops clicks) with `src/styles/buttons.css` (#74).
+- `src/config/site.ts` (`SITE_CONFIG`, `legalValue`, `assertLegalConfigComplete`, the H4 production
+  gate hook) and `routes.ts` (`ROUTES`, `PENDING_ROUTES`).
 
 ### Changed
 
+- The root layout sets `metadataBase` from `APP_URL`, so Open Graph and icon URLs no longer
+  resolve to localhost.
 - `.gitattributes` gives CHANGELOG.md git's union merge driver, so parallel PRs that each add
   a line no longer conflict when a branch merges `origin/main` (#73).
 - `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).

@@ -48,6 +48,7 @@ src/app/            Next.js routes: api/{health,auth/**}, dev/outbox, layout, pl
                     globals.css (Tailwind 4 @theme tokens)
 src/styles/         ported prototype CSS (base.css, one @layer base) and the token and CSS tests
 src/lib/            client-safe helpers (cn)
+src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES)
 src/components/     React components, built task by task by the UI plan (home/, film/ so far)
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
 src/server/         framework-free business logic (the only place rules live)

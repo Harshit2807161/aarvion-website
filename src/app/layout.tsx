@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from "next";
+import { resolveSiteMetadataBase, SITE_CONFIG } from "@/config/site";
 import { fontVariables } from "@/fonts";
+import { getEnv } from "@/server/env";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Aarvion Pharmaceuticals",
-  description: "Aarvion Pharmaceuticals storefront",
-};
+// metadataBase is what Next resolves opengraph-image and icon URLs against; without it they
+// point at localhost. It reads APP_URL lazily (getEnv never runs at import time).
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    metadataBase: resolveSiteMetadataBase(getEnv().APP_URL),
+    title: SITE_CONFIG.legalName,
+    description: `${SITE_CONFIG.legalName} storefront`,
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
