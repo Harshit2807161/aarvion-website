@@ -72,7 +72,7 @@ describe("design tokens in globals.css", () => {
 
   it("[C13] no stylesheet reads the bare --line-strong", () => {
     const files = globSync("src/**/*.css", { cwd: root });
-    expect(files.length).toBeGreaterThan(0);
+    expect(files.length).toBeGreaterThan(1);
     for (const file of files) {
       expect(read(file), file).not.toContain("var(--line-strong)");
     }

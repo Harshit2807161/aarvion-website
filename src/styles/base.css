@@ -1,0 +1,228 @@
+/*
+  Base styles: one merged @layer base, one block per selector.
+  Source: design/prototype/css/flows.css (the customer flows, which win where the two
+  differ) plus the site.css-only rules (.cm, .h-section, .stamp tabular figures) and
+  the store.css focus scopes. Imported by src/app/globals.css after Tailwind's preflight.
+  Ignored by Prettier (see .prettierignore); src/styles/css-hygiene.test.ts forbids a
+  selector appearing twice in the same at-rule context.
+*/
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-color: var(--color-forest-300) var(--color-neutral-50);
+    scrollbar-gutter: stable;
+    scroll-padding-top: var(--sticky-top);
+  }
+  html.has-sheet {
+    overflow: hidden;
+  }
+  body {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-white);
+    color: var(--color-text);
+    font: 400 var(--text-base) / var(--text-base--line-height) var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+  main {
+    flex: 1 0 auto;
+  }
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  [role="button"],
+  .btn,
+  .seg-opt,
+  .tab,
+  .chip {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+    touch-action: manipulation;
+  }
+  ul,
+  ol {
+    list-style: none;
+    padding: 0;
+  }
+  fieldset {
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  legend {
+    padding: 0;
+  }
+  abbr[title] {
+    text-decoration: none;
+  }
+  ::selection {
+    background: var(--color-sand-200);
+    color: var(--color-forest-950);
+  }
+
+  /* Focus: a 2px ring that flips to sand on dark grounds. */
+  :focus {
+    outline: none;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus, var(--color-focus-light));
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .band,
+  .toast,
+  .announce,
+  .foot,
+  .act-close,
+  .tile-cardio,
+  .qa--rx,
+  [data-ground="forest"] {
+    --focus: var(--color-focus-dark);
+  }
+  h1[tabindex="-1"]:focus,
+  h2[tabindex="-1"]:focus,
+  h3[tabindex="-1"]:focus {
+    outline: none;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+  .i {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .sprite {
+    position: absolute;
+  }
+  .sr-only {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .skip {
+    position: fixed;
+    left: 16px;
+    top: -60px;
+    z-index: 100;
+    padding: 12px 18px;
+    border-radius: var(--radius-pill);
+    background: var(--color-sand-200);
+    color: var(--color-forest-900);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .skip:focus-visible {
+    top: 16px;
+  }
+  .wrap {
+    width: min(var(--container-page), 100% - 2 * var(--spacing-gutter));
+    margin-inline: auto;
+  }
+  .mono,
+  .price,
+  output,
+  .cart-count,
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .stamp {
+    font-variant-numeric: tabular-nums;
+  }
+  .cm {
+    font-family: var(--font-sans);
+  }
+  .muted {
+    color: var(--color-text-muted);
+  }
+
+  /* Type */
+  .h-display {
+    font: 700 var(--text-display-l) / var(--text-display-l--line-height) var(--font-display);
+    letter-spacing: var(--text-display-l--letter-spacing);
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+  .h-section {
+    font: 700 clamp(1.5rem, 1.2rem + 0.9vw, 2rem) / 1.1 var(--font-display);
+    letter-spacing: -0.022em;
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+  .h-title {
+    font: 600 1.5rem / 1.3 var(--font-display);
+    letter-spacing: var(--text-title--letter-spacing);
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+  .h-sub {
+    font: 600 1.0625rem / 1.3 var(--font-display);
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+  .lead {
+    font-size: var(--text-lead);
+    line-height: var(--text-lead--line-height);
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+  }
+  .small {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+  .xs {
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+}

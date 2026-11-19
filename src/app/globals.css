@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/base.css";
 
 /*
   Aarvion design tokens: design/prototype/css/tokens.css, verbatim except --font-*
