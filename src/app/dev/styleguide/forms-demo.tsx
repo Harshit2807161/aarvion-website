@@ -34,11 +34,7 @@ export function FormsDemo() {
       <TextField id="sg-bad" label="Pincode" mono defaultValue="4000" error="Enter 6 digits." />
       <div>
         <Checkbox id="sg-adult" label="I am 18 or older" defaultChecked />
-        <Checkbox
-          id="sg-news"
-          label="Tell me about new Aarvion medicines"
-          sub="Optional. Change it any time in your account."
-        />
+        <Checkbox id="sg-news" label="Tell me about new medicines" sub="Optional." />
         <Checkbox
           id="sg-terms"
           label="I agree to the Terms"
