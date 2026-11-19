@@ -90,6 +90,9 @@ Nothing below exists yet; each lands before or with the production deploy.
     `NODE_ENV=production`). `SITE_CONFIG` must be filled with the drug licence numbers,
     registered pharmacist, grievance officer, GSTIN, and both a customer care phone and email
     (a partial pair counts as pending).
+  - The gate does not see policy facts that live only in page copy. Before launch, replace each
+    `<Pending />` in `src/app/(store)/legal/` with the owner's text: the privacy policy's data
+    storage location and retention periods (handoff owner action 23).
 - **Go-live: online payments.** `SITE_CONFIG.onlinePayments` (`src/config/site.ts`) is `false`, so
   the footer's payment line says only "Cash on delivery". Once live Razorpay keys exist and prepaid
   checkout works (plan Stage 6), flip it to `true` in the same PR: the line then adds UPI, cards
