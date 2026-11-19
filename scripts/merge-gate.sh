@@ -13,5 +13,6 @@ CHECKS="lint typecheck unit int build e2e pr-title branch-name pr-size"
 for c in $CHECKS; do
   echo "$out" | awk -v c="$c" '$1==c && $2=="pass"{f=1} END{exit !f}' || { echo "BLOCKED: required check '$c' not passing on #$n"; echo "$out" | awk '{print $1, $2}'; exit 2; }
 done
-if [ -n "$2" ]; then gh pr merge "$n" --repo "$R" --squash --body-file "$2"; else gh pr merge "$n" --repo "$R" --squash; fi
+ADMIN=""; [ "$ALLOW_OVERSIZE" = "1" ] && ADMIN="--admin"  # pr-size is a required check on main; a ruled exception needs the owner override
+if [ -n "$2" ]; then gh pr merge "$n" --repo "$R" --squash $ADMIN --body-file "$2"; else gh pr merge "$n" --repo "$R" --squash $ADMIN; fi
 echo "merged #$n"

@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
+import { describe, expect, it, vi } from "vitest";
+import { Checkbox } from "./checkbox";
+import { Segmented } from "./segmented";
 import { TextField } from "./text-field";
 
 describe("TextField", () => {
@@ -68,6 +71,176 @@ describe("TextField", () => {
   });
 });
 
+describe("Checkbox", () => {
+  it("toggles when its label is clicked", () => {
+    render(<Checkbox id="adult" label="I am 18 or older" />);
+    const box = screen.getByRole("checkbox", { name: "I am 18 or older" });
+    expect(box).not.toBeChecked();
+    fireEvent.click(screen.getByText("I am 18 or older"));
+    expect(box).toBeChecked();
+  });
+
+  it("shows the sub line and ties the error to the input", () => {
+    render(<Checkbox id="adult" label="Adult" sub="Optional." error="Confirm your age." />);
+    const box = screen.getByRole("checkbox");
+    expect(box).toHaveAttribute("aria-invalid", "true");
+    expect(box).toHaveAttribute("aria-describedby", "adult-err");
+    expect(document.getElementById("adult-err")).toHaveTextContent("Confirm your age.");
+    expect(screen.getByText("Optional.")).toBeInTheDocument();
+  });
+
+  it("announces its error and drops the error wiring when it clears", () => {
+    const { container, rerender } = render(<Checkbox id="adult" label="Adult" error="Confirm." />);
+    expect(document.getElementById("adult-err")).toHaveAttribute("role", "alert");
+    expect(container.querySelector(".check")).toHaveClass("is-invalid");
+    rerender(<Checkbox id="adult" label="Adult" error={null} />);
+    const box = screen.getByRole("checkbox");
+    expect(container.querySelector(".check")).not.toHaveClass("is-invalid");
+    expect(box).not.toHaveAttribute("aria-invalid");
+    expect(box).not.toHaveAttribute("aria-describedby");
+    expect(document.getElementById("adult-err")).toBeNull();
+  });
+
+  it("has no error wiring when valid, and keeps a caller's aria-describedby", () => {
+    const { rerender } = render(<Checkbox id="adult" label="Adult" />);
+    const box = screen.getByRole("checkbox");
+    expect(box).not.toHaveAttribute("aria-invalid");
+    expect(box).not.toHaveAttribute("aria-describedby");
+    rerender(<Checkbox id="adult" label="Adult" error="No." aria-describedby="extra" />);
+    expect(box).toHaveAttribute("aria-describedby", "adult-err extra");
+  });
+});
+
+describe("Segmented", () => {
+  const OPTIONS = [
+    { value: "mobile", label: "Mobile" },
+    { value: "email", label: "Email", icon: "mail" },
+  ] as const;
+
+  it("is a fieldset with --n, a screen-reader legend and native radios", () => {
+    const { container } = render(
+      <Segmented
+        name="via"
+        legend="Sign in with"
+        options={OPTIONS}
+        value="mobile"
+        onChange={() => {}}
+      />,
+    );
+    const seg = container.querySelector("fieldset.seg") as HTMLElement;
+    expect(seg.style.getPropertyValue("--n")).toBe("2");
+    expect(seg.querySelector("legend")).toHaveClass("sr-only");
+    expect(screen.getByRole("group", { name: "Sign in with" })).toBe(seg);
+    expect(screen.getByRole("radio", { name: "Mobile" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Email" })).not.toBeChecked();
+  });
+
+  it("calls onChange with the option's value", () => {
+    const onChange = vi.fn();
+    render(
+      <Segmented
+        name="via"
+        legend="Sign in with"
+        options={OPTIONS}
+        value="mobile"
+        onChange={onChange}
+      />,
+    );
+    fireEvent.click(screen.getByText("Email"));
+    expect(onChange).toHaveBeenCalledWith("email");
+  });
+
+  describe("keyboard", () => {
+    const THREE = [
+      { value: "a", label: "A" },
+      { value: "b", label: "B" },
+      { value: "c", label: "C" },
+    ] as const;
+    function Harness() {
+      const [v, setV] = useState<"a" | "b" | "c">("b");
+      return <Segmented name="k" legend="Pick" options={THREE} value={v} onChange={setV} />;
+    }
+    const press = (key: string) =>
+      fireEvent.keyDown(screen.getByRole("radio", { checked: true }), { key });
+
+    it("keeps only the selected radio in the tab order", () => {
+      render(<Harness />);
+      expect(screen.getByRole("radio", { name: "A" })).toHaveAttribute("tabindex", "-1");
+      expect(screen.getByRole("radio", { name: "B" })).toHaveAttribute("tabindex", "0");
+    });
+
+    it("moves and focuses with the arrows, wrapping at the ends", () => {
+      render(<Harness />);
+      press("ArrowRight");
+      expect(screen.getByRole("radio", { name: "C" })).toBeChecked();
+      expect(screen.getByRole("radio", { name: "C" })).toHaveFocus();
+      press("ArrowDown");
+      expect(screen.getByRole("radio", { name: "A" })).toBeChecked();
+      press("ArrowLeft");
+      expect(screen.getByRole("radio", { name: "C" })).toBeChecked();
+      press("ArrowUp");
+      expect(screen.getByRole("radio", { name: "B" })).toBeChecked();
+    });
+
+    it("prevents the default for handled keys and leaves the rest alone", () => {
+      render(<Harness />);
+      const radio = () => screen.getByRole("radio", { checked: true });
+      // Modified arrows (Alt+Left is browser Back) are left to the browser.
+      for (const mod of ["altKey", "metaKey", "ctrlKey", "shiftKey"]) {
+        expect(fireEvent.keyDown(radio(), { key: "ArrowLeft", [mod]: true })).toBe(true);
+      }
+      expect(screen.getByRole("radio", { name: "B" })).toBeChecked();
+      expect(fireEvent.keyDown(radio(), { key: "ArrowRight" })).toBe(false);
+      expect(fireEvent.keyDown(radio(), { key: "Home" })).toBe(false);
+      expect(fireEvent.keyDown(radio(), { key: "x" })).toBe(true);
+    });
+
+    it("keeps the group reachable when the value matches no option", () => {
+      render(
+        <Segmented
+          name="k"
+          legend="Pick"
+          options={THREE}
+          value={"zzz" as "a"}
+          onChange={() => {}}
+        />,
+      );
+      expect(screen.getByRole("radio", { name: "A" })).toHaveAttribute("tabindex", "0");
+      expect(screen.getByRole("radio", { name: "B" })).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("jumps with Home and End and ignores other keys", () => {
+      render(<Harness />);
+      press("End");
+      expect(screen.getByRole("radio", { name: "C" })).toBeChecked();
+      press("Home");
+      expect(screen.getByRole("radio", { name: "A" })).toBeChecked();
+      press("x");
+      expect(screen.getByRole("radio", { name: "A" })).toBeChecked();
+    });
+  });
+
+  it("sets --i and --n for any option count", () => {
+    const four = ["a", "b", "c", "d"].map((v) => ({ value: v, label: v.toUpperCase() }));
+    const { container } = render(
+      <Segmented name="four" legend="Four" options={four} value="d" onChange={() => {}} />,
+    );
+    const seg = container.querySelector("fieldset.seg") as HTMLElement;
+    expect(seg.style.getPropertyValue("--n")).toBe("4");
+    expect(seg.style.getPropertyValue("--i")).toBe("3");
+  });
+
+  it("moves the selection when controlled", () => {
+    function Harness() {
+      const [v, setV] = useState<"mobile" | "email">("mobile");
+      return <Segmented name="via" legend="Via" options={OPTIONS} value={v} onChange={setV} />;
+    }
+    render(<Harness />);
+    fireEvent.click(screen.getByText("Email"));
+    expect(screen.getByRole("radio", { name: "Email" })).toBeChecked();
+  });
+});
+
 describe("forms.css", () => {
   const css = readFileSync(path.resolve(import.meta.dirname, "../../styles/forms.css"), "utf8");
 
@@ -75,6 +248,19 @@ describe("forms.css", () => {
     expect(css).toMatch(
       /@media \(forced-colors: active\)[^}]*\.input:focus[^}]*outline: 2px solid Highlight/,
     );
+  });
+
+  it("covers the checkbox and segmented control in forced-colors and contrast-more", () => {
+    expect(css).toMatch(
+      /@media \(forced-colors: active\)[^@]*\.check-input:checked \+ \.check-box/,
+    );
+    expect(css).toMatch(/@media \(forced-colors: active\)[^@]*\.seg-thumb \{ border/);
+    expect(css).toMatch(/@media \(prefers-contrast: more\)[^@]*\.check-box/);
+  });
+
+  it("styles a disabled checkbox as unavailable", () => {
+    expect(css).toMatch(/\.check-input:is\(:disabled, \[aria-disabled="true"\]\) \+ \.check-box/);
+    expect(css).not.toMatch(/seg:has\(\.seg-input:nth-of-type/);
   });
 
   it("keeps the shared field box in one rule", () => {
