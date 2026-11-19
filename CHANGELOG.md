@@ -9,30 +9,66 @@ version in `package.json` follows [Semantic Versioning](https://semver.org/spec/
 Deprecated, Removed, Fixed or Security). Write it for the next maintainer, say what changed and
 where, and end it with the PR number, for example `(#57)`. If the number is not known yet, add it
 in a follow-up commit after `gh pr create`. Group Dependabot bumps into one line per release.
+List only sections that have entries.
+
+Release dates are in IST (Asia/Kolkata). Versions are not tagged yet, so the compare links at the
+bottom use commit SHAs.
 
 ## [Unreleased]
 
 ### Added
 
+- Tailwind CSS 4 with the design tokens in `src/app/globals.css` (verbatim from the prototype,
+  Prettier-ignored), every test file mapped to one Vitest project, and the `ui` project's React
+  and Testing Library setup (#45).
+- Merged base styles in `src/styles/base.css`, the `cn()` class helper, and a dependency policy
+  test that bans animation, carousel, toast and icon libraries (#46).
+- Foil, dome and banner rasters served from `public/foil/` and `public/banners/` with provenance
+  sidecars, pinned by `scripts/public-provenance.test.ts` (#48).
 - `AGENTS.md`, the operating manual every coding agent reads first, with `CLAUDE.md` importing
   it and a README pointer (#49).
 - Developer docs index, local setup (env var table, dev outbox) and architecture pages under
   `docs/dev/` (#50).
-- Testing, CI and merge gate, and catalogue data pages under `docs/dev/` (#52).
+- Testing, CI and merge-gate, and catalogue data pages under `docs/dev/` (#52).
 - Deploy plan and the planned secret-rotation and failed-deploy runbooks under `docs/dev/` (#53).
 - Catalogue runbooks: add a product, change an MRP, swap a Win2Age photo, add a category (#54).
-- Handoff document `docs/handoff.md` for whoever takes over (#55).
+- `docs/handoff.md`, the living state document for whoever takes over (#55).
 - This changelog, with 0.1.0 backfilled from the merged PRs #1–#44 (#56).
+- Self-hosted Host Grotesk, Geist and Geist Mono subsets with ₹ in `src/fonts/` (built by
+  `pnpm fonts:subset`, drift-tested), and the screenshot tool `scripts/shoot.mjs` (#57).
+- Banner carousel reducer `src/components/home/carousel.ts` (#58).
+- Scroll film progress maths `src/components/film/progress.ts` (#59).
+- The approved project plan, committed as `docs/plan/project-plan.md` (#61).
+- Banner carousel controller hook `src/components/home/use-carousel.ts`: autoplay, holds and
+  reduced motion (#63).
+- Scroll film engine `src/components/film/engine.ts` for the ordering act, bento, rails and
+  close (#65).
+- `scripts/merge-gate.sh`: merges only when all nine checks pass by name, `pr-size` included
+  (#66).
 
 ### Changed
 
+- `pnpm pr-size` no longer counts `public/**` (#48) or `assets/fonts/*.txt` (#57).
+- Categories use shopper names (Heart care, Diabetes care, Eye care, Respiratory care, Digestive
+  care, Bone and joint care, Urinary care), and the seed puts Sacuwin 50, 100 and 200 first in
+  Heart care (`sortOrder` 0–2). Existing databases need the README reseed (#51).
+- `pr-size` is required for every PR, docs included; `docs/decisions/repo.md` lists the nine
+  required checks (#52).
+- `docs/progress.md` is retired to a pointer at the handoff, the changelog and the decisions
+  (#55).
+
 ### Fixed
+
+- `ui` tests run under Vitest 5 again: the `next/navigation` mock state moved to
+  `tests/helpers/navigation-mocks.ts`, because Vitest 5 rejects exported `vi.hoisted` values
+  (#57).
 
 ## [0.1.0] - 2026-11-17
 
 The groundwork, Phase F (foundation) and Phase CA (catalogue, auth and order domain, server
-side). Covers the merged PRs #1–#44. #9, #12, #24 and #34 were closed without merging
-(superseded).
+side). Covers the merged PRs #1–#44. #12, #24 and #34 were closed without merging (superseded
+by fresh branches), and #9 was closed because `@types/node` majors are ignored (the runtime is
+Node 24).
 
 ### Added
 
