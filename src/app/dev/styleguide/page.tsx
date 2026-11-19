@@ -5,6 +5,8 @@ import { Button, ButtonLink, type ButtonSize, type ButtonVariant } from "@/compo
 import { ICON_NAMES, Icon } from "@/components/base/icon";
 import { PriceInline, StampPrice } from "@/components/base/stamp-price";
 import { Pocket } from "@/components/catalogue/pocket";
+import { ProductFacts } from "@/components/product/product-facts";
+import { VariantSwitcher } from "@/components/product/variant-switcher";
 import { getCachedProducts } from "@/lib/catalogue/cached";
 import { FormsDemo } from "./forms-demo";
 import { OtpDemo } from "./otp-demo";
@@ -75,6 +77,8 @@ export default async function StyleguidePage() {
   await connection();
   requireDevRoute();
   const products = await catalogueOrNull();
+  const sacuwin = products?.find((p) => p.slug === "sacuwin-100");
+  const hyloage = products?.find((p) => p.slug === "hyloage");
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-10 p-6">
       <h1 className="h-section">Styleguide</h1>
@@ -134,6 +138,29 @@ export default async function StyleguidePage() {
             <PriceInline key={mrp} mrpPaise={mrp} />
           ))}
         </div>
+      </section>
+
+      <section aria-labelledby="sg-facts" id="styleguide-facts">
+        <h2 className="mb-4 text-lg font-semibold" id="sg-facts">
+          Product facts and strengths
+        </h2>
+        {sacuwin && hyloage ? (
+          <div className="grid gap-8 md:grid-cols-2">
+            <div className="grid content-start gap-4">
+              <VariantSwitcher
+                family={products!.filter((p) => p.familySlug === sacuwin.familySlug)}
+                current={sacuwin}
+              />
+              <ProductFacts product={sacuwin} />
+            </div>
+            <div className="grid content-start gap-4">
+              <p>Manufacturer not yet confirmed (shows &ldquo;To be added&rdquo;):</p>
+              <ProductFacts product={hyloage} />
+            </div>
+          </div>
+        ) : (
+          <p>Needs the seeded catalogue.</p>
+        )}
       </section>
 
       <section aria-labelledby="sg-pockets" id="styleguide-pockets">

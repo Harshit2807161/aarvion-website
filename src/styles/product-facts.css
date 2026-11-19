@@ -1,0 +1,18 @@
+/* The product page's Legal Metrology facts block and the strength switcher. */
+.product-facts { display: grid; gap: 0; margin: 0; font-size: var(--text-sm); line-height: var(--text-sm--line-height); color: var(--color-ink); }
+.product-facts > div { display: grid; grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr); gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--color-neutral-200); }
+.product-facts > div:last-child { border-bottom: 1px solid var(--color-neutral-200); }
+.product-facts dt { color: var(--color-neutral-600); }
+.product-facts dd { margin: 0; overflow-wrap: anywhere; }
+.product-facts table { border-collapse: collapse; width: 100%; max-width: 28rem; }
+.product-facts th { padding: 2px 16px 2px 0; text-align: left; font-weight: 400; }
+.product-facts td { padding: 2px 16px 2px 0; text-align: left; font-weight: 400; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.product-facts thead th { color: var(--color-neutral-600); font-size: var(--text-xs); }
+@media (max-width: 560px) {
+  .product-facts > div { grid-template-columns: minmax(0, 1fr); }
+}
+
+.strengths { display: flex; flex-wrap: wrap; gap: 8px; }
+.strength-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-line-strong); border-radius: var(--radius-pill); background: var(--color-white); color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; text-decoration: none; transition: background-color var(--duration-fast) ease, border-color var(--duration-fast) ease; }
+.strength-chip:hover { border-color: var(--color-forest-500); }
+.strength-chip[aria-current="page"] { border-color: var(--color-forest-800); background: var(--color-forest-800); color: var(--color-white); }
