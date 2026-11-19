@@ -6,8 +6,6 @@ import { getDeps } from "@/server/deps";
 import { withErrors } from "@/server/http";
 import { assertSameOrigin } from "@/server/security/origin";
 
-export const dynamic = "force-dynamic";
-
 export const POST = withErrors(async (req) => {
   assertSameOrigin(req);
   const now = getDeps().now();

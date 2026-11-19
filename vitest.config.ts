@@ -34,6 +34,7 @@ export default defineConfig({
           environment: "node",
           include: ["tests/int/**/*.test.ts"],
           globalSetup: ["tests/helpers/global-setup.ts"],
+          setupFiles: ["tests/helpers/next-mocks.ts"],
           testTimeout: 30_000,
           hookTimeout: 180_000,
         },
