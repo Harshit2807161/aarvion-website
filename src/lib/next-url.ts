@@ -8,6 +8,11 @@ const BLOCKED_PREFIXES = ["/login", "/api/", "/dev/"];
  * Guards against open redirects ("//host", "/\host", absolute URLs, "javascript:"), control
  * characters (browsers strip tabs and newlines inside URLs, turning "/\t/evil" into "//evil"),
  * oversized values and pages that make no sense after sign-in.
+ *
+ * Parsing collapses dot segments ("/.//evil.com" becomes "//evil.com"), so the checks that
+ * matter run on the resolved OUTPUT, not only on the raw input. Pass the result straight to
+ * `router.replace`/`push`/`redirect`; never decode it (that would turn "/%2F%2Fevil.com" into
+ * a protocol-relative URL).
  */
 export function sanitizeNext(raw: string | null): string {
   if (raw === null || raw === "") return "/";
@@ -24,6 +29,18 @@ export function sanitizeNext(raw: string | null): string {
     return "/";
   }
   if (url.origin !== BASE) return "/";
-  if (BLOCKED_PREFIXES.some((p) => url.pathname.startsWith(p))) return "/";
-  return url.pathname + url.search + url.hash;
+  const out = url.pathname + url.search + url.hash;
+  // The output itself must stay same-origin: no "//" or "/\\" start, no backslash.
+  if (out.startsWith("//") || out.startsWith("/\\") || out.includes("\\")) return "/";
+  if (new URL(out, BASE).origin !== BASE) return "/";
+  // Block-list on the normalised path, case-insensitively and with percent escapes decoded.
+  let path = url.pathname;
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    // keep the encoded path
+  }
+  path = path.toLowerCase();
+  if (BLOCKED_PREFIXES.some((p) => path.startsWith(p))) return "/";
+  return out;
 }
