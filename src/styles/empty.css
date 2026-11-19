@@ -1,0 +1,11 @@
+/*
+  Empty state: port of design/prototype/css/flows.css (.empty block, lines 161-163 and 546-551)
+  for src/components/shell/empty-state.tsx. The count is masked by `.dm` from stamp.css.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.well--empty { display: grid; place-items: center; width: 132px; height: 132px; border-radius: 22px; background: var(--color-sand-50); border: 1.5px dashed var(--color-sand-200); }
+.well-count { --pitch: 3.6px; font: 600 4.5rem/1 var(--font-mono); letter-spacing: -0.04em; color: var(--color-forest-800); }
+.empty { display: grid; justify-items: center; gap: 14px; max-width: 30rem; margin: 24px auto 0; padding: 32px 0 16px; text-align: center; }
+.empty h2 { margin-top: 10px; font: 700 var(--text-display-m)/1.1 var(--font-display); letter-spacing: -0.025em; color: var(--color-ink); text-wrap: balance; }
+.empty p { color: var(--color-text-muted); text-wrap: pretty; }
+.empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }
