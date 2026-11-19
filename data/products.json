@@ -34,7 +34,7 @@
       "heroImage": "assets/products/original/bemptor-r40--1--bemptor-r40-3.webp",
       "imageSource": "win2age",
       "active": true,
-      "sortOrder": 0,
+      "sortOrder": 3,
       "notes": "MRP print is tiny; read as 630 (OCR said 650). Confirm."
     },
     {
@@ -65,7 +65,7 @@
       "heroImage": "assets/products/original/bemptor-180--1--bemptor-180.webp",
       "imageSource": "win2age",
       "active": true,
-      "sortOrder": 1,
+      "sortOrder": 4,
       "notes": null
     },
     {
@@ -100,7 +100,7 @@
       "heroImage": "assets/products/original/sacuwin-100--1--sacuwin-100-2.webp",
       "imageSource": "aarvion",
       "active": true,
-      "sortOrder": 4,
+      "sortOrder": 1,
       "notes": null
     },
     {
@@ -135,7 +135,7 @@
       "heroImage": "assets/products/original/sacuwin-200--1--sacuwin-200-3.webp",
       "imageSource": "aarvion",
       "active": true,
-      "sortOrder": 5,
+      "sortOrder": 2,
       "notes": null
     },
     {
@@ -170,7 +170,7 @@
       "heroImage": "assets/products/original/sacuwin-50--1--sacuwin-50-2.webp",
       "imageSource": "aarvion",
       "active": true,
-      "sortOrder": 6,
+      "sortOrder": 0,
       "notes": null
     },
     {

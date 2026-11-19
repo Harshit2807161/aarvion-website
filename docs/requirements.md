@@ -21,7 +21,7 @@ Aarvion staff use an admin dashboard to verify prescriptions and fulfil orders. 
 
 ## 3. Scope
 **In v1**
-- Catalogue: 11 products in 4 therapy areas (Cardiology, Diabetology, Ophthalmology, Respiratory).
+- Catalogue: 11 products in 4 categories (shown to shoppers as Heart care, Diabetes care, Eye care, Respiratory care).
   - Gastroenterology, Orthopaedics and Urology show as "coming soon" (all their products lack photos; see `missing-products.md`).
   - Pain Management is hidden, since Fildol is discontinued.
 - OTP login by mobile **or** email, profile, address book.
@@ -43,7 +43,7 @@ Aarvion staff use an admin dashboard to verify prescriptions and fulfil orders. 
 ## 4. Sitemap
 ```
 /                       Home
-/category/[slug]        Therapy area listing (Cardiology, Diabetology, Ophthalmology, Respiratory; others "coming soon")
+/category/[slug]        Category listing (Heart care, Diabetes care, Eye care, Respiratory care; others "coming soon")
 /product/[slug]         Product page
 /search                 Search results (also a search overlay in the header)
 /cart                   Cart (also a slide-in cart drawer)

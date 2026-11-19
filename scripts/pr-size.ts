@@ -13,6 +13,7 @@ export const DEFAULT_EXCLUDES = [
   "docs/superpowers/**",
   "docs/decisions/**",
   "assets/fonts/*.txt",
+  "public/**",
 ];
 
 const GENERATED_MARKER = "@generated shadcn";
