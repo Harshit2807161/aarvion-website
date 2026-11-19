@@ -21,6 +21,11 @@
  *   `verifyOk`/`verifyFail` or `sendOk`/`sendFail` accordingly.
  * - While a code is locked on a timer, dispatch `tick` about once a second and render
  *   `codeMessage(state, now)`.
+ * - profile step, `busy`, not `sessionCheck`: after `profileSubmit` call `verifyCode` with
+ *   `state.code` and `state.signup`, then dispatch `verifyOk` or `verifyFail`.
+ * - `sessionCheck` true (code or profile step): a verify ended in `network`, and the sign-in may
+ *   still have worked (a timeout after the server set the cookie). Call `fetchSession()` and
+ *   dispatch `sessionChecked`: a session means signed in, `null` shows the network error.
  */
 import type { Channel, SignupPayload } from "./api.ts";
 import {
@@ -128,6 +133,20 @@ function idError(channel: Channel, identifier: string): string | null {
   return EMAIL_RE.test(identifier) ? null : LOGIN_COPY.emailInvalid;
 }
 
+/**
+ * The server's name rule (`NO_HIDDEN_CHARS` in `src/server/auth/login.ts`): no control, format or
+ * default-ignorable character, except a zero-width (non-)joiner between a letter or mark and a
+ * letter or mark. Kept in step by hand; the server stays the authority (`nameRefused`).
+ */
+const NO_HIDDEN_CHARS =
+  /^(?:[^\p{C}\p{Default_Ignorable_Code_Point}]|(?<=[\p{L}\p{M}])[\u200C\u200D](?=[\p{L}\p{M}]))*$/u;
+/** The server's longest name; a longer one gets its own message, not "at least 2 letters". */
+const NAME_MAX = 80;
+function nameOk(name: string): boolean {
+  const n = name.trim();
+  return n.length >= 2 && n.length <= NAME_MAX && /\p{L}/u.test(n) && NO_HIDDEN_CHARS.test(n);
+}
+
 function sendFailMessage(channel: Channel, e: Extract<LoginEvent, { type: "sendFail" }>): string {
   switch (e.error) {
     case "invalid_identifier":
@@ -144,6 +163,7 @@ function sendFailMessage(channel: Channel, e: Extract<LoginEvent, { type: "sendF
 }
 
 type CodeState = Extract<LoginState, { step: "code" }>;
+type ProfileState = Extract<LoginState, { step: "profile" }>;
 
 /** A fresh code step for a code that was sent at `sentAt`. */
 function newCodeState(
@@ -177,15 +197,43 @@ function idFrom(
   return { step: "id", channel: s.channel, raw: s.identifier, error, busy: false };
 }
 
-/** A verify failure in the code step. Sign-up and network outcomes arrive in the last PR. */
+function codeFrom(s: ProfileState, patch: Partial<CodeState>): CodeState {
+  return {
+    ...newCodeState(s.channel, s.identifier, s.sentAt, s.resendAt),
+    signup: s.signup,
+    ...patch,
+  };
+}
+
 function reduceVerifyFail(
-  s: CodeState,
+  s: CodeState | ProfileState,
   e: Extract<LoginEvent, { type: "verifyFail" }>,
 ): LoginState {
   const what = s.channel === "phone" ? "number" : "email";
   const lockMs = wholeSec(e.retryAfterSec) === null ? FALLBACK_LOCK_MS : e.retryAfterSec! * 1000;
   switch (e.error) {
+    case "network":
+      // The sign-in may have worked; the UI checks the session before showing an error.
+      return { ...s, busy: true, error: null, sessionCheck: true };
+    case "signup_required":
+      return {
+        step: "profile",
+        channel: s.channel,
+        identifier: s.identifier,
+        sentTo: s.sentTo,
+        sentAt: s.sentAt,
+        resendAt: s.resendAt,
+        code: e.code,
+        error: null,
+        // Details already sent means the server refused them (almost always the name).
+        fieldErrors: s.signup ? { name: LOGIN_COPY.nameRefused } : {},
+        busy: false,
+        lockedUntil: null,
+        signup: s.signup,
+        sessionCheck: false,
+      };
     case "invalid_code": {
+      if (s.step === "profile") return codeFrom(s, { error: LOGIN_COPY.expired });
       if (e.now - s.sentAt >= CODE_TTL_MS) return { ...s, busy: false, error: LOGIN_COPY.expired };
       const tries = s.tries + 1;
       if (tries >= MAX_TRIES) {
@@ -195,14 +243,16 @@ function reduceVerifyFail(
     }
     case "too_many_attempts": {
       const error = LOGIN_COPY.daily(what, waitText(e.retryAfterSec));
+      if (s.step === "profile") {
+        return codeFrom(s, { locked: "daily", lockedUntil: e.now + lockMs, error });
+      }
       return { ...s, busy: false, locked: "daily", lockedUntil: e.now + lockMs, error };
     }
     case "rate_limited": {
       const error = LOGIN_COPY.verifyRateLimited(mmss(e.retryAfterSec));
+      if (s.step === "profile") return { ...s, busy: false, lockedUntil: e.now + lockMs, error };
       return { ...s, busy: false, locked: "network", lockedUntil: e.now + lockMs, error };
     }
-    default:
-      return { ...s, busy: false, error: LOGIN_COPY.network };
   }
 }
 
@@ -295,6 +345,11 @@ export function loginReducer(s: LoginState, e: LoginEvent): LoginState {
         return !s.busy || s.sessionCheck ? s : { step: "done", isNewUser: e.isNewUser };
       case "verifyFail":
         return !s.busy || s.sessionCheck ? s : reduceVerifyFail(s, e);
+      case "sessionChecked":
+        if (!s.sessionCheck) return s;
+        return e.session
+          ? { step: "done", isNewUser: s.signup !== null }
+          : { ...s, busy: false, sessionCheck: false, error: LOGIN_COPY.network };
       case "tick":
         if ((s.locked === "daily" || s.locked === "network") && s.lockedUntil !== null) {
           if (e.now >= s.lockedUntil) {
@@ -302,6 +357,50 @@ export function loginReducer(s: LoginState, e: LoginEvent): LoginState {
           }
         }
         return s;
+      default:
+        return s;
+    }
+  }
+
+  if (s.step === "profile") {
+    switch (e.type) {
+      case "change":
+        return s.busy ? s : idFrom(s, null);
+      case "profileSubmit": {
+        if (s.busy || s.lockedUntil !== null) return s;
+        const v = e.values;
+        const fieldErrors: FieldErrors = {};
+        if (v.name.trim().length > NAME_MAX) fieldErrors.name = LOGIN_COPY.nameTooLong;
+        else if (!nameOk(v.name)) fieldErrors.name = LOGIN_COPY.nameInvalid;
+        if (!v.adult) fieldErrors.adult = LOGIN_COPY.adultRequired;
+        if (!v.termsPrivacy) fieldErrors.termsPrivacy = LOGIN_COPY.termsRequired;
+        if (Object.keys(fieldErrors).length > 0) return { ...s, fieldErrors, error: null };
+        return {
+          ...s,
+          fieldErrors: {},
+          error: null,
+          busy: true,
+          signup: {
+            name: v.name.trim(),
+            adult: true,
+            termsPrivacy: true,
+            marketing: v.marketing === true,
+          },
+        };
+      }
+      case "verifyOk":
+        return !s.busy || s.sessionCheck ? s : { step: "done", isNewUser: e.isNewUser };
+      case "verifyFail":
+        return !s.busy || s.sessionCheck ? s : reduceVerifyFail(s, e);
+      case "sessionChecked":
+        if (!s.sessionCheck) return s;
+        return e.session
+          ? { step: "done", isNewUser: true }
+          : { ...s, busy: false, sessionCheck: false, error: LOGIN_COPY.network };
+      case "tick":
+        return s.lockedUntil !== null && e.now >= s.lockedUntil
+          ? { ...s, lockedUntil: null, error: null }
+          : s;
       default:
         return s;
     }
