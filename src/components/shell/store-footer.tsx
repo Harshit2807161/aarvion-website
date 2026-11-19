@@ -66,8 +66,8 @@ export function StoreFooter({
             Help and policies
           </h2>
           <ul>
-            <FootLink href={ROUTES.how}>How ordering works</FootLink>
-            <FootLink href={ROUTES.questions}>Questions</FootLink>
+            <FootLink href="/#how">How ordering works</FootLink>
+            <FootLink href="/#questions">Questions</FootLink>
             <FootLink href={ROUTES.account}>Track an order</FootLink>
             <FootLink href={ROUTES.legal.returns}>Refunds and cancellation</FootLink>
             <FootLink href={ROUTES.legal.shipping}>Shipping</FootLink>
@@ -83,7 +83,7 @@ export function StoreFooter({
           </h2>
           <ul>
             <Pending label="About Aarvion" />
-            <FootLink href={ROUTES.faqWin2age}>Why some packs say Win2Age</FootLink>
+            <FootLink href="/#faq-win2age">Why some packs say Win2Age</FootLink>
             <FootLink href={ROUTES.account}>Your account</FootLink>
             <FootLink href={ROUTES.contact}>Contact</FootLink>
           </ul>

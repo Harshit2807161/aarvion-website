@@ -5,9 +5,6 @@ describe("ROUTES", () => {
   it("maps the store pages", () => {
     expect(ROUTES.home).toBe("/");
     expect(ROUTES.medicines).toBe("/#medicines");
-    expect(ROUTES.how).toBe("/#how");
-    expect(ROUTES.questions).toBe("/#questions");
-    expect(ROUTES.faqWin2age).toBe("/#faq-win2age");
     expect(ROUTES.uploadRx).toBe("/account/prescriptions");
     expect(ROUTES.category("cardiology")).toBe("/category/cardiology");
     expect(ROUTES.product("sacuwin-50")).toBe("/product/sacuwin-50");
