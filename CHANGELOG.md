@@ -14,6 +14,10 @@ in a follow-up commit after `gh pr create`. Group Dependabot bumps into one line
 
 ### Added
 
+- Agent operating manual `AGENTS.md` (imported by `CLAUDE.md`), developer docs and runbooks
+  under `docs/dev/`, the handoff `docs/handoff.md`, this changelog, and a README pointer to them
+  (#47).
+
 ### Changed
 
 ### Fixed
