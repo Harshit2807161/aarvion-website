@@ -71,7 +71,7 @@ export function CartControl({ slug, name }: { slug: string; name: string }) {
         >
           <Icon name="minus" />
         </button>
-        <output>{qty}</output>
+        <span className="qty">{qty}</span>
         <button
           ref={incRef}
           type="button"

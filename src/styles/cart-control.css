@@ -8,7 +8,7 @@
 .stepper button { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; transition: transform var(--duration-press) var(--ease-out); }
 .stepper button:active { transform: scale(0.9); }
 .stepper button[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
-.stepper output { font: 600 1rem/1 var(--font-mono); min-width: 2ch; text-align: center; }
+.stepper .qty { font: 600 1rem/1 var(--font-mono); min-width: 2ch; text-align: center; }
 @media (hover: hover) and (pointer: fine) {
   .btn-add:hover { background: var(--color-forest-700); }
   .stepper button:hover { background: rgb(255 255 255 / 0.1); }

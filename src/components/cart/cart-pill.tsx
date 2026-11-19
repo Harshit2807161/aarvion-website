@@ -34,7 +34,7 @@ export function CartPill() {
     <Link
       className="sh-btn sh-cart"
       href={ROUTES.cart}
-      aria-label={`Cart, ${count} ${count === 1 ? "pack" : "packs"}`}
+      aria-label={count === 0 ? "Cart, empty" : `Cart, ${count} ${count === 1 ? "pack" : "packs"}`}
     >
       <Icon name="cart" />
       <span className="cart-label">Cart</span>

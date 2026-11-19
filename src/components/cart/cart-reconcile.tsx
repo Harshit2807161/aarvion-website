@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { announce } from "@/components/feedback/live-region";
 import { cartStore } from "@/lib/cart/store";
 
 /**
@@ -10,7 +11,9 @@ import { cartStore } from "@/lib/cart/store";
  */
 export function CartReconcile({ slugs }: { slugs: readonly string[] }) {
   useEffect(() => {
-    cartStore.reconcile(new Set(slugs));
+    if (cartStore.reconcile(new Set(slugs))) {
+      announce("A medicine in your cart is no longer available, so it was removed.");
+    }
   }, [slugs]);
   return null;
 }

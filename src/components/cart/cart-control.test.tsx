@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,6 +8,7 @@ import { CART_UI_STORAGE_KEY } from "@/lib/cart/cart";
 import { cartStore } from "@/lib/cart/store";
 import { CartControl } from "./cart-control";
 import { CartPill } from "./cart-pill";
+import { CartReconcile } from "./cart-reconcile";
 
 const NAME = "Sacuwin 100";
 const SLUG = "sacuwin-100";
@@ -45,7 +47,8 @@ describe("CartControl", () => {
     expect(add().textContent).toBe("Add to cart");
     const stepper = screen.getByRole("group", { name: `${NAME} in cart`, hidden: true });
     // Changes are spoken only by the single #live region.
-    expect(stepper.querySelector("output")?.hasAttribute("aria-live")).toBe(false);
+    expect(document.querySelector(".cart-ctl [aria-live], .cart-ctl [role=status]")).toBeNull();
+    expect(stepper.querySelector("output")).toBeNull();
     expect(document.querySelectorAll("[aria-live]")).toHaveLength(1);
   });
 
@@ -69,7 +72,7 @@ describe("CartControl", () => {
     spy.mockRestore();
     expect(errors).toEqual([]);
     expect(container.querySelector(".cart-ctl")?.getAttribute("data-qty")).toBe("2");
-    expect(container.querySelector("output")?.textContent).toBe("2");
+    expect(container.querySelector(".qty")?.textContent).toBe("2");
     container.remove();
   });
 
@@ -100,7 +103,7 @@ describe("CartControl", () => {
     for (let i = 0; i < 9; i++) fireEvent.click(incBtn());
     expect(incBtn().getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(incBtn());
-    expect(document.querySelector("output")?.textContent).toBe("10");
+    expect(document.querySelector(".qty")?.textContent).toBe("10");
     expect(await spoken()).toBe("You can order up to 10 packs of Sacuwin 100.");
   });
 
@@ -115,11 +118,41 @@ describe("CartControl", () => {
   });
 });
 
+describe("keyboard and reconcile", () => {
+  it("adds with Enter on Add, then Space on +, keeping focus on +", async () => {
+    vi.useRealTimers(); // user-event waits on real timers
+    const user = userEvent.setup();
+    setup();
+    await user.tab(); // the pill link
+    await user.tab(); // Add
+    expect(document.activeElement).toBe(add());
+    await user.keyboard("{Enter}");
+    expect(document.activeElement).toBe(incBtn());
+    await user.keyboard(" ");
+    expect(document.querySelector(".qty")?.textContent).toBe("2");
+    expect(document.activeElement).toBe(incBtn());
+  });
+
+  it("says so once when it drops a product that is no longer sold", async () => {
+    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ gone: 2, [SLUG]: 1 }));
+    render(
+      <>
+        <CartReconcile slugs={[SLUG]} />
+        <LiveRegion />
+      </>,
+    );
+    expect(await spoken()).toBe(
+      "A medicine in your cart is no longer available, so it was removed.",
+    );
+    expect(cartStore.getSnapshot()).toEqual({ [SLUG]: 1 });
+  });
+});
+
 describe("CartPill", () => {
   it("reads 0 packs, then 1 pack, then N packs", () => {
     setup();
     const pill = () => screen.getByRole("link", { name: /^Cart, / });
-    expect(pill().getAttribute("aria-label")).toBe("Cart, 0 packs");
+    expect(pill().getAttribute("aria-label")).toBe("Cart, empty");
     expect(pill().getAttribute("href")).toBe("/cart");
     fireEvent.click(add());
     expect(pill().getAttribute("aria-label")).toBe("Cart, 1 pack");
