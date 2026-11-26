@@ -1,0 +1,208 @@
+"use client";
+
+import { useRouter, usePathname } from "next/navigation";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
+import { Icon } from "@/components/base/icon";
+import { announce } from "@/components/feedback/live-region";
+import { ROUTES } from "@/config/routes";
+import { plural } from "@/lib/catalogue/display";
+import { STRENGTH_RE, type SearchResult } from "@/lib/catalogue/search-result";
+import { queryTokens } from "@/server/catalogue/search";
+import { SuggestionList } from "./suggestion-list";
+import { useCombobox } from "./use-combobox";
+import { useProductSearch } from "./use-product-search";
+
+const EMPTY_TEXT = "No medicine matches. Try a brand such as Sacuwin or a salt such as Valsartan.";
+const LIMITED_TEXT = "Too many searches. Try again in a moment.";
+const ERROR_TEXT = "Search is not available right now. Try again in a moment.";
+
+/**
+ * Brings a shelf pocket into view and puts focus on its cart control (the Add button, or the
+ * stepper's + once it is in the cart). `is-found` marks it, and is cleared from any other.
+ */
+function reveal(el: HTMLElement) {
+  document.querySelectorAll(".is-found").forEach((x) => x.classList.remove("is-found"));
+  el.scrollIntoView({ block: "center", inline: "center" });
+  el.classList.add("is-found");
+  const ctl = el.querySelector<HTMLElement>(".cart-ctl");
+  const target =
+    ctl?.dataset.qty === "0" || !ctl?.querySelector("[data-inc]") ? "[data-add]" : "[data-inc]";
+  ctl?.querySelector<HTMLElement>(target)?.focus({ preventScroll: true });
+}
+
+/**
+ * The header search: brand or salt, optionally narrowed by a strength chip. The parts live beside
+ * it (`useProductSearch` debounces and talks to `/api/products`, `useCombobox` carries the ARIA 1.2
+ * keys, `SuggestionList` draws the options). Without JavaScript it is a plain GET form to the
+ * medicines section. Result counts are spoken through `announce()` only; nothing here logs the
+ * query. Choosing a result reveals its pocket on the home page, and goes to its product page
+ * anywhere else.
+ */
+export function HeaderSearch({ chips }: { chips: string[] }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [q, setQ] = useState("");
+  const [strength, setStrength] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const strengths = chips.filter((c) => STRENGTH_RE.test(c));
+  const hasQuery = queryTokens(q).length > 0 || strength !== null;
+  const { results, status } = useProductSearch(q, strength);
+  const items = hasQuery ? results : [];
+
+  function choose(item: SearchResult) {
+    setOpen(false);
+    const el = pathname === "/" ? document.getElementById(`p-${item.slug}`) : null;
+    if (el) reveal(el);
+    else router.push(ROUTES.product(item.slug));
+  }
+
+  const combo = useCombobox<SearchResult>({
+    items,
+    open,
+    idPrefix: "sugg",
+    onChoose: choose,
+    onClose: () => setOpen(false),
+    onClear: () => setQ(""),
+  });
+
+  // The page's one polite live region speaks the outcome; the listbox itself never does.
+  useEffect(() => {
+    if (!hasQuery) return;
+    if (status === "done") {
+      announce(
+        results.length > 0 ? `${plural(results.length, "medicine")} found` : "No medicine matches",
+      );
+    } else if (status === "limited") announce(LIMITED_TEXT);
+  }, [status, results, hasQuery]);
+
+  // "Search for a medicine" anywhere on the page puts the caret in the header search.
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (!(e.target instanceof Element) || !e.target.closest("[data-search]")) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+    }
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
+
+  function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    // The first Escape only closes the list and the second only clears the field; neither also
+    // bubbles to an ancestor handler. With nothing left to do the key is free to propagate. This
+    // does not protect a Radix dialog, which listens in the capture phase: one would need its own guard.
+    if (e.key === "Escape" && !e.nativeEvent.isComposing && (open || q !== "")) e.stopPropagation();
+    if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      setOpen(true);
+      return;
+    }
+    combo.inputProps.onKeyDown(e);
+  }
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (items.length > 0) choose(items[0]!);
+  }
+
+  function onFocusOut(e: FocusEvent<HTMLFormElement>) {
+    if (!formRef.current?.contains(e.relatedTarget as Node | null)) setOpen(false);
+  }
+
+  let body: React.ReactNode;
+  if (!hasQuery) {
+    body = (
+      <p className="sugg-hint" id="sugg-hint">
+        Type a brand such as Sacuwin or a salt such as Valsartan.
+      </p>
+    );
+  } else if (status === "limited") body = <p className="sugg-empty">{LIMITED_TEXT}</p>;
+  else if (status === "error") body = <p className="sugg-empty">{ERROR_TEXT}</p>;
+  else if (status === "loading" && items.length === 0) body = null;
+  else {
+    body = (
+      <SuggestionList
+        id="sugg"
+        items={items}
+        tokens={queryTokens(q)}
+        active={combo.active}
+        onChoose={choose}
+        emptyText={EMPTY_TEXT}
+        optionId={combo.optionId}
+      />
+    );
+  }
+
+  return (
+    <form
+      ref={formRef}
+      className="search"
+      role="search"
+      action={ROUTES.medicines}
+      autoComplete="off"
+      onSubmit={onSubmit}
+      onBlur={onFocusOut}
+    >
+      <label className="sr-only" htmlFor="q">
+        Search medicines by brand or salt
+      </label>
+      <div className="search-pill">
+        <Icon name="search" />
+        <input
+          ref={inputRef}
+          id="q"
+          name="q"
+          type="search"
+          spellCheck={false}
+          placeholder="Search medicines by brand or salt"
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          {...combo.inputProps}
+          onKeyDown={onKeyDown}
+          aria-controls="sugg"
+          aria-describedby={hasQuery ? undefined : "sugg-hint"}
+        />
+      </div>
+      <div className="sugg-panel" hidden={!open}>
+        {strengths.length > 0 && (
+          // Safari and Firefox on macOS do not focus a button on mousedown, so without this the input
+          // blurs, the panel closes and the click never lands (same guard as SuggestionList).
+          <div
+            className="chips"
+            onPointerDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <span className="chips-label" id="chips-label">
+              Strength
+            </span>
+            {strengths.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className="sugg-chip"
+                aria-pressed={strength === c}
+                onClick={() => setStrength(strength === c ? null : c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
+        {body}
+      </div>
+    </form>
+  );
+}
