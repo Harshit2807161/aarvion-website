@@ -1,5 +1,7 @@
 import { HeroBanner } from "@/components/home/banner";
 import { CategoryBento } from "@/components/home/category-bento";
+import { Close } from "@/components/home/close";
+import { Faq } from "@/components/home/faq";
 import { OrderingSteps } from "@/components/home/ordering-steps";
 import { QuickActions } from "@/components/home/quick-actions";
 import { TrustStrip } from "@/components/home/trust-strip";
@@ -8,7 +10,8 @@ import { homeModel } from "@/lib/catalogue/home-model";
 
 /**
  * The store home (v2 prototype index.html), in the prototype's order: banner, quick actions,
- * trust strip, shop by category, then the later sections. `.home` is the one root rule that sets
+ * trust strip, shop by category, how ordering works, the questions and the closing act (the product
+ * rails slot in before how ordering works). `.home` is the one root rule that sets
  * the home's 1280px content width and section rhythm (src/styles/quick-trust.css); the remaining
  * sections land with UI plan Tasks 22–29.
  */
@@ -23,6 +26,8 @@ export default async function Home() {
       <TrustStrip />
       <CategoryBento model={model} />
       <OrderingSteps />
+      <Faq allRx={model.allRx} />
+      <Close />
     </main>
   );
 }
