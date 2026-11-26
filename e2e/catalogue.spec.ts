@@ -32,3 +32,9 @@ test("an unknown product shows the not-found page, not indexed", async ({ page }
   await expect(page.getByRole("heading", { name: "We can’t find that page" })).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });
+
+test("a pocket name leads to its product page", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#p-sacuwin-100 a.pocket-link").click();
+  await expect(page).toHaveURL(/\/product\/sacuwin-100$/);
+});

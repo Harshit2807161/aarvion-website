@@ -33,6 +33,15 @@ describe("Pocket", () => {
     expect(h3.querySelector("abbr.rx")).toHaveAttribute("title", "Prescription required");
   });
 
+  it("links the name to the product page, with the Rx badge outside the link", () => {
+    const li = renderPocket();
+    const link = li.querySelector<HTMLAnchorElement>("a.pocket-link")!;
+    expect(link).toHaveAttribute("href", "/product/sacuwin-100");
+    expect(link.textContent).toBe("Sacuwin 100");
+    expect(link.querySelector("abbr.rx")).toBeNull();
+    expect(li.querySelector(".pocket-name > abbr.rx")).not.toBeNull();
+  });
+
   it("shows the actives with whole strengths, the full composition in the title and for AT", () => {
     const salt = renderPocket().querySelector<HTMLElement>(".pocket-salt")!;
     const full = "Sacubitril (as sodium) 49 mg + Valsartan 51 mg";
