@@ -1,0 +1,30 @@
+/*
+  Category page: new for src/components/catalogue/category-view.tsx (UI Task 30), built from the
+  prototype's print-field strip (design/prototype/css/site.css `.rail-strip`, `.rail-row.is-grid`)
+  under its own `cat-` names so the home rails' CSS can land without repeating a selector [C12].
+  `.cat-grid` is the wrapping sheet: pockets are at least 164px wide on a phone, 248px otherwise
+  (the prototype's --pw); like the prototype's opened rail, no perforation is drawn between pockets.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.cat-strip { padding: 2px 10px 4px; border-radius: var(--radius-strip); background: var(--foil-print); box-shadow: var(--shadow-md), inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(40 50 45 / 0.1); }
+.cat-grid { --pw: 248px; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--pw), 1fr)); padding-top: 4px; }
+.cat-soon { display: grid; justify-items: start; gap: 20px; padding: 32px; border: 1.5px dashed var(--color-sand-200); border-radius: 22px; background: var(--color-sand-50); }
+.cat-soon p { max-width: 36rem; color: var(--color-ink); text-wrap: pretty; }
+.cat-others { margin-top: 48px; }
+.cat-others-title { margin-bottom: 14px; font: 600 1.0625rem/1.2 var(--font-display); letter-spacing: -0.012em; color: var(--color-ink); }
+.cat-others ul { display: flex; flex-wrap: wrap; gap: 8px; }
+.cat-others a {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1px var(--color-neutral-300); font: 500 0.9375rem/1 var(--font-sans); color: var(--color-neutral-800); text-decoration: none;
+  transition: background-color var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+@media (hover: hover) and (pointer: fine) { .cat-others a:hover { background: var(--color-forest-50); color: var(--color-forest-900); } }
+
+@media (max-width: 719px) {
+  .cat-strip { margin-inline: calc(-1 * var(--spacing-gutter)); padding: 2px 0 4px; border-radius: 0; }
+  /* the dome's seal band reaches 12px past its pocket, 4px past the pocket's own 8px padding: the sheet's inline padding keeps it inside the screen */
+  .cat-grid { --pw: max(164px, 45vw); padding-inline: 4px; }
+  .cat-grid > .pocket { --bh: 150px; }
+  .cat-grid .blister { --dome: url("/foil/dome-hero-m.webp"); }
+  .cat-soon { padding: 24px 20px; }
+}

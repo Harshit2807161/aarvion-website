@@ -33,10 +33,6 @@ export const PENDING_ROUTES = [
   "/cart",
   "/account",
   "/account/prescriptions",
-  "/category/cardiology",
-  "/category/diabetology",
-  "/category/ophthalmology",
-  "/category/respiratory",
 ] as const;
 
 /**

@@ -148,7 +148,8 @@ Helpers in `tests/helpers/`:
 | `src/components/overlay/overlay.test.tsx` | the Overlay: dialog role and aria-modal, focus on open, focus trap, Escape and focus return, scrim click, scroll lock and aria-hidden siblings, variants, and the phone drag through the head |
 | `e2e/styleguide.spec.ts` | also: at 390px a short drag or a tap on the overlay head leaves no running animation and the transform at identity |
 | `src/components/overlay/use-drag-dismiss.test.tsx` | the drag hook: follows the finger, dismisses over the thresholds, snaps back otherwise, never removes `is-dragging` while open, ignores a second pointer and Close, skips the snap-back transition under reduced motion |
-| `e2e/links.spec.ts` | a same-origin link on `/`, `/contact` or a `/legal/*` page does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START` as their tasks land (runs in CI against the seeded server) |
+| `e2e/catalogue.spec.ts` | `/category/cardiology` (5 Add to cart buttons, current chip), `/category/urology` (coming soon), a hidden or unknown category (404 with chrome), the home bento link |
+| `e2e/links.spec.ts` | a same-origin link on `/`, a category page, `/contact` or a `/legal/*` page does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START` as their tasks land (runs in CI against the seeded server) |
 | `src/styles/overlay.test.ts` | the compiled `globals.css` carries the overlay rules, the Aarvion scrim (not `bg-black/50`) and the shadcn colour mapping |
 | `scripts/deps-policy.test.ts` | a banned animation, carousel, toast or icon library (framer-motion, swiper, gsap, sonner, lucide-react, …) or an unlisted Radix package is added |
 
