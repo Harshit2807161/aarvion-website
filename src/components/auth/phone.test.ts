@@ -16,6 +16,24 @@ describe("normMobile", () => {
     }
   });
 
+  it("refuses input with a character that is not a digit or separator, instead of dropping it", () => {
+    for (const raw of [
+      "98765O43210",
+      "९8765432101",
+      "９9876543210",
+      "9876543210a",
+      "98765\u200B43210",
+    ]) {
+      expect(MOBILE_RE.test(normMobile(raw))).toBe(false);
+    }
+  });
+
+  it("reads digits of other scripts as the digits typed", () => {
+    expect(normMobile("९९९९९९९९९९")).toBe("9999999999");
+    expect(normMobile("９８７６５４３２１０")).toBe("9876543210");
+    expect(normMobile("+९१ 98765 43210")).toBe("9876543210");
+  });
+
   it("does not strip a leading 91 or 0 from a ten digit number", () => {
     expect(normMobile("9112345678")).toBe("9112345678");
   });

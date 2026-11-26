@@ -43,6 +43,18 @@ describe("id step", () => {
       });
     }
   });
+  it("N2: refuses a stray character or a script digit typo, and reads script digits as typed", () => {
+    for (const raw of ["98765O43210", "९8765432101", "９9876543210"]) {
+      expect(run([{ type: "input", raw }, { type: "submitId" }])).toMatchObject({
+        error: LOGIN_COPY.mobileInvalid,
+        busy: false,
+      });
+    }
+    expect(run([{ type: "input", raw: "९९९९९९९९९९" }, { type: "submitId" }])).toMatchObject({
+      busy: true,
+    });
+    expect(identifierOf("phone", "९९९९९९९९९९")).toBe("9999999999");
+  });
   it("accepts the usual ways of writing one number, and posts the same ten digits", () => {
     for (const raw of ["+91 98765 43210", "09876543210", "919876543210", "98765-43210"]) {
       expect(run([{ type: "input", raw }, { type: "submitId" }])).toMatchObject({ busy: true });
