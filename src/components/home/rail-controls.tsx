@@ -13,7 +13,9 @@ const SETTLE_MS = 80;
  * the arrows page it by 80% of its width, and the toggle opens it in place into a wrapping
  * sheet ("Show fewer" closes it); a strip that already shows every pocket offers neither, since
  * its count says it is the whole category. Task 30 turns the toggle into a link to the
- * category page.
+ * category page. Task 30 deletes the toggle: `open`, `toggle()`, its `aria-*` props, the
+ * announcements and the `.is-open` / `.is-grid` rules; the arrows and the measuring stay, and
+ * `overflow` is what the replacing link needs.
  *
  * The row and rail are server-rendered, so this reaches them by `row-<railId>` and flips
  * `is-grid` / `is-open` on them (src/styles/rails.css owns what those classes look like). Both
@@ -40,6 +42,8 @@ export function RailControls({
     const row = document.getElementById(rowId);
     if (!row) return;
     const measure = () => {
+      // An open sheet never overflows; measuring then would hide the focused toggle on close.
+      if (row.classList.contains("is-grid")) return;
       const max = row.scrollWidth - row.clientWidth;
       setOverflow(max > SLACK);
       setAtStart(row.scrollLeft <= SLACK);
@@ -55,6 +59,8 @@ export function RailControls({
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
     observer?.observe(row);
     return () => {
+      row.classList.remove("is-grid");
+      row.closest(".rail")?.classList.remove("is-open");
       clearTimeout(timer);
       row.removeEventListener("scroll", onScroll);
       observer?.disconnect();
@@ -80,7 +86,7 @@ export function RailControls({
     row.classList.toggle("is-grid", next);
     if (next) row.scrollLeft = 0;
     else if (rail.getBoundingClientRect().top < 0) rail.scrollIntoView({ block: "start" });
-    announce(next ? `${title}: all ${count} medicines shown` : "Showing one row");
+    announce(next ? `${title}: all ${count} medicines shown` : `${title}: showing one row`);
   }
 
   return (
@@ -97,7 +103,7 @@ export function RailControls({
         <span className="sr-only"> {title.toLowerCase()} medicines</span>
         <Icon name="chev" />
       </button>
-      <div className="rail-arrows" hidden={open || !overflow}>
+      <div className="rail-arrows" data-off={open || !overflow ? "" : undefined}>
         <button
           type="button"
           className="rail-btn"

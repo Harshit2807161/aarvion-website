@@ -32,6 +32,7 @@ function setup({ scrollWidth = 1000, clientWidth = 600 } = {}) {
 
 const toggle = () => document.querySelector<HTMLButtonElement>("button.rail-all")!;
 const arrows = (c: HTMLElement) => c.querySelector<HTMLElement>(".rail-arrows")!;
+const off = (c: HTMLElement) => arrows(c).hasAttribute("data-off");
 
 beforeEach(() => {
   observed = null;
@@ -56,7 +57,7 @@ describe("RailControls", () => {
   it("shows neither control when the strip fits", () => {
     const { container } = setup({ scrollWidth: 600, clientWidth: 600 });
     expect(toggle().hidden).toBe(true);
-    expect(arrows(container).hidden).toBe(true);
+    expect(off(container)).toBe(true);
   });
 
   it("offers View all 5 and the arrows when the strip overflows, back disabled at the start", () => {
@@ -66,7 +67,7 @@ describe("RailControls", () => {
     expect(toggle().textContent).toContain("heart care medicines");
     expect(toggle().getAttribute("aria-expanded")).toBe("false");
     expect(toggle().getAttribute("aria-controls")).toBe("row-heart-care");
-    expect(arrows(container).hidden).toBe(false);
+    expect(off(container)).toBe(false);
     const back = screen.getByRole("button", { name: "Scroll Heart care back" });
     const fwd = screen.getByRole("button", { name: "Scroll Heart care forward" });
     expect(back.getAttribute("aria-disabled")).toBe("true");
@@ -120,7 +121,7 @@ describe("RailControls", () => {
     expect(toggle().textContent).toContain("Show fewer");
     expect(row.classList.contains("is-grid")).toBe(true);
     expect(rail.classList.contains("is-open")).toBe(true);
-    expect(arrows(container).hidden).toBe(true);
+    expect(off(container)).toBe(true);
     expect(document.activeElement).toBe(toggle());
     expect(announce).toHaveBeenCalledWith("Heart care: all 5 medicines shown");
   });
@@ -128,14 +129,46 @@ describe("RailControls", () => {
   it("closes again on the second click and restores everything", () => {
     const { container, row, rail } = setup();
     fireEvent.click(toggle());
-    row.scrollLeft = 0;
     fireEvent.click(toggle());
     expect(toggle().getAttribute("aria-expanded")).toBe("false");
     expect(toggle().textContent).toContain("View all 5");
     expect(row.classList.contains("is-grid")).toBe(false);
     expect(rail.classList.contains("is-open")).toBe(false);
-    expect(arrows(container).hidden).toBe(false);
-    expect(announce).toHaveBeenLastCalledWith("Showing one row");
+    expect(off(container)).toBe(false);
+    expect(announce).toHaveBeenLastCalledWith("Heart care: showing one row");
+  });
+
+  it("keeps the toggle visible and focused after Show fewer even if the row was measured while open", () => {
+    const { row } = setup();
+    toggle().focus();
+    fireEvent.click(toggle());
+    Object.defineProperties(row, {
+      scrollWidth: { configurable: true, value: 600 },
+      clientWidth: { configurable: true, value: 600 },
+    });
+    act(() => observed?.());
+    fireEvent.click(toggle());
+    expect(toggle().hidden).toBe(false);
+    expect(document.activeElement).toBe(toggle());
+  });
+
+  it("removes its listener, observer and sheet classes on unmount", () => {
+    const disconnect = vi.fn();
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        disconnect = disconnect;
+      },
+    );
+    const { row, rail, unmount } = setup();
+    const remove = vi.spyOn(row, "removeEventListener");
+    fireEvent.click(toggle());
+    unmount();
+    expect(remove).toHaveBeenCalledWith("scroll", expect.any(Function));
+    expect(disconnect).toHaveBeenCalled();
+    expect(row.classList.contains("is-grid")).toBe(false);
+    expect(rail.classList.contains("is-open")).toBe(false);
   });
 
   it("scrolls the rail into view when it closes with its head above the viewport", () => {
