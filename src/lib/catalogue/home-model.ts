@@ -102,6 +102,13 @@ function familyPhrase(family: PublicProduct[]): string {
  * each strength family collapsed ("Sacuwin 50, 100 and 200").
  */
 export function tileList(products: PublicProduct[]): string {
-  const families = Map.groupBy(products, (p) => p.familySlug);
-  return [...families.values()].map(familyPhrase).join(", ");
+  const families: PublicProduct[][] = [];
+  const index = new Map<string, PublicProduct[]>();
+  for (const p of products) {
+    let family = index.get(p.familySlug);
+    if (!family) index.set(p.familySlug, (family = []));
+    if (family.length === 0) families.push(family);
+    family.push(p);
+  }
+  return families.map(familyPhrase).join(", ");
 }
