@@ -7,8 +7,14 @@ import type { PublicProduct } from "@/server/catalogue/queries";
 
 export type FactsProduct = Pick<
   PublicProduct,
-  "composition" | "dosageForm" | "packLabel" | "mrpPaise" | "manufacturer" | "marketer"
+  "composition" | "dosageForm" | "packLabel" | "mrpPaise" | "manufacturer"
 >;
+
+/** Customer care as printed, only once both the phone and the email are supplied. */
+function customerCare(): string | null {
+  const care = SITE_CONFIG.customerCare;
+  return care?.phone?.trim() && care.email?.trim() ? `${care.phone}, ${care.email}` : null;
+}
 
 /** The marketer line as printed: the legal name and the two address lines on one line. */
 const MARKETER = `${SITE_CONFIG.legalName}, ${SITE_CONFIG.address.join(" ")}`;
@@ -32,8 +38,8 @@ export function ProductFacts({ product }: { product: FactsProduct }) {
               </tr>
             </thead>
             <tbody>
-              {product.composition.map(({ ingredient, strength }) => (
-                <tr key={ingredient}>
+              {product.composition.map(({ ingredient, strength }, i) => (
+                <tr key={`${i}-${ingredient}`}>
                   <th scope="row">{ingredient}</th>
                   <td>{strength}</td>
                 </tr>
@@ -73,6 +79,12 @@ export function ProductFacts({ product }: { product: FactsProduct }) {
         <dt>Country of origin</dt>
         <dd>
           <Fact value={countryOfOrigin(product.manufacturer)} />
+        </dd>
+      </div>
+      <div>
+        <dt>Customer care</dt>
+        <dd>
+          <Fact value={customerCare()} />
         </dd>
       </div>
     </dl>

@@ -15,12 +15,27 @@ export const INDIAN_ADDRESS_MARKERS = [
   "Delhi",
 ] as const;
 
-/** An Indian PIN code: six digits, the first not zero, standing alone. */
-const PIN_CODE = /\b[1-9]\d{5}\b/;
+const escape = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** "India" when the address has a PIN code or an Indian marker; null when unknown or unplaceable. */
+/**
+ * Each marker as a whole word in any case ("HARIDWAR" counts), and not a street name:
+ * "Delhi Street, London" names a street, not the place of manufacture.
+ */
+const MARKER_PATTERNS = INDIAN_ADDRESS_MARKERS.map(
+  (m) =>
+    new RegExp(
+      `(?<![\\p{L}\\d])${escape(m)}(?![\\p{L}\\d])(?!\\s+(?:street|st|road|rd|lane|avenue|ave|drive|way|square)(?![\\p{L}\\d]))`,
+      "iu",
+    ),
+);
+
+/**
+ * "India" only when the address names an Indian place from INDIAN_ADDRESS_MARKERS; null when the
+ * manufacturer is unknown or the address cannot be placed. A PIN-shaped number alone is not
+ * enough: six-digit postcodes and plot numbers exist outside India, so a wrong "India" on a
+ * legal declaration is worse than "To be added". Extend the marker list for a new state.
+ */
 export function countryOfOrigin(manufacturer: string | null): "India" | null {
   if (manufacturer === null) return null;
-  if (PIN_CODE.test(manufacturer)) return "India";
-  return INDIAN_ADDRESS_MARKERS.some((m) => manufacturer.includes(m)) ? "India" : null;
+  return MARKER_PATTERNS.some((re) => re.test(manufacturer)) ? "India" : null;
 }

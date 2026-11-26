@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { SITE_CONFIG } from "@/config/site";
 import { publicCatalogue } from "../../../tests/helpers/catalogue";
 import { findClaims } from "../../../tests/helpers/claims";
 import { ProductFacts } from "./product-facts";
@@ -21,6 +22,10 @@ function facts(slug: string) {
 }
 
 describe("ProductFacts", () => {
+  afterEach(() => {
+    SITE_CONFIG.customerCare = null;
+  });
+
   it("lists the declarations in order", () => {
     const { dl } = facts("sacuwin-100");
     expect([...dl.querySelectorAll("dt")].map((d) => d.textContent)).toEqual([
@@ -31,6 +36,7 @@ describe("ProductFacts", () => {
       "Manufacturer",
       "Marketer",
       "Country of origin",
+      "Customer care",
     ]);
   });
 
@@ -64,6 +70,23 @@ describe("ProductFacts", () => {
     expect(get("Manufacturer").querySelector(".pending")).not.toBeNull();
     expect(get("Country of origin").textContent).toBe("To be added");
     expect(get("Net quantity").textContent).toBe(`10${NB}ml bottle`);
+  });
+
+  it("shows customer care as Pending while SITE_CONFIG has none", () => {
+    const { get } = facts("sacuwin-100");
+    expect(get("Customer care").querySelector(".pending")?.textContent).toBe("To be added");
+  });
+
+  it("prints customer care once phone and email are both set, Pending if only one is", () => {
+    const saved = SITE_CONFIG.customerCare;
+    SITE_CONFIG.customerCare = { phone: "+91 11 5555 0100", email: "care@example.test" };
+    expect(facts("sacuwin-100").get("Customer care").textContent).toBe(
+      "+91 11 5555 0100, care@example.test",
+    );
+    document.body.innerHTML = "";
+    SITE_CONFIG.customerCare = { phone: "+91 11 5555 0100", email: null };
+    expect(facts("sacuwin-100").get("Customer care").textContent).toBe("To be added");
+    SITE_CONFIG.customerCare = saved;
   });
 
   it("makes no banned claim and adds no live region", () => {
