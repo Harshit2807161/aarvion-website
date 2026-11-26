@@ -25,9 +25,12 @@ test("the strength switcher moves to another strength's page", async ({ page }) 
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Sacuwin 50");
 });
 
-test("an unknown product is a 404", async ({ page }) => {
-  const res = await page.goto("/product/nope");
-  expect(res?.status()).toBe(404);
+// With Cache Components the shell streams before the slug is checked, so production answers 200
+// with the not-found page and a noindex robots tag (dev answers 404); assert what a shopper sees.
+test("an unknown product shows the not-found page, not indexed", async ({ page }) => {
+  await page.goto("/product/nope");
+  await expect(page.getByRole("heading", { name: "We can’t find that page" })).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });
 
 test("a pocket name leads to its product page", async ({ page }) => {
