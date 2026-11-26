@@ -65,7 +65,7 @@ describe("Rails", () => {
     expect(heart.querySelector("li.pocket h3.pocket-name")).not.toBeNull();
   });
 
-  it("counts the medicines and leaves the controls slot empty", () => {
+  it("counts the medicines and holds each rail's controls, hidden until measured", () => {
     const rails = [...setup().querySelectorAll("section.rail")];
     expect(rails.map((r) => r.querySelector("p.rail-count")?.textContent)).toEqual([
       "5 medicines",
@@ -73,7 +73,12 @@ describe("Rails", () => {
       "2 medicines",
     ]);
     const slots = rails.map((r) => r.querySelector(".rail-head > [data-rail-controls]"));
-    expect(slots.every((s) => s !== null && s.childElementCount === 0)).toBe(true);
+    expect(slots.every((s) => s?.querySelector("button.rail-all[hidden]") != null)).toBe(true);
+    expect(rails.map((r) => r.querySelector(".rail-all")?.getAttribute("aria-controls"))).toEqual([
+      "row-heart-care",
+      "row-eye-care",
+      "row-diabetes-care",
+    ]);
   });
 
   it("keeps an anchor for the second category on the shared rail", () => {

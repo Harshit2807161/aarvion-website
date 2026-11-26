@@ -2,8 +2,8 @@
   Home product rails: port of design/prototype/css/site.css (v2) lines 328-385 and the rails
   rules of its 719px block (lines 586-596), for src/components/home/rails.tsx. The prototype's
   second `.rail-strip { flex: none }` is merged into the first rule (one selector per file).
-  The `.rail-all` and `.rail-btn` rules and `.is-open` / `.is-grid` are the controls Task 23
-  fills into `[data-rail-controls]`; the film's `.film .rail` rise rule is Task 28's.
+  The `.rail-all` and `.rail-btn` rules and `.is-open` / `.is-grid` style `RailControls`
+  (src/components/home/rail-controls.tsx), which fills `[data-rail-controls]`; the film's `.film .rail` rise rule is Task 28's.
   The phone dome URL is /foil/, where the app serves design/prototype/assets/foil.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
