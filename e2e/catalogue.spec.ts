@@ -30,5 +30,5 @@ test("the strength switcher moves to another strength's page", async ({ page }) 
 test("an unknown product shows the not-found page, not indexed", async ({ page }) => {
   await page.goto("/product/nope");
   await expect(page.getByRole("heading", { name: "We can’t find that page" })).toBeVisible();
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
 });
