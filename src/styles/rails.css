@@ -12,10 +12,6 @@
 .rail { position: relative; }
 .rail + .rail { margin-top: 40px; }
 .anchor { position: absolute; top: 0; }
-/* Tailwind generates a `h-section` utility (height: var(--spacing-section), 9rem) from the
-   --spacing-section token, and the utilities layer beats components, so the heading class from
-   base.css would be 144px tall. Only !important wins; it is height: auto, the heading's own. */
-.rail-head .h-section { height: auto !important; }
 .rail-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 14px; }
 .rail-count { font: 500 0.875rem/1 var(--font-mono); color: var(--color-neutral-600); margin-top: 0.3em; margin-right: auto; }
 /* one width for "View all N" and "Show fewer", so the toggle never moves when its label changes */
