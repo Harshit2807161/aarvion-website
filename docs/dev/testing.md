@@ -116,9 +116,9 @@ Helpers in `tests/helpers/`:
   the dev-only `POST /dev/catalogue/revalidate`, and expects the home rails to show the new
   price, then restores the MRP. It needs Mongo reachable at `MONGODB_URI`, like the server.
 - `e2e/anchors.spec.ts` checks that every `#x` or `/#x` link on `/` (skip link, banner, category
-  bar, footer, rails) and on the 404 page lands on an element, and that the ids in
-  `PENDING_ANCHORS` (`src/config/routes.ts`) are still missing; delete an entry when its section
-  is built.
+  bar, footer, rails, the header search form) and on the 404 page lands on an element, and that
+  the ids in `PENDING_ANCHORS` (`src/config/routes.ts`) are still missing and still linked;
+  delete an entry when its section is built.
 - Planned (UI plan): `e2e/budgets.spec.ts` (LCP, CLS, first-load JS), and
   specs for the shell, catalogue, search and login.
 
