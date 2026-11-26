@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { CartPill } from "@/components/cart/cart-pill";
 import { CartReconcile } from "@/components/cart/cart-reconcile";
 import { AnnounceBar } from "@/components/shell/announce-bar";
@@ -21,7 +21,10 @@ export async function withStoreChrome(children: ReactNode): Promise<ReactNode> {
   const slugs = (await getCachedProducts()).map((p) => p.slug);
   return (
     <>
-      <SkipLink />
+      {/* usePathname reads the URL: suspended so a page rendered at request time stays valid */}
+      <Suspense>
+        <SkipLink />
+      </Suspense>
       <AnnounceBar />
       <StoreHeader cart={<CartPill />} />
       <CartReconcile slugs={slugs} />
