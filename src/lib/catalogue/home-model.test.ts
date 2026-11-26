@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { publicCatalogue } from "../../../tests/helpers/catalogue";
 import { CATEGORY_LIST } from "@/server/catalogue/categories";
-import { BENTO_LAYOUT, bentoTiles, homeModel, tileList } from "./home-model";
+import { BENTO_LAYOUT, bentoTiles, homeModel, railPlan, tileList } from "./home-model";
 
 const products = publicCatalogue();
 const model = homeModel(products, CATEGORY_LIST);
@@ -101,5 +101,67 @@ describe("bentoTiles", () => {
     expect(tiles.at(-1)!.category.slug).toBe("urology");
     expect(tiles.at(-1)!.tile).toBe("tile-diab");
     expect(tiles.at(-1)!.art).toEqual([]);
+  });
+});
+
+describe("railPlan", () => {
+  const rails = railPlan(model);
+
+  it("makes a rail of each category with several products, then one shared rail", () => {
+    expect(rails.map((r) => r.id)).toEqual(["heart-care", "eye-care", "diabetes-care"]);
+    expect(rails.map((r) => r.title)).toEqual([
+      "Heart care",
+      "Eye care",
+      "Diabetes and respiratory care",
+    ]);
+    expect(rails.map((r) => r.products.length)).toEqual([5, 4, 2]);
+  });
+
+  it("cycles the rises and puts the aside and the extra anchors on the shared rail only", () => {
+    expect(rails.map((r) => r.rise)).toEqual([80, 110, 90]);
+    expect(rails.map((r) => r.aside)).toEqual([false, false, true]);
+    expect(rails.map((r) => r.extraIds)).toEqual([[], [], ["respiratory-care"]]);
+    expect(rails[2]!.categories.map((c) => c.slug)).toEqual(["diabetology", "respiratory"]);
+  });
+
+  it("starts the rises again after the third rail", () => {
+    const many = {
+      ...model,
+      groups: [...model.groups, ...model.groups].map((g, i) => ({
+        ...g,
+        products: [...g.products, ...g.products].slice(0, 2 + (i % 2)),
+      })),
+    };
+    expect(railPlan(many).map((r) => r.rise)).toEqual(
+      [80, 110, 90, 80, 110, 90, 80, 110].slice(0, railPlan(many).length),
+    );
+  });
+
+  it("names three or more single-product groups More medicines", () => {
+    const three = homeModel(
+      products.filter((p) => !["cardiology", "ophthalmology"].includes(p.category)),
+      CATEGORY_LIST,
+    );
+    const solo = {
+      ...three,
+      groups: [
+        ...three.groups,
+        { category: model.groups[0]!.category, products: model.groups[0]!.products.slice(0, 1) },
+      ],
+    };
+    const plan = railPlan(solo);
+    expect(plan.map((r) => r.title)).toEqual(["More medicines"]);
+    expect(plan[0]!.extraIds).toEqual(["respiratory-care", "heart-care"]);
+  });
+
+  it("gives a lone single-product group its own name and no shared rail when there are none", () => {
+    const one = { ...model, groups: [model.groups[2]!] };
+    expect(railPlan(one).map((r) => r.title)).toEqual(["Eye care"]);
+    expect(railPlan(one)[0]!.aside).toBe(false);
+    const lone = {
+      ...model,
+      groups: [{ ...model.groups[1]!, products: model.groups[1]!.products.slice(0, 1) }],
+    };
+    expect(railPlan(lone).map((r) => [r.title, r.aside])).toEqual([["Diabetes care", true]]);
   });
 });
