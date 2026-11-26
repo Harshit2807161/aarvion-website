@@ -38,3 +38,10 @@ export const PENDING_ROUTES = [
   "/category/ophthalmology",
   "/category/respiratory",
 ] as const;
+
+/**
+ * Ids of home-page sections that links already point at (`ROUTES.questions`, `ROUTES.faqWin2age`)
+ * but no task has built yet. e2e/anchors.spec.ts expects each to be missing; the task that adds
+ * the element deletes its entry.
+ */
+export const PENDING_ANCHORS = ["questions", "faq-win2age"] as const;
