@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("home page renders the brand", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Aarvion/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Aarvion/ })).toBeVisible();
 });
 
 test("health endpoint is ok", async ({ request }) => {
