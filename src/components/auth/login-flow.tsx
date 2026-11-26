@@ -2,9 +2,10 @@
 
 /**
  * The login flow (pages/login.html v2, lines 108-191) for the /login page and, later, the header
- * dialog. It owns `loginReducer` and the end of the flow, renders the id step and
- * runs its send effect. The code step lands next (Task 41 part B); the profile and done steps and
- * the demo states (`allowDemo`) are Task 42. Both fill the seam marked below.
+ * dialog. It owns `loginReducer`, the 1 s clock and the end of the flow, renders the id step and
+ * runs its send effect; the code step (`code-step.tsx`) runs verify and resend. The session check
+ * after a network failure lands next (Task 41 part C); the profile and done steps and the demo
+ * states (`allowDemo`) are Task 42, which fills the seam marked below.
  *
  * Rules kept here, each pinned by login-flow.test.tsx:
  * - Post exactly `identifierOf(...)`, the string the machine validated; the raw mobile input has
@@ -15,13 +16,14 @@
  *   dialog gets `onDone`. A visitor who is already signed in completes on mount.
  */
 import { useRouter, useSearchParams } from "next/navigation";
-import { type FormEvent, useEffect, useEffectEvent, useReducer, useRef } from "react";
+import { type FormEvent, useEffect, useEffectEvent, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/base/button";
 import { Icon } from "@/components/base/icon";
 import { Segmented } from "@/components/form/segmented";
 import { TextField } from "@/components/form/text-field";
 import { sanitizeNext } from "@/lib/next-url";
 import { type Channel, fetchSession, sendCode } from "./api";
+import { CodeStep } from "./code-step";
 import { LOGIN_COPY, identifierOf, initialLoginState, loginReducer } from "./login-machine";
 
 export type LoginDone = { isNewUser: boolean; name: string | null };
@@ -44,6 +46,7 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [state, dispatch] = useReducer(loginReducer, undefined, initialLoginState);
+  const [now, setNow] = useState(() => Date.now());
   const sending = useRef(false);
   const name = useRef<string | null>(null);
   const finished = useRef(false);
@@ -72,6 +75,18 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
     if (doneNew !== null) finish({ isNewUser: doneNew, name: name.current });
   }, [doneNew]);
 
+  // Countdowns and timed locks: the machine lifts a lock on `tick`.
+  const ticking = state.step === "code" || state.step === "profile";
+  useEffect(() => {
+    if (!ticking) return;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      dispatch({ type: "tick", now: t });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [ticking]);
+
   useEffect(() => {
     if (!focusNext.current) return;
     document.getElementById(focusNext.current)?.focus();
@@ -93,6 +108,7 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
     const started = Date.now();
     const r = await sendCode(state.channel, identifierOf(state.channel, state.raw));
     sending.current = false;
+    setNow(Date.now());
     if (r.ok) {
       // The code clock starts when the request did, so it never lags the server's.
       dispatch({ type: "sendOk", now: started });
@@ -163,7 +179,20 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
         </div>
       ) : null}
 
-      {/* Task 41 part B: the code step. Task 42: the profile (sign-up) and done steps. */}
+      {state.step === "code" ? (
+        <CodeStep
+          p={p}
+          s={state}
+          now={now}
+          dispatch={dispatch}
+          setNow={setNow}
+          onName={(n) => (name.current = n)}
+          focus={(id) => (focusNext.current = id)}
+          idInputId={idInput(state.channel)}
+        />
+      ) : null}
+
+      {/* Task 42: the profile step (sign-up) and the done step render here. */}
     </div>
   );
 }
