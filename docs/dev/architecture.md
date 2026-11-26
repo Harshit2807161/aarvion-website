@@ -50,7 +50,7 @@ the plan's "File Structure".
   - `layout.tsx` wraps the page in `withStoreChrome()` (`src/components/shell/store-chrome.tsx`: `SkipLink`, `AnnounceBar`, `StoreHeader` (with `CartPill` in its `cart` slot), `CartReconcile`, `CategoryBar` (live categories), the page, then the `StoreFooter` from the cached live categories), so **every build needs a seeded database**
   - `legal/privacy/page.tsx` and `legal/terms/page.tsx` are the privacy policy (`/legal/privacy`) and the terms of use (`/legal/terms`, whose payment section offers only cash on delivery, naming no online method, until `SITE_CONFIG.onlinePayments` is true), each a `LegalPage` whose copy may state only what `docs/requirements.md`, `PRODUCT.md`, the rulings and the code as built support, with unsupplied facts as `Pending` (bump `POLICY_VERSION` when a policy changes in substance)
   - `legal/{returns-cancellation,shipping,prescription-policy,grievance}/page.tsx` and `contact/page.tsx` are `LegalPage` policies and the contact page (prepaid refund wording stays conditional, "If you paid online", until `SITE_CONFIG.onlinePayments` is true; the prescription page states the Schedule H and H1 rule and never says every medicine needs a prescription [C25]; the ₹5,000 COD cap is copy, not config).
-  - `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`); the other home sections land with the remaining UI Tasks 21–29
+  - `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, inside `FilmRoot` (the scroll film's root), then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`); the other home sections land with the remaining UI Tasks 21–29
   - Admin and staff routes go in a sibling group (for example `(admin)`) with no footer, as do `/dev/*` (their 404s come from the proxy and are bare).
   - the Operate *shell* (`OperateShell`) is a page component that customer cart, account and policy pages use inside `(store)`
 - `src/app/api/auth/logout/route.ts`: `POST /api/auth/logout` (204, clears the cookie)
@@ -99,7 +99,12 @@ React components, added task by task. The folders below exist today:
   - all fed by the store in `src/lib/cart/`
 - `catalogue/`: `Pocket` (the foil pocket, the product card of the rails, category and product pages: `li.pocket#p-<slug>` with the pack under a dome, the name and `RxBadge`, the actives clamped to two lines (three on phones) with the full composition in the title and for AT, the pack line, `StampPrice` and `CartControl`; `heading` sets its level, and `priority` makes its image eager with `fetchPriority="high"`, never a preload [C24]; images are lazy otherwise; no hooks, so it renders on the server or in a client tree; CSS in `src/styles/pocket.css`)
 - `feedback/`: the customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's single polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`
-- `film/`: the scroll film's progress maths and engine
+- `film/`: the scroll film:
+  - `progress.ts`: the pure maths.
+  - `engine.ts`: `createFilm`, one passive scroll listener and one rAF tick, an IntersectionObserver that marks the acts near the viewport `.live`, `measuring` set on `#home` only while it measures, and the `?p=<act>:<progress>` capture jump after load. With `film: false` it does nothing at all.
+  - `film-root.tsx`: `FilmRoot` (server), `main#home.home.film-root`. An inline script adds `film` before first paint when motion is allowed, then the sections, then the engine. The server HTML is the full static page, so no JS or reduced motion shows everything.
+  - `film-engine.tsx`: `FilmEngine` (client, renders null) starts the engine in a layout effect and adds `film` for a soft navigation.
+  - CSS in `src/styles/film.css`.
 - `form/`:
   - `Checkbox` (the same for its error, including `errorAlert`)
   - `ErrorSummary` (`error-summary.tsx`: the submit summary DESIGN.md asks for, a `.errsum` box titled "There’s a problem"/"There are N problems" listing each error as a link that scrolls its field to the centre (smoothly unless reduced motion) and focuses it, leaving modified and non-primary clicks to the browser; it takes focus whenever `focusKey` changes and is not a live region or alert, so the fields it covers pass `errorAlert={false}`; CSS at the end of `src/styles/forms.css`)
@@ -188,6 +193,7 @@ ported prototype CSS imported by `globals.css`.
 - `css-hygiene.test.ts`
 - `empty.css`: the empty-state well, `.empty*` and `.well-count`
 - `faq-close.css`: the home's questions and closing act, `.faq*`, `.act-close`, `.close-*` (static; `.act-close .field` is scoped because `forms.css` owns `.field`)
+- `film.css`: the scroll film, every rule under `.film` (the ordering act pinned 200lvh and the close 110lvh, 160lvh and 80lvh on phones; motion is transform and opacity only, from `--ti` / `--to`; `.film-root.measuring` is a descendant selector, never `html.measuring`)
 - `footer.css`: the store footer, `.foot*`
 - `forms.css`: `.field`, `.field-box`, `.input`, `.check*`, `.seg*`
 - `header.css`: the announcement line and store header, `.announce*`, `.store-head`, `.sh-*`, `--row-h` and `--hdr-h`

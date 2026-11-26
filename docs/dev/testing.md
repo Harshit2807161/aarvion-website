@@ -111,6 +111,11 @@ Helpers in `tests/helpers/`:
 - `e2e/home.spec.ts` checks the hero banner: it rotates within 7 s with no console or page error
   (`collectConsoleErrors`), holds on hover, answers the keyboard, stays put under reduced motion,
   and is a scroll-snap row at 390px.
+- `e2e/film.spec.ts` checks the scroll film: under motion at 1440 `#home` gets `film`, `#how` is
+  over 2.9 viewports tall, `?p=3:0.5` activates step 2 and fills the perforation, `?p=4:0.3`
+  shows the tiles, `?p=5:1` lands the copy and the logo; under reduced motion there is no `film`
+  class, `#how` is under 1.2 viewports and nothing is hidden; scrolling top to bottom in both
+  leaves `collectConsoleErrors` empty. `?p=` works only with motion on.
 - `e2e/freshness.spec.ts` [P55] changes `sacuwin-100`'s MRP straight in the `aarvion_e2e` database
   (the admin editor does not exist yet; use it instead once it does), expires the cache through
   the dev-only `POST /dev/catalogue/revalidate`, and expects the home rails to show the new

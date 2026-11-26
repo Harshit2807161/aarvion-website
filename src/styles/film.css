@@ -1,0 +1,82 @@
+/*
+  The home scroll film: port of design/prototype/css/site.css (v2) lines 8-9 (`@property --ti`,
+  `--to`), 480-521 (the film), the film rules of its 880px block (535-536) and of its 719px block
+  (614-631), for src/components/film/film-root.tsx. Everything here applies only under `.film`,
+  which FILM_FLAG_SCRIPT adds for visitors who allow motion; without it the static composition in
+  steps.css, bento.css, rails.css and faq-close.css stands, complete and visible. Motion is
+  transform and opacity only, from the --ti / --to numbers the engine writes (src/components/
+  film/engine.ts). The engine sets `measuring` on `#home` (the `film-root`), never on <html>, so
+  that rule is a descendant selector. `.live` (set by the engine on the acts near the viewport)
+  scopes `will-change`, so only the layers that move are promoted.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+@property --ti { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --to { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+/* ═══ The film: pinned stages driven by --ti (arrival) and --to (exit) ═══ */
+.film [data-in] { --ti: 0; }
+.film .act[data-act="pin"] { height: calc(100vh + var(--pin)); height: calc(100lvh + var(--pin)); }
+.film .act-steps { --pin: 200lvh; }
+.film .act-close { --pin: 110lvh; }
+.film .act[data-act="pin"] > .stage { position: sticky; top: 0; height: 100vh; height: 100lvh; min-height: 0; overflow: clip; }
+.film .live [data-in], .film .live [data-out] { will-change: transform, opacity; }
+/* pass-acts that move themselves (the rails) need their own layer, or every frame of their rise
+   repaints the foil */
+.film .live[data-in] { will-change: transform; }
+.film .live .close-swoosh { will-change: auto; }
+.film-root.measuring [data-in], .film-root.measuring [data-out] { transform: none !important; }
+
+/* Ordering: the steps advance, the perforation fills, the documents scale in from depth */
+.film .act-steps .stage {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: center; gap: 64px;
+  padding: calc(var(--hdr-h) + 4vh) var(--spacing-gutter) 4vh;
+}
+.film .steps { grid-template-columns: none; gap: 30px; margin-top: 40px; }
+.film .step { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 20px; }
+.film .step h3 { margin-top: 9px; }
+.film .step p { grid-column: 2; }
+.film .step:not(.is-active) h3, .film .step:not(.is-active) p { color: var(--color-neutral-500); }
+.film .step:not(.is-active) .step-dot { color: var(--color-neutral-600); }
+.film .perf { height: auto; align-self: stretch; margin: calc(40px + 22px) 0 60px 21px; width: 0; border-top: 0; border-left: var(--perforation); }
+.film .perf-fill { display: block; position: absolute; left: -2px; top: 0; bottom: 0; width: 2px; background: var(--color-forest-600); transform-origin: top; transform: scaleY(var(--ti)); }
+.film .steps-vis { display: block; position: relative; height: min(calc(100vh - var(--hdr-h) - 12vh), 660px); margin: 0; }
+.film .vis { position: absolute; inset: 0; align-content: center; }
+.film .vis-rx { transform: scale(calc((1 + 0.3 * var(--to)) * var(--vs, 1))); opacity: calc(1 - var(--to)); }
+.film .vis-log, .film .vis-label { transform: translate3d(0, calc((1 - var(--ti)) * 5vh), 0) scale(calc((0.72 + 0.28 * var(--ti) + 0.3 * var(--to)) * var(--vs, 1))); opacity: calc(var(--ti) - var(--to)); }
+.film .doc, .film .log, .film .label { width: min(100%, 420px); }
+
+/* Category bento: tiles rise from depth, staggered */
+.film .tile { transform: translate3d(0, calc((1 - var(--ti)) * 9vh), 0) scale(calc(0.86 + 0.14 * var(--ti))); opacity: min(1, calc(var(--ti) * 1.6)); }
+/* Rails: each strip rises at its own rate (parallax) */
+.film .rail { transform: translate3d(0, calc((1 - var(--ti)) * var(--rise, 80px)), 0); }
+
+/* Close: the swoosh pans in from 14x on forest, then the call to action */
+.film .act-close .stage { justify-content: center; padding: calc(var(--hdr-h) * 0.6) var(--spacing-gutter) 0; }
+.film .close-swoosh { transform-origin: 44% 40%; transform: translate3d(0, calc((1 - var(--ti)) * 6vh), 0) scale(calc(1 + 13 * (1 - var(--ti)))); }
+.film .close-copy { opacity: var(--ti); transform: translate3d(0, calc((1 - var(--ti)) * 28px), 0); }
+
+
+@media (max-width: 880px) {
+  .film .act-steps .stage { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-items: start; gap: 2vh; }
+  .film .steps-vis { height: auto; }
+}
+
+@media (max-width: 719px) {
+  .film .act-steps { --pin: 160lvh; }
+  .film .act-close { --pin: 80lvh; }
+  .film .act-steps .stage { padding: calc(var(--hdr-h) + 2vh) var(--spacing-gutter) 3vh; }
+  /* reading order on the phone: heading, the steps with the active one open, then its picture */
+  .film .steps-col .h-display { font-size: 1.75rem; }
+  .film .steps { gap: 14px; margin-top: 14px; }
+  .film .step h3 { font-size: 1.0625rem; margin-top: 12px; }
+  .film .step p { font-size: 0.875rem; line-height: 1.45; }
+  .film .step:not(.is-active) p { display: none; }
+  .film .perf { margin: calc(14px + 22px) 0 30px 21px; }
+  .film .steps-vis { height: 36svh; --vs: 0.72; }
+  .film .doc, .film .log, .film .label { width: min(100%, 330px); padding: 18px; }
+  .film .log-list li { min-height: 26px; }
+}
+/* the picture box is 36svh: shorter phones scale the example cards down to fit it */
+@media (max-width: 719px) and (max-height: 780px) { .film .steps-vis { --vs: 0.64; } }
+@media (max-width: 719px) and (max-height: 700px) { .film .steps-vis { --vs: 0.56; } }
+@media (max-width: 719px) and (max-height: 600px) { .film .steps-vis { --vs: 0.48; } }
