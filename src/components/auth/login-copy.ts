@@ -19,6 +19,9 @@ export const FALLBACK_LOCK_MS = 60_000;
 export const LOGIN_COPY = {
   idTitle: "Sign in or create an account",
   idSub: "We’ll send you a 6-digit code. There’s no password.",
+  // Added in Task 41, verbatim from design/prototype/pages/login.html: the visually hidden legend
+  // of the Mobile/Email switch. Awaiting the owner's approval with nameRefused and nameTooLong.
+  viaLegend: "Send the code to my",
   mobile: "Mobile",
   email: "Email",
   mobileLabel: "Mobile number",
