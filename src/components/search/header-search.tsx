@@ -109,6 +109,14 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
     combo.inputProps.onKeyDown(e);
   }
 
+  // Escape on a chip (or anywhere else in the panel) closes it and returns focus to the field.
+  function onFormKeyDown(e: KeyboardEvent<HTMLFormElement>) {
+    if (e.key !== "Escape" || e.target === inputRef.current || !open) return;
+    e.stopPropagation();
+    inputRef.current?.focus(); // reopens through onFocus, so close after
+    setOpen(false);
+  }
+
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (items.length > 0) choose(items[0]!);
@@ -119,6 +127,7 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
   }
 
   let body: React.ReactNode;
+  let listShown = false;
   if (!hasQuery) {
     body = (
       <p className="sugg-hint" id="sugg-hint">
@@ -129,6 +138,7 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
   else if (status === "error") body = <p className="sugg-empty">{ERROR_TEXT}</p>;
   else if (status === "loading" && items.length === 0) body = null;
   else {
+    listShown = items.length > 0;
     body = (
       <SuggestionList
         id="sugg"
@@ -151,6 +161,7 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
       autoComplete="off"
       onSubmit={onSubmit}
       onBlur={onFocusOut}
+      onKeyDown={onFormKeyDown}
     >
       <label className="sr-only" htmlFor="q">
         Search medicines by brand or salt
@@ -172,7 +183,7 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
           onFocus={() => setOpen(true)}
           {...combo.inputProps}
           onKeyDown={onKeyDown}
-          aria-controls="sugg"
+          aria-controls={listShown ? "sugg" : undefined}
           aria-describedby={hasQuery ? undefined : "sugg-hint"}
         />
       </div>
