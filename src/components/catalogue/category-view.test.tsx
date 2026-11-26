@@ -8,7 +8,6 @@ import { CategoryView } from "./category-view";
 const catalogue = publicCatalogue();
 const live = CATEGORY_LIST.filter((c) => c.status === "live");
 const category = (slug: string) => CATEGORY_LIST.find((c) => c.slug === slug)!;
-
 function setup(slug: string) {
   const c = category(slug);
   const products = c.status === "live" ? catalogue.filter((p) => p.category === slug) : [];
