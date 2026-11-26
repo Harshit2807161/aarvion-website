@@ -18,23 +18,21 @@ test.describe("category pages", () => {
     await expect(page.locator(".pocket")).toHaveCount(0);
   });
 
-  // A slug that was not prerendered streams (PPR): its first response is 200 but is the not-found
-  // page with `noindex`, and the next one is 404. So assert the page first and the status next.
-  test("a hidden or unknown category is the 404 page with the store chrome", async ({
-    page,
-    request,
-  }) => {
+  // A slug that was not prerendered streams (PPR): its first response is 200 and carries the
+  // not-found page with `noindex`; once rendered, the URL answers 404. Warm it, then check that.
+  test("a hidden or unknown category is the 404 page with the store chrome", async ({ page }) => {
     for (const slug of ["pain-management", "nope"]) {
       await page.goto(`/category/${slug}`);
       await expect(
         page.getByRole("heading", { level: 1, name: "We can’t find that page" }),
       ).toBeVisible();
-      await expect(page.locator("nav.catbar")).toBeVisible();
       await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute(
         "content",
         /noindex/,
       );
-      expect((await request.get(`/category/${slug}`)).status(), slug).toBe(404);
+      const again = await page.goto(`/category/${slug}`);
+      expect(again?.status(), slug).toBe(404);
+      await expect(page.locator("nav.catbar")).toHaveCount(1);
     }
   });
 
