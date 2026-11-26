@@ -17,6 +17,7 @@ bottom use commit SHAs.
 ## [Unreleased]
 
 ### Added
+- Login UI, part A of 3: `LoginFlow` in `src/components/auth/login-flow.tsx` with the id step (Mobile/Email switch, send posting exactly `identifierOf(...)`, the busy Send button, the shield line), the redirect to `sanitizeNext(next)` (undecoded) or `onDone`, and completion on mount for a visitor already signed in; adds `LOGIN_COPY.viaLegend`, the switch's hidden legend from the prototype (awaiting owner approval). Not mounted on a route yet
 - Search combobox parts, part 2 of 3: `useProductSearch` and `SEARCH_DEBOUNCE_MS` (150 ms) in `src/components/search/use-product-search.ts`. One in-flight request (the previous is aborted), stale responses dropped by sequence id, no request for an empty query without a strength, the query capped at 64 characters through `queryTokens`, strength checked against `STRENGTH_RE`, 429 is `limited` and never retried until the query changes, any other failure or malformed body is `error`, and nothing logs query text (#138)
 - Search combobox parts, part 1 of 3 (not wired into the header yet; Task 37 does that), in `src/components/search/`: `highlight` (pure, literal `indexOf`, no RegExp, returns `{ text, mark }` segments to render as `<mark>`) and `useCombobox` (WAI-ARIA 1.2 keys and ids; arrows wrap, Enter takes the active or first item, Escape closes then clears; adds no live region, result counts go through `announce()`). `useProductSearch` and `SuggestionList` follow (#130)
 
