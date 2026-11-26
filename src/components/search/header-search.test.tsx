@@ -65,7 +65,7 @@ describe("HeaderSearch", () => {
     expect(screen.getByRole("search")).toBeInTheDocument();
     expect(input()).toHaveAttribute("id", "q");
     expect(input()).toHaveAccessibleName("Search medicines by brand or salt");
-    expect(input()).toHaveAttribute("aria-controls", "sugg");
+    expect(input()).not.toHaveAttribute("aria-controls"); // no listbox yet
     expect(input()).toHaveAttribute("aria-describedby", "sugg-hint");
     expect(input()).toHaveAttribute("name", "q");
     expect(screen.getByRole("search")).toHaveAttribute("action");
@@ -107,6 +107,8 @@ describe("HeaderSearch", () => {
     expect(screen.getAllByRole("option")).toHaveLength(3);
     expect(document.getElementById("sugg-hint")).toBeNull();
     expect(input()).toHaveAttribute("aria-expanded", "true");
+    expect(input()).toHaveAttribute("aria-controls", "sugg");
+    expect(input()).not.toHaveAttribute("aria-describedby");
     await settle();
     expect(document.getElementById("live")).toHaveTextContent("3 medicines found");
     expect(screen.getByRole("listbox")).not.toHaveAttribute("aria-live");
@@ -164,5 +166,123 @@ describe("HeaderSearch", () => {
     expect(input()).toHaveAttribute("aria-expanded", "false");
     await settle();
     expect(document.getElementById("live")).toHaveTextContent("No medicine matches");
+  });
+
+  it("shows no chips row when there are no chips", () => {
+    setup([]);
+    fireEvent.focus(input());
+    expect(screen.queryByText("Strength")).toBeNull();
+  });
+
+  it("a chip toggles aria-pressed and fetches with its strength", async () => {
+    setup();
+    fireEvent.focus(input());
+    fireEvent.click(screen.getByRole("button", { name: "100" }));
+    expect(screen.getByRole("button", { name: "100" })).toHaveAttribute("aria-pressed", "true");
+    await settle();
+    expect(urls()).toEqual(["/api/products?q=&strength=100"]);
+    fireEvent.click(screen.getByRole("button", { name: "200" }));
+    expect(screen.getByRole("button", { name: "100" })).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(screen.getByRole("button", { name: "200" }));
+    expect(screen.getByRole("button", { name: "200" })).toHaveAttribute("aria-pressed", "false");
+    expect(document.getElementById("sugg-hint")).not.toBeNull();
+  });
+
+  it("ignores a chip that is not a strength", () => {
+    setup(["50", "5x", "1234567"]);
+    fireEvent.focus(input());
+    expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual(["50"]);
+  });
+
+  it("Escape closes the list, then clears the field, and never propagates the first press", async () => {
+    setup();
+    const outer = vi.fn();
+    document.addEventListener("keydown", outer);
+    await typeQuery("sacu");
+    const panel = document.querySelector(".sugg-panel") as HTMLElement;
+    expect(fireEvent.keyDown(input(), { key: "Escape" })).toBe(false);
+    expect(panel).toHaveAttribute("hidden");
+    expect(input()).toHaveValue("sacu");
+    expect(outer).not.toHaveBeenCalled();
+    fireEvent.keyDown(input(), { key: "Escape" });
+    expect(input()).toHaveValue("");
+    expect(outer).not.toHaveBeenCalled();
+    // nothing left to close or clear: the key may reach an enclosing dialog
+    fireEvent.keyDown(input(), { key: "Escape" });
+    expect(outer).toHaveBeenCalledTimes(1);
+    document.removeEventListener("keydown", outer);
+  });
+
+  it("typing reopens a closed panel, and focus leaving the form closes it", async () => {
+    setup();
+    await typeQuery("sacu");
+    fireEvent.keyDown(input(), { key: "Escape" });
+    fireEvent.change(input(), { target: { value: "sacuw" } });
+    const panel = document.querySelector(".sugg-panel") as HTMLElement;
+    expect(panel).not.toHaveAttribute("hidden");
+    fireEvent.blur(input(), { relatedTarget: document.body });
+    fireEvent.focusOut(screen.getByRole("search"), { relatedTarget: document.body });
+    expect(panel).toHaveAttribute("hidden");
+  });
+
+  it("a [data-search] click focuses #q", () => {
+    setup();
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<a href="#q" data-search>Search for a medicine</a>`,
+    );
+    const a = document.querySelector("[data-search]")!;
+    expect(fireEvent.click(a)).toBe(false);
+    expect(document.activeElement).toBe(input());
+  });
+
+  it("sends no request and logs nothing for a query that is only spaces", async () => {
+    const log = vi.spyOn(console, "log");
+    setup();
+    await typeQuery("   ");
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(log).not.toHaveBeenCalled();
+    expect(document.getElementById("sugg-hint")).not.toBeNull();
+  });
+
+  it("on / without a pocket on the page it also goes to the product page", async () => {
+    mockPathname.value = "/";
+    setup();
+    await typeQuery("sacu");
+    fireEvent.click(screen.getAllByRole("option")[1]!);
+    expect(routerSpies.push).toHaveBeenCalledWith("/product/sacuwin-100");
+  });
+
+  it("submit chooses the first result and is prevented", async () => {
+    mockPathname.value = "/legal/terms";
+    setup();
+    await typeQuery("sacu");
+    expect(fireEvent.submit(screen.getByRole("search"))).toBe(false);
+    expect(routerSpies.push).toHaveBeenCalledWith("/product/sacuwin-50");
+  });
+
+  it("a failed request shows a plain message", async () => {
+    fetchMock.mockRejectedValue(new TypeError("offline"));
+    setup();
+    await typeQuery("sacu");
+    expect(screen.getByText(/Search is not available right now/)).toBeInTheDocument();
+  });
+
+  it("a 429 shows the calm limited message and sends no retry", async () => {
+    fetchMock.mockImplementation(async () => reply(429));
+    setup();
+    await typeQuery("sacu");
+    expect(screen.getByText("Too many searches. Try again in a moment.")).toBeInTheDocument();
+    await act(() => vi.advanceTimersByTimeAsync(60_000));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("Escape on a chip closes the panel and returns focus to the field", () => {
+    setup();
+    fireEvent.focus(input());
+    const chip = screen.getByRole("button", { name: "50" });
+    fireEvent.keyDown(chip, { key: "Escape" });
+    expect(document.querySelector(".sugg-panel")).toHaveAttribute("hidden");
+    expect(document.activeElement).toBe(input());
   });
 });

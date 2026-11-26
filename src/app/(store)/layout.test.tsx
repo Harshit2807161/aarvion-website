@@ -8,6 +8,7 @@ vi.mock("@/lib/catalogue/cached", () => ({
     { slug: "cardiology", name: "Heart care", status: "live", sortOrder: 0 },
     { slug: "urology", name: "Urinary care", status: "coming_soon", sortOrder: 5 },
   ]),
+  getCachedFamily: vi.fn(async () => []),
   getCachedProducts: vi.fn(async () => [{ slug: "sacuwin-100" }]),
 }));
 
@@ -16,7 +17,7 @@ import StoreLayout from "./layout";
 
 /** What the browser body holds for a page: the root layout around the store layout. */
 async function renderStorePage() {
-  const page = await StoreLayout({ children: <p>page</p> });
+  const page = await StoreLayout({ children: <p data-page>page</p> });
   const html = RootLayout({ children: page }) as ReactElement<{ children: ReactElement }>;
   const body = html.props.children as ReactElement<{ children: ReactNode }>;
   return render(<>{body.props.children}</>);
@@ -30,7 +31,7 @@ describe("store layout", () => {
     expect(container.textContent).toContain("page");
     expect(footer.textContent).toContain("Heart care");
     expect(footer.textContent).not.toContain("Urinary care");
-    expect(container.querySelector("p")?.compareDocumentPosition(footer)).toBe(
+    expect(container.querySelector("[data-page]")?.compareDocumentPosition(footer)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
   });
@@ -41,7 +42,7 @@ describe("store layout", () => {
       "a.skip",
       "[data-announce]",
       "header[data-store-head]",
-      "main, p:not(.announce-in)",
+      "[data-page]",
     ].map((sel) => container.querySelector(sel)!);
     order.forEach((el) => expect(el).not.toBeNull());
     for (let i = 1; i < order.length; i++) {
