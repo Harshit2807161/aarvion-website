@@ -6,9 +6,14 @@ describe("normMobile", () => {
     expect(normMobile(raw)).toBe("9876543210");
   });
 
-  it("keeps a short number as typed and caps at ten digits", () => {
+  it("keeps a short number as typed", () => {
     expect(normMobile("98765")).toBe("98765");
-    expect(normMobile("98765432109999")).toBe("9876543210");
+  });
+
+  it("never truncates, so a mistyped number fails MOBILE_RE", () => {
+    for (const raw of ["98765543210", "091 98765 43210", "98765432109999", "98765 432109"]) {
+      expect(MOBILE_RE.test(normMobile(raw))).toBe(false);
+    }
   });
 
   it("does not strip a leading 91 or 0 from a ten digit number", () => {
