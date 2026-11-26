@@ -2,10 +2,10 @@
 
 /**
  * The login flow's code step (pages/login.html v2, the `data-step="code"` block): the six-box
- * code, the resend countdown, the wrong-code and lock messages and Verify. `LoginFlow` owns the
- * machine; this step runs the verify effect and keeps what only it needs (the typed code, the
- * rejected code, the in-flight flag), so leaving the step drops all of it. "Send a new code" and
- * Change land with the /login page (Task 41 part C).
+ * code, the resend countdown, the wrong-code and lock messages, Verify, and "Send a new code" as
+ * the main button once a code locked for wrong tries may be replaced. `LoginFlow` owns the
+ * machine; this step runs the verify and resend effects and keeps what only it needs (the typed
+ * code, the rejected code, the in-flight flag), so leaving the step drops all of it.
  *
  * Rules kept here, each pinned by login-flow.test.tsx:
  * - At most one verify in flight: the `verifying` ref plus the machine's `busy`. A code the
@@ -19,8 +19,9 @@ import { type Dispatch, useRef, useState } from "react";
 import { Button } from "@/components/base/button";
 import { Icon } from "@/components/base/icon";
 import { announce } from "@/components/feedback/live-region";
+import { toast } from "@/components/feedback/toast";
 import { OTP_LENGTH, OtpField } from "@/components/form/otp-field";
-import { verifyCode } from "./api";
+import { sendCode, verifyCode } from "./api";
 import {
   LOGIN_COPY,
   type LoginEvent,
@@ -55,6 +56,8 @@ export function CodeStep({
   dispatch,
   setNow,
   onName,
+  focus,
+  idInputId,
 }: {
   /** Id prefix: "pg" on the page, "dlg" in the dialog. */
   p: string;
@@ -65,14 +68,24 @@ export function CodeStep({
   setNow(t: number): void;
   /** The verified customer's name, kept for `onDone`. */
   onName(name: string | null): void;
+  /** Focuses the element with this id after the next render. */
+  focus(id: string): void;
+  /** The id step's input, focused after Change or a failed delivery. */
+  idInputId: string;
 }) {
   const [code, setCode] = useState("");
+  const [incomplete, setIncomplete] = useState(false);
+  const [op, setOp] = useState<"verify" | "resend" | null>(null);
   const verifying = useRef(false);
   const rejected = useRef<string | null>(null);
 
   async function verify(value: string) {
     if (s.busy || s.locked || verifying.current) return;
-    if (value.length < OTP_LENGTH) return;
+    if (value.length < OTP_LENGTH) {
+      setIncomplete(true);
+      announce(LOGIN_COPY.incomplete);
+      return;
+    }
     if (value === rejected.current) {
       // Not sent again; say why nothing happened (the message on screen still applies).
       const m = liveCodeMessage(s, now);
@@ -80,9 +93,11 @@ export function CodeStep({
       return;
     }
     verifying.current = true;
+    setOp("verify");
     dispatch({ type: "verifyStart" });
     const r = await verifyCode(s.channel, s.identifier, value, s.signup ?? undefined);
     verifying.current = false;
+    setOp(null);
     const t = Date.now();
     setNow(t);
     if (r.ok) {
@@ -105,8 +120,38 @@ export function CodeStep({
     if (message) announce(message);
   }
 
-  const message = liveCodeMessage(s, now);
+  async function resend() {
+    if (s.busy || verifying.current || s.locked === "daily" || s.locked === "network") return;
+    setOp("resend");
+    dispatch({ type: "resendStart" });
+    const started = Date.now();
+    const r = await sendCode(s.channel, s.identifier);
+    setOp(null);
+    setNow(Date.now());
+    if (r.ok) {
+      dispatch({ type: "sendOk", now: started });
+      rejected.current = null;
+      setCode("");
+      setIncomplete(false);
+      toast(LOGIN_COPY.newCodeToast(s.sentTo));
+      focus(`${p}-otp`);
+      return;
+    }
+    dispatch({ type: "sendFail", error: r.error, retryAfterSec: r.retryAfterSec, now: Date.now() });
+    if (r.error === "delivery_failed") focus(idInputId);
+  }
+
+  function change() {
+    if (s.busy) return;
+    dispatch({ type: "change" });
+    focus(idInputId);
+  }
+
+  const message = incomplete ? LOGIN_COPY.incomplete : liveCodeMessage(s, now);
   const waiting = now < s.resendAt;
+  const timedLock = s.locked === "daily" || s.locked === "network";
+  // A code locked for wrong tries, once a new one may be asked for: resending is the only way on.
+  const resendMain = s.locked === "tries" && !waiting;
   const otpState = s.locked ? "locked" : message && !s.busy ? "invalid" : "idle";
   return (
     <div className="auth-step" data-step="code">
@@ -115,7 +160,10 @@ export function CodeStep({
         <p className="auth-sent">
           <span id={`${p}-sent`}>
             {LOGIN_COPY.codeSent} <b>{s.sentTo}</b>.
-          </span>
+          </span>{" "}
+          <button type="button" className="link" onClick={change}>
+            {LOGIN_COPY.change}
+          </button>
         </p>
       </div>
       <form
@@ -133,7 +181,10 @@ export function CodeStep({
           <OtpField
             id={`${p}-otp`}
             value={code}
-            onChange={setCode}
+            onChange={(v) => {
+              setCode(v);
+              setIncomplete(false);
+            }}
             onComplete={(v) => void verify(v)}
             state={otpState}
             describedBy={`${p}-sent ${p}-otp-hint${message ? ` ${p}-otp-err` : ""}`}
@@ -154,13 +205,36 @@ export function CodeStep({
             <span className="otp-timer">
               {LOGIN_COPY.resendIn} <span className="mono">{mmss((s.resendAt - now) / 1000)}</span>
             </span>
+          ) : !timedLock && !resendMain ? (
+            <Button
+              variant="link"
+              busy={op === "resend" ? LOGIN_COPY.sending : false}
+              onClick={() => void resend()}
+            >
+              {LOGIN_COPY.resend}
+            </Button>
           ) : null}
         </div>
         {s.locked ? null : (
-          <Button type="submit" size="lg" block busy={s.busy ? LOGIN_COPY.verifying : false}>
+          <Button
+            type="submit"
+            size="lg"
+            block
+            busy={s.busy && op !== "resend" ? LOGIN_COPY.verifying : false}
+          >
             {LOGIN_COPY.verify}
           </Button>
         )}
+        {resendMain ? (
+          <Button
+            size="lg"
+            block
+            busy={op === "resend" ? LOGIN_COPY.sending : false}
+            onClick={() => void resend()}
+          >
+            {LOGIN_COPY.resend}
+          </Button>
+        ) : null}
       </form>
     </div>
   );

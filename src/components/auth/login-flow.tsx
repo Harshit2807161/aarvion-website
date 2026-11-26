@@ -4,8 +4,8 @@
  * The login flow (pages/login.html v2, lines 108-191) for the /login page and, later, the header
  * dialog. It owns `loginReducer`, the 1 s clock and the end of the flow, renders the id and done
  * steps and runs the send effect and the session check; the code step (`code-step.tsx`) runs
- * verify and the profile step (`profile-step.tsx`) runs sign-up. Resend and Change come with the
- * /login page (Task 41 part C); the demo states (`allowDemo`) follow it (Task 42 part B).
+ * verify, resend and Change, and the profile step (`profile-step.tsx`) runs sign-up. The demo
+ * states (`allowDemo`) follow the page (Task 42 part B).
  *
  * Rules kept here, each pinned by login-flow.test.tsx:
  * - Post exactly `identifierOf(...)`, the string the machine validated; the raw mobile input has
@@ -217,6 +217,8 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
           dispatch={dispatch}
           setNow={setNow}
           onName={(n) => (name.current = n)}
+          focus={(id) => (focusNext.current = id)}
+          idInputId={idInput(state.channel)}
         />
       ) : null}
 
