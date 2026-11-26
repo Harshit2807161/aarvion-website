@@ -21,41 +21,242 @@
 
 | Path | Holds |
 | --- | --- |
-| `src/app/api/health/route.ts` | `GET /api/health`: version plus a DB ping |
-| `src/app/api/auth/otp/send/route.ts` | `POST /api/auth/otp/send` |
-| `src/app/api/auth/otp/verify/route.ts` | `POST /api/auth/otp/verify` (sets the session cookie; 409 `signup_required` for a new identifier without `signup`) |
-| `src/app/api/auth/me/route.ts` | `GET /api/auth/me` (re-issues a sliding customer cookie) |
-| `src/app/api/auth/session/route.ts` | `GET /api/auth/session` for the header: always 200 `{ user }` or `{ user: null }` (never 401), `no-store`, re-issues a sliding customer cookie |
-| `src/app/api/auth/logout/route.ts` | `POST /api/auth/logout` (204, clears the cookie) |
-| `src/app/api/products/route.ts` | `GET /api/products?q=&strength=` for the header search: `q` up to 64 characters (400 `query_too_long`), `strength` 1 to 6 digits (400 `invalid_strength`), 60 a minute per IP bucket on `search:ip:<bucket>` (429 `rate_limited` with `Retry-After`), reads `getCachedProducts()` (never the DB), filters with `matchesTokens` and `strengthTokens`, returns at most 20 `SearchResult`s (`src/lib/catalogue/search-result.ts`: `searchProducts` is the pure filter and holds `SEARCH_LIMIT`, `MAX_RESULTS`, `STRENGTH_RE`; a result is slug, name, salt, pack, mrpPaise, pricePaise, image; no composition array, `internalNotes` or `mrpSource`), `no-store`, and logs no query text |
-| `src/app/dev/outbox/route.ts` | `GET /dev/outbox?to=` (dev only) |
-| `src/app/dev/styleguide/page.tsx` | `/dev/styleguide` (dev only): every button variant, the Rx badge, tags, stamp and inline prices, the OTP field (`otp-demo.tsx`), the toast demo (`toast-demo.tsx`) the dialog / side sheet demo (`?overlay=dialog` or `side` opens one on load; read client-side in `overlay-demo.tsx`, never via page `searchParams`), the product facts and strength switcher (`#styleguide-facts`) and the foil pockets (`#styleguide-pockets`: every product from `getCachedProducts()` on print-field foil at the rail widths; it needs the seeded database; when the read fails it logs the error name and shows a hint) and the icon grid, for visual review |
-| `src/proxy.ts` | answers a real HTTP 404 for every `/dev/*` request wherever `isMockForbidden()` is true, before anything renders |
-| `src/app/layout.tsx` | root layout (`lang="en-IN"`, viewport, theme colour, `metadataBase` from `APP_URL`) around every route, with the `Toaster` and the page's one `LiveRegion` (exactly one may exist, so they live only here) |
-| `src/app/(store)/` | route group for customer pages (URLs unchanged): `layout.tsx` wraps the page in `withStoreChrome()` (`src/components/shell/store-chrome.tsx`: `SkipLink`, `AnnounceBar`, `StoreHeader` (with `CartPill` in its `cart` slot), `CartReconcile`, `CategoryBar` (live categories), the page, then the `StoreFooter` from the cached live categories), so **every build needs a seeded database**; `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`); the other home sections land with the remaining UI Tasks 21–29; `category/[slug]/page.tsx` is the category page (`generateStaticParams` from the cached categories, `notFound()` for a slug that is not live or coming soon, renders `CategoryView` from `src/components/catalogue/category-view.tsx` with the cached products of that category; the first pocket has `priority`; a slug that was not prerendered answers 200 with the not-found page and `noindex` on its first render and 404 after; `(store)/not-found.tsx` renders the shared `NotFoundBody` inside the layout's chrome, so a category 404 does not double it, and the root layout puts `children` in `Suspense` because that not-found boundary reads `usePathname()`; CSS in `src/styles/category.css`); `legal/privacy/page.tsx` and `legal/terms/page.tsx` are the privacy policy (`/legal/privacy`) and the terms of use (`/legal/terms`, whose payment section offers only cash on delivery, naming no online method, until `SITE_CONFIG.onlinePayments` is true), each a `LegalPage` whose copy may state only what `docs/requirements.md`, `PRODUCT.md`, the rulings and the code as built support, with unsupplied facts as `Pending` (bump `POLICY_VERSION` when a policy changes in substance); `legal/{returns-cancellation,shipping,prescription-policy,grievance}/page.tsx` and `contact/page.tsx` are `LegalPage` policies and the contact page (prepaid refund wording stays conditional, "If you paid online", until `SITE_CONFIG.onlinePayments` is true; the prescription page states the Schedule H and H1 rule and never says every medicine needs a prescription [C25]; the ₹5,000 COD cap is copy, not config). Admin and staff routes go in a sibling group (for example `(admin)`) with no footer, as do `/dev/*` (their 404s come from the proxy and are bare). The root `src/app/not-found.tsx` (URLs that match no route) sits outside `(store)` but calls `withStoreChrome()` itself, so a shopper who lands on a dead link still gets the search and the footer; `error.tsx` (page errors, client component, `retry` button, logs only the error name and digest) and `global-error.tsx` (its own `<html>`, inline styles) show no chrome. Keep exactly one `<LiveRegion/>`, in the root layout; the Operate *shell* (`OperateShell`) is a page component that customer cart, account and policy pages use inside `(store)` |
-| `src/config/` | `site.ts` (`SITE_CONFIG`: legal name, address, and the pending legal facts, all `null` until the owner supplies them; `legalValue()`, `pendingLegalFields()`, and `assertLegalConfigComplete()`, the H4 production gate; `resolveSiteMetadataBase()`) and `routes.ts` (`ROUTES`, the one map of store links, and `PENDING_ROUTES`, the linked pages that must still 404 until built; each page's task deletes its entry) |
-| `src/app/globals.css` | Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored), and the plain custom properties in `:root` (durations, z-layers, `--spacing-section` (kept out of `@theme`: a `--spacing-*` token there makes Tailwind emit an `h-section` height that overrides the `.h-section` heading class; use `var(--spacing-section)`), `--sticky-top`, the shadcn roles, and the foil material `--foil-body`, `--foil-print`, `--perforation` and `--perf-v` with `/foil/…` URLs into `public/foil/`, defined once here for the pockets, rails and the ordering steps) |
-| `src/styles/` | ported prototype CSS imported by `globals.css` (`base.css`: one merged `@layer base` with resets, focus, type and utilities; `buttons.css`: `.btn*`, `.link`, `.spin`; `stamp.css`: `.dm`, `.stamp*`, `.off`, `.price-inline`, `.rx`, `.tag*`; `otp.css`: `.otp*`; `toast.css`: `.toast*`; `overlay.css`: `.sheet-*` dialog, side drawer and phone bottom sheet, as `@keyframes` on Radix `[data-state]`; `forms.css`: `.field`, `.field-box`, `.input`, `.check*`, `.seg*`; `footer.css`: the store footer, `.foot*`; `header.css`: the announcement line and store header, `.announce*`, `.store-head`, `.sh-*`, `--row-h` and `--hdr-h`; `catbar.css`: the category bar and the 880px chip row, `.catbar*`; `shell.css`: the Operate shell, `.band*` and `.work*`; `cart-control.css`: `.cart-ctl`, `.btn-add`, `.stepper`; `pocket.css`: the product card, `.pocket*`, `.blister` (the dome over `dome-floor.webp`, `--bh` 188px) and `.str`; `empty.css`: the empty-state well, `.empty*` and `.well-count`; `bento.css`: the home's category bento, `.areas`, `.sec-head`, `.bento`, `.tile*`, `.ta*`; `faq-close.css`: the home's questions and closing act, `.faq*`, `.act-close`, `.close-*` (static; `.act-close .field` is scoped because `forms.css` owns `.field`); `steps.css`: the home's ordering act, `.act-steps`, `.step*`, `.perf*`, `.doc*`, `.log*`, `.label*` (static rules only; `.film` rules come with the film wiring); `category.css`: the category page's foil sheet, coming-soon panel and other-category pills, `.cat-*`; `product-facts.css`: the product facts block and strength chips, `.product-facts*`, `.strengths`, `.strength-chip`; `banner.css`: the home banner carousel, `.hero*`, `.slide*`, `.dot-fill` and `@keyframes dot-run`; `prose.css`: the policy reading column, `.prose*` (62ch, title-size h2, hairlines between sections) and the `.pending` "To be added" chip; `rails.css`: the home product rails, `.meds`, `.rail*` (strip, row, aside, the `[data-rail-controls]` slot, the arrow and "View all" rules, the `.is-open` / `.is-grid` sheet) and the phone scroll-snap row (`--pw` at least 164px); `quick-trust.css`: the home quick-action cards and trust strip, `.quick`, `.qa*`, `.trust*`, and the `.home` 1280 width token; all but `base.css` are imported `layer(components)`), with `tokens.test.ts`, `css-hygiene.test.ts`, `overlay.test.ts` (compiles `globals.css` and checks the scrim rule), `shell.test.ts`, `prose.test.ts` and `section-token.test.ts` (compiled CSS has no `.h-section` height), `banner.test.ts` (the autoplay fill equals `AUTOPLAY_MS` and pauses under a hold or the pause) |
-| `src/lib/` | `cn.ts` (`clsx` + `tailwind-merge` class helper), `format/rupees.ts` (Indian rupee formatting), `catalogue/banners.ts` (the home banner slides and the banner fallback: `bannerSlides()` keeps a slide only while its packs are live and never lets a Win2Age pack lead), `catalogue/origin.ts` (`countryOfOrigin(manufacturer)`: "India" iff the address names an Indian place from `INDIAN_ADDRESS_MARKERS` (whole word, any case, not a street name), else null, so the page shows "To be added"; extend the marker list, never guess), `catalogue/display.ts` (client-safe wording of catalogue data, ported from the prototype's `build.mjs`: `fullComposition`, `actives` (preservatives and salt forms dropped, each strength one non-breaking unit), `packDisplay`, `strengthTokens`, `shortName`, `plural`, `countWord`, `pocketImage` (the cutout, else the first photo), `categoryAnchor` and the `PocketProduct` type; type-only imports from `src/server`), `catalogue/home-model.ts` (client-safe model of the home bento and rails: `homeModel`, `bentoTiles`, `tileList`, `BENTO_LAYOUT`, and `railPlan` / `RAIL_RISES` for the rails: a rail per category with two or more products, then one shared rail, titled "Diabetes and respiratory care" or "More medicines", for the single-product categories; imports only `catalogue/order` at runtime), `cart/` (the session-only UI cart: `cart.ts` pure rules and limits, `store.ts` `cartStore` over `sessionStorage` key `aarv-cart-ui-v0` with a cached `getSnapshot` and a frozen `{}` server snapshot, `use-cart-lines.ts` the client hook). It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. It stands in until the real server cart arrives in phase K, which replaces it. Also `next-url.ts` (`sanitizeNext(raw)`: the `?next=` guard for post-login redirects; returns "/" unless the value is a same-origin path of at most 512 characters with no backslash or control character and not under `/login`, `/api/` or `/dev/`; it checks the resolved output, because dot segments collapse (`/.//x` becomes `//x`), and blocks the prefixes case-insensitively (a malformed percent escape returns "/"); use it for every `next` read from a URL and pass the result straight to `router.replace`/`push`/`redirect`, never decode it) |
-| `components.json` | shadcn/ui config; only `dialog` and `input-otp` may be added (UI plan ruling). After `shadcn add`, swap `lucide-react` for `Icon`, import Radix as `@radix-ui/react-dialog`, remove any `lucide-react`, `tw-animate-css` or `cn` package the CLI adds, revert its `globals.css` edits, and put `// @generated shadcn` on line 1 |
-| `src/components/ui/dialog.tsx` | the shadcn dialog primitives, restyled for Aarvion (generated, edited) |
-| `src/components/ui/input-otp.tsx` | the shadcn `InputOTP` wrapper, trimmed to the one part `OtpField` uses (generated, edited; no `lucide-react`) |
-| `src/components/overlay/` | `Overlay` (`variant` `"dialog"` or `"side"`, `title`, `count`, `closeLabel`, `initialFocus`, `returnFocusTo`, `footer`): Radix Dialog supplies the focus trap, Escape, scroll lock and aria-hidden siblings; `Overlay` adds `aria-modal`, returns focus to whatever opened it, or to `returnFocusTo` (Radix only does that for its own Trigger; Safari and Firefox on macOS leave `body` focused after a mouse click, so pass `returnFocusTo` for click-opened overlays) and puts the drag handlers on the sheet head only (never the panel, where a drag would fight the scrolling body). Below 640px it is a bottom sheet (CSS). Also the pure phone bottom-sheet drag thresholds in `drag.ts` (28% of height, or 24px at 0.45px/ms) and `useDragDismiss`, which returns pointer handlers for the sheet head. The panel follows the finger through an inline transform and carries `is-dragging` from the first pointerdown until it closes (that class holds the CSS open animation off; removing it while open would replay the entrance). Only the inline transition is cleared after a snap-back |
-| `src/server/` | business logic (below) |
-| `tests/int/`, `tests/helpers/` | integration tests and their helpers |
+| `src/app/` | routes: pages, layouts, route handlers and `globals.css` |
+| `src/components/` | React components |
+| `src/config/` | site facts and the route map |
+| `src/fonts/` | committed font subsets |
+| `src/lib/` | client-safe helpers: classes, formatting, catalogue display, cart |
+| `src/proxy.ts` | the `/dev/*` 404 guard |
+| `src/server/` | business logic (see Server modules) |
+| `src/styles/` | ported prototype CSS and its tests |
+| `components.json` | shadcn/ui config |
+| `tests/` | integration tests and their helpers |
 | `e2e/` | Playwright specs |
-| `scripts/` | `pr-size.ts`, `merge-gate.sh`, `sync-product-images.ts`, `seed.ts`, `db-indexes.ts`, `subset-fonts.ts`, `shoot.mjs` (screenshots); Python asset tools (`render_foil.py`, `make_cutouts.py`, `composite_store_banners.py`, `build_stage0_docs.py`, …) |
-| `data/` | `products.json` (seed source), `product-images.json` (generated), `source/` (Drive analysis) |
-| `public/products/` | generated, content-hashed product images |
-| `public/foil/`, `public/banners/` | foil, dome and banner rasters copied unchanged from `design/prototype/assets/`, each with a `.json` provenance sidecar (`scripts/public-provenance.test.ts`) |
-| `src/components/` | React components, added task by task (today `base/`: the icon set, `BrandMark`, `Button` (the only client module of the button family: `button.client.tsx`, re-exported from `button.tsx`; its busy handler needs a client component), `ButtonLink` and `buttonClass` (server-safe, in `button.tsx` and `button-class.ts`), `RxBadge`, `StatusTag`, `Rupees`, `StampPrice` and `PriceInline`; `form/`: `TextField` (hint and error ids through `aria-describedby`, `aria-invalid`), `Checkbox` (the same for its error) and `Segmented` (native radiogroup with roving tabindex, arrows, Home and End; LTR only; no error wiring) and `OtpField` (one real input drawn as six boxes, with native paste and `beforeinput` listeners so a pasted or autofilled full code replaces a partial value; pass `ariaLabel` when there is no `<label for>`) with `otpDigits`; `overlay/`: `Overlay` (dialog and side sheet), the drag thresholds and `useDragDismiss`; `home/`: the banner carousel reducer and controller hook, `HeroBanner` (server; picks the slides with `bannerSlides()` and renders each one's `getImageProps` picture, the first one shown eager with `fetchPriority="high"`) inside `BannerCarousel` (client; controls first, then the track of server-rendered slides; the hook alone sets each slide's `is-current`, `is-leaving`, `inert` and image `loading`; styles in `src/styles/banner.css`), `CategoryBento` (the static "Shop by category" act, `section#areas[data-act="pass"]`; tiles come from `bentoTiles(homeModel(...))`, whose `BENTO_LAYOUT` picks each category's grid cell and art slugs, so a new live category gets a plain `tile-diab` cell; the `data-in` ranges on the tiles are what the film engine reads; CSS in `src/styles/bento.css`) `Rails` (server; `div.meds#medicines` holding a `section.rail#<categoryAnchor>` per `railPlan()` rail, with an empty `span.anchor` for each category folded into the shared rail, `data-act="pass"` / `data-in` for the film, a `[data-rail-controls]` slot holding `RailControls` (client: the arrows, which page the row by 80% of its width and are `aria-disabled` at each end, and the in-place "View all N" / "Show fewer" toggle that flips `is-open` on the rail and `is-grid` on the row; both appear only while the row overflows, scrolling is instant under reduced motion, the toggle is announced through `announce()` only, and Task 30 turns it into a link to the category page), every pocket image lazy, and the Rx note only when `model.allRx`; CSS in `src/styles/rails.css`) and `OrderingSteps` (the static "How ordering works" act; its hooks `data-act`, `data-in`, `data-out`, `.step` and `.is-active` are what `film/` reads, so do not rename them; CSS in `src/styles/steps.css`), `Faq` (`section#questions`, six native `<details>`; `#faq-returns` and `#faq-win2age` are link targets and `FaqHashOpen`, a tiny client effect, opens the item a hash points at; the Rx-universal first answer needs `allRx` [C25] and the online-payment copy needs `SITE_CONFIG.onlinePayments`) and `Close` (the static closing act, `section#close[data-act="pin"][data-lead]`; `img.close-swoosh` is the mint `/brand/aarvion-mark.svg` alone, 184px, and carries the film's `data-in` pan-in range itself; CSS in `src/styles/faq-close.css`); `film/`: the scroll film's progress maths and engine; `feedback/`: the customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's single polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`; `catalogue/`: `Pocket` (the foil pocket, the product card of the rails, category and product pages: `li.pocket#p-<slug>` with the pack under a dome, the name and `RxBadge`, the actives clamped to two lines (three on phones) with the full composition in the title and for AT, the pack line, `StampPrice` and `CartControl`; `heading` sets its level, and `priority` makes its image eager with `fetchPriority="high"`, never a preload [C24]; images are lazy otherwise; no hooks, so it renders on the server or in a client tree; CSS in `src/styles/pocket.css`); `product/`: `ProductFacts` (server-safe `dl.product-facts`: the Legal Metrology declarations in fixed order, ending with customer care from `SITE_CONFIG.customerCare`; an unknown fact is `Pending`) and `VariantSwitcher` (`nav[aria-label="Strengths"]` of real links to `ROUTES.product(slug)` in `compareVariants` order, `aria-current="page"` on the current strength, nothing for a family of one; no script and no live region; CSS in `src/styles/product-facts.css`); `cart/`: `CartControl` (Add to cart that becomes a stepper; changes and limits are spoken only through `#live`; the count is a plain `<span>`, since `<output>` is an implicit live region), `CartPill` (header cart link, count bumps on change) and `CartReconcile` (renders nothing; drops stored lines for slugs the catalogue no longer has, ignores an empty catalogue, and announces once through `#live`), all fed by the store in `src/lib/cart/`; `shell/`: `withStoreChrome` (the shared store chrome), `EmptyState` (dashed well with a dot-matrix count, title, copy and actions), `StoreHeader` (client; `search`, `account` and `cart` slots with static defaults; `is-stuck` shadow from an IntersectionObserver on `[data-announce]`, never a scroll listener), `AnnounceBar` (client; rotates one notice per 5 s at 720px and below unless reduced motion), `CategoryBar` (server; live categories then All medicines; skips anything not live), `SkipLink`, `StoreFooter`, `OperateShell` and `Brand` (`placement` `footer` or `header`); `search/`: the header search, not yet mounted (`withStoreChrome` mounts it in the next PR): `HeaderSearch` (client; the `form.search` with `input#q`, the strength chips and the panel; focus opens it, pointer and mouse down on the chips are prevented so a press does not blur the input, `focusout` outside the form closes it, submit and Enter choose the first or active result; on `/` a result whose `#p-<slug>` pocket exists is scrolled into view, marked `is-found` and its Add or + is focused, anywhere else it goes to `/product/<slug>`; the count is announced through `announce()`, a 429 shows "Too many searches" and is never retried; Escape closes the list, then clears the field, and stops bubbling to ancestor handlers while it does either (a Radix dialog listens in the capture phase and is not protected; one mounting this search would need its own guard); a `[data-search]` click anywhere focuses `#q`; without JS it is a GET form to `/#medicines`), and its parts: `highlight` (pure, no RegExp) and `useCombobox` (WAI-ARIA 1.2 combobox keys and ids; no live region of its own); the search hook `useProductSearch` (`SEARCH_DEBOUNCE_MS` = 150; no request for an empty query without a strength; 429 is `limited`, not retried until the query changes; nothing logs query text); the `SuggestionList` listbox (shelf order kept; styles in `src/styles/search.css`); `auth/`: `LoginFlow` (`login-flow.tsx`, client, not mounted on a route yet; drives `loginReducer` and renders the id step: the Mobile/Email `Segmented`, the field with its own `role="alert"` error, the busy Send; posts exactly `identifierOf(...)`; on sign-in the page `router.replace`s `sanitizeNext(next)` undecoded, the dialog calls `onDone`; a visitor already signed in completes on mount; the code, profile and done steps are still to come), and the pure login helpers: `login-machine.ts` (the login state machine over steps id, code, profile and done: `loginReducer`, `initialLoginState`, `identifierOf` (post exactly this); `busy` is a guard, so a busy state ignores every event but results and `tick`, and an idle state ignores results; the UI runs the effects, calling `sendCode` and `verifyCode` while a state is `busy` (a resend is `resendStart`, then `sendCode`); `codeMessage(state, now)` is the code field's message, and `tick` lifts timed locks; when a code or profile state has `sessionCheck` true the UI calls `fetchSession()` and dispatches `sessionChecked`, because a verify that ended in `network` may still have signed in; `nameRefused` is the server refusing the name, `nameInvalid` the client check, `nameTooLong` a name over 80 characters; it re-exports `login-copy.ts` (`LOGIN_COPY`, the whole login flow's customer copy; `mmss` and `waitText`, which print "a little while" for a missing wait, never NaN; `MAX_TRIES`, `RESEND_SEC` and `CODE_TTL_MS`, client copies pinned to the server's limits by the test; `nameRefused` is the server refusing the name, `nameInvalid` the client check), `phone.ts` (`normMobile` (strips one `+91`, `91` or `0` prefix, never truncates), `formatMobile`, `MOBILE_RE`, `EMAIL_RE`) and `api.ts` (`sendCode`, `verifyCode`, `fetchSession` over `/api/auth/otp/send`, `/api/auth/otp/verify` and `/api/auth/session`; nothing throws, and a transport failure, a 15 s timeout, a non-JSON or unexpected 2xx body or any other unexpected status maps to `network`, except a 400 on send (`invalid_identifier`) and a 400 or 413 on verify when a `signup` was sent (`signup_required`: the server refused the name); `verifyCode` trims the name; `fetchSession` exposes only `{ name }`; `SignupPayload` is pinned both ways to the server's `SignupInput` by a type-only import in `api.test.ts`; name validation stays server-side; nothing logs identifiers, codes or names); `legal/`: `LegalPage` (the Operate shell plus the `.prose` column, opening with "Last updated" from `POLICY_VERSION` via the pure `formatPolicyDate`), `LegalSection`, `Pending` (the "To be added" chip), `Fact` (a `SITE_CONFIG` value, or `Pending` while unset) and `legalMetadata`, for every policy page) |
-| `public/brand/` | the official logo variants and app icons served to the site, copied from the masters (usage guide in its README) |
-| `src/fonts/` | committed `.woff2` subsets and `index.ts` (`next/font/local`), built by `pnpm fonts:subset` from `assets/fonts/` |
-| `assets/` | source photos and cutouts; `brand/official/` (the traced logo masters, made by `scripts/trace_logo.py`); banner scenes; `fonts/` (source TTFs, OFL licences, `SOURCES.json`, README) |
-| `design/prototype/` | the approved hi-fi prototype (excluded from ESLint) |
+| `scripts/` | build, seed and asset tools |
+| `data/` | seed data and generated image data |
+| `public/` | served static assets |
+| `assets/` | source photos, cutouts, logo masters and fonts |
+| `design/prototype/` | the approved hi-fi prototype |
+
+File-by-file detail is below, one file or subfolder per line, sorted alphabetically. When you
+add or change a file, edit only its own bullet.
 
 Planned folders (UI plan): more of `src/components/**` and `src/lib/**`. See
 the plan's "File Structure".
+
+### src/app/
+
+- `src/app/(store)/`: route group for customer pages (URLs unchanged):
+  - `layout.tsx` wraps the page in `withStoreChrome()` (`src/components/shell/store-chrome.tsx`: `SkipLink`, `AnnounceBar`, `StoreHeader` (with `CartPill` in its `cart` slot), `CartReconcile`, `CategoryBar` (live categories), the page, then the `StoreFooter` from the cached live categories), so **every build needs a seeded database**
+  - `category/[slug]/page.tsx` is the category page (`generateStaticParams` from the cached categories, `notFound()` for a slug that is not live or coming soon, renders `CategoryView` from `src/components/catalogue/category-view.tsx` with the cached products of that category, the first pocket with `priority`); a slug that was not prerendered answers 200 with the not-found page and `noindex` on its first render and 404 after
+  - `not-found.tsx` renders the shared `NotFoundBody` (`src/components/shell/not-found-body.tsx`) inside the layout's chrome, so a category 404 does not double it; the root layout puts `children` in `Suspense` because that not-found boundary reads `usePathname()`
+  - `legal/privacy/page.tsx` and `legal/terms/page.tsx` are the privacy policy (`/legal/privacy`) and the terms of use (`/legal/terms`, whose payment section offers only cash on delivery, naming no online method, until `SITE_CONFIG.onlinePayments` is true), each a `LegalPage` whose copy may state only what `docs/requirements.md`, `PRODUCT.md`, the rulings and the code as built support, with unsupplied facts as `Pending` (bump `POLICY_VERSION` when a policy changes in substance)
+  - `legal/{returns-cancellation,shipping,prescription-policy,grievance}/page.tsx` and `contact/page.tsx` are `LegalPage` policies and the contact page (prepaid refund wording stays conditional, "If you paid online", until `SITE_CONFIG.onlinePayments` is true; the prescription page states the Schedule H and H1 rule and never says every medicine needs a prescription [C25]; the ₹5,000 COD cap is copy, not config).
+  - `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`); the other home sections land with the remaining UI Tasks 21–29
+  - Admin and staff routes go in a sibling group (for example `(admin)`) with no footer, as do `/dev/*` (their 404s come from the proxy and are bare).
+  - the Operate *shell* (`OperateShell`) is a page component that customer cart, account and policy pages use inside `(store)`
+- `src/app/api/auth/logout/route.ts`: `POST /api/auth/logout` (204, clears the cookie)
+- `src/app/api/auth/me/route.ts`: `GET /api/auth/me` (re-issues a sliding customer cookie)
+- `src/app/api/auth/otp/send/route.ts`: `POST /api/auth/otp/send`
+- `src/app/api/auth/otp/verify/route.ts`: `POST /api/auth/otp/verify` (sets the session cookie; 409 `signup_required` for a new identifier without `signup`)
+- `src/app/api/auth/session/route.ts`: `GET /api/auth/session` for the header: always 200 `{ user }` or `{ user: null }` (never 401), `no-store`, re-issues a sliding customer cookie
+- `src/app/api/health/route.ts`: `GET /api/health`: version plus a DB ping
+- `src/app/api/products/route.ts`: `GET /api/products?q=&strength=` for the header search: `q` up to 64 characters (400 `query_too_long`), `strength` 1 to 6 digits (400 `invalid_strength`), 60 a minute per IP bucket on `search:ip:<bucket>` (429 `rate_limited` with `Retry-After`), reads `getCachedProducts()` (never the DB), filters with `matchesTokens` and `strengthTokens`, returns at most 20 `SearchResult`s (`src/lib/catalogue/search-result.ts`: `searchProducts` is the pure filter and holds `SEARCH_LIMIT`, `MAX_RESULTS`, `STRENGTH_RE`; a result is slug, name, salt, pack, mrpPaise, pricePaise, image; no composition array, `internalNotes` or `mrpSource`), `no-store`, and logs no query text
+- `src/app/dev/outbox/route.ts`: `GET /dev/outbox?to=` (dev only)
+- `src/app/dev/styleguide/page.tsx`: `/dev/styleguide` (dev only): every button variant, the Rx badge, tags, stamp and inline prices, the OTP field (`otp-demo.tsx`), the toast demo (`toast-demo.tsx`) the dialog / side sheet demo (`?overlay=dialog` or `side` opens one on load; read client-side in `overlay-demo.tsx`, never via page `searchParams`), the product facts and strength switcher (`#styleguide-facts`) and the foil pockets (`#styleguide-pockets`: every product from `getCachedProducts()` on print-field foil at the rail widths; it needs the seeded database; when the read fails it logs the error name and shows a hint) and the icon grid, for visual review
+- `error.tsx` (page errors, client component, `retry` button, logs only the error name and digest)
+- `global-error.tsx` (its own `<html>`, inline styles) show no chrome.
+- `src/app/globals.css`: Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored), and the plain custom properties in `:root` (durations, z-layers, `--spacing-section` (kept out of `@theme`: a `--spacing-*` token there makes Tailwind emit an `h-section` height that overrides the `.h-section` heading class; use `var(--spacing-section)`), `--sticky-top`, the shadcn roles, and the foil material `--foil-body`, `--foil-print`, `--perforation` and `--perf-v` with `/foil/…` URLs into `public/foil/`, defined once here for the pockets, rails and the ordering steps)
+- `src/app/layout.tsx`: root layout (`lang="en-IN"`, viewport, theme colour, `metadataBase` from `APP_URL`) around every route, with the `Toaster` and the page's one `LiveRegion` (exactly one may exist, so they live only here). Keep exactly one `<LiveRegion/>`, in the root layout
+- The root `src/app/not-found.tsx` (URLs that match no route) sits outside `(store)` but calls `withStoreChrome()` itself, so a shopper who lands on a dead link still gets the search and the footer
+
+### src/proxy.ts
+
+- `src/proxy.ts`: answers a real HTTP 404 for every `/dev/*` request wherever `isMockForbidden()` is true, before anything renders
+
+### src/components/
+
+React components, added task by task. The folders below exist today:
+
+- `auth/`:
+  - `api.ts` (`sendCode`, `verifyCode`, `fetchSession` over `/api/auth/otp/send`, `/api/auth/otp/verify` and `/api/auth/session`; nothing throws, and a transport failure, a 15 s timeout, a non-JSON or unexpected 2xx body or any other unexpected status maps to `network`, except a 400 on send (`invalid_identifier`) and a 400 or 413 on verify when a `signup` was sent (`signup_required`: the server refused the name); `verifyCode` trims the name; `fetchSession` exposes only `{ name }`; `SignupPayload` is pinned both ways to the server's `SignupInput` by a type-only import in `api.test.ts`; name validation stays server-side; nothing logs identifiers, codes or names)
+  - `login-copy.ts` (`LOGIN_COPY`, the whole login flow's customer copy; `mmss` and `waitText`, which print "a little while" for a missing wait, never NaN; `MAX_TRIES`, `RESEND_SEC` and `CODE_TTL_MS`, client copies pinned to the server's limits by the test; `nameRefused` is the server refusing the name, `nameInvalid` the client check)
+  - `login-machine.ts`: the login state machine over steps id, code, profile and done: `loginReducer`, `initialLoginState`, `identifierOf` (post exactly this); `busy` is a guard, so a busy state ignores every event but results and `tick`, and an idle state ignores results; the UI runs the effects, calling `sendCode` and `verifyCode` while a state is `busy` (a resend is `resendStart`, then `sendCode`); `codeMessage(state, now)` is the code field's message, and `tick` lifts timed locks; when a code or profile state has `sessionCheck` true the UI calls `fetchSession()` and dispatches `sessionChecked`, because a verify that ended in `network` may still have signed in; `nameRefused` is the server refusing the name, `nameInvalid` the client check, `nameTooLong` a name over 80 characters; it re-exports
+  - `LoginFlow` (`login-flow.tsx`, client, not mounted on a route yet; drives `loginReducer` and renders the id step: the Mobile/Email `Segmented`, the field with its own `role="alert"` error, the busy Send; posts exactly `identifierOf(...)`; on sign-in the page `router.replace`s `sanitizeNext(next)` undecoded, the dialog calls `onDone`; a visitor already signed in completes on mount; when the machine sets `sessionCheck` it calls `fetchSession()` and dispatches `sessionChecked`; resend, Change and the profile and done steps are still to come) and `CodeStep` (`code-step.tsx`: runs verify; at most one verify in flight (a ref plus `busy`) and a rejected code is never resent until it changes; network and daily locks count down live from `lockedUntil` via `liveCodeMessage`; messages are spoken through `announce()` and `.auth-alert` has no role, so a countdown never re-announces), and the pure login helpers:
+  - `phone.ts` (`normMobile` (strips one `+91`, `91` or `0` prefix, never truncates), `formatMobile`, `MOBILE_RE`, `EMAIL_RE`)
+- `base/`: the icon set
+  - `BrandMark`
+  - `Button` (the only client module of the button family: `button.client.tsx`, re-exported from `button.tsx`; its busy handler needs a client component)
+  - `ButtonLink` and `buttonClass` (server-safe, in `button.tsx` and `button-class.ts`)
+  - `PriceInline`
+  - `Rupees`
+  - `RxBadge`
+  - `StampPrice`
+  - `StatusTag`
+- `cart/`:
+  - `CartControl` (Add to cart that becomes a stepper; changes and limits are spoken only through `#live`; the count is a plain `<span>`, since `<output>` is an implicit live region)
+  - `CartPill` (header cart link, count bumps on change)
+  - `CartReconcile` (renders nothing; drops stored lines for slugs the catalogue no longer has, ignores an empty catalogue, and announces once through `#live`)
+  - all fed by the store in `src/lib/cart/`
+- `catalogue/`: `Pocket` (the foil pocket, the product card of the rails, category and product pages: `li.pocket#p-<slug>` with the pack under a dome, the name and `RxBadge`, the actives clamped to two lines (three on phones) with the full composition in the title and for AT, the pack line, `StampPrice` and `CartControl`; `heading` sets its level, and `priority` makes its image eager with `fetchPriority="high"`, never a preload [C24]; images are lazy otherwise; no hooks, so it renders on the server or in a client tree; CSS in `src/styles/pocket.css`)
+- `feedback/`: the customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's single polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`
+- `film/`: the scroll film's progress maths and engine
+- `form/`:
+  - `Checkbox` (the same for its error)
+  - `OtpField` (one real input drawn as six boxes, with native paste and `beforeinput` listeners so a pasted or autofilled full code replaces a partial value; pass `ariaLabel` when there is no `<label for>`)
+  - `Segmented` (native radiogroup with roving tabindex, arrows, Home and End; LTR only; no error wiring)
+  - `TextField` (hint and error ids through `aria-describedby`, `aria-invalid`)
+  - `otpDigits`
+- `home/`: the banner carousel reducer and controller hook
+  - `CategoryBento` (the static "Shop by category" act, `section#areas[data-act="pass"]`; tiles come from `bentoTiles(homeModel(...))`, whose `BENTO_LAYOUT` picks each category's grid cell and art slugs, so a new live category gets a plain `tile-diab` cell; the `data-in` ranges on the tiles are what the film engine reads; CSS in `src/styles/bento.css`)
+  - `Close` (the static closing act, `section#close[data-act="pin"][data-lead]`; `img.close-swoosh` is the mint `/brand/aarvion-mark.svg` alone, 184px, and carries the film's `data-in` pan-in range itself; CSS in `src/styles/faq-close.css`)
+  - `Faq` (`section#questions`, six native `<details>`; `#faq-returns` and `#faq-win2age` are link targets and `FaqHashOpen`, a tiny client effect, opens the item a hash points at; the Rx-universal first answer needs `allRx` [C25] and the online-payment copy needs `SITE_CONFIG.onlinePayments`)
+  - `HeroBanner` (server; picks the slides with `bannerSlides()` and renders each one's `getImageProps` picture, the first one shown eager with `fetchPriority="high"`) inside `BannerCarousel` (client; controls first, then the track of server-rendered slides; the hook alone sets each slide's `is-current`, `is-leaving`, `inert` and image `loading`; styles in `src/styles/banner.css`)
+  - `OrderingSteps` (the static "How ordering works" act; its hooks `data-act`, `data-in`, `data-out`, `.step` and `.is-active` are what `film/` reads, so do not rename them; CSS in `src/styles/steps.css`)
+  - `Rails` (server; `div.meds#medicines` holding a `section.rail#<categoryAnchor>` per `railPlan()` rail, with an empty `span.anchor` for each category folded into the shared rail, `data-act="pass"` / `data-in` for the film, a `[data-rail-controls]` slot holding `RailControls` (client: the arrows, which page the row by 80% of its width and are `aria-disabled` at each end, and the in-place "View all N" / "Show fewer" toggle that flips `is-open` on the rail and `is-grid` on the row; both appear only while the row overflows, scrolling is instant under reduced motion, the toggle is announced through `announce()` only, and Task 30 turns it into a link to the category page), every pocket image lazy, and the Rx note only when `model.allRx`; CSS in `src/styles/rails.css`)
+- `legal/`:
+  - `Fact` (a `SITE_CONFIG` value, or `Pending` while unset)
+  - `legalMetadata`, for every policy page
+  - `LegalPage` (the Operate shell plus the `.prose` column, opening with "Last updated" from `POLICY_VERSION` via the pure `formatPolicyDate`)
+  - `LegalSection`
+  - `Pending` (the "To be added" chip)
+- `overlay/`: `Overlay` (dialog and side sheet), the drag thresholds and `useDragDismiss`
+  - `src/components/overlay/`: `Overlay` (`variant` `"dialog"` or `"side"`, `title`, `count`, `closeLabel`, `initialFocus`, `returnFocusTo`, `footer`): Radix Dialog supplies the focus trap, Escape, scroll lock and aria-hidden siblings; `Overlay` adds `aria-modal`, returns focus to whatever opened it, or to `returnFocusTo` (Radix only does that for its own Trigger; Safari and Firefox on macOS leave `body` focused after a mouse click, so pass `returnFocusTo` for click-opened overlays) and puts the drag handlers on the sheet head only (never the panel, where a drag would fight the scrolling body). Below 640px it is a bottom sheet (CSS).
+  - Also the pure phone bottom-sheet drag thresholds in `drag.ts` (28% of height, or 24px at 0.45px/ms)
+  - `useDragDismiss`, which returns pointer handlers for the sheet head. The panel follows the finger through an inline transform and carries `is-dragging` from the first pointerdown until it closes (that class holds the CSS open animation off; removing it while open would replay the entrance). Only the inline transition is cleared after a snap-back
+- `product/`:
+  - `ProductFacts` (server-safe `dl.product-facts`: the Legal Metrology declarations in fixed order, ending with customer care from `SITE_CONFIG.customerCare`; an unknown fact is `Pending`)
+  - `VariantSwitcher` (`nav[aria-label="Strengths"]` of real links to `ROUTES.product(slug)` in `compareVariants` order, `aria-current="page"` on the current strength, nothing for a family of one; no script and no live region; CSS in `src/styles/product-facts.css`)
+- `search/`: the header search, mounted by `withStoreChrome` in the `StoreHeader` `search` slot on every customer page (404s included):
+  - `HeaderSearch` (client; the `form.search` with `input#q`, the strength chips and the panel; `STRENGTH_CHIP_FAMILY` and `strengthChips` in `strength-chips.ts` give the chips from the family's variants, none if it is gone; Escape on a chip closes the panel and refocuses `#q`; focus opens it, pointer and mouse down on the chips are prevented so a press does not blur the input, `focusout` outside the form closes it, submit and Enter choose the first or active result; on `/` a result whose `#p-<slug>` pocket exists is scrolled into view, marked `is-found` and its Add or + is focused, anywhere else it goes to `/product/<slug>`; the count is announced through `announce()`, a 429 shows "Too many searches" and is never retried; Escape closes the list, then clears the field, and stops bubbling to ancestor handlers while it does either (a Radix dialog listens in the capture phase and is not protected; one mounting this search would need its own guard); a `[data-search]` click anywhere focuses `#q`; without JS it is a GET form to `/#medicines`), and its parts:
+  - `highlight` (pure, no RegExp)
+  - the `SuggestionList` listbox (shelf order kept; styles in `src/styles/search.css`)
+  - `useCombobox` (WAI-ARIA 1.2 combobox keys and ids; no live region of its own)
+  - the search hook `useProductSearch` (`SEARCH_DEBOUNCE_MS` = 150; no request for an empty query without a strength; 429 is `limited`, not retried until the query changes; nothing logs query text)
+- `shell/`:
+  - `AnnounceBar` (client; rotates one notice per 5 s at 720px and below unless reduced motion)
+  - `Brand` (`placement` `footer` or `header`)
+  - `CategoryBar` (server; live categories then All medicines; skips anything not live)
+  - `EmptyState` (dashed well with a dot-matrix count, title, copy and actions)
+  - `OperateShell`
+  - `SkipLink`
+  - `StoreFooter`
+  - `StoreHeader` (client; `search` (`HeaderSearch`), `account` and `cart` slots with static defaults; `is-stuck` shadow from an IntersectionObserver on `[data-announce]`, never a scroll listener)
+  - `withStoreChrome` (the shared store chrome)
+- `src/components/ui/dialog.tsx`: the shadcn dialog primitives, restyled for Aarvion (generated, edited)
+- `src/components/ui/input-otp.tsx`: the shadcn `InputOTP` wrapper, trimmed to the one part `OtpField` uses (generated, edited; no `lucide-react`)
+
+### src/config/
+
+- `routes.ts` (`ROUTES`, the one map of store links, and `PENDING_ROUTES`, the linked pages that must still 404 until built; each page's task deletes its entry)
+- `site.ts` (`SITE_CONFIG`: legal name, address, and the pending legal facts, all `null` until the owner supplies them; `legalValue()`, `pendingLegalFields()`, and `assertLegalConfigComplete()`, the H4 production gate; `resolveSiteMetadataBase()`)
+
+### src/fonts/
+
+- `src/fonts/`: committed `.woff2` subsets and `index.ts` (`next/font/local`), built by `pnpm fonts:subset` from `assets/fonts/`
+
+### src/lib/
+
+- `cart/`: the session-only UI cart:
+  - `cart.ts` pure rules and limits
+  - `store.ts` `cartStore` over `sessionStorage` key `aarv-cart-ui-v0` with a cached `getSnapshot` and a frozen `{}` server snapshot
+  - `use-cart-lines.ts` the client hook
+  - It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. It stands in until the real server cart arrives in phase K, which replaces it.
+- `catalogue/banners.ts` (the home banner slides and the banner fallback: `bannerSlides()` keeps a slide only while its packs are live and never lets a Win2Age pack lead)
+- `catalogue/display.ts` (client-safe wording of catalogue data, ported from the prototype's `build.mjs`: `fullComposition`, `actives` (preservatives and salt forms dropped, each strength one non-breaking unit), `packDisplay`, `strengthTokens`, `shortName`, `plural`, `countWord`, `pocketImage` (the cutout, else the first photo), `categoryAnchor` and the `PocketProduct` type; type-only imports from `src/server`)
+- `catalogue/home-model.ts` (client-safe model of the home bento and rails: `homeModel`, `bentoTiles`, `tileList`, `BENTO_LAYOUT`, and `railPlan` / `RAIL_RISES` for the rails: a rail per category with two or more products, then one shared rail, titled "Diabetes and respiratory care" or "More medicines", for the single-product categories; imports only `catalogue/order` at runtime)
+- `catalogue/origin.ts` (`countryOfOrigin(manufacturer)`: "India" iff the address names an Indian place from `INDIAN_ADDRESS_MARKERS` (whole word, any case, not a street name), else null, so the page shows "To be added"; extend the marker list, never guess)
+- `cn.ts` (`clsx` + `tailwind-merge` class helper)
+- `format/rupees.ts` (Indian rupee formatting)
+- Also `next-url.ts` (`sanitizeNext(raw)`: the `?next=` guard for post-login redirects; returns "/" unless the value is a same-origin path of at most 512 characters with no backslash or control character and not under `/login`, `/api/` or `/dev/`; it checks the resolved output, because dot segments collapse (`/.//x` becomes `//x`), and blocks the prefixes case-insensitively (a malformed percent escape returns "/"); use it for every `next` read from a URL and pass the result straight to `router.replace`/`push`/`redirect`, never decode it)
+
+### src/server/
+
+- `src/server/`: business logic (below)
+
+### src/styles/
+
+ported prototype CSS imported by `globals.css`.
+
+- `banner.css`: the home banner carousel, `.hero*`, `.slide*`, `.dot-fill` and `@keyframes dot-run`
+- `banner.test.ts` (the autoplay fill equals `AUTOPLAY_MS` and pauses under a hold or the pause)
+- `base.css`: one merged `@layer base` with resets, focus, type and utilities
+- `bento.css`: the home's category bento, `.areas`, `.sec-head`, `.bento`, `.tile*`, `.ta*`
+- `buttons.css`: `.btn*`, `.link`, `.spin`
+- `cart-control.css`: `.cart-ctl`, `.btn-add`, `.stepper`
+- `catbar.css`: the category bar and the 880px chip row, `.catbar*`
+- `category.css`: the category page's foil sheet, coming-soon panel and other-category pills, `.cat-*`
+- `css-hygiene.test.ts`
+- `empty.css`: the empty-state well, `.empty*` and `.well-count`
+- `faq-close.css`: the home's questions and closing act, `.faq*`, `.act-close`, `.close-*` (static; `.act-close .field` is scoped because `forms.css` owns `.field`)
+- `footer.css`: the store footer, `.foot*`
+- `forms.css`: `.field`, `.field-box`, `.input`, `.check*`, `.seg*`
+- `header.css`: the announcement line and store header, `.announce*`, `.store-head`, `.sh-*`, `--row-h` and `--hdr-h`
+- `otp.css`: `.otp*`
+- `overlay.css`: `.sheet-*` dialog, side drawer and phone bottom sheet, as `@keyframes` on Radix `[data-state]`
+- `overlay.test.ts` (compiles `globals.css` and checks the scrim rule)
+- `pocket.css`: the product card, `.pocket*`, `.blister` (the dome over `dome-floor.webp`, `--bh` 188px) and `.str`
+- `product-facts.css`: the product facts block and strength chips, `.product-facts*`, `.strengths`, `.strength-chip`
+- `prose.css`: the policy reading column, `.prose*` (62ch, title-size h2, hairlines between sections) and the `.pending` "To be added" chip
+- `prose.test.ts`
+- `quick-trust.css`: the home quick-action cards and trust strip, `.quick`, `.qa*`, `.trust*`, and the `.home` 1280 width token
+- `rails.css`: the home product rails, `.meds`, `.rail*` (strip, row, aside, the `[data-rail-controls]` slot, the arrow and "View all" rules, the `.is-open` / `.is-grid` sheet) and the phone scroll-snap row (`--pw` at least 164px)
+- `section-token.test.ts` (compiled CSS has no `.h-section` height)
+- `shell.css`: the Operate shell, `.band*` and `.work*`
+- `shell.test.ts`
+- `stamp.css`: `.dm`, `.stamp*`, `.off`, `.price-inline`, `.rx`, `.tag*`
+- `steps.css`: the home's ordering act, `.act-steps`, `.step*`, `.perf*`, `.doc*`, `.log*`, `.label*` (static rules only; `.film` rules come with the film wiring)
+- `toast.css`: `.toast*`
+- `tokens.test.ts`
+- all but `base.css` are imported `layer(components)`
+
+### components.json
+
+- `components.json`: shadcn/ui config; only `dialog` and `input-otp` may be added (UI plan ruling). After `shadcn add`, swap `lucide-react` for `Icon`, import Radix as `@radix-ui/react-dialog`, remove any `lucide-react`, `tw-animate-css` or `cn` package the CLI adds, revert its `globals.css` edits, and put `// @generated shadcn` on line 1
+
+### tests/
+
+- `tests/int/`, `tests/helpers/`: integration tests and their helpers
+
+### e2e/
+
+- `e2e/`: Playwright specs
+
+### scripts/
+
+- `db-indexes.ts`
+- `merge-gate.sh`
+- `pr-size.ts`
+- `seed.ts`
+- `shoot.mjs` (screenshots)
+- `subset-fonts.ts`
+- `sync-product-images.ts`
+- Python asset tools
+  - `build_stage0_docs.py`
+  - `composite_store_banners.py`
+  - `make_cutouts.py`
+  - `render_foil.py`
+  - …
+
+### data/
+
+- `product-images.json` (generated)
+- `products.json` (seed source)
+- `source/` (Drive analysis)
+
+### public/
+
+- `public/brand/`: the official logo variants and app icons served to the site, copied from the masters (usage guide in its README)
+- `public/foil/`, `public/banners/`: foil, dome and banner rasters copied unchanged from `design/prototype/assets/`, each with a `.json` provenance sidecar (`scripts/public-provenance.test.ts`)
+- `public/products/`: generated, content-hashed product images
+
+### assets/
+
+- `assets/`: source photos and cutouts; `brand/official/` (the traced logo masters, made by `scripts/trace_logo.py`); banner scenes; `fonts/` (source TTFs, OFL licences, `SOURCES.json`, README)
+
+### design/prototype/
+
+- `design/prototype/`: the approved hi-fi prototype (excluded from ESLint)
 
 ## Server modules
 
