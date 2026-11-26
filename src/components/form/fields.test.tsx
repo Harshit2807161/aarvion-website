@@ -271,3 +271,28 @@ describe("forms.css", () => {
     expect(css).toMatch(/@media \(prefers-contrast: more\)[^}]*\.hint/);
   });
 });
+
+describe("errorAlert={false} (an error summary speaks for the form)", () => {
+  it("TextField keeps the error and its link but drops role=alert", () => {
+    render(<TextField id="n" label="Full name" error="Enter a name." errorAlert={false} />);
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByLabelText("Full name")).toHaveAttribute("aria-describedby", "n-err");
+    expect(document.getElementById("n-err")).toHaveTextContent("Enter a name.");
+  });
+
+  it("Checkbox keeps the error and its link but drops role=alert", () => {
+    render(<Checkbox id="a" label="I am 18 or older" error="Confirm." errorAlert={false} />);
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByLabelText("I am 18 or older")).toHaveAttribute("aria-describedby", "a-err");
+  });
+
+  it("both still default to role=alert", () => {
+    render(
+      <>
+        <TextField id="n" label="Full name" error="Enter a name." />
+        <Checkbox id="a" label="Adult" error="Confirm." />
+      </>,
+    );
+    expect(screen.getAllByRole("alert")).toHaveLength(2);
+  });
+});

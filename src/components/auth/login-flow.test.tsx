@@ -266,6 +266,8 @@ describe("LoginFlow: code step", () => {
     reply(SESSION, { status: 200, body: { user: { name: "Asha Rao" } } });
     paste("111111");
     await flush();
+    expect(screen.getByRole("heading", { name: LOGIN_COPY.doneTitle })).toBeInTheDocument();
+    await advance(900);
     expect(routerSpies.replace).toHaveBeenCalledWith("/cart");
   });
 
@@ -276,6 +278,63 @@ describe("LoginFlow: code step", () => {
     await flush();
     expect(document.querySelector(".auth-alert")!.textContent).toBe(LOGIN_COPY.network);
     expect(button(LOGIN_COPY.verify)!.getAttribute("aria-busy")).toBeNull();
+  });
+});
+
+describe("LoginFlow: done step", () => {
+  it("a right code shows You’re signed in, then redirects after 900 ms", async () => {
+    reply(VERIFY, OK);
+    await toCodeStep();
+    paste("482913");
+    await flush();
+    const heading = screen.getByRole("heading", { name: LOGIN_COPY.doneTitle });
+    expect(document.activeElement).toBe(heading);
+    expect(screen.getByText(LOGIN_COPY.doneDefault)).toBeInTheDocument();
+    await advance(899);
+    expect(routerSpies.replace).not.toHaveBeenCalled();
+    await advance(1);
+    expect(routerSpies.replace).toHaveBeenCalledWith("/");
+  });
+
+  it.each([
+    ["//evil.com", "/"],
+    ["/legal/terms", "/legal/terms"],
+  ])("next=%s goes to %s", async (next, to) => {
+    mockSearchParams.value = new URLSearchParams({ next });
+    reply(VERIFY, OK);
+    await toCodeStep();
+    paste("482913");
+    await flush();
+    await advance(900);
+    expect(routerSpies.replace).toHaveBeenCalledWith(to);
+  });
+
+  it("says it is taking you to checkout when next is the checkout", async () => {
+    mockSearchParams.value = new URLSearchParams({ next: "/checkout" });
+    reply(VERIFY, OK);
+    await toCodeStep();
+    paste("482913");
+    await flush();
+    expect(screen.getByText(LOGIN_COPY.doneCheckout)).toBeInTheDocument();
+  });
+
+  it("the dialog gets onDone at once and no redirect", async () => {
+    const onDone = vi.fn();
+    reply(VERIFY, OK);
+    render(<LoginFlow mode="dialog" onDone={onDone} />);
+    await flush();
+    fireEvent.change(screen.getByLabelText(LOGIN_COPY.mobileLabel), {
+      target: { value: "9876543210" },
+    });
+    fireEvent.click(button(LOGIN_COPY.send)!);
+    await flush();
+    fireEvent.paste(document.querySelector("#dlg-otp")!, {
+      clipboardData: { getData: () => "482913" },
+    });
+    await flush();
+    expect(onDone).toHaveBeenCalledWith({ isNewUser: false, name: "Asha Rao" });
+    await advance(900);
+    expect(routerSpies.replace).not.toHaveBeenCalled();
   });
 });
 
