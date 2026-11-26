@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { findClaims } from "../../../tests/helpers/claims";
-import { routerSpies } from "../../../tests/helpers/navigation-mocks";
+import { mockSearchParams, routerSpies } from "../../../tests/helpers/navigation-mocks";
 import { LoginFlow } from "./login-flow";
 import { LOGIN_COPY } from "./login-machine";
 
@@ -213,6 +213,15 @@ describe("LoginFlow: code step", () => {
     });
   });
 
+  it("Verify with a short code says so and sends nothing", async () => {
+    await toCodeStep();
+    type("123");
+    fireEvent.click(button(LOGIN_COPY.verify)!);
+    await flush();
+    expect(document.querySelector(".auth-alert")!.textContent).toBe(LOGIN_COPY.incomplete);
+    expect(calls(VERIFY)).toHaveLength(0);
+  });
+
   it("five wrong codes lock the field, hide Verify and count down to a new code", async () => {
     await toCodeStep();
     for (let i = 1; i <= 5; i++) {
@@ -255,6 +264,43 @@ describe("LoginFlow: code step", () => {
     expect(document.querySelector(".auth-alert")!.textContent).toBe(LOGIN_COPY.wrong(4));
   });
 
+  it("a verify that ends in network checks the session, and a session signs in", async () => {
+    mockSearchParams.value = new URLSearchParams("next=/cart");
+    reply(VERIFY, { status: 503, body: {} });
+    await toCodeStep();
+    reply(SESSION, { status: 200, body: { user: { name: "Asha Rao" } } });
+    paste("111111");
+    await flush();
+    expect(routerSpies.replace).toHaveBeenCalledWith("/cart");
+  });
+
+  it("a network verify with no session shows the network error", async () => {
+    reply(VERIFY, { status: 503, body: {} });
+    await toCodeStep();
+    paste("111111");
+    await flush();
+    expect(document.querySelector(".auth-alert")!.textContent).toBe(LOGIN_COPY.network);
+    expect(routerSpies.replace).not.toHaveBeenCalled();
+  });
+
+  it("a right code redirects to the sanitised next, undecoded", async () => {
+    mockSearchParams.value = new URLSearchParams({ next: "/%2F%2Fevil.com" });
+    reply(VERIFY, OK);
+    await toCodeStep();
+    paste("482913");
+    await flush();
+    expect(routerSpies.replace).toHaveBeenCalledWith("/%2F%2Fevil.com");
+  });
+
+  it("an unsafe next goes home", async () => {
+    mockSearchParams.value = new URLSearchParams({ next: "//evil.com" });
+    reply(VERIFY, OK);
+    await toCodeStep();
+    paste("482913");
+    await flush();
+    expect(routerSpies.replace).toHaveBeenCalledWith("/");
+  });
+
   it("Send a new code posts the same identifier and restarts the timer", async () => {
     const { container } = await toCodeStep();
     await advance(30_000);
@@ -263,6 +309,14 @@ describe("LoginFlow: code step", () => {
     expect(calls(SEND)).toHaveLength(2);
     expect(calls(SEND)[1]!.body).toEqual({ channel: "phone", identifier: "9876543210" });
     expect(container.querySelector(".otp-timer")!.textContent).toBe("Resend code in 0:30");
+  });
+
+  it("Change goes back to the id step with the number kept", async () => {
+    await toCodeStep();
+    fireEvent.click(button(LOGIN_COPY.change)!);
+    expect(screen.getByLabelText<HTMLInputElement>(LOGIN_COPY.mobileLabel).value).toBe(
+      "9876543210",
+    );
   });
 });
 

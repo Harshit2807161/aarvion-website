@@ -24,7 +24,6 @@ describe("ROUTES", () => {
 
   it("lists the routes that must still 404", () => {
     expect(PENDING_ROUTES).toEqual([
-      "/login",
       "/cart",
       "/account",
       "/account/prescriptions",

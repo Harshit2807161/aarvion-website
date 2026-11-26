@@ -3,15 +3,16 @@
 /**
  * The login flow (pages/login.html v2, lines 108-191) for the /login page and, later, the header
  * dialog. It owns `loginReducer`, the 1 s clock and the end of the flow, renders the id step and
- * runs its send effect; the code step (`code-step.tsx`) runs verify and resend. The session check
- * after a network failure lands next (Task 41 part C); the profile and done steps and the demo
- * states (`allowDemo`) are Task 42, which fills the seam marked below.
+ * runs its send effect; the code step (`code-step.tsx`) runs verify and resend. The profile and
+ * done steps and the demo states (`allowDemo`) are Task 42, which fills the seam marked below.
  *
  * Rules kept here, each pinned by login-flow.test.tsx:
  * - Post exactly `identifierOf(...)`, the string the machine validated; the raw mobile input has
  *   no maxLength, because people type "+91 98765 43210".
  * - The id step has one field, so its error uses TextField's own `role="alert"`; there is no
  *   multi-field submit (and so no error summary) until the profile step.
+ * - When a verify ends in `network`, the machine sets `sessionCheck`: call `fetchSession()` and
+ *   dispatch `sessionChecked`, since the sign-in may have worked.
  * - On sign-in the page goes to `sanitizeNext(next)`, passed to `router.replace` undecoded; the
  *   dialog gets `onDone`. A visitor who is already signed in completes on mount.
  */
@@ -19,6 +20,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useEffectEvent, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/base/button";
 import { Icon } from "@/components/base/icon";
+import { announce } from "@/components/feedback/live-region";
 import { Segmented } from "@/components/form/segmented";
 import { TextField } from "@/components/form/text-field";
 import { sanitizeNext } from "@/lib/next-url";
@@ -74,6 +76,22 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
   useEffect(() => {
     if (doneNew !== null) finish({ isNewUser: doneNew, name: name.current });
   }, [doneNew]);
+
+  // A verify that ended in `network` may still have signed in: ask before showing the error.
+  const sessionCheck = (state.step === "code" || state.step === "profile") && state.sessionCheck;
+  useEffect(() => {
+    if (!sessionCheck) return;
+    let live = true;
+    void fetchSession().then((session) => {
+      if (!live) return;
+      if (session) name.current = session.name;
+      else announce(LOGIN_COPY.network);
+      dispatch({ type: "sessionChecked", session });
+    });
+    return () => {
+      live = false;
+    };
+  }, [sessionCheck]);
 
   // Countdowns and timed locks: the machine lifts a lock on `tick`.
   const ticking = state.step === "code" || state.step === "profile";

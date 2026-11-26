@@ -70,17 +70,22 @@ export function CodeStep({
   onName(name: string | null): void;
   /** Focuses the element with this id after the next render. */
   focus(id: string): void;
-  /** The id step's input, focused after a failed delivery. */
+  /** The id step's input, focused after Change or a failed delivery. */
   idInputId: string;
 }) {
   const [code, setCode] = useState("");
+  const [incomplete, setIncomplete] = useState(false);
   const [op, setOp] = useState<"verify" | "resend" | null>(null);
   const verifying = useRef(false);
   const rejected = useRef<string | null>(null);
 
   async function verify(value: string) {
     if (s.busy || s.locked || verifying.current) return;
-    if (value.length < OTP_LENGTH) return;
+    if (value.length < OTP_LENGTH) {
+      setIncomplete(true);
+      announce(LOGIN_COPY.incomplete);
+      return;
+    }
     if (value === rejected.current) return;
     verifying.current = true;
     setOp("verify");
@@ -122,6 +127,7 @@ export function CodeStep({
       dispatch({ type: "sendOk", now: started });
       rejected.current = null;
       setCode("");
+      setIncomplete(false);
       toast(LOGIN_COPY.newCodeToast(s.sentTo));
       focus(`${p}-otp`);
       return;
@@ -130,7 +136,13 @@ export function CodeStep({
     if (r.error === "delivery_failed") focus(idInputId);
   }
 
-  const message = liveCodeMessage(s, now);
+  function change() {
+    if (s.busy) return;
+    dispatch({ type: "change" });
+    focus(idInputId);
+  }
+
+  const message = incomplete ? LOGIN_COPY.incomplete : liveCodeMessage(s, now);
   const waiting = now < s.resendAt;
   const timedLock = s.locked === "daily" || s.locked === "network";
   // A code locked for wrong tries, once a new one may be asked for: resending is the only way on.
@@ -143,7 +155,10 @@ export function CodeStep({
         <p className="auth-sent">
           <span id={`${p}-sent`}>
             {LOGIN_COPY.codeSent} <b>{s.sentTo}</b>.
-          </span>
+          </span>{" "}
+          <button type="button" className="link" onClick={change}>
+            {LOGIN_COPY.change}
+          </button>
         </p>
       </div>
       <form
@@ -161,7 +176,10 @@ export function CodeStep({
           <OtpField
             id={`${p}-otp`}
             value={code}
-            onChange={setCode}
+            onChange={(v) => {
+              setCode(v);
+              setIncomplete(false);
+            }}
             onComplete={(v) => void verify(v)}
             state={otpState}
             describedBy={`${p}-sent ${p}-otp-hint${message ? ` ${p}-otp-err` : ""}`}
