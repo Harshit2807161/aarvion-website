@@ -4,8 +4,8 @@
  * The login flow (pages/login.html v2, lines 108-191) for the /login page and, later, the header
  * dialog. It owns `loginReducer`, the 1 s clock and the end of the flow, renders the id and done
  * steps and runs the send effect and the session check; the code step (`code-step.tsx`) runs
- * verify. The profile step (sign-up, Task 42) renders at the seam marked below; resend and Change
- * come with the /login page (Task 41 part C), and the demo states (`allowDemo`) after it.
+ * verify and the profile step (`profile-step.tsx`) runs sign-up. Resend and Change come with the
+ * /login page (Task 41 part C); the demo states (`allowDemo`) follow it (Task 42 part B).
  *
  * Rules kept here, each pinned by login-flow.test.tsx:
  * - Post exactly `identifierOf(...)`, the string the machine validated; the raw mobile input has
@@ -28,6 +28,7 @@ import { TextField } from "@/components/form/text-field";
 import { sanitizeNext } from "@/lib/next-url";
 import { type Channel, fetchSession, sendCode } from "./api";
 import { CodeStep } from "./code-step";
+import { ProfileStep } from "./profile-step";
 import { LOGIN_COPY, identifierOf, initialLoginState, loginReducer } from "./login-machine";
 
 export type LoginDone = { isNewUser: boolean; name: string | null };
@@ -219,7 +220,17 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
         />
       ) : null}
 
-      {/* Task 42: the profile step (sign-up) renders here. */}
+      {state.step === "profile" ? (
+        <ProfileStep
+          p={p}
+          s={state}
+          now={now}
+          dispatch={dispatch}
+          setNow={setNow}
+          onName={(n) => (name.current = n)}
+          focus={(id) => (focusNext.current = id)}
+        />
+      ) : null}
 
       {state.step === "done" ? (
         <div className="auth-step" data-step="done">
