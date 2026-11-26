@@ -47,7 +47,7 @@ Why each was chosen: [docs/decisions/stack.md](docs/decisions/stack.md).
 src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide}, layout, (store)/ route group (customer pages and the footer; admin goes in another group), the home (`page.tsx`: hero banner, quick actions, trust strip, ordering steps so far);
                     globals.css (Tailwind 4 @theme tokens)
 src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms, overlay, otp and toast.css) and the token and CSS tests
-src/lib/            helpers: cn, format/, cart/ (session cart), catalogue/ (display.ts wording helpers, client-safe; cached.ts reads, server only)
+src/lib/            helpers: cn, format/, cart/ (session cart), catalogue/ (display.ts wording helpers and home-model.ts for the home bento, client-safe; cached.ts reads, server only)
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES)
 src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/, cart/, catalogue/ so far)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
