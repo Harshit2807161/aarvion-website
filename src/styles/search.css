@@ -1,0 +1,16 @@
+/*
+  Search suggestion list (src/components/search/suggestion-list.tsx): port of the v2 prototype's
+  .sugg rules. The panel (.sugg-panel) and the pill live in header.css; no selector may repeat there.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.sugg { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow-y: auto; overscroll-behavior: contain; }
+.sugg-opt { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 14px; cursor: pointer; }
+.sugg-opt[aria-selected="true"] { background: var(--color-forest-50); box-shadow: inset 0 0 0 1px var(--color-forest-200); }
+@media (hover: hover) and (pointer: fine) { .sugg-opt:hover { background: var(--color-forest-50); } }
+.sugg-opt img { width: 44px; height: 44px; object-fit: contain; }
+.sugg-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sugg-name { font: 600 0.9375rem/1.25 var(--font-display); }
+.sugg-meta { font-size: var(--text-xs); line-height: 1.35; color: var(--color-text-muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.sugg mark { background: var(--color-sand-200); color: inherit; border-radius: 3px; padding: 0 1px; }
+.sugg-empty { padding: 12px; font-size: var(--text-sm); color: var(--color-text-muted); }
+@media (max-width: 720px) { .sugg { max-height: 52vh; } .sugg-opt { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; } }
