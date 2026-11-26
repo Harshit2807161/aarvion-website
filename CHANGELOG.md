@@ -17,6 +17,7 @@ bottom use commit SHAs.
 ## [Unreleased]
 
 ### Added
+- Search combobox parts, part 2 of 3: `useProductSearch` and `SEARCH_DEBOUNCE_MS` (150 ms) in `src/components/search/use-product-search.ts`. One in-flight request (the previous is aborted), stale responses dropped by sequence id, no request for an empty query without a strength, the query capped at 64 characters through `queryTokens`, strength checked against `STRENGTH_RE`, 429 is `limited` and never retried until the query changes, any other failure or malformed body is `error`, and nothing logs query text (#138)
 - Search combobox parts, part 1 of 3 (not wired into the header yet; Task 37 does that), in `src/components/search/`: `highlight` (pure, literal `indexOf`, no RegExp, returns `{ text, mark }` segments to render as `<mark>`) and `useCombobox` (WAI-ARIA 1.2 keys and ids; arrows wrap, Enter takes the active or first item, Escape closes then clears; adds no live region, result counts go through `announce()`). `useProductSearch` and `SuggestionList` follow (#130)
 
 - Home bento model (`src/lib/catalogue/home-model.ts`, pure and client-safe): `homeModel` (live categories with products in shelf order, coming-soon categories, `total`, `allRx`), `bentoTiles` (tile order follows `BENTO_LAYOUT`'s keys, then any other live category as a plain `tile-diab` cell with no art), `tileList` (brand names in shelf order, strength families collapsed: "Sacuwin 50, 100 and 200") and `BENTO_LAYOUT` (each category's grid cell and art slugs). Unused until the bento component lands in the next PR (#127).
@@ -135,7 +136,7 @@ bottom use commit SHAs.
 
 ### Changed
 
-- `normMobile` (`src/components/auth/phone.ts`) strips exactly one prefix the server also accepts (`+91`, a 12-digit `91...` or an 11-digit `0...`) and never truncates; anything that is not then exactly ten digits fails `MOBILE_RE`. Digits of other scripts (Devanagari, fullwidth) read as the digits typed, and any other stray character (a letter O, a zero-width space) makes the input invalid instead of being dropped. It used to keep the first ten digits, which turned a mistyped number into a different valid-looking one (#137).
+- `normMobile` (`src/components/auth/phone.ts`) strips exactly one prefix the server also accepts (`+91`, a 12-digit `91...` or an 11-digit `0...`) and never truncates; anything that is not then exactly ten digits fails `MOBILE_RE`. Digits of other scripts (Devanagari, fullwidth) read as the digits typed, and any other stray character (a letter O, a zero-width space) makes the input invalid instead of being dropped. It used to keep the first ten digits, which turned a mistyped number into a different valid-looking one (#137, #140).
 - Privacy policy copy: how sign-in codes and sessions are stored now reads "scrambled (hashed) form" instead of "keyed hash (HMAC)", and the last-updated date is stated once, at the top (#105).
 - Customer routes live in the `src/app/(store)` route group, whose layout renders the store footer;
   the root layout keeps only the toast region and the single live region, so admin and staff routes
