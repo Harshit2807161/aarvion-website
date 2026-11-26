@@ -21,6 +21,7 @@
 @import "../styles/bento.css" layer(components);
 @import "../styles/faq-close.css" layer(components);
 @import "../styles/product-facts.css" layer(components);
+@import "../styles/rails.css" layer(components);
 @import "../styles/category.css" layer(components);
 
 /*

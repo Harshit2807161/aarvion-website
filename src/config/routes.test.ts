@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PENDING_ROUTES, ROUTES } from "./routes";
+import { PENDING_ANCHORS, PENDING_ROUTES, ROUTES } from "./routes";
 
 describe("ROUTES", () => {
   it("maps the store pages", () => {
@@ -24,5 +24,11 @@ describe("ROUTES", () => {
 
   it("lists the routes that must still 404", () => {
     expect(PENDING_ROUTES).toEqual(["/login", "/cart", "/account", "/account/prescriptions"]);
+  });
+
+  it("lists the home sections that links target but nothing builds yet (none today)", () => {
+    expect(PENDING_ANCHORS).toEqual([]);
+    expect(ROUTES.questions).toBe("/#questions");
+    expect(ROUTES.faqWin2age).toBe("/#faq-win2age");
   });
 });
