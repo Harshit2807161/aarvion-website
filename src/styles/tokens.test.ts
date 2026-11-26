@@ -43,8 +43,13 @@ function block(css: string, prelude: string): string {
   return "";
 }
 
-/** Durations, stagger and z-layers have no Tailwind namespace, so they live in :root. */
-const isPlain = (d: string) => /^--(duration-|stagger-|z-)/.test(d);
+/**
+ * Durations, stagger and z-layers have no Tailwind namespace, so they live in :root.
+ * `--spacing-section` is the one deliberate exception: inside @theme it would generate an
+ * `h-section` height utility that collides with the `.h-section` heading class
+ * (see section-token.test.ts), so it is declared verbatim in :root instead.
+ */
+const isPlain = (d: string) => /^--(duration-|stagger-|z-|spacing-section:)/.test(d);
 const theme = block(globals, "@theme static");
 const rootBlock = block(globals, ":root");
 
