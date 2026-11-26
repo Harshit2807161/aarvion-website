@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ROUTES } from "@/config/routes";
 import { SITE_CONFIG } from "@/config/site";
@@ -74,6 +74,27 @@ describe("Faq (static composition, C3)", () => {
   });
 });
 
+describe("FaqHashOpen", () => {
+  it("opens the details the hash names, on load and on hashchange", () => {
+    window.location.hash = "#faq-win2age";
+    const c = faq(true);
+    expect((c.querySelector("#faq-win2age") as HTMLDetailsElement).open).toBe(true);
+    expect((c.querySelector("#faq-returns") as HTMLDetailsElement).open).toBe(false);
+    act(() => {
+      window.location.hash = "#faq-returns";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+    expect((c.querySelector("#faq-returns") as HTMLDetailsElement).open).toBe(true);
+  });
+
+  it("ignores a hash that is not a details", () => {
+    window.location.hash = "#questions";
+    const c = faq(true);
+    expect(c.querySelectorAll("details[open]").length).toBe(0);
+    window.location.hash = "";
+  });
+});
+
 describe("Close (static composition, C3)", () => {
   const setup = () => render(<Close />).container;
 
@@ -89,16 +110,17 @@ describe("Close (static composition, C3)", () => {
 
   it("carries the film ranges the engine reads", () => {
     const c = setup();
-    expect(c.querySelector(".close-swoosh")?.getAttribute("data-in")).toBe("0 .62 io");
+    expect(c.querySelector(".stage > .close-swoosh")?.getAttribute("data-in")).toBe("0 .62 io");
     expect(c.querySelector(".close-copy")?.getAttribute("data-in")).toBe(".56 .84 out");
   });
 
-  it("shows the reversed vector logo as decoration", () => {
-    const sw = setup().querySelector(".close-swoosh");
-    expect(sw?.getAttribute("aria-hidden")).toBe("true");
-    const img = sw?.querySelector("img");
-    expect(img?.getAttribute("src")).toBe("/brand/aarvion-logo-reversed.svg");
+  it("shows the mint swoosh alone as decoration, with the film range on the image itself", () => {
+    const img = setup().querySelector("img.close-swoosh");
+    expect(img?.getAttribute("src")).toBe("/brand/aarvion-mark.svg");
     expect(img?.getAttribute("alt")).toBe("");
+    expect(img?.getAttribute("aria-hidden")).toBe("true");
+    expect(img?.getAttribute("data-in")).toBe("0 .62 io");
+    expect(img?.getAttribute("width")).toBe("184");
   });
 
   it("has the heading, the lead and both calls to action", () => {

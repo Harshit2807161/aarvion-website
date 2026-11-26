@@ -28,9 +28,7 @@ export function CategoryBento({ model }: { model: HomeModel }) {
     <section className="act areas" id="areas" data-act="pass" aria-labelledby="areas-title">
       <div className="wrap">
         <div className="sec-head">
-          {/* `h-auto!` because Tailwind reads the class name `h-section` as a height utility for
-              the `--spacing-section` token (5-9rem); this is the prototype's .h-section heading. */}
-          <h2 className="h-section h-auto!" id="areas-title">
+          <h2 className="h-section" id="areas-title">
             Shop by category
           </h2>
         </div>

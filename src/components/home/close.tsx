@@ -1,4 +1,3 @@
-import { BrandMark } from "@/components/base/brand-mark";
 import { ButtonLink, buttonClass } from "@/components/base/button";
 import { Icon } from "@/components/base/icon";
 import { ROUTES } from "@/config/routes";
@@ -10,9 +9,10 @@ import { SearchCardLink } from "./search-card-link";
  * The hooks the engine in src/components/film/engine.ts reads are `data-act="pin"` and `data-lead`
  * on the section, `.stage` inside it, and the `data-in` ranges on `.close-swoosh` ("0 .62 io", the
  * logo's pan-in) and `.close-copy` (".56 .84 out"). The engine sets `measuring` on its own root,
- * never on `html`. Do not rename them. The logo is the vector asset in public/brand through
- * `BrandMark` (reversed, for forest ground); it is decoration here (`alt=""`, hidden), the heading
- * carries the section. "Search medicines" goes to the header search field (`#q`) like the quick
+ * never on `html`. Do not rename them. The logo is the swoosh alone, the mint vector
+ * public/brand/aarvion-mark.svg (the brand README's "closing act" slot; the mint reads on forest),
+ * rendered directly with `data-in` on the img itself because the film scales it 14x. It is
+ * decoration (`alt=""`, hidden); the heading carries the section. "Search medicines" goes to the header search field (`#q`) like the quick
  * actions' search card. Styles are in src/styles/faq-close.css.
  */
 export function Close() {
@@ -20,9 +20,17 @@ export function Close() {
     <section className="act act-close" id="close" data-act="pin" data-lead aria-labelledby="close-title">
       <div className="stage">
         <div className="field" aria-hidden="true"></div>
-        <div className="close-swoosh" aria-hidden="true" data-in="0 .62 io">
-          <BrandMark variant="reversed" height={64} alt="" loading="lazy" />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG; next/image would not optimise it */}
+        <img
+          className="close-swoosh"
+          src="/brand/aarvion-mark.svg"
+          alt=""
+          aria-hidden="true"
+          width={184}
+          height={39}
+          loading="lazy"
+          data-in="0 .62 io"
+        />
         <div className="close-copy" data-in=".56 .84 out">
           <h2 className="h-display" id="close-title">
             Ready when your prescription is.

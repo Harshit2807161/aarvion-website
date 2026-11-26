@@ -35,12 +35,15 @@
     radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px,
     var(--color-forest-800);
 }
-.close-swoosh { display: block; line-height: 0; overflow: visible; }
-.close-swoosh img { display: block; max-width: 100%; height: auto; }
+.close-swoosh { display: block; width: 184px; height: auto; aspect-ratio: 851.31 / 181.34; } /* the official mark, in its own mint */
 .close-copy { margin-top: 36px; max-width: 46rem; display: flex; flex-direction: column; align-items: center; }
 .close-copy .h-display { color: var(--color-white); font-size: var(--text-display-xl); line-height: 1; letter-spacing: var(--text-display-xl--letter-spacing); }
 .close-copy .lead { margin-top: 18px; color: var(--color-text-on-dark-muted); max-width: 36rem; }
 .close-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 32px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-list summary .i { transition: none; }
+}
 
 @media (max-width: 880px) {
   .faq-grid { grid-template-columns: 1fr; }

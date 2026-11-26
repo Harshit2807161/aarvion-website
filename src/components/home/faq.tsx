@@ -1,11 +1,13 @@
 import { Icon } from "@/components/base/icon";
 import { SITE_CONFIG } from "@/config/site";
+import { FaqHashOpen } from "./faq-hash-open";
 
 /**
  * "Questions": the home FAQ (spec C3), the six questions of design/prototype/src/index.src.html
- * (lines 238-268) in native `<details>`/`<summary>`: no script and no live region. The section id
+ * (lines 238-268) in native `<details>`/`<summary>`: no live region. The section id
  * `questions` and the item ids `faq-returns` and `faq-win2age` are link targets (ROUTES.questions,
- * ROUTES.faqWin2age, the footer and the policy pages); do not rename them. Styles are in
+ * ROUTES.faqWin2age, the footer and the policy pages); do not rename them. `FaqHashOpen` (the only
+ * script here) opens the item a hash points at. Styles are in
  * src/styles/faq-close.css.
  *
  * Copy that depends on what is true today is gated, never claimed:
@@ -71,6 +73,7 @@ export function Faq({
           ))}
         </div>
       </div>
+      <FaqHashOpen />
     </section>
   );
 }
