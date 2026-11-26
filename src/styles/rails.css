@@ -2,8 +2,8 @@
   Home product rails: port of design/prototype/css/site.css (v2) lines 328-385 and the rails
   rules of its 719px block (lines 586-596), for src/components/home/rails.tsx. The prototype's
   second `.rail-strip { flex: none }` is merged into the first rule (one selector per file).
-  The `.rail-all` and `.rail-btn` rules and `.is-open` / `.is-grid` are the controls Task 23
-  fills into `[data-rail-controls]`; the film's `.film .rail` rise rule is Task 28's.
+  The `.rail-all` and `.rail-btn` rules and `.is-open` / `.is-grid` style `RailControls`
+  (src/components/home/rail-controls.tsx), which fills `[data-rail-controls]`; the film's `.film .rail` rise rule is Task 28's.
   The phone dome URL is /foil/, where the app serves design/prototype/assets/foil.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
@@ -28,7 +28,9 @@
 /* the slot holds no box of its own: its children (arrows, View all) are the head's items */
 [data-rail-controls] { display: contents; }
 .rail-arrows { display: flex; gap: 6px; }
-.rail-arrows[hidden] { display: none; }
+/* off arrows keep their space, so the View all toggle never moves under the pointer. Not the
+   `hidden` attribute: Tailwind's preflight makes that display:none !important */
+.rail-arrows[data-off] { visibility: hidden; }
 .rail-btn {
   display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
   background: var(--color-white); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-neutral-300);
@@ -53,7 +55,7 @@
 .rail-row > .pocket { flex: 0 0 var(--pw); scroll-snap-align: start; }
 .rail-row > .pocket + .pocket::before { content: ""; position: absolute; left: -1px; top: 14px; bottom: 12px; width: 2px; pointer-events: none; background: var(--perf-v); }
 /* "View all": the strip opens in place into a wrapping sheet of the same pockets */
-.rail.is-open .rail-strip { width: auto; }
+.rail.is-open .rail-strip { width: 100%; }
 .rail-row.is-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--pw), 1fr)); overflow: visible; scroll-snap-type: none; }
 .rail-row.is-grid > .pocket::before { content: none; }
 .rail-body { display: flex; align-items: stretch; gap: 16px; }
@@ -73,10 +75,11 @@
   .rail-head .h-section { grid-area: title; }
   .rail-head .rail-count { grid-area: count; margin: 0; }
   .rail-head .rail-all { grid-area: all; }
-  .rail-arrows, .rail-arrows[hidden] { display: none; }
+  .rail-arrows, .rail-arrows[data-off] { display: none; }
   .rail-body { flex-direction: column; }
   .rail-strip { width: auto; max-width: none; margin: 0 calc(-1 * var(--spacing-gutter)); padding: 2px 0 4px; border-radius: 0; }
   .rail-row { --pw: max(164px, 45vw); scroll-padding-inline: calc(var(--spacing-gutter) - 8px); padding-inline: calc(var(--spacing-gutter) - 8px); }
+  .rail.is-open .rail-strip { width: auto; }
   .rail-aside { max-width: none; padding: 20px; }
   .rail-row > .pocket { --bh: 150px; }
   .rail-row .blister { --dome: url("/foil/dome-hero-m.webp"); }
