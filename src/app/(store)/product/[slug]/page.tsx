@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ProductView } from "@/components/product/product-view";
 import { fullComposition, packDisplay } from "@/lib/catalogue/display";
 import {
@@ -31,8 +32,20 @@ export async function generateMetadata({
   };
 }
 
-/** /product/<slug>: an unknown, inactive or not-live slug is a 404. */
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+/**
+ * /product/<slug>: an unknown, inactive or not-live slug shows the not-found page. `params` is read
+ * inside Suspense: with Cache Components, a render at request time (a slug outside
+ * generateStaticParams) that reads it in the page body is uncached data outside a boundary, a 500.
+ */
+export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense>
+      <Product params={params} />
+    </Suspense>
+  );
+}
+
+async function Product({ params }: { params: Promise<{ slug: string }> }) {
   const product = await getCachedProduct((await params).slug);
   if (!product) notFound();
   const [family, category, all] = await Promise.all([
