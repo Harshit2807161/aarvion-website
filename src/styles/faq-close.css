@@ -1,0 +1,47 @@
+/*
+  Home questions and closing act, static composition: port of design/prototype/css/site.css (v2)
+  lines 447-479 for src/components/home/{faq,close}.tsx, plus the 880px `.faq-grid` rule (line 534).
+  The film's `.film` rules for `.act-close` arrive with Task 28 and must use descendant selectors
+  under the engine's root (`.film-root.measuring ...`), never `html.measuring`.
+  Width: the `.wrap` in the FAQ takes --container-page from the single `.home` rule in
+  quick-trust.css; --space-sec comes from there too. The focus ring on forest comes from base.css's
+  `.act-close` group. `.act-close .field` is scoped because forms.css owns the bare `.field`.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+/* ── Questions ────────────────────────────────────────────────────────── */
+.faq { padding: calc(var(--space-sec) * 0.6) 0 var(--space-sec); }
+.faq-grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 24px 48px; align-items: start; }
+.faq-list details { border-top: 1px solid var(--color-rule); scroll-margin-top: calc(var(--hdr-h) + 16px); }
+.faq-list details:last-child { border-bottom: 1px solid var(--color-rule); }
+.faq-list summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 44px; padding: 20px 0;
+  list-style: none; cursor: pointer; font: 600 var(--text-title)/1.3 var(--font-display); letter-spacing: -0.012em; color: var(--color-ink);
+}
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary .i { flex: none; width: 22px; height: 22px; color: var(--color-forest-700); transition: transform var(--duration-base) var(--ease-out); }
+.faq-list details[open] summary .i { transform: rotate(180deg); }
+.faq-list details p { padding: 0 0 22px; max-width: 62ch; color: var(--color-text-muted); }
+
+/* ── Close (static; the film's pan-in is Task 28) ─────────────────────── */
+.act-close .stage {
+  position: relative; overflow: clip; isolation: isolate;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: var(--spacing-section) var(--spacing-gutter); color: var(--color-white); background: var(--color-forest-800);
+}
+.act-close .field {
+  position: absolute; inset: 0; z-index: -2;
+  background:
+    radial-gradient(60% 50% at 50% -6%, rgb(127 211 166 / 0.12), transparent 70%),
+    radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px,
+    var(--color-forest-800);
+}
+.close-swoosh { display: block; line-height: 0; overflow: visible; }
+.close-swoosh img { display: block; max-width: 100%; height: auto; }
+.close-copy { margin-top: 36px; max-width: 46rem; display: flex; flex-direction: column; align-items: center; }
+.close-copy .h-display { color: var(--color-white); font-size: var(--text-display-xl); line-height: 1; letter-spacing: var(--text-display-xl--letter-spacing); }
+.close-copy .lead { margin-top: 18px; color: var(--color-text-on-dark-muted); max-width: 36rem; }
+.close-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 32px; }
+
+@media (max-width: 880px) {
+  .faq-grid { grid-template-columns: 1fr; }
+}
