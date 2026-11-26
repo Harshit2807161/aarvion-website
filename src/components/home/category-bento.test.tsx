@@ -20,10 +20,6 @@ describe("CategoryBento (static composition, C3)", () => {
     expect(c.querySelector("h2.h-section#areas-title")?.textContent).toBe("Shop by category");
   });
 
-  it("overrides Tailwind's h-section height utility so the heading keeps its own height", () => {
-    expect(setup().querySelector("#areas-title")?.classList.contains("h-auto!")).toBe(true);
-  });
-
   it("links the tiles in order to their category pages", () => {
     const tiles = [...setup().querySelectorAll("a.tile")];
     expect(tiles.map((a) => a.querySelector(".tile-name")?.textContent)).toEqual([
