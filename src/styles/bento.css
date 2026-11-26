@@ -1,0 +1,76 @@
+/*
+  Shop by category, static composition: port of design/prototype/css/site.css (v2) lines 284-327
+  (the bento), their 880px rules (2 columns) and 719px rules (phone), for
+  src/components/home/category-bento.tsx. The scroll film's `.film .tile` rise arrives with Task 28
+  and must use descendant selectors under the engine's root, never `html.measuring`.
+  --space-sec comes from the single `.home` rule in quick-trust.css; width from --container-page.
+  .tile-resp reads the foil print through --foil-print (defined once in globals.css :root).
+  The focus ring sits on the page's white ground, outside the tile, so every tile keeps the
+  default --focus (forest-700); `.tile-cardio` is therefore not in base.css's dark-ground list.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.areas { padding-top: var(--space-sec); }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: 216px 216px auto; gap: 14px; }
+.tile { position: relative; display: block; border-radius: var(--radius-lg); text-decoration: none; color: var(--color-ink); }
+.tile-in {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;
+  padding: 24px 26px; overflow: hidden; border-radius: inherit; background: var(--tile-bg); isolation: isolate;
+  transition: transform var(--duration-press) var(--ease-out);
+}
+a.tile:active .tile-in { transform: scale(0.98); }
+.tile-cardio { grid-column: 1 / 3; grid-row: 1 / 3; color: var(--color-white); --tile-bg: radial-gradient(circle, rgb(255 255 255 / 0.07) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px, var(--color-forest-800); }
+.tile-eye { grid-column: 3 / 5; grid-row: 1; --tile-bg: var(--color-forest-100); }
+.tile-diab { grid-column: 3; grid-row: 2; --tile-bg: var(--color-sand-100); }
+.tile-resp { grid-column: 4; grid-row: 2; --tile-bg: var(--foil-print); }
+.tile-text { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6px; max-width: 60%; }
+.tile-name { font: 700 var(--text-display-m)/var(--text-display-m--line-height) var(--font-display); letter-spacing: var(--text-display-m--letter-spacing); }
+.tile-cardio .tile-name { font-size: var(--text-display-l); letter-spacing: var(--text-display-l--letter-spacing); }
+.tile-count { font: 600 0.9375rem/1.3 var(--font-mono); }
+.tile-list { font-size: var(--text-sm); color: var(--color-text-muted); max-width: 30ch; }
+.tile-cardio .tile-list { color: var(--color-text-on-dark-muted); }
+.tile-go { position: absolute; right: 20px; top: 20px; z-index: 1; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; box-shadow: inset 0 0 0 1px currentColor; transition: transform var(--duration-base) var(--ease-out); }
+.tile-cardio .tile-go { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4); }
+.tile-art { position: absolute; inset: 0; pointer-events: none; }
+.ta { position: absolute; width: auto; filter: drop-shadow(0 14px 16px rgb(10 25 17 / 0.28)); transition: translate var(--duration-slow) var(--ease-out); }
+.tile-cardio .ta-1 { height: 40%; right: 30%; bottom: 20%; transform: rotate(-8deg); }
+.tile-cardio .ta-2 { height: 48%; right: 4%; bottom: 26%; transform: rotate(5deg); }
+.tile-cardio .ta-3 { height: 54%; right: 15%; bottom: -3%; }
+.tile-eye .ta { height: 70%; bottom: -6%; }
+.tile-eye .ta-1 { right: 30%; } .tile-eye .ta-2 { right: 14%; height: 64%; } .tile-eye .ta-3 { right: -1%; height: 60%; }
+.tile-diab .ta-1 { height: 66%; right: -4%; bottom: -8%; }
+.tile-resp .ta-1 { height: 54%; right: -10%; bottom: -8%; }
+.tile-diab .tile-text, .tile-resp .tile-text { max-width: 100%; padding-right: 52px; }
+.tile-resp .tile-list { color: var(--color-neutral-800); }
+.tile-diab .tile-name, .tile-resp .tile-name { font-size: clamp(1.375rem, 1rem + 0.8vw, 1.875rem); }
+.tile-eye .tile-text { max-width: 42%; }
+@media (hover: hover) and (pointer: fine) {
+  a.tile:hover .tile-go { transform: translateX(3px); }
+  a.tile:hover .ta-3, .tile-diab:hover .ta-1, .tile-resp:hover .ta-1 { translate: 0 -6px; }
+}
+.tile-soon { grid-column: 1 / 5; grid-row: 3; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 28px; padding: 18px 26px; border: 2px dashed var(--color-foil-400); color: var(--color-text-muted); }
+.tile-soon ul { display: flex; flex-wrap: wrap; gap: 8px 28px; font: 600 var(--text-title)/1.2 var(--font-display); letter-spacing: -0.015em; color: var(--color-neutral-600); }
+.tile-soon .tile-count { color: var(--color-ink); font-family: var(--font-sans); font-weight: 600; }
+@media (max-width: 880px) {
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: minmax(190px, auto); }
+  .tile-cardio { grid-column: 1 / 3; grid-row: auto; min-height: 300px; }
+  .tile-eye { grid-column: 1 / 3; grid-row: auto; }
+  .tile-diab, .tile-resp { grid-column: auto; grid-row: auto; }
+  .tile-soon { grid-column: 1 / 3; grid-row: auto; }
+}
+@media (max-width: 719px) {
+  .bento { gap: 10px; grid-auto-rows: auto; }
+  .tile-in { padding: 20px; }
+  .tile-cardio { min-height: 330px; }
+  .tile-cardio .ta-1 { height: 30%; right: 34%; bottom: 14%; }
+  .tile-cardio .ta-2 { height: 36%; right: 3%; bottom: 20%; }
+  .tile-cardio .ta-3 { height: 42%; right: 14%; bottom: -4%; }
+  .tile-text { max-width: 70%; }
+  .tile-diab .tile-text, .tile-resp .tile-text { max-width: 100%; padding-right: 0; }
+  .tile-diab .tile-go, .tile-resp .tile-go { display: none; }
+  .tile-diab .tile-name, .tile-resp .tile-name { font-size: 1.375rem; }
+  .tile-diab .ta-1, .tile-resp .ta-1 { height: 52%; }
+  .tile-soon { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .tile-soon ul { font-size: 1.0625rem; gap: 6px 18px; }
+  .tile-eye, .tile-diab, .tile-resp { min-height: 190px; }
+}
