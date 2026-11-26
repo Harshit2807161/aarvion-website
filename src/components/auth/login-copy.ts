@@ -56,8 +56,10 @@ export const LOGIN_COPY = {
   profileSub: "is verified. One more step and you’re in.",
   nameLabel: "Full name",
   nameInvalid: "Enter the full name, at least 2 letters.",
+  // Added in Task 40: a name over the server's 80 characters is not an "at least 2 letters" problem.
+  nameTooLong: "Enter a name of 80 characters or fewer.",
   // Added in Task 40 (Task 39 review carry a): the server refused the name we sent, which the
-  // client checks cannot always predict (hidden characters, over 80 characters).
+  // client checks cannot always predict (the client mirrors the server's name rule, so this is rare).
   nameRefused: "Enter your name using letters only.",
   adult: "I am 18 or older",
   adultRequired: "Confirm that you are 18 or older to create an account.",

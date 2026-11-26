@@ -8,6 +8,7 @@
 @import "../styles/toast.css" layer(components);
 @import "../styles/footer.css" layer(components);
 @import "../styles/header.css" layer(components);
+@import "../styles/search.css" layer(components);
 @import "../styles/catbar.css" layer(components);
 @import "../styles/shell.css" layer(components);
 @import "../styles/cart-control.css" layer(components);
@@ -17,10 +18,13 @@
 @import "../styles/empty.css" layer(components);
 @import "../styles/steps.css" layer(components);
 @import "../styles/banner.css" layer(components);
+@import "../styles/bento.css" layer(components);
+@import "../styles/product-facts.css" layer(components);
 
 /*
   Aarvion design tokens: design/prototype/css/tokens.css, verbatim except --font-*
-  (the @theme inline block below points them at the src/fonts variables) and the plain custom properties, which live in :root below.
+  (the @theme inline block below points them at the src/fonts variables) and the plain custom properties, which live in :root below
+  (including --spacing-section, kept out of @theme so Tailwind makes no h-section utility).
   `static` emits every token on :root, so ported CSS can read var(--color-forest-800)
   whether or not a utility class uses it. src/styles/tokens.test.ts keeps this in step
   with the prototype and DESIGN.md.
@@ -136,7 +140,6 @@
   --spacing-24: 6rem;
   --spacing-32: 8rem;
   --spacing-gutter: clamp(1rem, 0.4rem + 2.6vw, 2.5rem);
-  --spacing-section: clamp(5rem, 3.4rem + 6.4vw, 9rem);
   --spacing-heading: clamp(2rem, 1.6rem + 1.6vw, 3rem);
 
   --container-page: 75rem;
@@ -197,6 +200,11 @@
   --duration-strike: 300ms;
   --duration-stamp: 260ms;
   --stagger-pocket: 150ms;
+
+  /* Verbatim from tokens.css, but deliberately NOT in @theme: a --spacing-* theme token makes
+     Tailwind emit h-section (height: 9rem), which beat the .h-section heading class. Read it as
+     var(--spacing-section). See src/styles/section-token.test.ts. */
+  --spacing-section: clamp(5rem, 3.4rem + 6.4vw, 9rem);
   --z-strip: 2;
   --z-popover: 30;
   --z-nav: 40;
