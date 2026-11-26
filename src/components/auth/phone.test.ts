@@ -6,9 +6,32 @@ describe("normMobile", () => {
     expect(normMobile(raw)).toBe("9876543210");
   });
 
-  it("keeps a short number as typed and caps at ten digits", () => {
+  it("keeps a short number as typed", () => {
     expect(normMobile("98765")).toBe("98765");
-    expect(normMobile("98765432109999")).toBe("9876543210");
+  });
+
+  it("never truncates, so a mistyped number fails MOBILE_RE", () => {
+    for (const raw of ["98765543210", "091 98765 43210", "98765432109999", "98765 432109"]) {
+      expect(MOBILE_RE.test(normMobile(raw))).toBe(false);
+    }
+  });
+
+  it("refuses input with a character that is not a digit or separator, instead of dropping it", () => {
+    for (const raw of [
+      "98765O43210",
+      "९8765432101",
+      "９9876543210",
+      "9876543210a",
+      "98765\u200B43210",
+    ]) {
+      expect(MOBILE_RE.test(normMobile(raw))).toBe(false);
+    }
+  });
+
+  it("reads digits of other scripts as the digits typed", () => {
+    expect(normMobile("९९९९९९९९९९")).toBe("9999999999");
+    expect(normMobile("９８７６５４３２１０")).toBe("9876543210");
+    expect(normMobile("+९१ 98765 43210")).toBe("9876543210");
   });
 
   it("does not strip a leading 91 or 0 from a ten digit number", () => {

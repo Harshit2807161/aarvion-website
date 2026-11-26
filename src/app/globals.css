@@ -18,6 +18,7 @@
 @import "../styles/steps.css" layer(components);
 @import "../styles/banner.css" layer(components);
 @import "../styles/bento.css" layer(components);
+@import "../styles/product-facts.css" layer(components);
 
 /*
   Aarvion design tokens: design/prototype/css/tokens.css, verbatim except --font-*
