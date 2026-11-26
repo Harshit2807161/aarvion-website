@@ -1,7 +1,7 @@
 import { orderForShelf } from "@/server/catalogue/order";
 import type { PublicProduct } from "@/server/catalogue/queries";
 import type { Category, CategorySlug } from "@/server/catalogue/schema";
-import { shortName } from "./display";
+import { categoryAnchor, shortName } from "./display";
 
 // What the home page's "Shop by category" bento needs, computed from the cached catalogue reads.
 // Pure and client-safe: only `catalogue/order` is imported at runtime from src/server.
@@ -104,4 +104,58 @@ function familyPhrase(family: PublicProduct[]): string {
 export function tileList(products: PublicProduct[]): string {
   const families = Map.groupBy(products, (p) => p.familySlug);
   return [...families.values()].map(familyPhrase).join(", ");
+}
+
+/** How far (px) each rail rises into place as it scrolls in; the rails take them in turn. */
+export const RAIL_RISES = [80, 110, 90] as const;
+
+export type Rail = {
+  /** The section id and the anchor the category links target (`categoryAnchor(name)`). */
+  id: string;
+  title: string;
+  categories: Category[];
+  products: PublicProduct[];
+  /** `--rise`, from RAIL_RISES. */
+  rise: number;
+  /** The shared rail of single-product groups, which has the "another medicine?" card beside it. */
+  aside: boolean;
+  /** Anchors of the other categories on a shared rail, so their links still land on it. */
+  extraIds: string[];
+};
+
+/** "Diabetes care" + "Respiratory care" give "Diabetes and respiratory care". */
+function sharedTitle(names: string[]): string {
+  if (names.length === 1) return names[0]!;
+  if (names.length > 2) return "More medicines";
+  const [first, last] = names.map((n) => n.replace(/ care$/, ""));
+  return `${first} and ${last!.toLowerCase()} care`;
+}
+
+/**
+ * [C3] The rails: each category with two or more products is its own rail, then every
+ * single-product category shares one last rail with the aside card. `rise` cycles RAIL_RISES.
+ */
+export function railPlan(model: HomeModel): Rail[] {
+  const own = model.groups.filter((g) => g.products.length > 1);
+  const single = model.groups.filter((g) => g.products.length === 1);
+  const rails = own.map((g): Omit<Rail, "rise"> => ({
+    id: categoryAnchor(g.category.name),
+    title: g.category.name,
+    categories: [g.category],
+    products: g.products,
+    aside: false,
+    extraIds: [],
+  }));
+  if (single.length > 0) {
+    const anchors = single.map((g) => categoryAnchor(g.category.name));
+    rails.push({
+      id: anchors[0]!,
+      title: sharedTitle(single.map((g) => g.category.name)),
+      categories: single.map((g) => g.category),
+      products: single.flatMap((g) => g.products),
+      aside: true,
+      extraIds: anchors.slice(1),
+    });
+  }
+  return rails.map((r, i) => ({ ...r, rise: RAIL_RISES[i % RAIL_RISES.length]! }));
 }
