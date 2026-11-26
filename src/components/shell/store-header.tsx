@@ -6,7 +6,7 @@ import { Icon } from "@/components/base/icon";
 import { ROUTES } from "@/config/routes";
 import { Brand } from "./brand";
 
-/** Static search field. Task 37 passes `HeaderSearch` (suggestions, strength chips) as `search`. */
+/** The no-JS default search field; `withStoreChrome` passes `HeaderSearch` (suggestions, strength chips) as `search`. */
 function StaticSearch() {
   return (
     <form className="search" role="search" action={ROUTES.medicines} autoComplete="off">
