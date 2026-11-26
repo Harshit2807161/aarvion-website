@@ -1,0 +1,83 @@
+/*
+  Home product rails: port of design/prototype/css/site.css (v2) lines 328-385 and the rails
+  rules of its 719px block (lines 586-596), for src/components/home/rails.tsx. The prototype's
+  second `.rail-strip { flex: none }` is merged into the first rule (one selector per file).
+  The `.rail-all` and `.rail-btn` rules and `.is-open` / `.is-grid` are the controls Task 23
+  fills into `[data-rail-controls]`; the film's `.film .rail` rise rule is Task 28's.
+  The phone dome URL is /foil/, where the app serves design/prototype/assets/foil.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+/* ── Product rails: one foil strip per condition ──────────────────────── */
+.meds { padding-top: var(--space-sec); }
+.rail { position: relative; }
+.rail + .rail { margin-top: 40px; }
+.anchor { position: absolute; top: 0; }
+.rail-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 14px; }
+.rail-count { font: 500 0.875rem/1 var(--font-mono); color: var(--color-neutral-600); margin-top: 0.3em; margin-right: auto; }
+/* one width for "View all N" and "Show fewer", so the toggle never moves when its label changes */
+.rail-all {
+  display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 8.5rem; min-height: 44px; padding: 0 10px 0 14px; border-radius: var(--radius-pill);
+  font: 600 0.9375rem/1 var(--font-sans); color: var(--color-forest-700);
+  transition: background-color var(--duration-fast) ease, transform var(--duration-press) var(--ease-out);
+}
+.rail-all[hidden] { display: none; }
+.rail-all:active { transform: scale(0.97); }
+.rail-all .i { width: 18px; height: 18px; transition: transform var(--duration-base) var(--ease-out); }
+.rail-all[aria-expanded="true"] .i { transform: rotate(180deg); }
+@media (hover: hover) and (pointer: fine) { .rail-all:hover { background: var(--color-forest-50); } }
+/* the slot holds no box of its own: its children (arrows, View all) are the head's items */
+[data-rail-controls] { display: contents; }
+.rail-arrows { display: flex; gap: 6px; }
+.rail-arrows[hidden] { display: none; }
+.rail-btn {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--color-white); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-neutral-300);
+  transition: transform var(--duration-press) var(--ease-out), opacity var(--duration-fast) ease;
+}
+.rail-btn:active { transform: scale(0.92); }
+.rail-btn[aria-disabled="true"] { opacity: 0.38; cursor: default; }
+@media (hover: hover) and (pointer: fine) { .rail-btn:not([aria-disabled="true"]):hover { background: var(--color-neutral-50); } }
+/* the strip is as long as its pockets, like a real blister strip; it scrolls when it is longer
+   than the page. Every pocket is print field, the domes' seal bands press it flat round each */
+.rail-strip {
+  flex: none; width: fit-content; max-width: 100%; padding: 2px 10px 4px; border-radius: var(--radius-strip);
+  background: var(--foil-print);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(40 50 45 / 0.1);
+}
+.rail-row {
+  --pw: 248px;
+  display: flex; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none;
+  padding-top: 4px;
+}
+.rail-row::-webkit-scrollbar { display: none; }
+.rail-row > .pocket { flex: 0 0 var(--pw); scroll-snap-align: start; }
+.rail-row > .pocket + .pocket::before { content: ""; position: absolute; left: -1px; top: 14px; bottom: 12px; width: 2px; pointer-events: none; background: var(--perf-v); }
+/* "View all": the strip opens in place into a wrapping sheet of the same pockets */
+.rail.is-open .rail-strip { width: auto; }
+.rail-row.is-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--pw), 1fr)); overflow: visible; scroll-snap-type: none; }
+.rail-row.is-grid > .pocket::before { content: none; }
+.rail-body { display: flex; align-items: stretch; gap: 16px; }
+.rail-aside {
+  flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px;
+  max-width: 34rem; padding: 28px 32px; border-radius: var(--radius-strip); background: var(--color-forest-50);
+}
+.rail-aside h3 { font: 600 var(--text-title)/var(--text-title--line-height) var(--font-display); letter-spacing: var(--text-title--letter-spacing); color: var(--color-ink); text-wrap: balance; }
+.rail-aside p { color: var(--color-text-muted); max-width: 40ch; text-wrap: pretty; }
+.rail-aside-act { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.meds-note { margin-top: 28px; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+
+@media (max-width: 719px) {
+  /* rails: a scroll-snap row that runs to the screen edge, two pockets and a peek */
+  .rail-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title all" "count all"; align-items: center; gap: 2px 12px; margin-bottom: 10px; }
+  .rail-head .h-section { grid-area: title; }
+  .rail-head .rail-count { grid-area: count; margin: 0; }
+  .rail-head .rail-all { grid-area: all; }
+  .rail-arrows, .rail-arrows[hidden] { display: none; }
+  .rail-body { flex-direction: column; }
+  .rail-strip { width: auto; max-width: none; margin: 0 calc(-1 * var(--spacing-gutter)); padding: 2px 0 4px; border-radius: 0; }
+  .rail-row { --pw: max(164px, 45vw); scroll-padding-inline: calc(var(--spacing-gutter) - 8px); padding-inline: calc(var(--spacing-gutter) - 8px); }
+  .rail-aside { max-width: none; padding: 20px; }
+  .rail-row > .pocket { --bh: 150px; }
+  .rail-row .blister { --dome: url("/foil/dome-hero-m.webp"); }
+}

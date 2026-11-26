@@ -111,7 +111,15 @@ Helpers in `tests/helpers/`:
 - `e2e/home.spec.ts` checks the hero banner: it rotates within 7 s with no console or page error
   (`collectConsoleErrors`), holds on hover, answers the keyboard, stays put under reduced motion,
   and is a scroll-snap row at 390px.
-- Planned (UI plan): `e2e/budgets.spec.ts` (LCP, CLS, first-load JS), `freshness.spec.ts`, and
+- `e2e/freshness.spec.ts` [P55] changes `sacuwin-100`'s MRP straight in the `aarvion_e2e` database
+  (the admin editor does not exist yet; use it instead once it does), expires the cache through
+  the dev-only `POST /dev/catalogue/revalidate`, and expects the home rails to show the new
+  price, then restores the MRP. It needs Mongo reachable at `MONGODB_URI`, like the server.
+- `e2e/anchors.spec.ts` checks that every `#x` or `/#x` link on `/` (skip link, banner, category
+  bar, footer, rails, the header search form) and on the 404 page lands on an element, and that
+  the ids in `PENDING_ANCHORS` (`src/config/routes.ts`) are still missing and still linked;
+  delete an entry when its section is built.
+- Planned (UI plan): `e2e/budgets.spec.ts` (LCP, CLS, first-load JS), and
   specs for the shell, catalogue, search and login.
 
 ## Guard tests (they enforce conventions)
