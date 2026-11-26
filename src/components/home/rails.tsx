@@ -4,6 +4,7 @@ import { Pocket } from "@/components/catalogue/pocket";
 import { ROUTES } from "@/config/routes";
 import { plural } from "@/lib/catalogue/display";
 import { railPlan, type HomeModel } from "@/lib/catalogue/home-model";
+import { RailControls } from "./rail-controls";
 import { SearchCardLink } from "./search-card-link";
 
 /**
@@ -14,8 +15,8 @@ import { SearchCardLink } from "./search-card-link";
  * `#medicines` is the home's anchor for the skip link, the banner and the footer; each rail's
  * `id` is `categoryAnchor(name)`, and a category folded into the shared rail keeps an empty
  * `span.anchor` with its own id so its links still land. `data-act="pass"` and `data-in` are the
- * scroll film's hooks (Task 28); `[data-rail-controls]` is the empty slot the arrows and
- * "View all" (Task 23) fill. Every pocket image is lazy: the banner's first slide is the LCP.
+ * scroll film's hooks (Task 28); `[data-rail-controls]` holds `RailControls` (the arrows and
+ * "View all"). Every pocket image is lazy: the banner's first slide is the LCP.
  * No live region here: cart changes are spoken by the page's one `#live` region.
  */
 export function Rails({ model }: { model: HomeModel }) {
@@ -40,7 +41,9 @@ export function Rails({ model }: { model: HomeModel }) {
               {rail.title}
             </h2>
             <p className="rail-count">{plural(rail.products.length, "medicine")}</p>
-            <div data-rail-controls="" />
+            <div data-rail-controls="">
+              <RailControls railId={rail.id} title={rail.title} count={rail.products.length} />
+            </div>
           </div>
           <div className="rail-body">
             <div className="rail-strip">
