@@ -182,6 +182,7 @@ bottom use commit SHAs.
 
 ### Fixed
 
+- `h2.h-section` headings no longer render 144px tall: `--spacing-section` moved from `@theme static` to the plain `:root` block in `src/app/globals.css`, so Tailwind 4 stops generating an `h-section` height utility that beat the `.h-section` heading class. The value is unchanged and still read as `var(--spacing-section)`; `src/styles/section-token.test.ts` compiles the CSS and fails if the utility returns, and `tokens.test.ts` lists the token as the one `:root` exception. Also removes the `h-auto!` workaround (and its test) from the Shop by category heading in `src/components/home/category-bento.tsx` (#144)
 - Form field labels (`label.label`, `TextField`) no longer render as sand shipping-label cards: the ordering steps' card rule in `src/styles/steps.css` is scoped to `.vis-label .label`, since `forms.css` owns the bare `.label`. `src/styles/css-hygiene.test.ts` now also fails when a selector repeats across `src/styles/*.css` files (C12), which is how this collision was found; `base.css`'s deliberate group selectors are the only listed exception (#124).
 - `ui` tests run under Vitest 5 again: the `next/navigation` mock state moved to
   `tests/helpers/navigation-mocks.ts`, because Vitest 5 rejects exported `vi.hoisted` values
