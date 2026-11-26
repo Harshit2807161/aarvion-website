@@ -12,9 +12,8 @@ import { Pocket } from "./pocket";
  * shopper's name for the category, then either a wrapping sheet of pockets on print-field foil
  * (a live category) or a dashed "adding soon" panel (coming soon), then quiet links to the other
  * live categories. Names are the owner's shopper names (Heart care, Eye care ...), never a
- * therapy area. `products` are already in shelf order and empty for a category that is not live.
- * The first pocket is the page's LCP candidate, so it alone gets `priority` [C24].
- * Styles: src/styles/category.css.
+ * therapy area. `products` are in shelf order and empty for a category that is not live. The first
+ * pocket is the page's LCP candidate, so it alone gets `priority` [C24]. CSS: src/styles/category.css.
  */
 export function CategoryView({
   category,
