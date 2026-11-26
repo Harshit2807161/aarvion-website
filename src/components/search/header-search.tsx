@@ -97,8 +97,9 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
   }, []);
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    // The first Escape only closes the list and the second only clears the field; neither may
-    // also close an enclosing dialog. With nothing left to do the key is free to propagate.
+    // The first Escape only closes the list and the second only clears the field; neither also
+    // bubbles to an ancestor handler. With nothing left to do the key is free to propagate. This
+    // does not protect a Radix dialog, which listens in the capture phase: one would need its own guard.
     if (e.key === "Escape" && !e.nativeEvent.isComposing && (open || q !== "")) e.stopPropagation();
     if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
@@ -172,12 +173,18 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
           {...combo.inputProps}
           onKeyDown={onKeyDown}
           aria-controls="sugg"
-          aria-describedby="sugg-hint"
+          aria-describedby={hasQuery ? undefined : "sugg-hint"}
         />
       </div>
       <div className="sugg-panel" hidden={!open}>
         {strengths.length > 0 && (
-          <div className="chips">
+          // Safari and Firefox on macOS do not focus a button on mousedown, so without this the input
+          // blurs, the panel closes and the click never lands (same guard as SuggestionList).
+          <div
+            className="chips"
+            onPointerDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
+          >
             <span className="chips-label" id="chips-label">
               Strength
             </span>

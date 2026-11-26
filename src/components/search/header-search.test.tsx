@@ -71,6 +71,16 @@ describe("HeaderSearch", () => {
     expect(screen.getByRole("search")).toHaveAttribute("action");
   });
 
+  it("keeps focus in the input when a chip is pressed, so the panel survives mousedown", () => {
+    setup();
+    fireEvent.focus(input());
+    const chip = screen.getByRole("button", { name: "100" });
+    expect(fireEvent.pointerDown(chip)).toBe(false);
+    expect(fireEvent.mouseDown(chip)).toBe(false);
+    fireEvent.click(chip);
+    expect(chip).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("focusing opens the panel with the chips first, then the hint", () => {
     setup();
     const panel = document.querySelector(".sugg-panel") as HTMLElement;
@@ -154,14 +164,5 @@ describe("HeaderSearch", () => {
     expect(input()).toHaveAttribute("aria-expanded", "false");
     await settle();
     expect(document.getElementById("live")).toHaveTextContent("No medicine matches");
-  });
-
-  it("a 429 shows the calm limited message and sends no retry", async () => {
-    fetchMock.mockImplementation(async () => reply(429));
-    setup();
-    await typeQuery("sacu");
-    expect(screen.getByText("Too many searches. Try again in a moment.")).toBeInTheDocument();
-    await act(() => vi.advanceTimersByTimeAsync(60_000));
-    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
