@@ -339,6 +339,8 @@ A change is done only when all of these hold:
 3. The matching page under [docs/dev/](docs/dev/README.md) is updated for any new or changed
    command, script, env var, route, data rule, folder, convention or procedure; AGENTS.md too if
    it changes how agents work; a ruling recorded if a rule changed.
+   In docs/dev/architecture.md, add or edit only the bullet for the file you touched — one file
+   per line — so parallel PRs don't conflict.
 4. The PR body has What / Why / How tested (command output) / Risks and rollback.
 5. `pnpm pr-size origin/main` is at or under 400, or the PR is split.
 6. CI is green by name (the merge gate above), with no secrets in the diff.

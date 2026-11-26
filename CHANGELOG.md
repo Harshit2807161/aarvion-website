@@ -153,6 +153,7 @@ bottom use commit SHAs.
 
 ### Changed
 
+- docs: architecture.md lists files one per line to stop merge conflicts (#157).
 - `normMobile` (`src/components/auth/phone.ts`) strips exactly one prefix the server also accepts (`+91`, a 12-digit `91...` or an 11-digit `0...`) and never truncates; anything that is not then exactly ten digits fails `MOBILE_RE`. Digits of other scripts (Devanagari, fullwidth) read as the digits typed, and any other stray character (a letter O, a zero-width space) makes the input invalid instead of being dropped. It used to keep the first ten digits, which turned a mistyped number into a different valid-looking one (#137, #140).
 - Privacy policy copy: how sign-in codes and sessions are stored now reads "scrambled (hashed) form" instead of "keyed hash (HMAC)", and the last-updated date is stated once, at the top (#105).
 - Customer routes live in the `src/app/(store)` route group, whose layout renders the store footer;
