@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { LiveRegion } from "@/components/feedback/live-region";
 import { Toaster } from "@/components/feedback/toast";
 import { resolveSiteMetadataBase, SITE_CONFIG } from "@/config/site";
@@ -29,12 +30,14 @@ export const viewport: Viewport = {
  * live region (exactly one <LiveRegion/> may exist, so it lives here and nowhere else).
  * Chrome that only some routes want, such as the store footer, belongs in a route-group layout:
  * `(store)` for customer pages; admin and staff routes go in their own group and get none of it.
+ * `children` sits in Suspense: `(store)/not-found.tsx` makes Next wrap the store tree in a boundary
+ * that reads `usePathname()`, runtime data under Cache Components that must not block the prerender.
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={fontVariables}>
       <body>
-        {children}
+        <Suspense>{children}</Suspense>
         <Toaster />
         <LiveRegion />
       </body>

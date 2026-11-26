@@ -30,7 +30,10 @@ test.describe("category pages", () => {
         page.getByRole("heading", { level: 1, name: "We can’t find that page" }),
       ).toBeVisible();
       await expect(page.locator("nav.catbar")).toBeVisible();
-      await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+      await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute(
+        "content",
+        /noindex/,
+      );
       expect((await request.get(`/category/${slug}`)).status(), slug).toBe(404);
     }
   });
