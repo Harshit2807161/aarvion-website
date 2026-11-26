@@ -41,7 +41,7 @@ export const PENDING_ROUTES = [
 
 /**
  * Ids of home-page sections that links already point at (`ROUTES.questions`, `ROUTES.faqWin2age`)
- * but no task has built yet. e2e/anchors.spec.ts expects each to be missing; the task that adds
+ * but no task has built yet (none today: the FAQ added `questions` and `faq-win2age`). e2e/anchors.spec.ts expects each to be missing; the task that adds
  * the element deletes its entry.
  */
-export const PENDING_ANCHORS = ["questions", "faq-win2age"] as const;
+export const PENDING_ANCHORS: readonly string[] = [];

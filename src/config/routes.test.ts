@@ -35,8 +35,8 @@ describe("ROUTES", () => {
     ]);
   });
 
-  it("lists the home sections that links target but nothing builds yet", () => {
-    expect(PENDING_ANCHORS).toEqual(["questions", "faq-win2age"]);
+  it("lists the home sections that links target but nothing builds yet (none today)", () => {
+    expect(PENDING_ANCHORS).toEqual([]);
     expect(ROUTES.questions).toBe("/#questions");
     expect(ROUTES.faqWin2age).toBe("/#faq-win2age");
   });

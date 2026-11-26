@@ -27,7 +27,15 @@ test("every fragment link on / resolves to an element", async ({ page }) => {
   const fragments = await homeFragments(page);
   // The links the rails and the chrome are known to carry, so an empty crawl cannot pass.
   expect(fragments).toEqual(
-    expect.arrayContaining(["medicines", "heart-care", "eye-care", "how", "q"]),
+    expect.arrayContaining([
+      "medicines",
+      "heart-care",
+      "eye-care",
+      "how",
+      "questions",
+      "faq-win2age",
+      "q",
+    ]),
   );
   for (const id of fragments) {
     const found = await page.evaluate((x) => document.getElementById(x) !== null, id);
