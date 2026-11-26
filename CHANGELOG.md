@@ -213,6 +213,7 @@ Node 24).
 
 ### Added
 
+- Country of origin, the product facts block and the strength switcher, the parts Task 32's product page assembles: `countryOfOrigin()` (`src/lib/catalogue/origin.ts`) answers "India" only when the manufacturer address names a place from `INDIAN_ADDRESS_MARKERS` (whole word, any case, not a street name; a six-digit number alone is not trusted), else null (never guessed); `ProductFacts` (`src/components/product/product-facts.tsx`) is the `dl.product-facts` of Legal Metrology declarations (composition table, dosage form, net quantity, MRP inclusive of all taxes, manufacturer, marketer, country of origin, customer care from `SITE_CONFIG.customerCare`) with "To be added" for any unknown fact; `VariantSwitcher` is a script-free `nav[aria-label="Strengths"]` of links in `compareVariants` order with `aria-current="page"`, rendered only for a family of two or more. Styles are `src/styles/product-facts.css`; `/dev/styleguide` shows both (#131).
 - Product docs (`docs/catalogue.md`, `docs/missing-products.md`), requirements v0.1, seed data
   for the 11 listed products, the 32 source photos and cutouts, draft logo SVGs, round-1 banner
   scenes and `PRODUCT.md` (#1).
