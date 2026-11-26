@@ -125,8 +125,8 @@ React components, added task by task. The folders below exist today:
 - `product/`:
   - `ProductFacts` (server-safe `dl.product-facts`: the Legal Metrology declarations in fixed order, ending with customer care from `SITE_CONFIG.customerCare`; an unknown fact is `Pending`)
   - and `VariantSwitcher` (`nav[aria-label="Strengths"]` of real links to `ROUTES.product(slug)` in `compareVariants` order, `aria-current="page"` on the current strength, nothing for a family of one; no script and no live region; CSS in `src/styles/product-facts.css`)
-- `search/`: the header search, not yet mounted (`withStoreChrome` mounts it in the next PR):
-  - `HeaderSearch` (client; the `form.search` with `input#q`, the strength chips and the panel; focus opens it, pointer and mouse down on the chips are prevented so a press does not blur the input, `focusout` outside the form closes it, submit and Enter choose the first or active result; on `/` a result whose `#p-<slug>` pocket exists is scrolled into view, marked `is-found` and its Add or + is focused, anywhere else it goes to `/product/<slug>`; the count is announced through `announce()`, a 429 shows "Too many searches" and is never retried; Escape closes the list, then clears the field, and stops bubbling to ancestor handlers while it does either (a Radix dialog listens in the capture phase and is not protected; one mounting this search would need its own guard); a `[data-search]` click anywhere focuses `#q`; without JS it is a GET form to `/#medicines`), and its parts:
+- `search/`: the header search, mounted by `withStoreChrome` in the `StoreHeader` `search` slot on every customer page (404s included):
+  - `HeaderSearch` (client; the `form.search` with `input#q`, the strength chips and the panel; `STRENGTH_CHIP_FAMILY` and `strengthChips` in `strength-chips.ts` give the chips from the family's variants, none if it is gone; Escape on a chip closes the panel and refocuses `#q`; focus opens it, pointer and mouse down on the chips are prevented so a press does not blur the input, `focusout` outside the form closes it, submit and Enter choose the first or active result; on `/` a result whose `#p-<slug>` pocket exists is scrolled into view, marked `is-found` and its Add or + is focused, anywhere else it goes to `/product/<slug>`; the count is announced through `announce()`, a 429 shows "Too many searches" and is never retried; Escape closes the list, then clears the field, and stops bubbling to ancestor handlers while it does either (a Radix dialog listens in the capture phase and is not protected; one mounting this search would need its own guard); a `[data-search]` click anywhere focuses `#q`; without JS it is a GET form to `/#medicines`), and its parts:
   - `highlight` (pure, no RegExp)
   - the `SuggestionList` listbox (shelf order kept; styles in `src/styles/search.css`)
   - and `useCombobox` (WAI-ARIA 1.2 combobox keys and ids; no live region of its own)
@@ -139,7 +139,7 @@ React components, added task by task. The folders below exist today:
   - `OperateShell`
   - `SkipLink`
   - `StoreFooter`
-  - `StoreHeader` (client; `search`, `account` and `cart` slots with static defaults; `is-stuck` shadow from an IntersectionObserver on `[data-announce]`, never a scroll listener)
+  - `StoreHeader` (client; `search` (`HeaderSearch`), `account` and `cart` slots with static defaults; `is-stuck` shadow from an IntersectionObserver on `[data-announce]`, never a scroll listener)
   - `withStoreChrome` (the shared store chrome)
 - `src/components/ui/dialog.tsx`: the shadcn dialog primitives, restyled for Aarvion (generated, edited)
 - `src/components/ui/input-otp.tsx`: the shadcn `InputOTP` wrapper, trimmed to the one part `OtpField` uses (generated, edited; no `lucide-react`)
