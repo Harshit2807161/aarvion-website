@@ -51,9 +51,7 @@ export function ProductView({
           </div>
           <VariantSwitcher family={family} current={product} />
           <CartControl slug={product.slug} name={product.name} />
-          <p className="order-limit">
-            Up to {CART_LIMITS.perProduct} packs of each medicine per order.
-          </p>
+          <p className="order-limit">Up to {CART_LIMITS.perProduct} packs of each medicine per order.</p>
           {product.rxRequired && (
             <p className="rx-note">
               Requires a valid prescription. You add it at checkout, and a pharmacist checks it
