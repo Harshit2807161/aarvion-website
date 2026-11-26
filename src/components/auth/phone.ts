@@ -7,16 +7,17 @@ export const MOBILE_RE = /^[6-9]\d{9}$/;
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /**
- * Keeps digits only, drops a leading "91" or "0" when more than 10 digits remain (so a pasted
- * "+91 ..." or "0..." works), then keeps the first 10.
+ * Keeps digits only, then strips exactly one prefix, the same ones the server accepts: a leading
+ * "+91" or a 12-digit "91...", or a leading "0" on 11 digits. It never truncates: anything that
+ * is not exactly ten digits afterwards fails `MOBILE_RE`, so a typo can never become a different,
+ * valid-looking number.
  */
 export function normMobile(raw: string): string {
-  let d = raw.replace(/\D/g, "");
-  if (d.length > 10) {
-    if (d.startsWith("91")) d = d.slice(2);
-    else if (d.startsWith("0")) d = d.slice(1);
-  }
-  return d.slice(0, 10);
+  const d = raw.replace(/\D/g, "");
+  if (raw.trim().startsWith("+") && d.startsWith("91")) return d.slice(2);
+  if (d.length === 12 && d.startsWith("91")) return d.slice(2);
+  if (d.length === 11 && d.startsWith("0")) return d.slice(1);
+  return d;
 }
 
 /** "9876543210" -> "+91 98765 43210". Expects ten digits. */
