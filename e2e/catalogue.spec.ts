@@ -18,9 +18,8 @@ test.describe("category pages", () => {
     await expect(page.locator(".pocket")).toHaveCount(0);
   });
 
-  // Next streams the first render of a slug that was not prerendered (PPR): that response is 200
-  // but is the not-found page with `noindex`; once rendered, the same URL answers 404. So assert
-  // the page and noindex on the first hit and the 404 status on the next.
+  // A slug that was not prerendered streams (PPR): its first response is 200 but is the not-found
+  // page with `noindex`, and the next one is 404. So assert the page first and the status next.
   test("a hidden or unknown category is the 404 page with the store chrome", async ({
     page,
     request,
