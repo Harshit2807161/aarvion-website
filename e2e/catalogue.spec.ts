@@ -30,9 +30,8 @@ test("an unknown product is a 404", async ({ page }) => {
   expect(res?.status()).toBe(404);
 });
 
-// The home rails (Task 23+) are not mounted yet, so the pockets are reached through the styleguide.
 test("a pocket name leads to its product page", async ({ page }) => {
-  await page.goto("/dev/styleguide");
+  await page.goto("/");
   await page.locator("#p-sacuwin-100 a.pocket-link").click();
   await expect(page).toHaveURL(/\/product\/sacuwin-100$/);
 });
