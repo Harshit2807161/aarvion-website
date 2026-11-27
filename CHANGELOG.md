@@ -16,6 +16,9 @@ bottom use commit SHAs.
 
 ## [Unreleased]
 
+### Fixed
+- The `int` CI job no longer hangs or fails at about 36 s: `db-indexes-script` and `seed` int tests spawned their scripts with `spawnSync`, which stopped the worker draining mongod's log pipe, so mongod stalled and the script timed out or hung forever. They now use the async `runPnpm` (`tests/helpers/run-script.ts`, kills the process group on timeout), `tests/int/run-script.test.ts` refuses a sync spawn in a replica-set file, and every job in `ci.yml` has a `timeout-minutes` (#PR)
+
 ### Added
 - Upload refusal and stored-file tests (`tests/int/rx-upload-refusals.test.ts`, with the shared harness `tests/helpers/rx-upload.ts`): a disguised HTML file, nothing staged, a file over the cap, single use (another user, +15 minutes exactly), bytes appended after an image, a PDF stored unchanged, the audit role and the input re-parse. Part A of the R4 fault tests; the race and fault cases follow (#217).
 - `finishRxUpload` now leases its staging slot (`claimStaging` and `releaseStaging` in `src/server/prescriptions/prescriptions.ts`, 30 s, a `claimedUntil` field that a crashed claim simply outlives), so one start again bounds the re-encode and final-put work: a concurrent or repeat finish gets a retryable `busy`, a refusal consumes the slot, and `busy` or an abort releases the lease. After an unknown commit result it reads the record back (default read concern, on purpose) and returns ok if it committed; otherwise the final file is kept and the error rethrown (#214).
