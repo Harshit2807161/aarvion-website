@@ -36,12 +36,12 @@ the 10-per-24 h lockout. Clear the live challenges so users simply ask for a new
 ## Rotate the database password (no outage)
 
 Changing a database user's password invalidates the old one at once, which would break every
-running deployment (and, after UI Task 7, every build) until a redeploy. Rotate by user instead:
+running deployment (and every build, since pages prerender from the database) until a redeploy. Rotate by user instead:
 
 1. In Atlas, create a **second** database user with the same roles (not verified here).
 2. Update `MONGODB_URI` in that one Vercel scope to the new user, and redeploy.
 3. Check `GET /api/health` shows `db: "ok"` on the new deployment, and that its build (which
-   prerenders from the DB once UI Task 7 lands) succeeded.
+   prerenders from the DB) succeeded.
 4. Only then delete the old user in Atlas.
 5. Repeat per scope. CHANGELOG: nothing; note the date and scope in your operations log.
 

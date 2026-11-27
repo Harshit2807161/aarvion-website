@@ -6,5 +6,6 @@ import { jsonResponse, withErrors } from "@/server/http";
 export const GET = withErrors(async (req) => {
   await connection();
   const auth = await requireUser(req);
+  // Sliding customer sessions re-issue the persistent cookie so its Max-Age slides too.
   return jsonResponse({ user: toPublicUser(auth.user) }, { headers: sessionRefreshHeaders(auth) });
 });

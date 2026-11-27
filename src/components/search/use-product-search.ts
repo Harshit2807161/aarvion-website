@@ -42,8 +42,9 @@ function isResult(v: unknown): v is SearchResult {
  * a response is applied only if its query is still current. A 429 sets `limited` and is never
  * retried: nothing refetches until the (normalised) query or strength changes. Any other failure,
  * a non-JSON body or an unexpected shape is `error`; nothing here throws or logs, because a
- * medicine search can be health data. Results keep the API's shelf order. While a new query is
- * pending, the previous results stay and the status is `loading`.
+ * medicine search can be health data. Results keep the API's shelf order. Results carry the key
+ * they answered: until the current query has settled, the list is empty and the status is
+ * `loading`, so nothing (Enter, a click) can pick a medicine that belongs to an earlier query.
  */
 export function useProductSearch(
   q: string,
@@ -86,5 +87,5 @@ export function useProductSearch(
 
   if (key === null) return { results: NONE, status: "idle" };
   if (settled?.key === key) return { results: settled.results, status: settled.status };
-  return { results: settled?.results ?? NONE, status: "loading" };
+  return { results: NONE, status: "loading" };
 }
