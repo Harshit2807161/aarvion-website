@@ -31,7 +31,7 @@ export const ROUTES = {
 
 /** Linked from the chrome but not built yet; each owning task deletes its entry. */
 export const PENDING_ROUTES = [
-  "/cart",
+  "/checkout",
   "/account",
   "/account/prescriptions",
 ] as const;

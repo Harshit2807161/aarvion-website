@@ -1,4 +1,5 @@
 import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as sessionState from "@/components/auth/session-state";
@@ -45,6 +46,9 @@ const settle = async () => {
   });
 };
 const text = () => document.body.textContent!.replace(/\s+/g, " ");
+const user = () => userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+
+let observed: ((entries: { isIntersecting: boolean }[]) => void) | null = null;
 
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -52,9 +56,13 @@ beforeEach(() => {
   vi.resetAllMocks();
   resetCartStore();
   session.mockResolvedValue({ state: "out" });
+  observed = null;
   vi.stubGlobal(
     "IntersectionObserver",
     class {
+      constructor(cb: (e: { isIntersecting: boolean }[]) => void) {
+        observed = cb;
+      }
       observe() {}
       unobserve() {}
       disconnect() {}
@@ -120,6 +128,8 @@ describe("CartPage with lines", () => {
     expect(document.querySelector(".receipt-head")!.nextElementSibling!.textContent).toBe(
       "Updating totals…",
     );
+    expect(document.querySelector(".dock b")!.textContent).toBe("Updating totals…");
+
     expect(screen.getByRole("button", { name: "Remove Sacuwin 100 from cart" })).toBeTruthy();
   });
 
@@ -127,7 +137,7 @@ describe("CartPage with lines", () => {
     await signIn([SACU, WIN]);
     renderPage();
     const links = document.querySelectorAll<HTMLAnchorElement>("a[data-checkout]");
-    expect(links).toHaveLength(1);
+    expect(links).toHaveLength(2); // the receipt's and the dock's
     links.forEach((a) => expect(a.getAttribute("href")).toBe("/checkout"));
   });
 
@@ -138,6 +148,9 @@ describe("CartPage with lines", () => {
     await settle();
     const a = document.querySelector<HTMLAnchorElement>(".receipt a[data-checkout]")!;
     expect(a.getAttribute("href")).toBe("/login?next=%2Fcheckout");
+    expect(document.querySelector(".dock a[data-checkout]")!.getAttribute("href")).toBe(
+      "/login?next=%2Fcheckout",
+    );
   });
 
   it("says cash on delivery, and nothing about online payment or refunds, while online payments are off", async () => {
@@ -164,15 +177,87 @@ describe("CartPage with lines", () => {
     );
   });
 
-  it("says totals are updating, never a stale total, while re-pricing", async () => {
+  it("says totals are updating, never a stale total, in the dock while re-pricing", async () => {
     seedGuest({ "sacuwin-100": 2 });
     quotes(SACU);
     renderPage();
     await settle();
-    expect(document.querySelector(".sum")!.hasAttribute("data-updating")).toBe(false);
+    expect(document.querySelector(".dock b")!.textContent).toBe("₹774");
     await act(async () => void cartStore.dispatch({ type: "inc", slug: "sacuwin-100" }));
+    expect(document.querySelector(".dock b")!.textContent).toBe("Updating totals…");
     expect(document.querySelector(".sum")!.hasAttribute("data-updating")).toBe(true);
-    expect(document.querySelector(".sum-updating")!.textContent).toBe("Updating totals…");
+  });
+
+  it("shows the dock only while the receipt's Checkout is out of view, inert while hidden", async () => {
+    seedGuest({ "sacuwin-100": 2 });
+    quotes(SACU);
+    renderPage();
+    await settle();
+    const dock = document.querySelector<HTMLElement>(".dock")!;
+    expect(dock.classList.contains("is-shown")).toBe(false);
+    expect(dock.inert).toBe(true);
+    act(() => observed!([{ isIntersecting: false }]));
+    expect(dock.classList.contains("is-shown")).toBe(true);
+    expect(dock.inert).toBe(false);
+    act(() => observed!([{ isIntersecting: true }]));
+    expect(dock.classList.contains("is-shown")).toBe(false);
+  });
+});
+
+describe("focus after Remove", () => {
+  const three = async () => {
+    seedGuest({ "sacuwin-100": 2, win2age: 1, "sacuwin-50": 1 });
+    quotes(SACU, WIN, pricedLine(1, { slug: "sacuwin-50", name: "Sacuwin 50" }));
+    renderPage();
+    await settle();
+  };
+  const removeBtn = (name: string) =>
+    screen.getByRole("button", { name: `Remove ${name} from cart` });
+
+  it("moves to the next line's Remove", async () => {
+    await three();
+    await user().click(removeBtn("Sacuwin 100"));
+    expect(document.activeElement).toBe(removeBtn("Win2Age"));
+  });
+
+  it("moves to the previous line's Remove when the last line goes", async () => {
+    await three();
+    await user().click(removeBtn("Sacuwin 50"));
+    expect(document.activeElement).toBe(removeBtn("Win2Age"));
+  });
+
+  it("moves to the empty state's link when the cart empties", async () => {
+    seedGuest({ "sacuwin-100": 2 });
+    quotes(SACU);
+    renderPage();
+    await settle();
+    await user().click(removeBtn("Sacuwin 100"));
+    expect(document.activeElement).toBe(
+      screen.getByRole("link", { name: "Browse all eleven medicines" }),
+    );
+  });
+
+  it("moves to the empty state's link when the last line goes while the session check is pending", async () => {
+    session.mockImplementation(() => new Promise(() => {})); // never answers
+    seedGuest({ "sacuwin-100": 2 });
+    quotes(SACU);
+    renderPage();
+    await settle();
+    expect(document.querySelector(".cart-loading")).toBeNull();
+    await user().click(removeBtn("Sacuwin 100"));
+    expect(document.querySelector(".cart-loading")).toBeNull();
+    expect(document.activeElement).toBe(
+      screen.getByRole("link", { name: "Browse all eleven medicines" }),
+    );
+  });
+
+  it("from a pending row too", async () => {
+    seedGuest({ "sacuwin-100": 2, win2age: 1 });
+    m.quoteCart.mockImplementation(() => Promise.resolve({ ok: false, error: "network" }) as never);
+    renderPage();
+    await settle();
+    await user().click(removeBtn("Sacuwin 100"));
+    expect(document.activeElement).toBe(removeBtn("Win2Age"));
   });
 });
 

@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type MouseEvent } from "react";
 import { fetchSessionState } from "@/components/auth/session-state";
 import { buttonClass } from "@/components/base/button-class";
 import { Icon } from "@/components/base/icon";
+import { Rupees } from "@/components/base/rupees";
 import { EmptyState } from "@/components/shell/empty-state";
 import { ROUTES } from "@/config/routes";
 import { CART_LIMITS, cartCount } from "@/lib/cart/cart";
 import { cartStore, type CartMode } from "@/lib/cart/store";
 import { useCartLines } from "@/lib/cart/use-cart-lines";
 import { useCartView } from "@/lib/cart/use-cart-view";
+import { cn } from "@/lib/cn";
 import type { PricedLine } from "@/server/cart/service";
 import { CART_COPY } from "./cart-copy";
 import { CartLineItem } from "./cart-line";
@@ -36,7 +38,8 @@ const noSubscribe = () => () => {};
  * The /cart page body (the prototype's `.cart-grid`). Prices come only from the server-priced view
  * (`useCartView`); a line not priced yet is a pending row with a working Remove, and the receipt
  * shows no totals before the first priced view. On mount it starts pricing a stored guest cart at
- * once (`cartStore.price()`) instead of waiting for `CartSync`'s idle mount.
+ * once (`cartStore.price()`) instead of waiting for `CartSync`'s idle mount. After a Remove, focus
+ * goes to the next line's Remove, else the previous line's, else the empty state's link.
  *
  * With no lines it shows the empty state without waiting for `CartSync`: "Loading your
  * cart…" is only for the server render, while the page's own session check is pending (one
@@ -89,9 +92,13 @@ export function CartPage({
   }, []);
 
   const signedIn = mode === "user" || sessionIn;
+  // Once lines have been seen, an empty store is an empty cart (the last one was removed), even while
+  // the session check or a sign-in is still running, so focus can land on the empty state (P4-M1).
+  const [seen, setSeen] = useState(false);
+  if (count > 0 && !seen) setSeen(true);
   const loading =
     !hydrated ||
-    (count === 0 && ((checking && mode === "unknown") || (signingIn && mode !== "user")));
+    (count === 0 && !seen && ((checking && mode === "unknown") || (signingIn && mode !== "user")));
 
   // The rows, in cart order: priced ones from the view, the rest pending.
   const facts = new Map<string, PricedLine>(priced.map((l) => [l.slug, l]));
@@ -111,9 +118,46 @@ export function CartPage({
       node: <PendingLine key={slug} slug={slug} qty={qty} known={k} />,
     };
   });
+  const order = rows.map((r) => r.slug);
   const unpriced = priced.length === 0; // no priced view yet: no totals at all
 
+  // Focus after Remove: remember where the removed line was, then place focus once it is gone.
+  const mainRef = useRef<HTMLDivElement>(null);
+  const emptyRef = useRef<HTMLAnchorElement>(null);
+  const removed = useRef<{ slug: string; index: number } | null>(null);
+  const onRemoveClick = (e: MouseEvent<HTMLDivElement>) => {
+    const li = (e.target as Element).closest("[data-remove]")?.closest("li[data-slug]");
+    const slug = li?.getAttribute("data-slug");
+    if (slug) removed.current = { slug, index: order.indexOf(slug) };
+  };
+  const orderKey = order.join("\n");
+  useEffect(() => {
+    const r = removed.current;
+    if (!r) return;
+    const now = orderKey ? orderKey.split("\n") : [];
+    if (now.includes(r.slug)) return;
+    removed.current = null;
+    const target = now[r.index] ?? now[r.index - 1];
+    if (!target) return emptyRef.current?.focus();
+    const li = [...(mainRef.current?.querySelectorAll("li[data-slug]") ?? [])].find(
+      (el) => el.getAttribute("data-slug") === target,
+    );
+    li?.querySelector<HTMLElement>("[data-remove]")?.focus();
+  }, [orderKey]);
+
+  // The phone dock shows while the receipt's Checkout is out of view.
+  const anchorRef = useRef<HTMLAnchorElement>(null);
+  const [anchorSeen, setAnchorSeen] = useState(true);
+
   const hasLines = count > 0;
+  useEffect(() => {
+    const el = anchorRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([en]) => setAnchorSeen(en!.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasLines]);
+  const dockShown = hasLines && !anchorSeen;
 
   if (loading) return <CartLoading />;
 
@@ -123,7 +167,11 @@ export function CartPage({
         count="0"
         title={P.emptyTitle}
         actions={
-          <Link className={buttonClass({ variant: "forest", size: "lg" })} href={ROUTES.medicines}>
+          <Link
+            ref={emptyRef}
+            className={buttonClass({ variant: "forest", size: "lg" })}
+            href={ROUTES.medicines}
+          >
             {P.browseAll(medicineWord)}
           </Link>
         }
@@ -139,7 +187,7 @@ export function CartPage({
   return (
     <>
       <div className="cart-grid">
-        <div className="cart-main">
+        <div className="cart-main" ref={mainRef} onClickCapture={onRemoveClick}>
           {rxRows.length > 0 && (
             <Group id="g-rx" title={P.rxHead} rows={rxRows}>
               <p>{P.rxNote}</p>
@@ -169,6 +217,7 @@ export function CartPage({
             <CheckoutLink
               signedIn={signedIn}
               checkSession={mode === "unknown"}
+              anchorRef={anchorRef}
               className={buttonClass({ variant: "forest", size: "lg", block: true })}
             >
               {P.checkout}
@@ -177,6 +226,21 @@ export function CartPage({
             <ReceiptNotes onlinePayments={onlinePayments} />
           </div>
         </aside>
+      </div>
+      <div className={cn("dock", dockShown && "is-shown")} inert={!dockShown} data-dock>
+        <div className="dock-total">
+          <small>{S.payable}</small>
+          {/* Never a stale total as current: while re-pricing the dock says so instead. */}
+          <b>{updating ? S.updating : <Rupees paise={totals.payablePaise} />}</b>
+        </div>
+        <CheckoutLink
+          signedIn={signedIn}
+          checkSession={mode === "unknown"}
+          tabIndex={-1}
+          className={buttonClass({ variant: "forest", size: "lg" })}
+        >
+          {P.checkout}
+        </CheckoutLink>
       </div>
     </>
   );

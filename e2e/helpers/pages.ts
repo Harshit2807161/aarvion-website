@@ -9,4 +9,5 @@ export const START_PAGES: string[] = [
   ROUTES.login,
   ...Object.values(ROUTES.legal),
   ROUTES.product("sacuwin-100"),
+  ROUTES.cart,
 ];
