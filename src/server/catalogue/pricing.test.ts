@@ -100,6 +100,21 @@ describe("cartTotals", () => {
     );
   });
 
+  it("the discount is always Rs 20 times the packs, and MRP minus discount is the payable", () => {
+    const mrps = [2100, 2500, 28100, 40400, 99999, 200000, 250000];
+    let seed = 12345; // fixed LCG, so a failure reproduces
+    const next = (n: number) => (seed = (seed * 1103515245 + 12345) % 2147483648) % n;
+    for (let round = 0; round < 200; round++) {
+      const items = Array.from({ length: next(6) }, () => ({
+        mrpPaise: mrps[next(mrps.length)]!,
+        qty: next(11),
+      }));
+      const t = cartTotals(items);
+      expect(t.discountPaise).toBe(2000 * t.packs);
+      expect(t.mrpPaise - t.discountPaise).toBe(t.payablePaise);
+    }
+  });
+
   it("an empty cart is all zeros, with the per-pack discount still stated", () => {
     expect(cartTotals([])).toEqual({
       packs: 0,
