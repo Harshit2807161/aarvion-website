@@ -174,6 +174,8 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   instant becomes a shown day only through `istDay`
   ([validity.ts](src/server/prescriptions/validity.ts)); never `new Date("YYYY-MM-DD")`. A
   pharmacist's valid-until is entered as the last valid day and stored as the next IST midnight.
+  Review transitions ([review.ts](src/server/prescriptions/review.ts), `reviewRx`): pending →
+  approved or rejected; approved → rejected (a revoke, dates kept); rejected is final.
 
 **Order state machine** ([status.ts](src/server/orders/status.ts), pure, no DB, no clock)
 
