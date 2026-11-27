@@ -2,7 +2,7 @@
   Home product rails: port of design/prototype/css/site.css (v2) lines 328-385 and the rails
   rules of its 719px block (lines 586-596), for src/components/home/rails.tsx. The prototype's
   second `.rail-strip { flex: none }` is merged into the first rule (one selector per file).
-  The `.rail-all` and `.rail-btn` rules and `.is-open` / `.is-grid` style `RailControls`
+  The `.rail-all` and `.rail-btn` rules style `RailControls`
   (src/components/home/rail-controls.tsx), which fills `[data-rail-controls]`; the film's `.film .rail` rise rule is Task 28's.
   The phone dome URL is /foil/, where the app serves design/prototype/assets/foil.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
@@ -14,16 +14,14 @@
 .anchor { position: absolute; top: 0; }
 .rail-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 14px; }
 .rail-count { font: 500 0.875rem/1 var(--font-mono); color: var(--color-neutral-600); margin-top: 0.3em; margin-right: auto; }
-/* one width for "View all N" and "Show fewer", so the toggle never moves when its label changes */
+/* "View all N": a link to the category page, one width so the head does not jump between rails */
 .rail-all {
   display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 8.5rem; min-height: 44px; padding: 0 10px 0 14px; border-radius: var(--radius-pill);
-  font: 600 0.9375rem/1 var(--font-sans); color: var(--color-forest-700);
+  font: 600 0.9375rem/1 var(--font-sans); color: var(--color-forest-700); text-decoration: none;
   transition: background-color var(--duration-fast) ease, transform var(--duration-press) var(--ease-out);
 }
-.rail-all[hidden] { display: none; }
 .rail-all:active { transform: scale(0.97); }
-.rail-all .i { width: 18px; height: 18px; transition: transform var(--duration-base) var(--ease-out); }
-.rail-all[aria-expanded="true"] .i { transform: rotate(180deg); }
+.rail-all .i { width: 18px; height: 18px; }
 @media (hover: hover) and (pointer: fine) { .rail-all:hover { background: var(--color-forest-50); } }
 /* the slot holds no box of its own: its children (arrows, View all) are the head's items */
 [data-rail-controls] { display: contents; }
@@ -54,10 +52,6 @@
 .rail-row::-webkit-scrollbar { display: none; }
 .rail-row > .pocket { flex: 0 0 var(--pw); scroll-snap-align: start; }
 .rail-row > .pocket + .pocket::before { content: ""; position: absolute; left: -1px; top: 14px; bottom: 12px; width: 2px; pointer-events: none; background: var(--perf-v); }
-/* "View all": the strip opens in place into a wrapping sheet of the same pockets */
-.rail.is-open .rail-strip { width: 100%; }
-.rail-row.is-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--pw), 1fr)); overflow: visible; scroll-snap-type: none; }
-.rail-row.is-grid > .pocket::before { content: none; }
 .rail-body { display: flex; align-items: stretch; gap: 16px; }
 .rail-aside {
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px;
@@ -79,7 +73,6 @@
   .rail-body { flex-direction: column; }
   .rail-strip { width: auto; max-width: none; margin: 0 calc(-1 * var(--spacing-gutter)); padding: 2px 0 4px; border-radius: 0; }
   .rail-row { --pw: max(164px, 45vw); scroll-padding-inline: calc(var(--spacing-gutter) - 8px); padding-inline: calc(var(--spacing-gutter) - 8px); }
-  .rail.is-open .rail-strip { width: auto; }
   .rail-aside { max-width: none; padding: 20px; }
   .rail-row > .pocket { --bh: 150px; }
   .rail-row .blister { --dome: url("/foil/dome-hero-m.webp"); }

@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Category } from "@/server/catalogue/schema";
+import { mockPathname } from "../../../tests/helpers/navigation-mocks";
 import { CategoryBar } from "./category-bar";
 
 const categories: Category[] = [
@@ -56,5 +57,22 @@ describe("CategoryBar", () => {
     );
     expect(screen.queryByText("Urinary care")).toBeNull();
     expect(screen.getAllByRole("link")).toHaveLength(5);
+  });
+});
+
+describe("CategoryBar current page", () => {
+  it("marks only the link for the current category page with aria-current=page", () => {
+    mockPathname.value = "/category/ophthalmology";
+    render(<CategoryBar categories={categories} />);
+    const current = screen
+      .getAllByRole("link")
+      .filter((a) => a.getAttribute("aria-current") === "page");
+    expect(current.map((a) => a.textContent)).toEqual(["Eye care"]);
+  });
+
+  it("marks nothing off a category page", () => {
+    mockPathname.value = "/";
+    const { container } = render(<CategoryBar categories={categories} />);
+    expect(container.querySelector("[aria-current]")).toBeNull();
   });
 });
