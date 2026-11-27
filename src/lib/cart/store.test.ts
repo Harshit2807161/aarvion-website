@@ -609,6 +609,38 @@ describe("user mode", () => {
     expect(cartStore.getSnapshot()).toEqual({ a: 5 });
   });
 
+  it("a listener that throws does not wedge the queue", async () => {
+    cartStore.onIssue(() => {
+      throw new Error("boom");
+    });
+    m.addItem.mockImplementationOnce(() => fail("network")).mockImplementation(() => ok({ a: 2 }));
+    cartStore.dispatch(inc("a"));
+    await tick(0);
+    cartStore.dispatch(inc("a"));
+    await tick(0);
+    expect(m.addItem).toHaveBeenCalledTimes(2);
+  });
+
+  it("a 401 clears the waiting-refresh flag, so a later refresh is not swallowed", async () => {
+    let release: () => void = () => {};
+    m.addItem.mockImplementationOnce(
+      () =>
+        new Promise((r) => (release = () => r({ ok: false, error: "unauthenticated" } as never))),
+    );
+    cartStore.dispatch(inc("a"));
+    cartStore.refresh(); // waits behind the add: the flag is set
+    await tick(0); // the add is now in flight
+    release(); // 401: the queue is abandoned, and the flag with it
+    await tick(0);
+    expect(cartStore.getMode()).toBe("guest");
+    m.getCart.mockImplementation(() => ok({ z: 1 }));
+    await cartStore.signIn();
+    m.getCart.mockClear();
+    cartStore.refresh();
+    await tick(0);
+    expect(m.getCart).toHaveBeenCalledTimes(1);
+  });
+
   it("a sign-in call while changes are pending leaves it to their replies", async () => {
     m.addItem.mockImplementation(() => ok({ a: 2 }));
     cartStore.dispatch(inc("a"));

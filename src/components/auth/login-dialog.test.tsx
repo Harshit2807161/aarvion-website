@@ -110,22 +110,31 @@ describe("LoginDialog", () => {
   it.each([undefined, "/checkout"])(
     "closing during the done step (next=%s) skips the redirect and toast but still tells the header",
     async (next) => {
+      const heard = vi.fn();
+      window.addEventListener(SIGNED_IN_EVENT, heard);
       const { onOpenChange, onSignedIn, finish } = setup(next);
       finish();
       fireEvent.keyDown(document.activeElement!, { key: "Escape" });
       expect(onOpenChange).toHaveBeenCalledWith(false);
       expect(onSignedIn).toHaveBeenCalledTimes(1);
+      expect(heard).toHaveBeenCalledTimes(1); // the cart store hears of it on an early close too
       await advance(900);
       expect(onSignedIn).toHaveBeenCalledTimes(1);
+      expect(heard).toHaveBeenCalledTimes(1); // and only once
+      window.removeEventListener(SIGNED_IN_EVENT, heard);
       expect(toast).not.toHaveBeenCalled();
       expect(routerSpies.push).not.toHaveBeenCalled();
     },
   );
 
-  it("closing before sign-in tells the header nothing", () => {
+  it("closing before sign-in tells the header nothing, and announces nothing", () => {
+    const heard = vi.fn();
+    window.addEventListener(SIGNED_IN_EVENT, heard);
     const { onOpenChange, onSignedIn } = setup();
     fireEvent.keyDown(document.activeElement!, { key: "Escape" });
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(onSignedIn).not.toHaveBeenCalled();
+    expect(heard).not.toHaveBeenCalled();
+    window.removeEventListener(SIGNED_IN_EVENT, heard);
   });
 });
