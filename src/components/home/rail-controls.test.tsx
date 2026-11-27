@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Icon } from "@/components/base/icon";
 import { RailControls } from "./rail-controls";
 
 let observed: (() => void) | null = null;
@@ -66,6 +67,11 @@ describe("RailControls", () => {
     expect(viewAll()!.textContent).toContain("View all 5");
     expect(viewAll()!.textContent).toContain("heart care medicines");
     expect(viewAll()!.hasAttribute("aria-expanded")).toBe(false);
+    // A link to another page points forward, not down like a disclosure chevron.
+    const { container: arrow } = render(<Icon name="arrow" />);
+    expect(viewAll()!.querySelector("svg path")?.getAttribute("d")).toBe(
+      arrow.querySelector("svg path")?.getAttribute("d"),
+    );
   });
 
   it("shows no View all on the shared rail (no slug), only the arrows", () => {
