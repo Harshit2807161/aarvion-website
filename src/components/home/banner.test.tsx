@@ -34,7 +34,7 @@ beforeEach(() => void (catalogue.slugs = FULL));
 describe("HeroBanner", () => {
   it("makes slide 1's image the LCP (eager, fetchpriority high, 1792 × 588) and the rest lazy", async () => {
     const el = await ssr();
-    const imgs = [...el.querySelectorAll("picture > img")];
+    const imgs = [...el.querySelectorAll(".slide > picture > img")];
     expect(imgs).toHaveLength(4);
     expect(imgs[0]!.getAttribute("src")).toContain("sacuwin-1792.webp");
     expect(imgs[0]).toHaveAttribute("loading", "eager");
@@ -42,23 +42,45 @@ describe("HeroBanner", () => {
     expect(imgs[0]).toHaveAttribute("width", "1792");
     expect(imgs[0]).toHaveAttribute("height", "588");
     expect(imgs[0]).toHaveAttribute("sizes", "(max-width: 719px) 86vw, min(1280px, 100vw - 80px)");
-    for (const img of imgs.slice(1)) {
+    for (const [i, img] of imgs.slice(1).entries()) {
       expect(img).toHaveAttribute("loading", "lazy");
       expect(img).not.toHaveAttribute("fetchpriority");
+      // No src or srcset before load: the hook reveals them, so no request precedes the LCP.
+      expect(img).not.toHaveAttribute("src");
+      expect(img).not.toHaveAttribute("srcset");
+      expect(img.getAttribute("data-src")).toContain(`${ids(el)[i + 1]}-1792.webp`);
+      expect(img.getAttribute("data-srcset")).toContain(`${ids(el)[i + 1]}-1792.webp`);
     }
     expect(el.querySelector("link[rel=preload]")).toBeNull(); // [C24]
   });
 
+  it("gives slides 2 to 4 a noscript picture with real sources, and slide 1 none", async () => {
+    const el = await ssr();
+    const groups = slides(el);
+    expect(groups[0]!.querySelector("noscript")).toBeNull();
+    groups.slice(1).forEach((g, i) => {
+      const ns = g.querySelector("noscript");
+      expect(ns, `slide ${i + 2} has a noscript fallback`).not.toBeNull();
+      // happy-dom keeps noscript content as text, as a browser with JS on does.
+      const html = ns!.textContent || ns!.innerHTML;
+      expect(html).toContain(`${ids(el)[i + 1]}-1792.webp`);
+      expect(html).toMatch(/<img[^>]* src="/);
+      expect(html).toContain(`${ids(el)[i + 1]}-m.webp`);
+    });
+  });
+
   it("gives every picture the 840 × 472 phone crop as its (max-width: 719px) source", async () => {
     const el = await ssr();
-    const sources = [...el.querySelectorAll("picture > source")];
+    const sources = [...el.querySelectorAll(".slide > picture > source")];
     expect(sources).toHaveLength(4);
     sources.forEach((s, i) => {
       expect(s).toHaveAttribute("media", "(max-width: 719px)");
       expect(s).toHaveAttribute("width", "840");
       expect(s).toHaveAttribute("height", "472");
       expect(s).toHaveAttribute("sizes", "86vw");
-      expect(s.getAttribute("srcset")).toContain(`${ids(el)[i]}-m.webp`);
+      const set = s.getAttribute(i === 0 ? "srcset" : "data-srcset");
+      expect(set).toContain(`${ids(el)[i]}-m.webp`);
+      if (i > 0) expect(s).not.toHaveAttribute("srcset");
     });
   });
 

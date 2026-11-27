@@ -14,8 +14,11 @@ const DESKTOP_SIZES = "(max-width: 719px) 86vw, min(1280px, 100vw - 80px)";
  * A scene as an art-directed picture (plan ruling: banners use `getImageProps` for the phone
  * `<source>`): the 840 × 472 phone crop below 720px, else the 1792 master. Both carry their
  * dimensions, so neither layout shifts. The lead slide's image is the LCP: eager with
- * fetchPriority high, never `preload` [C24]; the rest are lazy until the carousel hook switches
- * them to eager after window load, so they never compete with it.
+ * fetchPriority high, never `preload` [C24]. Slides 2 to 4 are lazy and carry their sources as
+ * `data-src` / `data-srcset`: even a lazy image is fetched before `load` when it sits in or near
+ * the viewport (the stacked desktop slides, the phone row's peeking card), which would queue it
+ * behind the LCP image. `useCarousel` moves them to `src` / `srcset` and makes them eager after
+ * window load (`revealSlideImages`).
  */
 function SlidePicture({ slide, lead }: { slide: BannerSlide; lead: boolean }) {
   const phone = getImageProps({ ...slide.phone, quality: 70, sizes: "86vw", alt: "" }).props;
@@ -27,17 +30,41 @@ function SlidePicture({ slide, lead }: { slide: BannerSlide; lead: boolean }) {
     loading: lead ? "eager" : "lazy",
     fetchPriority: lead ? "high" : undefined,
   });
+  const { src, srcSet, ...rest } = img;
+  const imgAttrs = lead
+    ? img
+    : ({ ...rest, "data-src": src, "data-srcset": srcSet } as unknown as typeof img);
+  const sourceAttrs = lead ? { srcSet: phone.srcSet } : { "data-srcset": phone.srcSet };
   return (
-    <picture className="slide-img">
-      <source
-        media={PHONE_QUERY}
-        srcSet={phone.srcSet}
-        sizes={phone.sizes}
-        width={slide.phone.width}
-        height={slide.phone.height}
-      />
-      <img {...img} alt={slide.alt} />
-    </picture>
+    <>
+      <picture className="slide-img">
+        <source
+          media={PHONE_QUERY}
+          {...sourceAttrs}
+          sizes={phone.sizes}
+          width={slide.phone.width}
+          height={slide.phone.height}
+        />
+        <img {...imgAttrs} alt={slide.alt} />
+      </picture>
+      {!lead && (
+        // Without JS nothing reveals the data-* sources, and a phone's scroll-snap row still lets
+        // the visitor swipe to this card, so it gets a plain picture here. With JS on, the
+        // content of `noscript` is inert text: no request, so the budget holds.
+        <noscript>
+          <picture className="slide-img">
+            <source
+              media={PHONE_QUERY}
+              srcSet={phone.srcSet}
+              sizes={phone.sizes}
+              width={slide.phone.width}
+              height={slide.phone.height}
+            />
+            <img {...img} alt={slide.alt} />
+          </picture>
+        </noscript>
+      )}
+    </>
   );
 }
 

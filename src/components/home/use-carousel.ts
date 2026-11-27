@@ -11,6 +11,24 @@ import {
   type Hold,
 } from "./carousel";
 
+/**
+ * Gives a later slide's picture its real sources (server-rendered as `data-src` / `data-srcset`,
+ * see banner.tsx) and makes its image eager. Called once, after window load.
+ */
+export function revealSlideImages(slide: Element): void {
+  slide.querySelectorAll<HTMLElement>("source[data-srcset]").forEach((s) => {
+    s.setAttribute("srcset", s.dataset.srcset!);
+    s.removeAttribute("data-srcset");
+  });
+  slide.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+    img.setAttribute("loading", "eager");
+    if (img.dataset.srcset) img.setAttribute("srcset", img.dataset.srcset);
+    if (img.dataset.src) img.setAttribute("src", img.dataset.src);
+    img.removeAttribute("data-src");
+    img.removeAttribute("data-srcset");
+  });
+}
+
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 const SETTLE_MS = 90;
 
@@ -147,7 +165,7 @@ export function useCarousel({ count, rootRef, trackRef }: Options) {
 
     const onLoad = () => {
       slidesOf().forEach((s, k) => {
-        if (k > 0) s.querySelectorAll("img").forEach((img) => img.setAttribute("loading", "eager"));
+        if (k > 0) revealSlideImages(s);
       });
       dispatch({ type: "ready" });
     };

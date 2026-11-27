@@ -16,7 +16,7 @@ import { SearchCardLink } from "./search-card-link";
  * `id` is `categoryAnchor(name)`, and a category folded into the shared rail keeps an empty
  * `span.anchor` with its own id so its links still land. `data-act="pass"` and `data-in` are the
  * scroll film's hooks (Task 28); `[data-rail-controls]` holds `RailControls` (the arrows and
- * "View all"). Every pocket image is lazy: the banner's first slide is the LCP.
+ * "View all", a link to the category page). Every pocket image is lazy: the banner's first slide is the LCP.
  * No live region here: cart changes are spoken by the page's one `#live` region.
  */
 export function Rails({ model }: { model: HomeModel }) {
@@ -42,7 +42,12 @@ export function Rails({ model }: { model: HomeModel }) {
             </h2>
             <p className="rail-count">{plural(rail.products.length, "medicine")}</p>
             <div data-rail-controls="">
-              <RailControls railId={rail.id} title={rail.title} count={rail.products.length} />
+              <RailControls
+                railId={rail.id}
+                title={rail.title}
+                count={rail.products.length}
+                slug={rail.categories.length === 1 ? rail.categories[0]!.slug : undefined}
+              />
             </div>
           </div>
           <div className="rail-body">
