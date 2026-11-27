@@ -367,11 +367,174 @@ describe("signIn", () => {
     );
   });
 
+  it("a failed merge keeps the guest cart and says so; a 401 stays guest quietly", async () => {
+    const issues: CartIssue[] = [];
+    cartStore.onIssue((i) => issues.push(i));
+    seed([{ slug: "a", qty: 1 }]);
+    m.mergeCart.mockImplementation(() => fail("network"));
+    await cartStore.signIn();
+    expect(cartStore.getMode()).not.toBe("user");
+    expect(stored()).toEqual({ lines: [{ slug: "a", qty: 1 }] });
+    expect(issues).toEqual([{ kind: "sync_failed" }]);
+    m.mergeCart.mockImplementation(() => fail("unauthenticated"));
+    await cartStore.signIn();
+    expect(cartStore.getMode()).not.toBe("user");
+    expect(issues).toHaveLength(1);
+  });
+
+  it("toGuest(true) keeps the guest cart for a signed-out load", () => {
+    seed([{ slug: "a", qty: 2 }]);
+    cartStore.toGuest(true);
+    expect(cartStore.getMode()).toBe("guest");
+    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
+  });
   it("toGuest(true) leaves a store that is already signed in alone", async () => {
     m.getCart.mockImplementation(() => ok({ a: 3 }));
     await cartStore.signIn();
     cartStore.toGuest(true);
     expect(cartStore.getMode()).toBe("user");
     expect(cartStore.getSnapshot()).toEqual({ a: 3 });
+  });
+});
+
+describe("user mode", () => {
+  beforeEach(async () => {
+    m.getCart.mockImplementation(() => ok({ a: 1 }));
+    await cartStore.signIn();
+  });
+
+  it("applies a change at once, sends a + as a relative add, then adopts the server's lines", async () => {
+    m.addItem.mockImplementation(() => ok({ a: 2 }));
+    cartStore.dispatch(inc("a"));
+    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
+    await tick(0);
+    expect(m.addItem).toHaveBeenCalledWith("a", 1);
+    expect(m.setQty).not.toHaveBeenCalled();
+    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
+    expect(sessionStorage.getItem(CART_GUEST_STORAGE_KEY)).toBeNull();
+  });
+
+  it("a + lands on the server's quantity, not this tab's cached one (another tab set 5)", async () => {
+    m.addItem.mockImplementation(() => ok({ a: 6 })); // the server already held 5
+    cartStore.dispatch(inc("a"));
+    await tick(0);
+    expect(cartStore.getSnapshot()).toEqual({ a: 6 });
+  });
+
+  it("sends dec and set as a quantity and remove as a delete", async () => {
+    m.setQty.mockImplementation(() => ok({}));
+    m.removeItem.mockImplementation(() => ok({}));
+    cartStore.dispatch(set("a", 4));
+    cartStore.dispatch(dec("a"));
+    cartStore.dispatch({ type: "remove", slug: "a" });
+    await tick(0);
+    expect(m.setQty.mock.calls).toEqual([
+      ["a", 4],
+      ["a", 3],
+    ]);
+    expect(m.removeItem).toHaveBeenCalledWith("a");
+  });
+
+  it("reverts to the server's lines and emits refused when the server says no", async () => {
+    const issues: CartIssue[] = [];
+    cartStore.onIssue((i) => issues.push(i));
+    m.addItem.mockImplementation(
+      () => Promise.resolve({ ok: false, error: "product_limit", view: view({ a: 10 }) }) as never,
+    );
+    cartStore.dispatch(inc("a"));
+    await tick(0);
+    expect(cartStore.getSnapshot()).toEqual({ a: 10 });
+    expect(issues).toEqual([{ kind: "refused", error: "product_limit" }]);
+  });
+
+  it("reverts and emits sync_failed on a lost request", async () => {
+    const issues: CartIssue[] = [];
+    cartStore.onIssue((i) => issues.push(i));
+    m.addItem.mockImplementation(() => fail("network"));
+    cartStore.dispatch(inc("a"));
+    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
+    await tick(0);
+    expect(cartStore.getSnapshot()).toEqual({ a: 1 });
+    expect(issues).toEqual([{ kind: "sync_failed" }]);
+  });
+
+  it("says once when the server's reply drops a product that is no longer sold", async () => {
+    const issues: CartIssue[] = [];
+    cartStore.onIssue((i) => issues.push(i));
+    m.addItem.mockImplementation(() => ok({ a: 2 }, { removed: ["x"] }));
+    cartStore.dispatch(inc("a"));
+    await tick(0);
+    expect(issues).toEqual([{ kind: "removed", slugs: ["x"] }]);
+  });
+
+  it("sends rapid changes in order with at most one in flight, and a stale reply never undoes a newer tap", async () => {
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const order: number[] = [];
+    let n = 0;
+    m.addItem.mockImplementation(async () => {
+      const qty = ++n + 1;
+      order.push(qty);
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await Promise.resolve();
+      inFlight--;
+      return { ok: true, view: view({ a: qty }) } as never;
+    });
+    cartStore.dispatch(inc("a"));
+    cartStore.dispatch(inc("a"));
+    cartStore.dispatch(inc("a"));
+    expect(cartStore.getSnapshot()).toEqual({ a: 4 });
+    await tick(0);
+    expect(order).toEqual([2, 3, 4]);
+    expect(maxInFlight).toBe(1);
+    expect(cartStore.getSnapshot()).toEqual({ a: 4 });
+  });
+
+  it("a 401 drops to guest mode with an empty cart", async () => {
+    m.addItem.mockImplementation(() => fail("unauthenticated"));
+    cartStore.dispatch(inc("a"));
+    await tick(0);
+    expect(cartStore.getMode()).toBe("guest");
+    expect(cartStore.getSnapshot()).toEqual({});
+    expect(stored()).toEqual({ lines: [] });
+    cartStore.dispatch(inc("b"));
+    expect(m.addItem).toHaveBeenCalledTimes(1);
+    expect(stored()).toEqual({ lines: [{ slug: "b", qty: 1 }] });
+  });
+
+  it("after a 401 with requests queued, the next sign-in still adopts the server's lines", async () => {
+    m.addItem.mockImplementationOnce(() => fail("unauthenticated"));
+    cartStore.dispatch(inc("a"));
+    cartStore.dispatch(inc("a"));
+    cartStore.dispatch(inc("a"));
+    await tick(0);
+    expect(cartStore.getMode()).toBe("guest");
+    m.mergeCart.mockImplementation(() => ok({ z: 5 }));
+    m.getCart.mockImplementation(() => ok({ z: 5 }));
+    await cartStore.signIn();
+    m.addItem.mockImplementation(() => ok({ z: 5, y: 1, q: 2 })); // differs from the optimistic {z:5,y:1}
+    cartStore.dispatch(inc("y"));
+    await tick(0);
+    expect(cartStore.getSnapshot()).toEqual({ z: 5, y: 1, q: 2 }); // the server's lines were adopted
+    expect(m.addItem).toHaveBeenCalledTimes(2); // the queued ones from before the 401 were never sent
+  });
+
+  it("a sign-in call while changes are pending leaves it to their replies", async () => {
+    m.addItem.mockImplementation(() => ok({ a: 2 }));
+    cartStore.dispatch(inc("a"));
+    m.getCart.mockClear();
+    expect(await cartStore.signIn()).toEqual({ trimmed: false, removed: [] });
+    expect(m.getCart).not.toHaveBeenCalled();
+  });
+
+  it("refuses locally, without a request, what the shared rules refuse", async () => {
+    m.addItem.mockImplementation(() => ok({ a: 10 }));
+    for (let i = 0; i < 9; i++) cartStore.dispatch(inc("a"));
+    await tick(0);
+    m.addItem.mockClear();
+    expect(cartStore.dispatch(inc("a"))).toBe("product_limit");
+    await tick(0);
+    expect(m.addItem).not.toHaveBeenCalled();
   });
 });

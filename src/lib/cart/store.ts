@@ -80,12 +80,20 @@ const issueListeners = new Set<(issue: CartIssue) => void>();
 const notify = () => listeners.forEach((l) => l());
 const emit = (issue: CartIssue) => issueListeners.forEach((l) => l(issue));
 
+/** Keeps only the guest lines whose slug passes `keep`; returns whether any line was dropped. */
+function keepOnly(keep: (slug: string) => boolean): boolean {
+  const current = cartStore.getSnapshot();
+  const kept = Object.entries(current).filter(([slug]) => keep(slug));
+  if (kept.length === Object.keys(current).length) return false;
+  cache = Object.assign(Object.create(null), Object.fromEntries(kept));
+  writeGuest(cache!);
+  return true;
+}
+
 /** Drops lines the server says can no longer be bought, and tells the shopper once. */
 function dropRetired(slugs: readonly string[]): void {
   const gone = new Set(slugs);
-  const kept = Object.entries(cartStore.getSnapshot()).filter(([slug]) => !gone.has(slug));
-  cache = Object.assign(Object.create(null), Object.fromEntries(kept));
-  writeGuest(cache!);
+  keepOnly((slug) => !gone.has(slug));
   emit({ kind: "removed", slugs: [...gone] });
 }
 
@@ -128,8 +136,9 @@ function scheduleQuote(): void {
   }
   viewStale = true;
   loadQuoter()
-    .then((q) => mine === quoteSeq && q.schedule(mine))
-    .catch(() => {});
+    .then((q) => q.schedule(mine))
+    // The chunk did not arrive (offline): try again once when the network returns, not on the next tap.
+    .catch(() => globalThis.addEventListener?.("online", scheduleQuote, { once: true }));
 }
 
 /** What the lazily loaded user mode may change here. */
@@ -223,11 +232,7 @@ export const cartStore = {
   reconcile(known: ReadonlySet<string>): boolean {
     // An empty set means the catalogue is not loaded, not that every product is gone.
     if (known.size === 0 || mode === "user") return false;
-    const current = cartStore.getSnapshot();
-    const kept = Object.entries(current).filter(([slug]) => known.has(slug));
-    if (kept.length === Object.keys(current).length) return false;
-    cache = Object.assign(Object.create(null), Object.fromEntries(kept));
-    writeGuest(cache!);
+    if (!keepOnly((slug) => known.has(slug))) return false;
     scheduleQuote();
     notify();
     return true;
