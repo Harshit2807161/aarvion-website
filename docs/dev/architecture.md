@@ -297,6 +297,7 @@ ported prototype CSS imported by `globals.css`.
 | `audit.ts` | `appendAudit()`, the only writer of `audit_logs` |
 | `orders/status.ts` | pure state machine: `ORDER_EDGES`, `transition()`, `initialStatus()` |
 | `orders/order-number.ts` | `nextOrderNumber(now)`, `formatOrderNumber`, `orderMonthKey` |
+| `prescriptions/file-check.ts` | `checkRxFile(bytes)`: magic-byte type (`sniffType`), 1 to 8 MiB; an image is re-encoded with sharp to WebP q85 (longest side 3000, shortest at least 400, 50 MP input cap, one frame, EXIF rotation applied, all metadata dropped); returns `{ ok, file }` or a named `RxFileError`, plus the sha256 of the stored body. PDFs are refused until the scan lands (part B) |
 | `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6` |
 
 ## Collections and indexes
