@@ -17,11 +17,11 @@ describe("isExpectedNotFound", () => {
   });
 
   it("ignores the _rsc prefetch 404 of a pending route", () => {
-    expect(isExpectedNotFound(PAGE, text(404), "http://localhost:3100/cart?_rsc=abc")).toBe(true);
+    expect(isExpectedNotFound(PAGE, text(404), "http://localhost:3100/checkout?_rsc=abc")).toBe(true);
   });
 
   it("keeps a 500 prefetch of a pending route", () => {
-    expect(isExpectedNotFound(PAGE, text(500), "http://localhost:3100/cart?_rsc=abc")).toBe(false);
+    expect(isExpectedNotFound(PAGE, text(500), "http://localhost:3100/checkout?_rsc=abc")).toBe(false);
   });
 
   it("keeps a 404 prefetch of a route that is not pending", () => {

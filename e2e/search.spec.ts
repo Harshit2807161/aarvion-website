@@ -86,3 +86,36 @@ test.describe("header search at 390", () => {
     await expect(page.locator("#p-mucohelp")).toBeInViewport();
   });
 });
+
+// #245-M2: the listbox is a lazy chunk; if it fails to load, the next focus, press or input in the
+// search tries again, and the list then shows for what was typed.
+test("the listbox chunk is fetched again after a failed load, and the list then shows", async ({
+  page,
+}) => {
+  let failed = 0;
+  let blocked = true;
+  await page.route("**/_next/static/**/*.js", async (route) => {
+    const res = await route.fetch();
+    const body = await res.text();
+    // The chunk that holds SuggestionList (its listbox label and option class).
+    if (blocked && body.includes("sugg-opt") && body.includes('"Medicines"')) {
+      failed++;
+      return route.abort();
+    }
+    return route.fulfill({ response: res, body });
+  });
+  await page.goto("/legal/privacy");
+  const q = page.locator("#q");
+  await q.click(); // the first load, which fails
+  await expect.poll(() => failed).toBeGreaterThan(0);
+  await q.fill("valsart");
+  await page.waitForTimeout(500);
+  await expect(page.getByRole("option")).toHaveCount(0); // no list without the chunk
+  await expect(q).toHaveAttribute("aria-expanded", "false");
+
+  blocked = false; // the network is back
+  await q.pressSequentially("an"); // typing retries the load
+  await expect(page.getByRole("option")).toHaveCount(3);
+  await expect(q).toHaveValue("valsartan");
+  await expect(q).toHaveAttribute("aria-expanded", "true");
+});

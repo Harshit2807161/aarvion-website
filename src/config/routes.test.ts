@@ -24,7 +24,9 @@ describe("ROUTES", () => {
   });
 
   it("lists the routes that must still 404", () => {
-    expect(PENDING_ROUTES).toEqual(["/cart", "/account", "/account/prescriptions"]);
+    expect(PENDING_ROUTES).toEqual(["/checkout", "/account", "/account/prescriptions"]);
+    expect(PENDING_ROUTES).toContain(ROUTES.checkout);
+    expect(PENDING_ROUTES).not.toContain(ROUTES.cart);
   });
 
   it("lists the home sections that links target but nothing builds yet (none today)", () => {
