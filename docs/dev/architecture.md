@@ -294,8 +294,9 @@ ported prototype CSS imported by `globals.css`.
 | `db/client.ts` | one cached `MongoClient` per process on `globalThis` (survives HMR, drops a failed connect); `getDb()` uses `MONGODB_DB` |
 | `db/indexes.ts` | `registerIndexes(collection, specs)` (names mandatory), `ensureIndexes(db)` (creates missing indexes by name) |
 | `db/register-all.ts` | imports every module that registers indexes, for `pnpm db:indexes` and int tests |
-| `catalogue/` | `schema.ts` (zod), `pricing.ts` (`sellingPricePaise`, `percentOff`, and `cartTotals`: packs, MRP, discount, payable from each line's MRP; client-safe), `categories.ts`, `collections.ts`, `seed.ts`, `search.ts`, `queries.ts`, `order.ts` (pure `compareVariants`, `orderForShelf`; client-safe) |
+| `catalogue/` | `schema.ts` (zod), `pricing.ts` (`sellingPricePaise`, `percentOff`, and `cartTotals`: packs, MRP, discount, payable from each line's MRP; client-safe), `categories.ts`, `collections.ts`, `seed.ts`, `search.ts`, `queries.ts` (also `getPurchasableBySlugs`: a direct, never cached read of the active products in live categories, for cart pricing), `order.ts` (pure `compareVariants`, `orderForShelf`; client-safe) |
 | `cart/rules.ts` | pure cart rules, client-safe and import-free: `CART_LIMITS` (10 per product, 20 per order), `CartLine`, `addLine`, `setLineQty`, `removeLine` (a refused or no-op change returns the same array; `product_limit` then `order_limit`), `capLines` (untrusted input to a valid cart, cut at 20 packs from the end) and `mergeLines` (max per slug, server order first, idempotent); lines are an array, so a slug like `__proto__` is ordinary |
+| `cart/carts.ts` | the `carts` collection (`CartDoc`: one document per user, lines as an array plus `rev`, never a price), `readCart` and `mutateCart`: every write is a compare-and-set on `rev`, a no-op returns the same array and writes nothing, a missing cart inserts at `rev: 1` (E11000 retries), and 25 lost races, or a 2 s total deadline (`performance.now()`, with capped exponential jitter between tries), throw `HttpError(409, "cart_conflict")` |
 | `auth/` | `identifier.ts`, `otp.ts`, `users.ts`, `sessions.ts`, `cookie.ts`, `login.ts` (`sendOtp`, `verifyOtpAndLogin`), `guards.ts` (`getAuth`, `requireUser`, `requireRole`, `sessionRefreshHeaders`: the `Set-Cookie` that re-issues the sliding customer cookie, which every customer route that calls `requireUser` merges into its response), `roles.ts` |
 | `security/` | `rate-limit.ts` (`hitRateLimit`, `peekRateLimit`, `resetRateLimit`), `client-ip.ts` (`clientIp`, `ipBucket`), `origin.ts` (`assertSameOrigin`) |
 | `audit.ts` | `appendAudit()`, the only writer of `audit_logs` |
@@ -315,6 +316,7 @@ ported prototype CSS imported by `globals.css`.
 | `otp_challenges` | `<channel>:<value>` (one live challenge per identifier) | `expiresAt_ttl` | `issueOtpChallenge`, `verifyOtpChallenge`, `checkOtpChallenge` (refunds a matching check's attempt) |
 | `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole`; lookups filter `{ $eq, $type: "string" }` so the partial indexes apply |
 | `sessions` | SHA-256 of the token | `expiresAt_ttl`, `userId_1` | `createSession`, `resolveSession`, `revokeSession` |
+| `carts` | the user's ObjectId | none | `mutateCart` |
 | `audit_logs` | ObjectId | `at_desc`, `actorUserId_at_desc` | `appendAudit` |
 | `dev_outbox` | `mock_<uuid>` | `expiresAt_1` (TTL 24 h), `to_1_createdAt_1` | mock SMS and email |
 | `counters` | `order-number:<YYMM>` | none | `nextOrderNumber` |
