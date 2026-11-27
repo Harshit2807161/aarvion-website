@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ErrorSummary } from "./error-summary";
 
 function Form({
@@ -40,11 +40,42 @@ describe("ErrorSummary", () => {
     expect(document.querySelector(".errsum")).toHaveTextContent("There’s a problem");
   });
 
-  it("a link moves focus to its field", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  function stubMotion(reduce: boolean) {
+    vi.stubGlobal("matchMedia", (q: string) => ({ matches: reduce && q.includes("reduce") }));
+    return vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(() => {});
+  }
+
+  it("a link scrolls its field to the centre, smoothly, and moves focus to it", () => {
+    const scroll = stubMotion(false);
     render(<Form errors={TWO} />);
     fireEvent.click(screen.getAllByRole("link")[1]!);
     expect(document.activeElement).toBe(document.getElementById("adult"));
+    expect(scroll).toHaveBeenCalledWith({ block: "center", behavior: "smooth" });
   });
+
+  it("scrolls without animation under reduced motion", () => {
+    const scroll = stubMotion(true);
+    render(<Form errors={TWO} />);
+    fireEvent.click(screen.getAllByRole("link")[0]!);
+    expect(scroll).toHaveBeenCalledWith({ block: "center", behavior: "auto" });
+  });
+
+  it.each([{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { button: 1 }])(
+    "leaves a modified or non-primary click (%o) to the browser",
+    (mods) => {
+      const scroll = stubMotion(false);
+      render(<Form errors={TWO} />);
+      const box = document.querySelector(".errsum");
+      expect(fireEvent.click(screen.getAllByRole("link")[0]!, mods)).toBe(true);
+      expect(document.activeElement).toBe(box);
+      expect(scroll).not.toHaveBeenCalled();
+    },
+  );
 
   it("takes focus again on each new submit, and renders nothing without errors", () => {
     const { rerender } = render(<Form errors={TWO} focusKey={1} />);

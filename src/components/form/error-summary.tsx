@@ -14,6 +14,13 @@ export const ERROR_SUMMARY_COPY = {
 
 export type SummaryError = { id: string; message: string };
 
+function reducedMotion(): boolean {
+  return (
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 /**
  * The error summary DESIGN.md asks for on submit: a danger-50 box with a danger-200 edge that
  * lists each problem as a link to its field and takes focus, so a screen reader reads it once.
@@ -40,11 +47,16 @@ export function ErrorSummary({ errors, focusKey }: { errors: SummaryError[]; foc
             <a
               href={`#${e.id}`}
               onClick={(ev) => {
+                // A modified or non-primary click keeps the browser's own meaning (new tab etc.).
+                if (ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
                 // Focus the field itself; the hash alone would scroll without moving focus.
                 const el = document.getElementById(e.id);
                 if (!el) return;
                 ev.preventDefault();
-                el.scrollIntoView?.({ block: "center" });
+                el.scrollIntoView?.({
+                  block: "center",
+                  behavior: reducedMotion() ? "auto" : "smooth",
+                });
                 el.focus({ preventScroll: true });
               }}
             >

@@ -102,7 +102,7 @@ React components, added task by task. The folders below exist today:
 - `film/`: the scroll film's progress maths and engine
 - `form/`:
   - `Checkbox` (the same for its error, including `errorAlert`)
-  - `ErrorSummary` (`error-summary.tsx`: the submit summary DESIGN.md asks for, a `.errsum` box titled "There’s a problem"/"There are N problems" listing each error as a link that focuses its field; it takes focus whenever `focusKey` changes and is not a live region or alert, so the fields it covers pass `errorAlert={false}`; CSS at the end of `src/styles/forms.css`)
+  - `ErrorSummary` (`error-summary.tsx`: the submit summary DESIGN.md asks for, a `.errsum` box titled "There’s a problem"/"There are N problems" listing each error as a link that scrolls its field to the centre (smoothly unless reduced motion) and focuses it, leaving modified and non-primary clicks to the browser; it takes focus whenever `focusKey` changes and is not a live region or alert, so the fields it covers pass `errorAlert={false}`; CSS at the end of `src/styles/forms.css`)
   - `OtpField` (one real input drawn as six boxes, with native paste and `beforeinput` listeners so a pasted or autofilled full code replaces a partial value; pass `ariaLabel` when there is no `<label for>`)
   - `Segmented` (native radiogroup with roving tabindex, arrows, Home and End; LTR only; no error wiring)
   - `TextField` (hint and error ids through `aria-describedby`, `aria-invalid`; the error has `role="alert"` unless `errorAlert={false}`)

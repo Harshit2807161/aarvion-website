@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { findClaims } from "../../../tests/helpers/claims";
 import { mockSearchParams, routerSpies } from "../../../tests/helpers/navigation-mocks";
@@ -318,6 +319,37 @@ describe("LoginFlow: done step", () => {
     expect(screen.getByText(LOGIN_COPY.doneCheckout)).toBeInTheDocument();
   });
 
+  it("leaving within the 900 ms cancels the redirect", async () => {
+    reply(VERIFY, OK);
+    const { unmount } = await toCodeStep();
+    paste("482913");
+    await flush();
+    await advance(500);
+    unmount();
+    await advance(900);
+    expect(routerSpies.replace).not.toHaveBeenCalled();
+  });
+
+  it("under Strict Mode's double mount it still redirects exactly once", async () => {
+    reply(VERIFY, OK);
+    render(
+      <StrictMode>
+        <LoginFlow mode="page" />
+      </StrictMode>,
+    );
+    await flush();
+    fireEvent.change(screen.getByLabelText(LOGIN_COPY.mobileLabel), {
+      target: { value: "9876543210" },
+    });
+    fireEvent.click(button(LOGIN_COPY.send)!);
+    await flush();
+    paste("482913");
+    await flush();
+    await advance(900);
+    expect(routerSpies.replace).toHaveBeenCalledTimes(1);
+    expect(routerSpies.replace).toHaveBeenCalledWith("/");
+  });
+
   it("the dialog gets onDone at once and no redirect", async () => {
     const onDone = vi.fn();
     reply(VERIFY, OK);
@@ -333,6 +365,9 @@ describe("LoginFlow: done step", () => {
     });
     await flush();
     expect(onDone).toHaveBeenCalledWith({ isNewUser: false, name: "Asha Rao" });
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: LOGIN_COPY.doneTitle }),
+    );
     await advance(900);
     expect(routerSpies.replace).not.toHaveBeenCalled();
   });
