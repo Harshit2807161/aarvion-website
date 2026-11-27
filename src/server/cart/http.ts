@@ -11,6 +11,9 @@ import type { CartResult } from "./service.ts";
 const qty = (min: number) => z.number().int().min(min).max(10);
 export const AddBody = z.strictObject({ slug: Slug, qty: qty(1) });
 export const SetBody = z.strictObject({ qty: qty(0) });
+export const LinesBody = z.strictObject({
+  lines: z.array(z.strictObject({ slug: Slug, qty: qty(1) })).max(20),
+});
 
 /** 120 cart changes a minute per user. */
 export async function limitCartUser(auth: AuthContext): Promise<void> {

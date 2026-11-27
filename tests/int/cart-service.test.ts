@@ -179,7 +179,7 @@ describe("retired lines never block a change", () => {
       clock.now(),
     );
     expect(out.trimmed).toBe(false);
-    expect(out.removed).toEqual(["mucohelp"]);
+    expect(out.removed).toEqual(["mucohelp", "ghost-1", "ghost-2"]);
     expect(out.lines.map((l) => [l.slug, l.qty])).toEqual([
       ["sacuwin-50", 5],
       ["sacuwin-100", 10],
