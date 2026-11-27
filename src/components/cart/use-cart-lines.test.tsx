@@ -2,6 +2,7 @@ import { act, render } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { cartStore } from "@/lib/cart/store";
 import { useCartLines } from "@/lib/cart/use-cart-lines";
+import { seedGuest } from "../../../tests/helpers/cart";
 
 let renders = 0;
 function Probe() {
@@ -17,7 +18,7 @@ describe("useCartLines", () => {
   });
 
   it("renders the stored cart, re-renders on dispatch and does not loop", () => {
-    sessionStorage.setItem("aarv-cart-ui-v0", JSON.stringify({ a: 1 }));
+    seedGuest({ a: 1 });
     const { container } = render(<Probe />);
     expect(container.textContent).toBe('{"a":1}');
     const first = renders;

@@ -4,11 +4,11 @@ import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveRegion } from "@/components/feedback/live-region";
-import { CART_UI_STORAGE_KEY } from "@/lib/cart/cart";
 import { cartStore } from "@/lib/cart/store";
 import { CartControl } from "./cart-control";
 import { CartPill } from "./cart-pill";
 import { CartReconcile } from "./cart-reconcile";
+import { seedGuest } from "../../../tests/helpers/cart";
 
 const NAME = "Sacuwin 100";
 const SLUG = "sacuwin-100";
@@ -54,7 +54,7 @@ describe("CartControl", () => {
 
   it("hydrates a stored cart without a mismatch, then shows the stored quantity", async () => {
     vi.useRealTimers();
-    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ [SLUG]: 2 }));
+    seedGuest({ [SLUG]: 2 });
     const html = renderToString(<CartControl slug={SLUG} name={NAME} />);
     expect(html).toContain('data-qty="0"');
     expect(html).toContain("Add to cart");
@@ -108,7 +108,7 @@ describe("CartControl", () => {
   });
 
   it("announces the order limit when the order is full", async () => {
-    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ x: 10, y: 9 }));
+    seedGuest({ x: 10, y: 9 });
     setup();
     fireEvent.click(add());
     fireEvent.click(incBtn());
@@ -134,7 +134,7 @@ describe("keyboard and reconcile", () => {
   });
 
   it("says so once when it drops a product that is no longer sold", async () => {
-    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ gone: 2, [SLUG]: 1 }));
+    seedGuest({ gone: 2, [SLUG]: 1 });
     render(
       <>
         <CartReconcile slugs={[SLUG]} />

@@ -1,5 +1,6 @@
+import { capLines, type CartLine } from "@/server/cart/rules";
 import {
-  CART_LIMITS,
+  CART_GUEST_STORAGE_KEY,
   CART_UI_STORAGE_KEY,
   applyCart,
   type CartAction,
@@ -10,47 +11,41 @@ import {
 /** What the server (and the first hydration render) sees: an empty cart. Frozen and shared. */
 const SERVER_LINES: CartLines = Object.freeze({});
 
-/**
- * Keep only well-formed lines: integer quantities 1..perProduct, and no more than perOrder packs
- * in all (later lines are cut). Anything else is dropped. The result has no prototype, so a slug
- * such as "constructor" or "__proto__" is just a key.
- */
-function sanitize(raw: unknown): CartLines {
+/** The lines as a prototype-less record, so a slug like "constructor" or "__proto__" is just a key. */
+function toRecord(lines: readonly CartLine[]): CartLines {
   const out: Record<string, number> = Object.create(null);
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return out;
-  let total = 0;
-  for (const [slug, n] of Object.entries(raw)) {
-    if (typeof n !== "number" || !Number.isInteger(n) || n <= 0) continue;
-    const keep = Math.min(n, CART_LIMITS.perProduct, CART_LIMITS.perOrder - total);
-    if (keep <= 0) break;
-    out[slug] = keep;
-    total += keep;
-  }
+  for (const l of lines) out[l.slug] = l.qty;
   return out;
 }
+const toArray = (lines: CartLines): CartLine[] =>
+  Object.entries(lines).map(([slug, qty]) => ({ slug, qty }));
 
-function read(): CartLines {
+/** The guest cart from sessionStorage, re-capped with the shared rules. Reading never writes. */
+function readGuest(): CartLines {
   try {
-    const text = sessionStorage.getItem(CART_UI_STORAGE_KEY);
-    return sanitize(text ? JSON.parse(text) : null);
+    const text = sessionStorage.getItem(CART_GUEST_STORAGE_KEY);
+    const raw: unknown = text ? JSON.parse(text) : null;
+    const lines = raw && typeof raw === "object" ? (raw as { lines?: unknown }).lines : null;
+    return toRecord(capLines(Array.isArray(lines) ? lines : []).lines);
   } catch {
-    return sanitize(null); // storage blocked or the text is not JSON: start empty
+    return toRecord([]); // storage blocked or the text is not JSON: start empty
   }
 }
 
-function write(lines: CartLines): void {
+function writeGuest(lines: CartLines): void {
   try {
-    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify(lines));
+    sessionStorage.setItem(CART_GUEST_STORAGE_KEY, JSON.stringify({ lines: toArray(lines) }));
+    sessionStorage.removeItem(CART_UI_STORAGE_KEY);
   } catch {
     // Blocked or full: the cart still works for this page view, it just will not survive a reload.
   }
 }
 
-// `cache` is what makes getSnapshot safe for useSyncExternalStore: sessionStorage is parsed once
-// and the object is replaced only by a dispatch that changed something, so React never sees a
-// new object for an unchanged store (which would loop).
+// `cache` is what makes getSnapshot safe for useSyncExternalStore: the lines object is replaced
+// only by a change, so React never sees a new object for an unchanged store (which would loop).
 let cache: CartLines | null = null;
 const listeners = new Set<() => void>();
+const notify = () => listeners.forEach((l) => l());
 
 export const cartStore = {
   subscribe(listener: () => void): () => void {
@@ -58,25 +53,24 @@ export const cartStore = {
     return () => void listeners.delete(listener);
   },
   getSnapshot(): CartLines {
-    return (cache ??= read());
+    return (cache ??= readGuest());
   },
   getServerSnapshot(): CartLines {
     return SERVER_LINES;
   },
-  /** Apply an action; returns why it was refused, or null. Subscribers hear only real changes. */
+  /** Apply an action; returns why it was refused, or null. Written to sessionStorage; subscribers hear only real changes. */
   dispatch(action: CartAction): CartBlock | null {
     const current = cartStore.getSnapshot();
     const { lines, blocked } = applyCart(current, action);
-    if (lines !== current) {
-      cache = lines;
-      write(lines);
-      listeners.forEach((l) => l());
-    }
+    if (lines === current) return blocked;
+    cache = lines;
+    writeGuest(lines);
+    notify();
     return blocked;
   },
   /**
-   * Drop lines whose slug is not in the catalogue (a product retired since the cart was saved),
-   * so they never count toward the 20-pack cap or show in the cart. Returns whether anything was dropped. Run by CartReconcile.
+   * Drop lines whose slug is not in the catalogue (a product retired since the cart
+   * was saved), so they never count toward the cap. Returns whether anything was dropped.
    */
   reconcile(known: ReadonlySet<string>): boolean {
     // An empty set means the catalogue is not loaded, not that every product is gone.
@@ -85,12 +79,21 @@ export const cartStore = {
     const kept = Object.entries(current).filter(([slug]) => known.has(slug));
     if (kept.length === Object.keys(current).length) return false;
     cache = Object.assign(Object.create(null), Object.fromEntries(kept));
-    write(cache!);
-    listeners.forEach((l) => l());
+    writeGuest(cache!);
+    notify();
     return true;
   },
-  /** TEST ONLY: forget the cached lines so the next read goes back to sessionStorage. */
+  /** Drops the old `aarv-cart-ui-v0` key, which is never migrated (pre-launch). Run once on load. */
+  forgetLegacy(): void {
+    try {
+      sessionStorage.removeItem(CART_UI_STORAGE_KEY);
+    } catch {
+      // Nothing to forget.
+    }
+  },
+  /** TEST ONLY: forget every cached value so the next read goes back to sessionStorage. */
   reset(): void {
     cache = null;
+    listeners.clear();
   },
 };

@@ -176,12 +176,12 @@ React components, added task by task. The folders below exist today:
 
 ### src/lib/
 
-- `cart/`: the session-only UI cart:
+- `cart/`: the client cart (the guest cart in `sessionStorage`; signed in, the server cart through `api.ts`):
   - `api.ts` the browser client for `/api/cart/**` (`getCart`, `addItem`, `setQty`, `removeItem`, `mergeCart`, `quoteCart`; nothing throws, 15 s timeout, anything unexpected is `network`, a refusal carries the unchanged cart as `view`)
   - `cart.ts` the record-shaped UI cart; `CART_LIMITS` and `CartBlock` are re-exported from `src/server/cart/rules.ts`, and `applyCart` (actions `inc`, `dec`, `set`, `remove`) delegates to its `addLine` and `setLineQty`; the storage keys `CART_GUEST_STORAGE_KEY` (`aarv-cart-guest-v1`) and the old `CART_UI_STORAGE_KEY` (`aarv-cart-ui-v0`)
-  - `store.ts` `cartStore` over `sessionStorage` key `aarv-cart-ui-v0` with a cached `getSnapshot` and a frozen `{}` server snapshot
+  - `store.ts` `cartStore`: the guest cart in `sessionStorage` key `aarv-cart-guest-v1` (`{ lines: [{ slug, qty }] }`, re-capped with the shared rules on read; reading never writes) with a cached `getSnapshot`, a frozen `{}` server snapshot, `reconcile` and `forgetLegacy` (drops the old `aarv-cart-ui-v0`, never migrated)
   - `use-cart-lines.ts` the client hook
-  - It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. It stands in until the real server cart arrives in phase K, which replaces it.
+  - It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. The signed-in server cart arrives in the next PR.
 - `catalogue/banners.ts` (the home banner slides and the banner fallback: `bannerSlides()` keeps a slide only while its packs are live and never lets a Win2Age pack lead)
 - `catalogue/display.ts` (client-safe wording of catalogue data, ported from the prototype's `build.mjs`: `fullComposition`, `actives` (preservatives and salt forms dropped, each strength one non-breaking unit), `packDisplay`, `strengthTokens`, `shortName`, `plural`, `countWord`, `pocketImage` (the cutout, else the first photo), `categoryAnchor` and the `PocketProduct` type; type-only imports from `src/server`)
 - `catalogue/home-model.ts` (client-safe model of the home bento and rails: `homeModel`, `bentoTiles`, `tileList`, `BENTO_LAYOUT`, and `railPlan` / `RAIL_RISES` for the rails: a rail per category with two or more products, then one shared rail, titled "Diabetes and respiratory care" or "More medicines", for the single-product categories; imports only `catalogue/order` at runtime)
