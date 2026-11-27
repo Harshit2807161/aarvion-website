@@ -77,7 +77,7 @@ Helpers in `tests/helpers/`:
 | `global-setup.ts` | downloads the mongod binary once before parallel files start |
 | `clock.ts` | `installClock(iso)` → `{ now, advance(ms) }`, installed as `deps.now` |
 | `http.ts` | `jsonPost(path, body, { origin, ip, cookie, contentType })`, `getReq`, `sessionTokenFrom(res)`, `TEST_ORIGIN` |
-| `rx-fixtures.ts` | prescription files built in code, no binaries: `jpegWithExif`, `png`, `animatedWebp`, `pixelBombPng`, `jpegWithTrailer`, `htmlAsJpgName` |
+| `rx-fixtures.ts` | prescription files built in code: `jpegWithExif`, `png`, `animatedWebp`, `pixelBombPng`, `jpegWithTrailer`, `htmlAsJpgName`, `pdf({ pages, extra, encrypt })`, `padPdf`. The only binaries are the 14 small attack PDFs in `tests/fixtures/rx/` (object-stream and page-count tricks from the R2 review) |
 | `otp.ts` | `lastOtpCode(to)`, reading the mock outbox |
 | `auth.ts` | `DEFAULT_SIGNUP`, the sign-up details every login test sends by default; an existing user ignores them |
 | `claims.ts` | `BANNED_CLAIMS`, `RX_UNIVERSAL_CLAIMS` and `findClaims(text, { allRx })`: every invented claim in rendered copy (licences, certifications, positive guarantees (a negated "we do not guarantee" passes), cure claims, ratings, reviews, counts, "bestseller", "trending", therapy-area words), plus copy saying every medicine needs a prescription [C25], skipped only with `allRx: true`, which a page passes only when it computed that from catalogue data. The review patterns are narrow because "Under review" is a real Rx status. It reads only the text given, so check `alt`, `aria-label` and metadata separately. The legal page tests use it now; each page or section task adds it to its tests as it lands |
