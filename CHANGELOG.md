@@ -17,6 +17,7 @@ bottom use commit SHAs.
 ## [Unreleased]
 
 ### Fixed
+- `checkRxFile` loads sharp with `createRequire` instead of `import`: once a route reaches it, an imported sharp makes Turbopack add about 450 B (gzipped) to every page's browser runtime chunk, which broke the product page's 170 kB first-load ratchet. File tracing still ships sharp (#224)
 - The `int` CI job no longer hangs or fails at about 36 s: `db-indexes-script` and `seed` int tests spawned their scripts with `spawnSync`, which stopped the worker draining mongod's log pipe, so mongod stalled and the script timed out or hung forever. They now use the async `runPnpm` (`tests/helpers/run-script.ts`, kills the process group on timeout), `tests/int/run-script.test.ts` refuses a sync spawn in a replica-set file, and every job in `ci.yml` has a `timeout-minutes` (#221)
 
 ### Added
