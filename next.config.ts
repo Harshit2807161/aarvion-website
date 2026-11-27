@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   agentRules: false,
   cacheComponents: true,
   partialPrefetching: true,
+  // pdf-lib runs only in the PDF check's worker thread (src/server/prescriptions/pdf-scan.ts): kept
+  // external so the worker can import it at run time and file tracing copies it into the function.
+  serverExternalPackages: ["pdf-lib"],
   images: { formats: ["image/avif", "image/webp"], qualities: [70, 75, 85] },
 };
 

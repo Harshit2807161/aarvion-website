@@ -91,6 +91,8 @@ jobs:
       - run: pnpm db:indexes
       - run: pnpm seed
       - run: pnpm build
+      # The upload routes must ship pdf-lib, sharp and the PDF worker (scripts/check-rx-trace.ts).
+      - run: pnpm check:rx-trace
 
   e2e:
     runs-on: ubuntu-latest
