@@ -21,6 +21,7 @@ export default defineConfig({
         process.env.MONGODB_URI ??
         "mongodb://localhost:27017/?replicaSet=rs0&directConnection=true",
       MONGODB_DB: "aarvion_e2e",
+      APP_URL: `http://localhost:${PORT}`,
       OTP_PEPPER: randomBytes(32).toString("hex"),
       ALLOW_MOCKS_IN_PROD_BUILD: "1",
     },

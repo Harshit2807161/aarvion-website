@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { LiveRegion } from "@/components/feedback/live-region";
 import { Toaster } from "@/components/feedback/toast";
-import { resolveSiteMetadataBase, SITE_CONFIG } from "@/config/site";
+import { resolveSiteMetadataBase } from "@/config/site";
 import { fontVariables } from "@/fonts";
 import "./globals.css";
 
@@ -12,8 +12,12 @@ import "./globals.css";
 export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: resolveSiteMetadataBase(process.env.APP_URL),
-    title: SITE_CONFIG.legalName,
-    description: `${SITE_CONFIG.legalName} storefront`,
+    title: {
+      default: "Aarvion Pharmaceuticals · Buy Aarvion medicines online",
+      template: "%s · Aarvion Pharmaceuticals",
+    },
+    description:
+      "Buy Aarvion’s prescription medicines online. A pharmacist checks every prescription, delivery is free across India, and cash on delivery is available.",
   };
 }
 
