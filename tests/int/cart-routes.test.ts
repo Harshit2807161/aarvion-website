@@ -3,10 +3,12 @@ import { Collection } from "mongodb";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, PUT } from "@/app/api/cart/items/[slug]/route";
 import { POST as ADD } from "@/app/api/cart/items/route";
+import { POST as MERGE } from "@/app/api/cart/merge/route";
+import { POST as QUOTE } from "@/app/api/cart/quote/route";
 import { GET } from "@/app/api/cart/route";
 import { SESSIONS_COLLECTION } from "@/server/auth/sessions";
 import { USERS_COLLECTION } from "@/server/auth/users";
-import { CARTS_COLLECTION } from "@/server/cart/carts";
+import { CARTS_COLLECTION, readCart } from "@/server/cart/carts";
 import { CATEGORY_LIST } from "@/server/catalogue/categories";
 import { CATEGORIES_COLLECTION, PRODUCTS_COLLECTION } from "@/server/catalogue/collections";
 import { DEFAULT_MRP_PAISE } from "@/server/catalogue/pricing";
@@ -73,6 +75,13 @@ describe("auth, origin and validation", () => {
     const res = await ADD(items({ slug: "sacuwin-100", qty: 1 }, cookie, { origin: null }));
     expect(res.status).toBe(403);
     expect(await body(res)).toEqual({ error: "bad_origin" });
+  });
+
+  it("answers 400 for a merge body of more than 20 lines", async () => {
+    const { cookie } = await signedIn();
+    const lines = Array.from({ length: 21 }, (_, i) => ({ slug: `s-${i}`, qty: 1 }));
+    const res = await MERGE(jsonReq("POST", "/api/cart/merge", { lines }, { cookie }));
+    expect(res.status).toBe(400);
   });
 
   it("answers 400 for a bad [slug] and a qty out of range", async () => {
@@ -163,6 +172,53 @@ describe("items", () => {
   }, 60_000);
 });
 
+describe("merge", () => {
+  it("answers 401 without a session and 403 without an Origin", async () => {
+    const lines = [{ slug: "sacuwin-100", qty: 1 }];
+    expect((await MERGE(jsonReq("POST", "/api/cart/merge", { lines }))).status).toBe(401);
+    const { cookie } = await signedIn();
+    const res = await MERGE(
+      jsonReq("POST", "/api/cart/merge", { lines }, { cookie, origin: null }),
+    );
+    expect(res.status).toBe(403);
+    expect(await body(res)).toEqual({ error: "bad_origin" });
+  });
+
+  it("lists guest lines that did not carry over in removed, and reports a trim", async () => {
+    const { cookie } = await signedIn();
+    await ADD(items({ slug: "sacuwin-50", qty: 10 }, cookie));
+    await ADD(items({ slug: "sacuwin-100", qty: 6 }, cookie));
+    const lines = [
+      { slug: "ghost", qty: 1 },
+      { slug: "sacuwin-200", qty: 10 },
+    ];
+    const res = await MERGE(jsonReq("POST", "/api/cart/merge", { lines }, { cookie }));
+    expect(res.status).toBe(200);
+    const out = await body(res);
+    expect(out.removed).toEqual(["ghost"]);
+    expect(out.trimmed).toBe(true);
+    expect(out.totals.packs).toBe(20);
+  });
+
+  it("two parallel merges of the same guest lines agree, and rev stays small", async () => {
+    const { user, cookie } = await signedIn();
+    const lines = [
+      { slug: "sacuwin-100", qty: 2 },
+      { slug: "sacuwin-50", qty: 3 },
+      { slug: "ghost", qty: 1 },
+    ];
+    const [a, b] = await Promise.all([
+      MERGE(jsonReq("POST", "/api/cart/merge", { lines }, { cookie })),
+      MERGE(jsonReq("POST", "/api/cart/merge", { lines }, { cookie })),
+    ]);
+    expect([a.status, b.status]).toEqual([200, 200]);
+    const [ba, bb] = [await body(a), await body(b)];
+    expect(ba.lines).toEqual(bb.lines);
+    expect(ba.lines).toHaveLength(2);
+    expect((await readCart(user._id))!.rev).toBeLessThanOrEqual(3);
+  });
+});
+
 describe("the sliding cookie", () => {
   it("is re-issued once the session slid, and not before", async () => {
     const { cookie } = await signedIn();
@@ -174,6 +230,46 @@ describe("the sliding cookie", () => {
     clock.advance(2 * 60_000);
     const added = await ADD(items({ slug: "sacuwin-100", qty: 1 }, cookie));
     expect(added.headers.get("set-cookie")).toContain("Max-Age=2592000");
+  });
+});
+
+describe("quote", () => {
+  const quote = (lines: unknown, ip = "203.0.113.10") =>
+    QUOTE(jsonReq("POST", "/api/cart/quote", { lines }, { ip }));
+
+  it("answers 403 without an Origin", async () => {
+    const res = await QUOTE(jsonReq("POST", "/api/cart/quote", { lines: [] }, { origin: null }));
+    expect(res.status).toBe(403);
+    expect(await body(res)).toEqual({ error: "bad_origin" });
+  });
+
+  it("prices guest lines without a session and writes no cart", async () => {
+    const res = await quote([
+      { slug: "sacuwin-100", qty: 2 },
+      { slug: "ghost", qty: 1 },
+    ]);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    const out = await body(res);
+    expect(out.lines).toHaveLength(1);
+    expect(out.removed).toEqual(["ghost"]);
+    expect(out.totals.packs).toBe(2);
+    const db = await getDb();
+    expect(await db.collection(CARTS_COLLECTION).countDocuments()).toBe(0);
+  });
+
+  it("is limited to 60 a minute per IP bucket, with Retry-After", async () => {
+    for (let i = 0; i < 60; i++) expect((await quote([], "198.51.100.7")).status).toBe(200);
+    const res = await quote([], "198.51.100.7");
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).not.toBeNull();
+    expect((await quote([], "198.51.100.200")).status).toBe(200);
+  }, 60_000);
+
+  it("rejects a duplicate-heavy body by capping, and a bad body with 400", async () => {
+    expect((await quote([{ slug: "Bad Slug", qty: 1 }])).status).toBe(400);
+    const dup = Array.from({ length: 20 }, () => ({ slug: "sacuwin-100", qty: 10 }));
+    expect((await body(await quote(dup))).totals.packs).toBe(10);
   });
 });
 
@@ -197,6 +293,7 @@ describe("logging", () => {
     await ADD(items({ slug: "nope", qty: 1 }, cookie));
     await ADD(items("not json", cookie));
     await ADD(items({ slug: "sacuwin-100", qty: 1 }, cookie, { contentType: "text/plain" }));
+    await MERGE(jsonReq("POST", "/api/cart/merge", { lines: "x" }, { cookie }));
     const logged = JSON.stringify(errors.mock.calls);
     for (const needle of ["nope", "sacuwin", "9876500001", cookie.split("=")[1]!]) {
       expect(logged).not.toContain(needle);

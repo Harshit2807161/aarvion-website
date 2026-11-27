@@ -149,7 +149,8 @@ const sameLines = (a: readonly CartLine[], b: readonly CartLine[]) =>
  * guest cart whose first lines are gone cannot crowd out its live ones), then `mergeLines` takes
  * the larger quantity per slug and cuts at 20 packs (`trimmed`). Idempotent: a replayed merge
  * finds nothing to change and writes nothing. Only the first 20 distinct guest slugs are looked
- * up, which is more than any cart can hold.
+ * up, which is more than any cart can hold. `removed` lists the retired server lines and the guest
+ * slugs that were not purchasable, so the client can say what did not carry over.
  */
 export async function mergeGuestCart(
   userId: ObjectId,
@@ -163,7 +164,9 @@ export async function mergeGuestCart(
     const merged = mergeLines(ls, known);
     return { lines: sameLines(ls, merged.lines) ? ls : merged.lines, trimmed: merged.trimmed };
   });
-  return { ...view, trimmed };
+  // The shopper should hear about a guest item that did not make it across, as well as a retired server line.
+  const dropped = slugs.slice(0, 20).filter((slug) => !found.has(slug));
+  return { ...view, removed: [...new Set([...view.removed, ...dropped])], trimmed };
 }
 
 /** Prices lines without touching any cart; non-purchasable slugs are listed in `removed`. */

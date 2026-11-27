@@ -128,7 +128,7 @@ Helpers in `tests/helpers/`:
   before `load`; CLS under 0.1 at both widths with and without motion; the header logo as the
   only image preload (the `Link` response header) and exactly the three self-hosted fonts, none
   from Google, covering the rupee sign; the banner unchanged after 7 s under reduced motion; with JavaScript off at 390, cards 2 to 4 show a loaded picture. The JS total is the sum of the scripts' encoded body sizes from Resource Timing (never `content-length`, which Next omits when compressing), with a 50 kB floor so a measurement that reads nothing cannot pass. The
-  first-load JS on `/` is a ratchet at 175 kB gzipped (about 170 kB today, target 150 kB): lower `HOME_JS_BUDGET_BYTES` whenever it shrinks. The product page has its own ratchet at 170 kB (`PRODUCT_JS_BUDGET_BYTES`, 166.5 kB measured, target 150 kB); a separate PR that lazy-loads the header search island should lower both.
+  first-load JS on `/` is a ratchet at 175 kB gzipped (about 170 kB today; the original 150 kB target was replaced by the ratchets, 2026-11-27): lower `HOME_JS_BUDGET_BYTES` whenever it shrinks. The product page has its own ratchet at 170 kB (`PRODUCT_JS_BUDGET_BYTES`, 166.5 kB measured); a separate PR that lazy-loads the header search island should lower both.
 - `e2e/budgets.spec.ts` also holds the product page budgets at 390: first-load JS (the 170 kB ratchet above, with the same floors), LCP the eager first gallery photo under 2.5 s, the photo served as AVIF, CLS under 0.1.
 - `e2e/freshness.spec.ts` [P55] changes `mucohelp`'s (Respiratory care) MRP straight in the `aarvion_e2e` database
   (the admin editor does not exist yet; use it instead once it does), expires the cache through

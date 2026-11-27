@@ -75,7 +75,7 @@ Carried (repo rules; AGENTS.md wins if it differs):
 - **Hydration:** no `sessionStorage`, `window` or `location` read during render; stores serve a frozen server snapshot through `useSyncExternalStore`.
 - **Routes map:** link through `ROUTES`. A linked page that is not built yet is listed in `PENDING_ROUTES` (`e2e/links.spec.ts` expects a 404); the task that builds it deletes the entry and adds the page to `START`.
 - **Mocks:** forbidden in production, exactly as `isMockForbidden()` decides; from R3, `FILE_STORE=memory` and `FILE_STORE=local` count as mocks.
-- **Budgets:** product pages keep first-load JS ≤ 150 KB gzipped and the home its 175 KB ratchet (`e2e/budgets.spec.ts`). `@vercel/blob/client` is dynamically imported on the first upload only.
+- **Budgets:** product pages keep their 170 kB first-load JS ratchet (the 150 kB target was superseded, 2026-11-27) and the home its 175 kB ratchet (`e2e/budgets.spec.ts`). `@vercel/blob/client` is dynamically imported on the first upload only.
 
 Business values, used verbatim:
 - **Cart caps:** `CART_LIMITS = { perProduct: 10, perOrder: 20 }`. An add that would exceed either cap changes nothing.
