@@ -9,6 +9,11 @@ export type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | 
   hint?: string;
   /** The message to show; `null`/`undefined`/"" means the field is valid. */
   error?: string | null;
+  /**
+   * The error is announced with `role="alert"` (default). Pass false when an `ErrorSummary`
+   * speaks for the form, so one submit never fires several assertive alerts.
+   */
+  errorAlert?: boolean;
   /** A fixed leading mark such as "+91"; decorative, so hidden from assistive tech. */
   prefix?: string;
   mono?: boolean;
@@ -23,6 +28,7 @@ export function TextField({
   label,
   hint,
   error,
+  errorAlert = true,
   prefix,
   mono,
   className,
@@ -59,7 +65,7 @@ export function TextField({
         </p>
       ) : null}
       {hasError ? (
-        <p className="field-err" id={`${id}-err`} role="alert">
+        <p className="field-err" id={`${id}-err`} role={errorAlert ? "alert" : undefined}>
           <Icon name="alert" size={18} />
           {error}
         </p>
