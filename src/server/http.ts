@@ -27,11 +27,14 @@ export function jsonResponse(
 
 export const MAX_JSON_BYTES = 16 * 1024;
 
-/** Reads the body as text, refusing more than `max` bytes even without a Content-Length. */
-async function readCapped(req: Request, max: number): Promise<string> {
+/**
+ * Reads the whole body as bytes, refusing more than `max` bytes (413 `payload_too_large`) even
+ * without a Content-Length: the stream is cancelled as soon as it passes the cap.
+ */
+export async function readCappedBytes(req: Request, max: number): Promise<Uint8Array> {
   const declared = Number(req.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > max) throw new HttpError(413, "payload_too_large");
-  if (!req.body) return "";
+  if (!req.body) return new Uint8Array(0);
   const reader = req.body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;
@@ -45,7 +48,7 @@ async function readCapped(req: Request, max: number): Promise<string> {
     }
     chunks.push(value);
   }
-  return new TextDecoder().decode(Buffer.concat(chunks));
+  return new Uint8Array(Buffer.concat(chunks));
 }
 
 /** Parses a JSON request body (max 16 KB) against a schema, throwing HttpError on any problem. */
@@ -53,7 +56,7 @@ export async function readJson<T>(req: Request, schema: z.ZodType<T>): Promise<T
   // Exact media type, optionally with parameters: "application/jsonp" must not pass.
   const type = (req.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
   if (type !== "application/json") throw new HttpError(415, "unsupported_media_type");
-  const text = await readCapped(req, MAX_JSON_BYTES);
+  const text = new TextDecoder().decode(await readCappedBytes(req, MAX_JSON_BYTES));
   let raw: unknown;
   try {
     raw = JSON.parse(text);
