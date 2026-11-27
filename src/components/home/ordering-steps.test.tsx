@@ -30,7 +30,14 @@ describe("OrderingSteps (static composition, C3)", () => {
     const steps = [...c.querySelectorAll("li.step")];
     expect(steps.map((s) => s.classList.contains("is-active"))).toEqual([true, false, false]);
     expect(steps.map((s) => s.querySelector(".step-dot")?.textContent)).toEqual(["1", "2", "3"]);
-    expect(steps[1]?.querySelector("p")?.textContent).toContain("refund your payment");
+  });
+
+  it("promises a refund only while online payments are live", () => {
+    const on = [...setup(true).querySelectorAll("li.step")][1]?.querySelector("p")?.textContent;
+    expect(on).toContain("we tell you why by SMS or email and refund your payment.");
+    const off = [...setup(false).querySelectorAll("li.step")][1]?.querySelector("p")?.textContent;
+    expect(off).toContain("we tell you why by SMS or email, and the order is not packed.");
+    expect(off).not.toMatch(/refund|payment/i);
   });
 
   it("labels each picture as an example", () => {
@@ -69,7 +76,7 @@ describe("OrderingSteps (static composition, C3)", () => {
     const text = setup(false).textContent ?? "";
     expect(text).toContain("Pay by cash on delivery.");
     expect(text).toContain("Cash on delivery");
-    expect(text).not.toMatch(/online|razorpay|upi/i);
+    expect(text).not.toMatch(/online|razorpay|upi|refund/i);
     expect(findClaims(text)).toEqual([]);
   });
 

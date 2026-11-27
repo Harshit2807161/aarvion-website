@@ -68,13 +68,14 @@ export async function readJson<T>(req: Request, schema: z.ZodType<T>): Promise<T
 /**
  * Wraps a route handler so every failure becomes a safe JSON error response. Next's control flow
  * (notFound(), redirect(), a prerender abort from connection()) is rethrown untouched and unlogged.
+ * Extra arguments (a dynamic route's `{ params }`) are passed through.
  */
-export function withErrors(
-  handler: (req: Request) => Promise<Response>,
-): (req: Request) => Promise<Response> {
-  return async (req) => {
+export function withErrors<A extends unknown[] = []>(
+  handler: (req: Request, ...rest: A) => Promise<Response>,
+): (req: Request, ...rest: A) => Promise<Response> {
+  return async (req, ...rest) => {
     try {
-      return await handler(req);
+      return await handler(req, ...rest);
     } catch (err) {
       unstable_rethrow(err);
       if (err instanceof HttpError) {

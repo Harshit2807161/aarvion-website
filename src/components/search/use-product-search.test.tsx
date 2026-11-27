@@ -196,6 +196,20 @@ describe("useProductSearch", () => {
     expect(result.current).toEqual({ results: [], status: "idle" });
   });
 
+  it("offers no results for a query that has not settled, not the previous query's", async () => {
+    fetchMock.mockImplementationOnce(async () => json(200, { results: [hit("old")] }));
+    const { result, rerender } = renderHook(({ q }) => useProductSearch(q, null), {
+      initialProps: { q: "sac" },
+    });
+    await flush();
+    expect(result.current.results.map((r) => r.slug)).toEqual(["old"]);
+    fetchMock.mockImplementationOnce(() => new Promise<Response>(() => {}));
+    rerender({ q: "bemp" });
+    expect(result.current).toEqual({ results: [], status: "loading" });
+    await flush();
+    expect(result.current).toEqual({ results: [], status: "loading" });
+  });
+
   it("returns the same empty array on every render, idle or loading", async () => {
     const { result, rerender } = renderHook(({ q }) => useProductSearch(q, null), {
       initialProps: { q: "" },
