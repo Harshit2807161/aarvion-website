@@ -402,14 +402,16 @@ describe("LoginFlow: profile step", () => {
     const { container } = await toProfile();
     expect(screen.getByRole("heading", { name: LOGIN_COPY.profileTitle })).toBeInTheDocument();
     expect(container.textContent).toContain(`+91 98765 43210 ${LOGIN_COPY.profileSub}`);
-    expect(screen.getByRole("link", { name: "Terms of use" })).toHaveAttribute(
-      "href",
-      "/legal/terms",
-    );
-    expect(screen.getByRole("link", { name: "Privacy policy" })).toHaveAttribute(
-      "href",
-      "/legal/privacy",
-    );
+    for (const [name, href] of [
+      ["Terms of use", "/legal/terms"],
+      ["Privacy policy", "/legal/privacy"],
+    ]) {
+      const link = screen.getByRole("link", { name: `${name} ${LOGIN_COPY.newTab}` });
+      expect(link).toHaveAttribute("href", href);
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link.getAttribute("rel")).toContain("noopener");
+      expect(link.querySelector(".sr-only")).toHaveTextContent(LOGIN_COPY.newTab);
+    }
     expect(screen.getAllByRole("checkbox")).toHaveLength(3);
     expect(container.textContent).toContain(LOGIN_COPY.marketingSub);
     expect(findClaims(container.textContent ?? "")).toEqual([]);

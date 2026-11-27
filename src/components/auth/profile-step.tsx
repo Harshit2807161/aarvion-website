@@ -13,7 +13,7 @@
  *   (`nameTooLong`) land on the name field.
  * - The terms consent is required here (the prototype only had a line of text): its label links
  *   to the Terms of use and the Privacy policy through ROUTES, opening in a new tab so the held
- *   code is not lost.
+ *   code is not lost; each link says so to assistive tech (`LOGIN_COPY.newTab`, visually hidden).
  * - A rate limit counts down live from `lockedUntil`; other messages are spoken via `announce()`.
  */
 import Link from "next/link";
@@ -41,6 +41,7 @@ function withLegalLinks(text: string): ReactNode[] {
     href[part] ? (
       <Link key={i} href={href[part]} target="_blank" rel="noopener">
         {part}
+        <span className="sr-only"> {LOGIN_COPY.newTab}</span>
       </Link>
     ) : (
       part

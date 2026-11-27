@@ -68,6 +68,9 @@ export const LOGIN_COPY = {
   adultRequired: "Confirm that you are 18 or older to create an account.",
   terms: "I agree to the Terms of use and the Privacy policy",
   termsRequired: "Agree to the Terms of use and the Privacy policy to create an account.",
+  // Added in Task 42: the visually hidden hint on the consent links, which open in a new tab so
+  // the held code is not lost. Awaiting the owner's approval.
+  newTab: "(opens in a new tab)",
   marketing: "Tell me about new Aarvion medicines",
   marketingSub: "Optional. By SMS and email. Change it any time in your account.",
   create: "Create account",
