@@ -96,25 +96,19 @@ test.describe("film without its script", () => {
       }
     }
     // The static layout stands: the three ordering cards are in their own boxes, not stacked.
-    const boxes = await page.locator(".steps-vis > .vis").evaluateAll((els) =>
-      els.map((el) => {
-        const r = el.getBoundingClientRect();
-        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
-      }),
-    );
-    expect(boxes).toHaveLength(3);
-    for (let i = 0; i < boxes.length; i++) {
-      for (let j = i + 1; j < boxes.length; j++) {
-        const a = boxes[i]!;
-        const b = boxes[j]!;
-        const disjoint =
-          a.bottom <= b.top + 1 ||
-          b.bottom <= a.top + 1 ||
-          a.right <= b.left + 1 ||
-          b.right <= a.left + 1;
-        expect(disjoint, `cards ${i + 1} and ${j + 1} do not overlap`).toBe(true);
-      }
-    }
+    const overlaps = await page.locator(".steps-vis > .vis").evaluateAll((els) => {
+      const r = els.map((el) => el.getBoundingClientRect());
+      const hit = (a: DOMRect, b: DOMRect) =>
+        a.bottom > b.top + 1 &&
+        b.bottom > a.top + 1 &&
+        a.right > b.left + 1 &&
+        b.right > a.left + 1;
+      return r.flatMap((a, i) =>
+        r.slice(i + 1).flatMap((b, j) => (hit(a, b) ? [[i, i + j + 1]] : [])),
+      );
+    });
+    expect(await page.locator(".steps-vis > .vis").count()).toBe(3);
+    expect(overlaps, "no two ordering cards overlap").toEqual([]);
     const swoosh = await page
       .locator(".close-swoosh")
       .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
