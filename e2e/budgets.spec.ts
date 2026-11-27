@@ -174,7 +174,7 @@ test.describe("home loading", () => {
   });
 });
 
-// First-load JS on `/`, gzipped. The plan's target is 150 kB, but `/` ships about 170 kB today:
+// First-load JS on `/`, gzipped. The plan's original 150 kB target was replaced by this ratchet (2026-11-27); `/` ships about 170 kB:
 // React DOM 73, Next's client 47, the app and runtime about 50. The ruling is a ratchet at 175 kB
 // so it can only get smaller; product pages have their own 170 kB ratchet. Follow-up (filed separately): lazy-load the
 // header search island on first focus or idle and trim the hero chunk, then lower this number.

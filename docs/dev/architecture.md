@@ -177,7 +177,8 @@ React components, added task by task. The folders below exist today:
 ### src/lib/
 
 - `cart/`: the session-only UI cart:
-  - `cart.ts` the record-shaped UI cart; `CART_LIMITS` and `CartBlock` are re-exported from `src/server/cart/rules.ts`, and `applyCart` delegates to its `addLine` and `setLineQty`
+  - `api.ts` the browser client for `/api/cart/**` (`getCart`, `addItem`, `setQty`, `removeItem`, `mergeCart`, `quoteCart`; nothing throws, 15 s timeout, anything unexpected is `network`, a refusal carries the unchanged cart as `view`)
+  - `cart.ts` the record-shaped UI cart; `CART_LIMITS` and `CartBlock` are re-exported from `src/server/cart/rules.ts`, and `applyCart` (actions `inc`, `dec`, `set`, `remove`) delegates to its `addLine` and `setLineQty`; the storage keys `CART_GUEST_STORAGE_KEY` (`aarv-cart-guest-v1`) and the old `CART_UI_STORAGE_KEY` (`aarv-cart-ui-v0`)
   - `store.ts` `cartStore` over `sessionStorage` key `aarv-cart-ui-v0` with a cached `getSnapshot` and a frozen `{}` server snapshot
   - `use-cart-lines.ts` the client hook
   - It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. It stands in until the real server cart arrives in phase K, which replaces it.
