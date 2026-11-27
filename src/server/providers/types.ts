@@ -36,8 +36,10 @@ export interface PaymentGateway {
 }
 
 /**
- * Private file storage. Every provider checks keys with `assertSafeKey` (file-keys.ts).
- * `get` returns null for a missing file and throws `FileTooLargeError` over `maxBytes`.
+ * Private file storage. Every provider checks keys with `assertSafeKey` and content types with
+ * `assertStoredType` (file-keys.ts). `put` never overwrites: an existing key throws
+ * `FileExistsError`. `get` returns null for a missing file and throws `FileTooLargeError` over
+ * `maxBytes` (default `DEFAULT_MAX_READ_BYTES`, 8 MiB).
  */
 export interface FileStore {
   readonly kind: "memory" | "local" | "blob";
