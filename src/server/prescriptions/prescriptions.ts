@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { ObjectId } from "mongodb";
+import type { ClientSession, ObjectId } from "mongodb";
 import { z } from "zod";
 import { PersonName } from "../auth/login.ts";
 import { getDb } from "../db/client.ts";
@@ -98,17 +98,21 @@ export async function peekStaging(
   return (await staging()).findOne({ _id: id, userId, expiresAt: { $gt: now } });
 }
 
-/** Single use: deletes and returns the live slot, atomically. */
+/** Single use: deletes and returns the live slot, atomically (inside `session`'s transaction if given). */
 export async function takeStaging(
   id: string,
   userId: ObjectId,
   now: Date,
+  session?: ClientSession,
 ): Promise<StagingDoc | null> {
-  return (await staging()).findOneAndDelete({ _id: id, userId, expiresAt: { $gt: now } });
+  return (await staging()).findOneAndDelete(
+    { _id: id, userId, expiresAt: { $gt: now } },
+    { session },
+  );
 }
 
-export async function insertRx(doc: RxDoc): Promise<void> {
-  await (await prescriptions()).insertOne(doc);
+export async function insertRx(doc: RxDoc, session?: ClientSession): Promise<void> {
+  await (await prescriptions()).insertOne(doc, { session });
 }
 
 /** The user's prescriptions, newest first. */
