@@ -1,15 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore, type MouseEvent } from "react";
-import { fetchSessionState } from "@/components/auth/session-state";
+import { useEffect, useRef, useState } from "react";
 import { buttonClass } from "@/components/base/button-class";
 import { Icon } from "@/components/base/icon";
 import { Rupees } from "@/components/base/rupees";
 import { EmptyState } from "@/components/shell/empty-state";
 import { ROUTES } from "@/config/routes";
 import { CART_LIMITS, cartCount } from "@/lib/cart/cart";
-import { cartStore, type CartMode } from "@/lib/cart/store";
 import { useCartLines } from "@/lib/cart/use-cart-lines";
 import { useCartView } from "@/lib/cart/use-cart-view";
 import { cn } from "@/lib/cn";
@@ -26,13 +24,12 @@ import {
   type Row,
 } from "./cart-page-parts";
 import { CartSummary } from "./cart-summary";
+import { useCartSession, useRemoveFocus } from "./use-cart-surface";
 
 const P = CART_COPY.page;
 const S = CART_COPY.summary;
 
 const packs = (n: number) => `${n} ${n === 1 ? S.pack : S.packs}`;
-const getServerMode = (): CartMode => "unknown";
-const noSubscribe = () => () => {};
 
 /**
  * The /cart page body (the prototype's `.cart-grid`). Prices come only from the server-priced view
@@ -46,6 +43,8 @@ const noSubscribe = () => () => {};
  * request), and while a confirmed signed-in cart is loading. For that it
  * asks the session itself on mount and, when someone is signed in, signs the store in (the store
  * shares one sign-in between this and `CartSync`); a failed sign-in falls back to the empty state.
+ * The session gate and the focus after Remove are `useCartSession` and `useRemoveFocus`, shared
+ * with the drawer.
  */
 export function CartPage({
   medicineWord,
@@ -59,46 +58,8 @@ export function CartPage({
 }) {
   const lines = useCartLines();
   const { lines: priced, totals, updating } = useCartView();
-  const mode = useSyncExternalStore(cartStore.subscribe, cartStore.getMode, getServerMode);
   const count = cartCount(lines);
-  // The server render (and the hydration pass) cannot know the cart: it shows the loading state.
-  const hydrated = useSyncExternalStore(
-    noSubscribe,
-    () => true,
-    () => false,
-  );
-  const [sessionIn, setSessionIn] = useState(false);
-  const [signingIn, setSigningIn] = useState(false); // a confirmed signed-in cart is loading
-  // The page's own session check is pending (one request, never stuck on CartSync). Until it
-  // answers, an empty store may still be a signed-in cart, so the empty state waits for it (P3-M1).
-  const [checking, setChecking] = useState(() => cartStore.getMode() === "unknown");
-
-  useEffect(() => {
-    cartStore.price();
-    if (cartStore.getMode() !== "unknown") return; // known already: `checking` no longer matters
-    let alive = true;
-    void fetchSessionState().then((session) => {
-      if (!alive) return;
-      setChecking(false);
-      if (session.state !== "in") return; // out or unknown: the guest cart stands
-      setSessionIn(true);
-      if (cartStore.getMode() === "user") return;
-      setSigningIn(true);
-      void cartStore.signIn().finally(() => alive && setSigningIn(false));
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const signedIn = mode === "user" || sessionIn;
-  // Once lines have been seen, an empty store is an empty cart (the last one was removed), even while
-  // the session check or a sign-in is still running, so focus can land on the empty state (P4-M1).
-  const [seen, setSeen] = useState(false);
-  if (count > 0 && !seen) setSeen(true);
-  const loading =
-    !hydrated ||
-    (count === 0 && !seen && ((checking && mode === "unknown") || (signingIn && mode !== "user")));
+  const { mode, signedIn, loading } = useCartSession(count);
 
   // The rows, in cart order: priced ones from the view, the rest pending.
   const facts = new Map<string, PricedLine>(priced.map((l) => [l.slug, l]));
@@ -121,29 +82,10 @@ export function CartPage({
   const order = rows.map((r) => r.slug);
   const unpriced = priced.length === 0; // no priced view yet: no totals at all
 
-  // Focus after Remove: remember where the removed line was, then place focus once it is gone.
+  // Focus after Remove: the next line's Remove, else the previous line's, else the empty state's link.
   const mainRef = useRef<HTMLDivElement>(null);
   const emptyRef = useRef<HTMLAnchorElement>(null);
-  const removed = useRef<{ slug: string; index: number } | null>(null);
-  const onRemoveClick = (e: MouseEvent<HTMLDivElement>) => {
-    const li = (e.target as Element).closest("[data-remove]")?.closest("li[data-slug]");
-    const slug = li?.getAttribute("data-slug");
-    if (slug) removed.current = { slug, index: order.indexOf(slug) };
-  };
-  const orderKey = order.join("\n");
-  useEffect(() => {
-    const r = removed.current;
-    if (!r) return;
-    const now = orderKey ? orderKey.split("\n") : [];
-    if (now.includes(r.slug)) return;
-    removed.current = null;
-    const target = now[r.index] ?? now[r.index - 1];
-    if (!target) return emptyRef.current?.focus();
-    const li = [...(mainRef.current?.querySelectorAll("li[data-slug]") ?? [])].find(
-      (el) => el.getAttribute("data-slug") === target,
-    );
-    li?.querySelector<HTMLElement>("[data-remove]")?.focus();
-  }, [orderKey]);
+  const onRemoveClick = useRemoveFocus(order, mainRef, emptyRef);
 
   // The phone dock shows while the receipt's Checkout is out of view.
   const anchorRef = useRef<HTMLAnchorElement>(null);
