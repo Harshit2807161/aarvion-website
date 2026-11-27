@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as sessionState from "@/components/auth/session-state";
 import { LiveRegion } from "@/components/feedback/live-region";
 import * as api from "@/lib/cart/api";
 import { cartStore, resetCartStore } from "@/lib/cart/store";
@@ -21,6 +22,8 @@ vi.mock("@/lib/cart/api", () => ({
   quoteCart: vi.fn(),
 }));
 const m = vi.mocked(api);
+vi.mock("@/components/auth/session-state", () => ({ fetchSessionState: vi.fn() }));
+const session = vi.mocked(sessionState.fetchSessionState);
 
 const SACU = pricedLine(2);
 const WIN = pricedLine(1, { slug: "win2age", name: "Win2Age", mrpPaise: 30000 });
@@ -48,6 +51,7 @@ beforeEach(() => {
   sessionStorage.clear();
   vi.resetAllMocks();
   resetCartStore();
+  session.mockResolvedValue({ state: "out" });
   vi.stubGlobal(
     "IntersectionObserver",
     class {
@@ -184,8 +188,9 @@ describe("CartPage without lines", () => {
     expect(html).not.toMatch(/₹|Your cart is empty/);
   });
 
-  it("shows a plain guest's empty cart on first paint, without waiting for CartSync", () => {
+  it("shows a plain guest's empty cart once its own session check says out, without CartSync", async () => {
     renderPage();
+    await settle();
     expect(empty()).not.toBeNull();
     expect(busy()).toBeUndefined();
     expect(text()).toContain(
@@ -195,5 +200,56 @@ describe("CartPage without lines", () => {
     expect(browse.getAttribute("href")).toBe("/#medicines");
     expect(findClaims(text())).toEqual([]);
     expect(document.querySelector("[aria-live], output")).toBe(document.getElementById("live"));
+  });
+
+  it("shows the empty state when the session cannot be found out (unknown)", async () => {
+    session.mockResolvedValue({ state: "unknown" });
+    renderPage();
+    await settle();
+    expect(empty()).not.toBeNull();
+    expect(cartStore.getMode()).toBe("unknown");
+  });
+
+  it("stays on loading while its session check is pending, so a signed-in cart never flashes empty", async () => {
+    let answer!: (v: { state: "in"; name: string }) => void;
+    session.mockImplementation(() => new Promise((r) => (answer = r)));
+    let cart!: (v: unknown) => void;
+    m.getCart.mockImplementation(() => new Promise((r) => (cart = r)) as never);
+    renderPage();
+    await settle();
+    expect(busy()).toBe("Loading your cart…"); // first client paint: the check is pending
+    expect(empty()).toBeNull();
+    await act(async () => answer({ state: "in", name: "Asha" }));
+    await settle();
+    expect(busy()).toBe("Loading your cart…"); // signed in: the cart is loading
+    expect(empty()).toBeNull();
+    await act(async () => cart({ ok: true, view: viewOf([SACU]) }));
+    await settle();
+    expect(document.querySelector("li.line[data-slug='sacuwin-100']")).not.toBeNull();
+  });
+
+  it("loads a signed-in cart: busy while it loads, then its lines", async () => {
+    session.mockResolvedValue({ state: "in", name: "Asha" });
+    let answer!: (v: unknown) => void;
+    m.getCart.mockImplementation(() => new Promise((r) => (answer = r)) as never);
+    renderPage();
+    await settle();
+    expect(busy()).toBe("Loading your cart…");
+    expect(empty()).toBeNull();
+    await act(async () => answer({ ok: true, view: viewOf([SACU]) }));
+    await settle();
+    expect(document.querySelector("li.line[data-slug='sacuwin-100']")).not.toBeNull();
+    expect(document.querySelector(".receipt a[data-checkout]")!.getAttribute("href")).toBe(
+      "/checkout",
+    );
+  });
+
+  it("falls back to the empty state when a signed-in load fails", async () => {
+    session.mockResolvedValue({ state: "in", name: "Asha" });
+    m.getCart.mockImplementation(() => Promise.resolve({ ok: false, error: "network" }) as never);
+    renderPage();
+    await settle();
+    expect(busy()).toBeUndefined();
+    expect(empty()).not.toBeNull();
   });
 });

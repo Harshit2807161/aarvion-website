@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { fetchSessionState } from "@/components/auth/session-state";
 import { buttonClass } from "@/components/base/button-class";
 import { Icon } from "@/components/base/icon";
 import { EmptyState } from "@/components/shell/empty-state";
@@ -37,8 +38,11 @@ const noSubscribe = () => () => {};
  * shows no totals before the first priced view. On mount it starts pricing a stored guest cart at
  * once (`cartStore.price()`) instead of waiting for `CartSync`'s idle mount.
  *
- * With no lines it shows the empty state at once, without waiting for `CartSync`; "Loading your
- * cart…" is only for the server render (and hydration), which cannot know the cart.
+ * With no lines it shows the empty state without waiting for `CartSync`: "Loading your
+ * cart…" is only for the server render, while the page's own session check is pending (one
+ * request), and while a confirmed signed-in cart is loading. For that it
+ * asks the session itself on mount and, when someone is signed in, signs the store in (the store
+ * shares one sign-in between this and `CartSync`); a failed sign-in falls back to the empty state.
  */
 export function CartPage({
   medicineWord,
@@ -60,10 +64,34 @@ export function CartPage({
     () => true,
     () => false,
   );
-  useEffect(() => cartStore.price(), []);
+  const [sessionIn, setSessionIn] = useState(false);
+  const [signingIn, setSigningIn] = useState(false); // a confirmed signed-in cart is loading
+  // The page's own session check is pending (one request, never stuck on CartSync). Until it
+  // answers, an empty store may still be a signed-in cart, so the empty state waits for it (P3-M1).
+  const [checking, setChecking] = useState(() => cartStore.getMode() === "unknown");
 
-  const signedIn = mode === "user";
-  const loading = !hydrated;
+  useEffect(() => {
+    cartStore.price();
+    if (cartStore.getMode() !== "unknown") return; // known already: `checking` no longer matters
+    let alive = true;
+    void fetchSessionState().then((session) => {
+      if (!alive) return;
+      setChecking(false);
+      if (session.state !== "in") return; // out or unknown: the guest cart stands
+      setSessionIn(true);
+      if (cartStore.getMode() === "user") return;
+      setSigningIn(true);
+      void cartStore.signIn().finally(() => alive && setSigningIn(false));
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const signedIn = mode === "user" || sessionIn;
+  const loading =
+    !hydrated ||
+    (count === 0 && ((checking && mode === "unknown") || (signingIn && mode !== "user")));
 
   // The rows, in cart order: priced ones from the view, the rest pending.
   const facts = new Map<string, PricedLine>(priced.map((l) => [l.slug, l]));
