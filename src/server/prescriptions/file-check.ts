@@ -28,7 +28,9 @@ export type RxFileError =
   | "animated"
   | "too_many_pages"
   | "encrypted"
-  | "active_content";
+  | "active_content"
+  /** The PDF check queue is full: retry shortly (the route maps it to a retryable error). */
+  | "busy";
 
 export type CheckedRxFile = {
   body: Uint8Array;
