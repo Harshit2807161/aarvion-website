@@ -1,8 +1,15 @@
 import { createHash } from "node:crypto";
-import sharp from "sharp";
+import { createRequire } from "node:module";
+import type Sharp from "sharp";
 import { PDF_MAX_PAGES, scanPdf } from "./pdf-scan";
 
 export { scanPdf };
+
+// Loaded through createRequire, not `import`: a static or dynamic import of sharp anywhere in the
+// app makes Turbopack ship extra runtime code (about 450 B gzipped) to every page's browser
+// runtime chunk, which breaks the first-load JS ratchet (e2e/budgets.spec.ts). The file tracer
+// still follows this require, so sharp ships with the function.
+const sharp = createRequire(import.meta.url)("sharp") as typeof Sharp;
 
 /**
  * Prescription file validation. The bytes decide the type (never a name or a declared type).

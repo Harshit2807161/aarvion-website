@@ -32,6 +32,26 @@ export function jsonPost(path: string, body: unknown, opts: JsonPostOpts = {}): 
   return jsonReq("POST", path, body, opts);
 }
 
+/** Builds a same-origin PUT of raw bytes (`application/octet-stream`); `origin: null` omits Origin. */
+export function bytesPut(
+  path: string,
+  bytes: Uint8Array,
+  opts: { origin?: string | null; cookie?: string; ip?: string } = {},
+): Request {
+  const headers: Record<string, string> = {
+    "x-real-ip": opts.ip ?? "203.0.113.10",
+    "content-type": "application/octet-stream",
+  };
+  const origin = opts.origin === undefined ? TEST_ORIGIN : opts.origin;
+  if (origin !== null) headers.origin = origin;
+  if (opts.cookie) headers.cookie = opts.cookie;
+  return new Request(new URL(path, TEST_ORIGIN), {
+    method: "PUT",
+    headers,
+    body: Buffer.from(bytes),
+  });
+}
+
 export function getReq(path: string, opts: { cookie?: string } = {}): Request {
   const headers: Record<string, string> = { "x-real-ip": "203.0.113.10" };
   if (opts.cookie) headers.cookie = opts.cookie;
