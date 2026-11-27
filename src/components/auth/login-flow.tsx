@@ -4,8 +4,8 @@
  * The login flow (pages/login.html v2, lines 108-191) for the /login page and, later, the header
  * dialog. It owns `loginReducer`, the 1 s clock and the end of the flow, renders the id and done
  * steps and runs the send effect and the session check; the code step (`code-step.tsx`) runs
- * verify, resend and Change, and the profile step (`profile-step.tsx`) runs sign-up. The demo
- * states (`allowDemo`) follow the page (Task 42 part B).
+ * verify, resend and Change, and the profile step (`profile-step.tsx`) runs sign-up. With
+ * `allowDemo`, `?state=` (read in an effect) opens a demo state from `demo-states.ts`.
  *
  * Rules kept here, each pinned by login-flow.test.tsx:
  * - Post exactly `identifierOf(...)`, the string the machine validated; the raw mobile input has
@@ -28,8 +28,16 @@ import { TextField } from "@/components/form/text-field";
 import { sanitizeNext } from "@/lib/next-url";
 import { type Channel, fetchSession, sendCode } from "./api";
 import { CodeStep } from "./code-step";
+import { type LoginDemoState, demoLoginState, isLoginDemoState } from "./demo-states";
 import { ProfileStep } from "./profile-step";
-import { LOGIN_COPY, identifierOf, initialLoginState, loginReducer } from "./login-machine";
+import {
+  LOGIN_COPY,
+  type LoginEvent,
+  type LoginState,
+  identifierOf,
+  initialLoginState,
+  loginReducer,
+} from "./login-machine";
 
 export type LoginDone = { isNewUser: boolean; name: string | null };
 
@@ -41,16 +49,21 @@ export type LoginFlowProps = {
   onDone?(r: LoginDone): void;
 };
 
+/** The machine's reducer, plus the one event only a demo state may send: replace the state. */
+function flowReducer(s: LoginState, e: LoginEvent | { type: "demo"; state: LoginState }) {
+  return e.type === "demo" ? e.state : loginReducer(s, e);
+}
+
 const CHANNELS = [
   { value: "phone", label: LOGIN_COPY.mobile, icon: "phone" },
   { value: "email", label: LOGIN_COPY.email, icon: "mail" },
 ] as const;
 
-export function LoginFlow({ mode, onDone }: LoginFlowProps) {
+export function LoginFlow({ mode, allowDemo = false, onDone }: LoginFlowProps) {
   const p = mode === "page" ? "pg" : "dlg";
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [state, dispatch] = useReducer(loginReducer, undefined, initialLoginState);
+  const [state, dispatch] = useReducer(flowReducer, undefined, initialLoginState);
   const [now, setNow] = useState(() => Date.now());
   const sending = useRef(false);
   const name = useRef<string | null>(null);
@@ -64,6 +77,19 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
     finished.current = true;
     onDone?.(r);
   });
+
+  // Demo states: only where the page allows them (never in production) and only on request.
+  const demoParam = allowDemo ? searchParams.get("state") : null;
+  const demo = isLoginDemoState(demoParam) ? demoParam : null;
+  // The code a demo shows in the boxes does not depend on time, so it is derived, not stored.
+  const demoCode = demo ? demoLoginState(demo, 0).code : "";
+  const openDemo = useEffectEvent((name: LoginDemoState) => {
+    // Built at the flow's own clock, so the first countdown frame reads exactly.
+    dispatch({ type: "demo", state: demoLoginState(name, now).state });
+  });
+  useEffect(() => {
+    if (demo) openDemo(demo);
+  }, [demo]);
 
   // Already signed in (another tab, or a back button): complete at once.
   useEffect(() => {
@@ -213,6 +239,7 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
         <CodeStep
           p={p}
           s={state}
+          initialCode={demoCode}
           now={now}
           dispatch={dispatch}
           setNow={setNow}
