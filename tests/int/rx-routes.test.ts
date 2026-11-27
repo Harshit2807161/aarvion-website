@@ -47,6 +47,22 @@ describe("the upload flow through the routes", () => {
     expect((await json(list)).items).toEqual([rx]);
   });
 
+  it("answers a repeat finalise of a used slot with 200 and the same record; another user gets 410", async () => {
+    const { cookie } = await signedIn();
+    const slot = await stagedViaRoutes(cookie, await jpegWithExif());
+    const first = await finalise(finaliseBody(slot.stagingId), { cookie });
+    expect(first.status).toBe(201);
+    const { rx } = await json(first);
+    const again = await finalise(finaliseBody(slot.stagingId), { cookie });
+    expect(again.status).toBe(200);
+    expect(again.headers.get("cache-control")).toBe("no-store");
+    expect(await json(again)).toEqual({ rx });
+    const other = await signedIn();
+    const theirs = await finalise(finaliseBody(slot.stagingId), { cookie: other.cookie });
+    expect(theirs.status).toBe(410);
+    expect(await json(theirs)).toEqual({ error: "upload_expired" });
+  });
+
   it("finalises a one-page PDF", async () => {
     const { cookie } = await signedIn();
     const slot = await stagedViaRoutes(cookie, pdf());

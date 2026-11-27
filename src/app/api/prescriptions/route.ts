@@ -32,10 +32,13 @@ export const GET = withErrors(async (req) => {
 
 /**
  * `POST /api/prescriptions { stagingId, patientName, declaration: true }`: validates the staged
- * file and records the prescription. 201 `{ rx }`; 410 `upload_expired` (slot gone or used); 422
+ * file and records the prescription. 201 `{ rx }`; 200 `{ rx }` when this slot was already
+ * finalised (idempotent by `stagingId`: the record it made, nothing new); 410 `upload_expired` (slot
+ * gone, refused or another user's, with no record of the caller's); 422
  * `{ error: "invalid_file", reason }`; 503 `busy` with `Retry-After` (retryable, never a 4xx);
  * 500 `upload_unconfirmed` with `Retry-After` when the database could not confirm the commit (the
- * record may exist: the client re-reads the list before retrying). Only ids are ever logged.
+ * record may exist: a retry with the same `stagingId` returns it with 200, or 410 if it never
+ * committed). Only ids are ever logged.
  */
 export const POST = withErrors(async (req) => {
   assertSameOrigin(req);
@@ -58,7 +61,10 @@ export const POST = withErrors(async (req) => {
       { status: 500, headers },
     );
   }
-  if (result.ok) return jsonResponse({ rx: result.rx }, { status: 201, headers });
+  // A replay (the slot was finalised before, e.g. the first response was lost) is 200, same body.
+  if (result.ok) {
+    return jsonResponse({ rx: result.rx }, { status: result.replay ? 200 : 201, headers });
+  }
   if (result.error === "upload_expired") {
     return jsonResponse({ error: "upload_expired" }, { status: 410, headers });
   }

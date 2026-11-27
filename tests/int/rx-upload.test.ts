@@ -208,8 +208,10 @@ describe("finishRxUpload", () => {
     expect(vi.mocked(checkRxFile)).toHaveBeenCalledTimes(1);
     expect(finals()).toHaveLength(1);
     expect(await listRxForUser(userId)).toHaveLength(1);
-    // Once it is done the slot is gone.
-    expect(await finish(userId, started.stagingId)).toEqual({ ok: false, error: "upload_expired" });
+    // Once it is done the slot is used: a repeat returns the same record (R6-I1), writing nothing.
+    const again = await finish(userId, started.stagingId);
+    expect(again).toMatchObject({ ok: true, replay: true });
+    expect(await listRxForUser(userId)).toHaveLength(1);
   });
 
   it("lets a crashed claim expire, then finishes", async () => {

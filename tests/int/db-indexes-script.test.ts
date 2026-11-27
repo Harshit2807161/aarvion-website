@@ -33,6 +33,12 @@ describe("pnpm db:indexes", () => {
       const indexes = await client.db("indexes_script_test").collection("dev_outbox").indexes();
       const ttl = indexes.find((i) => i.name === "expiresAt_1");
       expect(ttl?.expireAfterSeconds).toBe(0);
+      // R6-I1: finalise is idempotent by slot through this partial unique index.
+      const rx = await client.db("indexes_script_test").collection("prescriptions").indexes();
+      expect(rx.find((i) => i.name === "stagingId_unique")).toMatchObject({
+        unique: true,
+        partialFilterExpression: { stagingId: { $type: "string" } },
+      });
     } finally {
       await client.close();
     }

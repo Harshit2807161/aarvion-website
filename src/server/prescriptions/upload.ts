@@ -11,6 +11,7 @@ import {
   claimStaging,
   consumeStaging,
   createStaging,
+  getRxByStaging,
   getRxForUser,
   insertRx,
   peekStaging,
@@ -57,7 +58,8 @@ export async function startRxUpload(i: {
 }
 
 export type FinishResult =
-  | { ok: true; rx: RxListItem }
+  /** `replay`: the slot was already finalised; `rx` is the record it made then (nothing new written). */
+  | { ok: true; rx: RxListItem; replay?: true }
   | { ok: false; error: "upload_expired" | "file_missing" | RxFileError };
 
 const sha256 = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
@@ -97,6 +99,29 @@ export function isUnknownCommit(e: unknown): boolean {
   );
 }
 
+/** A duplicate key on `stagingId_unique`: another finish already recorded this slot. */
+function isDuplicateSlot(e: unknown): boolean {
+  if (!(e instanceof MongoError) || e.code !== 11000) return false;
+  // The key pattern, not the message text, says which unique index refused the insert.
+  const pattern = (e as MongoError & { keyPattern?: Record<string, unknown> }).keyPattern;
+  return pattern !== undefined && Object.hasOwn(pattern, "stagingId");
+}
+
+/**
+ * The record an earlier finish of this slot made, as a replay; else `upload_expired`. A slot that
+ * is another user's, refused, expired or never finalised has no record and stays `upload_expired`.
+ */
+async function replayOrExpired(
+  stagingId: string,
+  userId: ObjectId,
+  now: Date,
+): Promise<FinishResult> {
+  const done = await getRxByStaging(stagingId, userId);
+  return done
+    ? { ok: true, rx: rxView(done, now), replay: true }
+    : { ok: false, error: "upload_expired" };
+}
+
 /** Best-effort cleanup: a failed delete never decides the outcome, and only an error name is logged. */
 async function dropQuietly(path: string): Promise<void> {
   try {
@@ -114,6 +139,10 @@ async function dropQuietly(path: string): Promise<void> {
  * the slot; `busy` (the PDF scanner is full) and an abort release the lease, so a retry works. If
  * the commit's outcome is unknown the file is kept (the record may exist) and the error is
  * rethrown: phase N sweeps `rx/` orphans by age. The staged file is deleted afterwards best-effort.
+ *
+ * Idempotent by slot (ruling R6-I1): the record stores its `stagingId` (unique), so a finish of a
+ * slot that is already used returns the record that slot made (`replay`), for example after the
+ * first response was lost or its commit result was unknown. Only the owner's record is returned.
  */
 export async function finishRxUpload(i: {
   userId: ObjectId;
@@ -126,7 +155,7 @@ export async function finishRxUpload(i: {
   const slot = await claimStaging(body.stagingId, i.userId, i.now);
   if (!slot) {
     const live = await peekStaging(body.stagingId, i.userId, i.now);
-    return { ok: false, error: live ? "busy" : "upload_expired" };
+    return live ? { ok: false, error: "busy" } : replayOrExpired(body.stagingId, i.userId, i.now);
   }
   const release = () => releaseStaging(body.stagingId, i.userId, slot.claimedUntil!);
   const refuse = async (
@@ -168,6 +197,7 @@ export async function finishRxUpload(i: {
   const doc: RxDoc = {
     _id,
     userId: i.userId,
+    stagingId: body.stagingId,
     patientName: body.patientName,
     declaration: { version: RX_DECLARATION_VERSION, at: i.now },
     file: {
@@ -222,6 +252,12 @@ export async function finishRxUpload(i: {
       taken = true;
     } else {
       await dropQuietly(key);
+      if (isDuplicateSlot(e)) {
+        // The slot already has its record: consume the slot, so a later finish replays at once
+        // instead of re-checking and re-putting the file.
+        await consumeStaging(body.stagingId, i.userId, slot.claimedUntil!).catch(() => {});
+        return replayOrExpired(body.stagingId, i.userId, i.now);
+      }
       await release().catch(() => {});
       throw e;
     }
@@ -229,9 +265,10 @@ export async function finishRxUpload(i: {
     await session.endSession();
   }
   if (!taken) {
-    // The slot was gone (its lease ended and another finish completed): that call owns the staged file.
+    // The slot was gone (its lease ended and another finish completed): that call owns the staged
+    // file, and its record, if it made one, is this slot's answer.
     await dropQuietly(key);
-    return { ok: false, error: "upload_expired" };
+    return replayOrExpired(body.stagingId, i.userId, i.now);
   }
   await dropQuietly(slot.key);
   return { ok: true, rx: rxView(doc, i.now) };

@@ -57,8 +57,12 @@ describe("finishRxUpload refusals", () => {
   it("is single use, a slot belongs to its user, and it is gone at +15 minutes exactly", async () => {
     const userId = uid();
     const started = await stage(userId, await jpegWithExif());
-    expect((await finish(userId, started.stagingId)).ok).toBe(true);
-    expect(await finish(userId, started.stagingId)).toEqual({ ok: false, error: "upload_expired" });
+    const first = await finish(userId, started.stagingId);
+    expect(first.ok).toBe(true);
+    // Single use: a repeat makes nothing new and answers with the slot's record (R6-I1).
+    const again = await finish(userId, started.stagingId);
+    expect(again).toMatchObject({ ok: true, replay: true });
+    expect(again.ok && first.ok && again.rx.id).toBe(first.ok && first.rx.id);
 
     const mine = await stage(userId, await jpegWithExif());
     expect(await finish(uid(), mine.stagingId)).toEqual({ ok: false, error: "upload_expired" });
