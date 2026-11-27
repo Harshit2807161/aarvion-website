@@ -1,6 +1,6 @@
 import { HttpError } from "../http.ts";
 import { getDeps } from "../deps.ts";
-import { readSessionToken } from "./cookie.ts";
+import { readSessionToken, sessionCookieHeader } from "./cookie.ts";
 import type { StaffRole } from "./roles.ts";
 import { resolveSession, type SessionDoc } from "./sessions.ts";
 import { getUserById, type UserDoc } from "./users.ts";
@@ -37,4 +37,18 @@ export async function requireRole(req: Request, roles: readonly StaffRole[]): Pr
     throw new HttpError(403, "forbidden");
   }
   return auth;
+}
+
+/**
+ * Response headers that re-issue the sliding customer cookie. `resolveSession` slides the
+ * server-side window on use, but the browser cookie only gets a fresh 30 days when the route
+ * sends it again; every customer route that calls `requireUser` merges these into its response.
+ * Staff sessions use a browser-session cookie, so they get nothing.
+ */
+export function sessionRefreshHeaders(auth: AuthContext): Headers {
+  const headers = new Headers();
+  if (auth.refreshed && auth.session.kind === "customer") {
+    headers.append("Set-Cookie", sessionCookieHeader(auth.token, "customer"));
+  }
+  return headers;
 }
