@@ -8,13 +8,10 @@ import { FileExistsError, FileTooLargeError } from "../providers/file-keys.ts";
 import { hitRateLimit } from "../security/rate-limit.ts";
 import { checkRxFile, RX_MAX_BYTES, type CheckedRxFile, type RxFileError } from "./file-check.ts";
 import {
-  claimStaging,
   createStaging,
-  getRxForUser,
   insertRx,
   peekStaging,
   RxCreateBody,
-  releaseStaging,
   RX_UPLOAD_LIMITS,
   takeStaging,
   type RxDoc,
@@ -100,13 +97,12 @@ async function dropQuietly(path: string): Promise<void> {
 }
 
 /**
- * Finalise an upload. The slot is leased to this call (`claimStaging`), so the expensive work runs
- * once at a time per slot: a concurrent or repeat finish gets a retryable `busy`. The file is
- * then read, checked and stored, and one transaction takes the slot, inserts the record and
- * appends its `rx.upload` audit row, so they exist together or not at all. A refusal consumes
- * the slot; `busy` (the PDF scanner is full) and an abort release the lease, so a retry works. If
- * the commit's outcome is unknown the file is kept (the record may exist) and the error is
- * rethrown: phase N sweeps `rx/` orphans by age. The staged file is deleted afterwards best-effort.
+ * Finalise an upload. The slot is only peeked until the end: the file is read, checked and stored
+ * first, then one transaction takes the slot, inserts the record and appends its `rx.upload`
+ * audit row, so the record and its audit exist together or not at all, and an aborted transaction
+ * leaves the slot free for a retry. If a concurrent finish took the slot first this call's final
+ * file is deleted and the result is `upload_expired`. The staged file is deleted afterwards on a
+ * best-effort basis; anything left is swept by prefix and age (phase N).
  */
 export async function finishRxUpload(i: {
   userId: ObjectId;
@@ -116,47 +112,30 @@ export async function finishRxUpload(i: {
 }): Promise<FinishResult> {
   const body = RxCreateBody.parse(i.body);
   const { files } = getDeps();
-  const slot = await claimStaging(body.stagingId, i.userId, i.now);
-  if (!slot) {
-    const live = await peekStaging(body.stagingId, i.userId, i.now);
-    return { ok: false, error: live ? "busy" : "upload_expired" };
-  }
-  const refuse = async (
-    error: "too_large" | "file_missing" | RxFileError,
-  ): Promise<FinishResult> => {
-    await dropQuietly(slot.key);
-    await takeStaging(body.stagingId, i.userId, i.now);
-    return { ok: false, error };
-  };
+  const slot = await peekStaging(body.stagingId, i.userId, i.now);
+  if (!slot) return { ok: false, error: "upload_expired" };
 
   let staged: { body: Uint8Array } | null;
   try {
     staged = await files.get(slot.key, { maxBytes: RX_MAX_BYTES });
   } catch (e) {
-    if (!(e instanceof FileTooLargeError)) {
-      await releaseStaging(body.stagingId, i.userId);
-      throw e;
-    }
-    return refuse("too_large");
+    if (!(e instanceof FileTooLargeError)) throw e;
+    await dropQuietly(slot.key);
+    return { ok: false, error: "too_large" };
   }
-  if (!staged) return refuse("file_missing");
+  if (!staged) return { ok: false, error: "file_missing" };
 
   const checked = await checkRxFile(staged.body);
   if (!checked.ok) {
-    if (checked.error !== "busy") return refuse(checked.error);
-    await releaseStaging(body.stagingId, i.userId);
+    // `busy` (the PDF scanner is full) is retryable: keep the staged file and the live slot.
+    if (checked.error !== "busy") await dropQuietly(slot.key);
     return checked;
   }
   const file = checked.file;
 
   const _id = new ObjectId();
   const key = `rx/${i.userId.toHexString()}/${_id.toHexString()}.${file.ext}`;
-  try {
-    await putFinal(key, file);
-  } catch (e) {
-    await releaseStaging(body.stagingId, i.userId);
-    throw e;
-  }
+  await putFinal(key, file);
   const doc: RxDoc = {
     _id,
     userId: i.userId,
@@ -186,10 +165,7 @@ export async function finishRxUpload(i: {
       // withTransaction may run this again after a transient error: start from a clean state.
       taken = false;
       callbackDone = false;
-      if (!(await takeStaging(body.stagingId, i.userId, i.now, session))) {
-        callbackDone = true;
-        return;
-      }
+      if (!(await takeStaging(body.stagingId, i.userId, i.now, session))) return;
       taken = true;
       await insertRx(doc, session);
       await appendAudit(
@@ -205,23 +181,15 @@ export async function finishRxUpload(i: {
       callbackDone = true;
     }, TRANSACTION_OPTIONS);
   } catch (e) {
-    if (callbackDone && isUnknownCommit(e)) {
-      // The commit's outcome is unknown. Fail closed: never delete the file of a record that may
-      // exist. The lookup reads with the default concern on purpose: a majority read would hide a
-      // commit that is applied but not yet replicated and report the opposite of the truth.
-      const found = await getRxForUser(_id, i.userId).catch(() => null);
-      if (!found) throw e;
-      taken = true;
-    } else {
-      await dropQuietly(key);
-      await releaseStaging(body.stagingId, i.userId).catch(() => {});
-      throw e;
-    }
+    // An unknown commit result may have applied. Fail closed: never delete the file of a record
+    // that may exist; the error is rethrown and phase N sweeps an orphan by age.
+    if (!(callbackDone && isUnknownCommit(e))) await dropQuietly(key);
+    throw e;
   } finally {
     await session.endSession();
   }
   if (!taken) {
-    // The slot was gone (its lease ended and another finish completed): that call owns the staged file.
+    // A concurrent finish took the slot first and owns the staged file.
     await dropQuietly(key);
     return { ok: false, error: "upload_expired" };
   }

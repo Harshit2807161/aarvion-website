@@ -52,8 +52,6 @@ export type StagingDoc = {
   key: string;
   createdAt: Date;
   expiresAt: Date;
-  /** While a finish is working on the slot: when its lease ends (a crashed claim just expires). */
-  claimedUntil?: Date;
 };
 
 export const RX_STAGING_TTL_MS = 15 * 60_000;
@@ -98,36 +96,6 @@ export async function peekStaging(
   now: Date,
 ): Promise<StagingDoc | null> {
   return (await staging()).findOne({ _id: id, userId, expiresAt: { $gt: now } });
-}
-
-/** How long one finish may hold a slot before another can claim it. */
-export const RX_CLAIM_LEASE_MS = 30_000;
-
-/**
- * Lease the live slot to one finish, atomically, so the expensive work (re-encode, final put)
- * runs once at a time per slot. Null when the slot is missing, expired, another user's, or
- * leased by a running finish (the caller peeks to tell which).
- */
-export async function claimStaging(
-  id: string,
-  userId: ObjectId,
-  now: Date,
-): Promise<StagingDoc | null> {
-  return (await staging()).findOneAndUpdate(
-    {
-      _id: id,
-      userId,
-      expiresAt: { $gt: now },
-      $or: [{ claimedUntil: { $exists: false } }, { claimedUntil: { $lte: now } }],
-    },
-    { $set: { claimedUntil: new Date(now.getTime() + RX_CLAIM_LEASE_MS) } },
-    { returnDocument: "after" },
-  );
-}
-
-/** Ends a lease early (an abort or a retryable refusal), so a retry can claim the slot at once. */
-export async function releaseStaging(id: string, userId: ObjectId): Promise<void> {
-  await (await staging()).updateOne({ _id: id, userId }, { $unset: { claimedUntil: "" } });
 }
 
 /** Single use: deletes and returns the live slot, atomically (inside `session`'s transaction if given). */

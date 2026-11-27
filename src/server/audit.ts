@@ -19,10 +19,7 @@ export type AuditEntry = {
   meta?: Record<string, string | number | boolean | null>;
 };
 
-/**
- * Append-only by construction: this is the only function that touches the collection. Pass a
- * `session` to write the row in the same transaction as the change it records.
- */
+/** Append-only, and the only writer of the collection. A `session` joins the caller's transaction. */
 export async function appendAudit(entry: AuditEntry, session?: ClientSession): Promise<void> {
   await (await getDb()).collection<AuditEntry>("audit_logs").insertOne(entry, { session });
 }
