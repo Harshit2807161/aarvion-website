@@ -122,7 +122,11 @@ describe("POST /api/prescriptions (finalise)", () => {
     const res = await post();
     expect(res.status).toBe(500);
     expect(res.headers.get("retry-after")).toBe("30");
-    expect(await json(res)).toEqual({ error: "upload_unconfirmed", retryable: true });
+    expect(await json(res)).toEqual({
+      error: "upload_unconfirmed",
+      retryable: true,
+      retryAfterSec: 30,
+    });
 
     vi.mocked(finishRxUpload).mockRejectedValueOnce(new Error("boom"));
     const other = await post();

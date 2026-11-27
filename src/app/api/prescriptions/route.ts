@@ -42,9 +42,14 @@ export const POST = withErrors(async (req) => {
     result = await finishRxUpload({ userId: auth.user._id, role: auth.user.role, body, now });
   } catch (e) {
     if (!isUnknownCommit(e)) throw e;
-    console.error("rx finalise commit unknown", auth.user._id.toHexString());
-    headers.set("Retry-After", String(RX_CLAIM_LEASE_MS / 1000));
-    return jsonResponse({ error: "upload_unconfirmed", retryable: true }, { status: 500, headers });
+    // The error name only (no ids, no Rx content); the database and audit carry the user.
+    console.error("rx finalise commit unknown", e instanceof Error ? e.name : "error");
+    const retryAfterSec = RX_CLAIM_LEASE_MS / 1000;
+    headers.set("Retry-After", String(retryAfterSec));
+    return jsonResponse(
+      { error: "upload_unconfirmed", retryable: true, retryAfterSec },
+      { status: 500, headers },
+    );
   }
   if (result.ok) return jsonResponse({ rx: result.rx }, { status: 201, headers });
   if (result.error === "upload_expired") {
