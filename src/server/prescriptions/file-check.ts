@@ -13,6 +13,8 @@ export const RX_IMAGE_MIN_SIDE = 400;
 export const RX_MAX_INPUT_PIXELS = 50_000_000;
 export const RX_WEBP_QUALITY = 85;
 export const RX_PDF_MAX_PAGES = 20;
+/** A slow decode or encode is cut off and refused as corrupt. */
+export const RX_IMAGE_TIMEOUT_SECONDS = 5;
 
 export type RxFileError =
   | "empty"
@@ -69,6 +71,7 @@ async function checkImage(
       .resize(RX_IMAGE_MAX_SIDE, RX_IMAGE_MAX_SIDE, { fit: "inside", withoutEnlargement: true })
       .toColorspace("srgb")
       .webp({ quality: RX_WEBP_QUALITY })
+      .timeout({ seconds: RX_IMAGE_TIMEOUT_SECONDS })
       .toBuffer({ resolveWithObject: true });
     if (Math.min(info.width, info.height) < RX_IMAGE_MIN_SIDE) {
       return { ok: false, error: "too_small" };

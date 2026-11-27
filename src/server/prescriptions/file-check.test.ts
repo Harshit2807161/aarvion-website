@@ -92,6 +92,12 @@ describe("checkRxFile: type and size", () => {
     expect(await checkRxFile(bytes)).toEqual({ ok: false, error: "unsupported_type" });
   });
 
+  it("accepts an image of exactly 8 MiB", async () => {
+    const base = await jpegWithTrailer("");
+    const r = await checkRxFile(await jpegWithTrailer(" ".repeat(RX_MAX_BYTES - base.length)));
+    expect(r.ok).toBe(true);
+  });
+
   it("refuses one byte over 8 MiB and no bytes", async () => {
     const big = new Uint8Array(RX_MAX_BYTES + 1);
     big.set([0xff, 0xd8, 0xff]);
