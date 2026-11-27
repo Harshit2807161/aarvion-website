@@ -1,8 +1,15 @@
 import { readFileSync } from "node:fs";
-import { ObjectId } from "mongodb";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { Collection, ObjectId } from "mongodb";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { CARTS_COLLECTION, readCart } from "@/server/cart/carts";
-import { addToCart, getCart, removeFromCart, setCartQty } from "@/server/cart/service";
+import {
+  addToCart,
+  getCart,
+  mergeGuestCart,
+  quoteLines,
+  removeFromCart,
+  setCartQty,
+} from "@/server/cart/service";
 import { CATEGORY_LIST } from "@/server/catalogue/categories";
 import { CATEGORIES_COLLECTION, PRODUCTS_COLLECTION } from "@/server/catalogue/collections";
 import { DEFAULT_MRP_PAISE, cartTotals } from "@/server/catalogue/pricing";
@@ -161,6 +168,36 @@ describe("retired lines never block a change", () => {
     expect(res.cart.removed).toEqual(["mucohelp"]);
     expect((await doc())!.lines).toEqual([L("sacuwin-100", 10)]);
   });
+
+  it("a merge drops retired server lines and retired guest lines before the cap", async () => {
+    await addToCart(uid, "mucohelp", 10, clock.now());
+    await addToCart(uid, "sacuwin-50", 5, clock.now());
+    await retire("mucohelp");
+    const out = await mergeGuestCart(
+      uid,
+      [L("ghost-1", 10), L("ghost-2", 10), L("sacuwin-100", 10), L("sacuwin-200", 5)],
+      clock.now(),
+    );
+    expect(out.trimmed).toBe(false);
+    expect(out.removed).toEqual(["mucohelp"]);
+    expect(out.lines.map((l) => [l.slug, l.qty])).toEqual([
+      ["sacuwin-50", 5],
+      ["sacuwin-100", 10],
+      ["sacuwin-200", 5],
+    ]);
+  });
+
+  it("a read that loses the race to prune falls back to the unpruned view", async () => {
+    await addToCart(uid, "sacuwin-100", 2, clock.now());
+    await retire("sacuwin-100");
+    const spy = vi
+      .spyOn(Collection.prototype, "updateOne")
+      .mockResolvedValue({ modifiedCount: 0 } as never);
+    const cart = await getCart(uid, clock.now());
+    spy.mockRestore();
+    expect(cart).toMatchObject({ lines: [], removed: ["sacuwin-100"] });
+    expect((await doc())!.lines).toEqual([L("sacuwin-100", 2)]);
+  });
 });
 
 describe("races at the caps", () => {
@@ -257,5 +294,52 @@ describe("getCart reprices from Mongo", () => {
     const cart = await getCart(uid, clock.now());
     expect(cart).toMatchObject({ lines: [], removed: [], totals: { payablePaise: 0 } });
     expect(await doc()).toBeNull();
+  });
+});
+
+describe("mergeGuestCart", () => {
+  it("merges by max, drops unknown slugs, and twice equals once", async () => {
+    await addToCart(uid, "sacuwin-100", 2, clock.now());
+    const guest = [L("sacuwin-100", 1), L("sacuwin-50", 3), L("ghost", 2)];
+    const once = await mergeGuestCart(uid, guest, clock.now());
+    expect(once.lines.map((l) => [l.slug, l.qty])).toEqual([
+      ["sacuwin-100", 2],
+      ["sacuwin-50", 3],
+    ]);
+    expect(once.trimmed).toBe(false);
+    const rev = (await doc())!.rev;
+    const twice = await mergeGuestCart(uid, guest, clock.now());
+    expect(twice.lines).toEqual(once.lines);
+    expect(twice.totals).toEqual(once.totals);
+    expect((await doc())!.rev).toBe(rev);
+  });
+
+  it("two parallel merges of the same guest cart give one result", async () => {
+    const guest = [L("sacuwin-50", 3), L("sacuwin-100", 2)];
+    const [a, b] = await Promise.all([
+      mergeGuestCart(uid, guest, clock.now()),
+      mergeGuestCart(uid, guest, clock.now()),
+    ]);
+    expect(a.lines).toEqual(b.lines);
+    expect((await doc())!.lines).toEqual(guest);
+  });
+
+  it("reports a trim when the merge passes 20 packs", async () => {
+    await addToCart(uid, "sacuwin-50", 10, clock.now());
+    await addToCart(uid, "sacuwin-100", 6, clock.now());
+    const out = await mergeGuestCart(uid, [L("sacuwin-200", 10)], clock.now());
+    expect(out.trimmed).toBe(true);
+    expect(out.totals.packs).toBe(20);
+  });
+});
+
+describe("quoteLines", () => {
+  it("prices without writing a cart and lists non-purchasable slugs as removed", async () => {
+    const view = await quoteLines([L("sacuwin-100", 2), L("ghost", 1)]);
+    expect(view.totals).toEqual(cartTotals([{ mrpPaise: 40700, qty: 2 }]));
+    expect(view.removed).toEqual(["ghost"]);
+    expect(slugsOf(view.lines)).toEqual(["sacuwin-100"]);
+    const db = await getDb();
+    expect(await db.collection(CARTS_COLLECTION).countDocuments()).toBe(0);
   });
 });
