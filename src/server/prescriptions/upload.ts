@@ -83,7 +83,10 @@ const TRANSACTION_OPTIONS = {
 /** The commit's outcome is unknown (no majority in time, or the commit timed out), not a clean abort. */
 function isUnknownCommit(e: unknown): boolean {
   return (
-    e instanceof MongoError && (e.hasErrorLabel("UnknownTransactionCommitResult") || e.code === 50)
+    e instanceof MongoError &&
+    (e.hasErrorLabel("UnknownTransactionCommitResult") ||
+      e.code === 50 ||
+      e.name === "MongoWriteConcernError")
   );
 }
 
