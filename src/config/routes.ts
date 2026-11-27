@@ -8,6 +8,8 @@ export const ROUTES = {
   medicines: "/#medicines",
   login: "/login",
   cart: "/cart",
+  /** Built in phase O; pending until then (the cart page's Checkout links here). */
+  checkout: "/checkout",
   account: "/account",
   uploadRx: "/account/prescriptions",
   contact: "/contact",

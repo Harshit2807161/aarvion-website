@@ -34,4 +34,35 @@ export const CART_COPY = {
     // NEW (owner approval needed): said beside the totals instead of letting stale ones pass as current.
     updating: "Updating totals…",
   },
+  /** The /cart page: verbatim from the brief and the rulings, except the entries marked NEW. */
+  page: {
+    title: "Your cart",
+    sub: "Each pack is its printed MRP less ₹20. Delivery is free across India.",
+    back: "Continue shopping",
+    rxHead: "Prescription medicines",
+    rxNote:
+      "A pharmacist checks your prescription before we pack. At checkout you can upload one, or choose one you’ve uploaded before.",
+    // Ruling (plan K): awaiting owner approval; shown only when such a line is in the cart.
+    otcHead: "Medicines without a prescription",
+    medicines: (n: number) => `${n} ${n === 1 ? "medicine" : "medicines"}`,
+    orderFull: `You’ve reached ${CART_LIMITS.perOrder} packs, the most one order can hold. Place this order, then start another.`,
+    summaryTitle: "Order summary",
+    checkout: "Checkout",
+    // Ruling (plan K): the receipt note while online payments are off.
+    codNote: "Pay cash on delivery for orders up to ₹5,000.",
+    // The prototype's notes, shown only once online payments are live.
+    onlineNote:
+      "Pay online by UPI, card or netbanking, or pay cash on delivery for orders up to ₹5,000.",
+    refundNote: "If a pharmacist can’t approve your prescription, you get a full refund.",
+    emptyTitle: "Your cart is empty",
+    emptyBody:
+      "Find your medicine by brand or salt, then add it here. Every pack is its printed MRP less ₹20.",
+    browseAll: (countWord: string) => `Browse all ${countWord} medicines`,
+    // NEW (owner approval needed): before the cart is known (the session is still being checked).
+    loading: "Loading your cart…",
+    // NEW (owner approval needed): a line the server has not priced yet (a quote pending or failing).
+    pricePending: "Price updating…",
+    // NEW (owner approval needed): the quantity on that line, "Qty 2".
+    qty: "Qty",
+  },
 } as const;
