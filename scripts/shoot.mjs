@@ -1,11 +1,22 @@
 // Full-page screenshots of a local HTML file or URL at given widths.
 // Usage: node scripts/shoot.mjs <file[?query]|url> <out-prefix> [widths=1440,390] [--viewport-only] [--motion]
+//        [--click <selector>] [--wait <ms>]
 //   --viewport-only  capture only the first viewport
 //   --motion         run with reducedMotion "no-preference" (default is "reduce")
+//   --click <sel>    click the first match, then wait 400 ms (e.g. a banner dot)
+//   --wait <ms>      wait this long after load, before any click and the capture
 import { chromium } from "@playwright/test";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
-const args = process.argv.slice(2);
+const raw = process.argv.slice(2);
+// --click and --wait take a value: pull each pair out before the flags and positionals are read.
+const take = (name) => {
+  const i = raw.indexOf(name);
+  return i === -1 ? undefined : raw.splice(i, 2)[1];
+};
+const clickSel = take("--click");
+const waitMs = Number(take("--wait") ?? 0);
+const args = raw;
 const flags = new Set(args.filter((a) => a.startsWith("--")));
 const [target, outPrefix, widthsArg = "1440,390"] = args.filter((a) => !a.startsWith("--"));
 if (!target || !outPrefix) {
@@ -34,6 +45,11 @@ for (const w of widthsArg.split(",").map(Number)) {
     // walk the page once so every image is decoded before the full-page capture
     await page.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight * 0.8) { scrollTo(0, y); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); } scrollTo(0, 0); });
     await page.waitForTimeout(300);
+  }
+  if (waitMs > 0) await page.waitForTimeout(waitMs);
+  if (clickSel) {
+    await page.locator(clickSel).first().click();
+    await page.waitForTimeout(400);
   }
   const out = `${outPrefix}-${w}.png`;
   await page.screenshot({ path: out, fullPage: !viewportOnly });

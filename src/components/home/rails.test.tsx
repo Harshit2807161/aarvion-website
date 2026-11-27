@@ -99,6 +99,7 @@ describe("Rails", () => {
     const search = aside.querySelector("a[data-search]");
     expect(search?.textContent).toBe("Search medicines");
     expect(search?.getAttribute("href")).toBe("#q");
+    expect(search?.querySelector("svg.i")).not.toBeNull(); // the prototype's search icon
     expect(search?.className).toContain("btn-forest");
     const contact = aside.querySelector(`a[href="${ROUTES.contact}"]`);
     expect(contact?.textContent).toBe("Contact us");

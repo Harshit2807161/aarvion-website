@@ -17,6 +17,7 @@ bottom use commit SHAs.
 ## [Unreleased]
 
 ### Added
+- `scripts/shoot.mjs --click <selector>` (clicks the first match, then waits 400 ms) and `--wait <ms>` (waits after load), for banner slides and other states (#170)
 - Login demo states and e2e (Task 42 part B): `src/components/auth/demo-states.ts` (`?state=otp-sent|otp-error|otp-locked|new-account`, built by driving the real reducer, opened only with `allowDemo`, which the page sets to `!isMockForbidden()`; `src/app/(store)/login/page.test.tsx` pins `allowDemo={false}` where mocks are forbidden, so production ignores `?state=`), `e2e/login.spec.ts` (sign up by email, sign in again without the profile step, unsafe `next` lands on `/`) and `/login` added to `e2e/links.spec.ts` (#163)
 - Product page follow-ups: `generateMetadata` (title is the product name, description its composition and pack), the foil pocket's name as a link to its page (`a.pocket-link` to `ROUTES.product(slug)` in `src/components/catalogue/pocket.tsx`, styled in `src/styles/pocket.css`, the Rx badge outside the link), and e2e checks for one `header` and one `#q` on `/product/nope`, the page title, a home pocket link, and no console error when a search result opens its product page (#169).
 - The category bar link for the current page carries `aria-current="page"` (new client piece `CategoryBarLink`; the 880px chip row uses the same links). (#167)
@@ -210,6 +211,7 @@ bottom use commit SHAs.
   official logo (#67).
 
 ### Fixed
+- Home finish review (Task 29): the rail "View all N" link now points forward (the arrow icon, not a disclosure chevron) and sits at the head's right edge when the strip fits, since hidden arrows no longer reserve space; the rail aside's "Search medicines" button has the prototype's search icon (#170)
 
 - `h2.h-section` headings no longer render 144px tall: `--spacing-section` moved from `@theme static` to the plain `:root` block in `src/app/globals.css`, so Tailwind 4 stops generating an `h-section` height utility that beat the `.h-section` heading class. The value is unchanged and still read as `var(--spacing-section)`; `src/styles/section-token.test.ts` compiles the CSS and fails if the utility returns, and `tokens.test.ts` lists the token as the one `:root` exception. Also removes the `h-auto!` workaround (and its test) from the Shop by category heading in `src/components/home/category-bento.tsx` (#144)
 - Form field labels (`label.label`, `TextField`) no longer render as sand shipping-label cards: the ordering steps' card rule in `src/styles/steps.css` is scoped to `.vis-label .label`, since `forms.css` owns the bare `.label`. `src/styles/css-hygiene.test.ts` now also fails when a selector repeats across `src/styles/*.css` files (C12), which is how this collision was found; `base.css`'s deliberate group selectors are the only listed exception (#124).

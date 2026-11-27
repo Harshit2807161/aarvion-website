@@ -245,7 +245,7 @@ ported prototype CSS imported by `globals.css`.
 - `merge-gate.sh`
 - `pr-size.ts`
 - `seed.ts`
-- `shoot.mjs` (screenshots)
+- `shoot.mjs` (screenshots; `--viewport-only`, `--motion`, `--click <selector>` and `--wait <ms>`)
 - `subset-fonts.ts`
 - `sync-product-images.ts`
 - Python asset tools
