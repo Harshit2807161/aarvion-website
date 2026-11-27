@@ -100,7 +100,7 @@ Helpers in `tests/helpers/`:
   failure path). Spawn with `runPnpm` or `runCommand` (`tests/helpers/run-script.ts`: async,
   kills the process group after a timeout), **never `spawnSync`, `execSync` or `execFileSync`**
   in a file that starts a replica set; `tests/int/run-script.test.ts` fails if one does.
-- **Former flake, fixed (#PR):** `db-indexes-script` failed about 36 s into the job
+- **Former flake, fixed (#221):** `db-indexes-script` failed about 36 s into the job
   (`MongoServerSelectionError: Server selection timed out after 3000 ms`, or
   `MongoNetworkTimeoutError: connection 1 to 127.0.0.1:271x0 timed out`) and twice hung the
   `int` job for over an hour (#206, #215; the file never reported). Cause: mongodb-memory-server

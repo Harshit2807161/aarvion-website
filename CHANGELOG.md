@@ -17,7 +17,7 @@ bottom use commit SHAs.
 ## [Unreleased]
 
 ### Fixed
-- The `int` CI job no longer hangs or fails at about 36 s: `db-indexes-script` and `seed` int tests spawned their scripts with `spawnSync`, which stopped the worker draining mongod's log pipe, so mongod stalled and the script timed out or hung forever. They now use the async `runPnpm` (`tests/helpers/run-script.ts`, kills the process group on timeout), `tests/int/run-script.test.ts` refuses a sync spawn in a replica-set file, and every job in `ci.yml` has a `timeout-minutes` (#PR)
+- The `int` CI job no longer hangs or fails at about 36 s: `db-indexes-script` and `seed` int tests spawned their scripts with `spawnSync`, which stopped the worker draining mongod's log pipe, so mongod stalled and the script timed out or hung forever. They now use the async `runPnpm` (`tests/helpers/run-script.ts`, kills the process group on timeout), `tests/int/run-script.test.ts` refuses a sync spawn in a replica-set file, and every job in `ci.yml` has a `timeout-minutes` (#221)
 
 ### Added
 - Upload refusal and stored-file tests (`tests/int/rx-upload-refusals.test.ts`, with the shared harness `tests/helpers/rx-upload.ts`): a disguised HTML file, nothing staged, a file over the cap, single use (another user, +15 minutes exactly), bytes appended after an image, a PDF stored unchanged, the audit role and the input re-parse. Part A of the R4 fault tests; the race and fault cases follow (#217).
