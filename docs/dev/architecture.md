@@ -70,6 +70,7 @@ the plan's "File Structure".
 - `global-error.tsx` (its own `<html>`, inline styles) show no chrome.
 - `src/app/globals.css`: Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored), and the plain custom properties in `:root` (durations, z-layers, `--spacing-section` (kept out of `@theme`: a `--spacing-*` token there makes Tailwind emit an `h-section` height that overrides the `.h-section` heading class; use `var(--spacing-section)`), `--sticky-top`, the shadcn roles, and the foil material `--foil-body`, `--foil-print`, `--perforation` and `--perf-v` with `/foil/…` URLs into `public/foil/`, defined once here for the pockets, rails and the ordering steps)
 - `src/app/layout.tsx`: root layout (`lang="en-IN"`, viewport, theme colour, `metadataBase` from `APP_URL`) around every route, with the `Toaster` and the page's one `LiveRegion` (exactly one may exist, so they live only here). Keep exactly one `<LiveRegion/>`, in the root layout
+- `src/app/sitemap.ts` and `src/app/robots.ts`: `/sitemap.xml` lists absolute URLs for the home page, the live categories, every public product, the six policies and contact (never `/login`, `/dev`, `/api`, cart or account); `/robots.txt` allows crawling only when `VERCEL_ENV=production` (disallowing `/api/`, `/dev/` and `/login`, and naming the sitemap) and disallows everything elsewhere. Both use `getSiteEnv()` and `siteUrl()`, so production without a valid `APP_URL` fails the build
 - The root `src/app/not-found.tsx` (URLs that match no route) sits outside `(store)` but calls `withStoreChrome()` itself, so a shopper who lands on a dead link still gets the search and the footer
 - A `usePathname` caller in the store chrome is wrapped in its own Suspense with a static fallback (`SkipLink` falls back to the plain `<a class="skip" href="#main">`); never wrap layout children. `HeaderSearch` reads `window.location.pathname` at click instead of the hook, since a boundary delays its hydration.
 
@@ -174,7 +175,7 @@ React components, added task by task. The folders below exist today:
 ### src/lib/
 
 - `cart/`: the session-only UI cart:
-  - `cart.ts` pure rules and limits
+  - `cart.ts` the record-shaped UI cart; `CART_LIMITS` and `CartBlock` are re-exported from `src/server/cart/rules.ts`, and `applyCart` delegates to its `addLine` and `setLineQty`
   - `store.ts` `cartStore` over `sessionStorage` key `aarv-cart-ui-v0` with a cached `getSnapshot` and a frozen `{}` server snapshot
   - `use-cart-lines.ts` the client hook
   - It holds slugs and quantities only, never prices (those come from the catalogue when rendered), capped at 10 per product and 20 per order. It stands in until the real server cart arrives in phase K, which replaces it.
@@ -292,12 +293,14 @@ ported prototype CSS imported by `globals.css`.
 | `db/indexes.ts` | `registerIndexes(collection, specs)` (names mandatory), `ensureIndexes(db)` (creates missing indexes by name) |
 | `db/register-all.ts` | imports every module that registers indexes, for `pnpm db:indexes` and int tests |
 | `catalogue/` | `schema.ts` (zod), `pricing.ts`, `categories.ts`, `collections.ts`, `seed.ts`, `search.ts`, `queries.ts`, `order.ts` (pure `compareVariants`, `orderForShelf`; client-safe) |
+| `cart/rules.ts` | pure cart rules, client-safe and import-free: `CART_LIMITS` (10 per product, 20 per order), `CartLine`, `addLine`, `setLineQty`, `removeLine` (a refused or no-op change returns the same array; `product_limit` then `order_limit`), `capLines` (untrusted input to a valid cart, cut at 20 packs from the end) and `mergeLines` (max per slug, server order first, idempotent); lines are an array, so a slug like `__proto__` is ordinary |
 | `auth/` | `identifier.ts`, `otp.ts`, `users.ts`, `sessions.ts`, `cookie.ts`, `login.ts` (`sendOtp`, `verifyOtpAndLogin`), `guards.ts` (`getAuth`, `requireUser`, `requireRole`), `roles.ts` |
 | `security/` | `rate-limit.ts` (`hitRateLimit`, `peekRateLimit`, `resetRateLimit`), `client-ip.ts` (`clientIp`, `ipBucket`), `origin.ts` (`assertSameOrigin`) |
 | `audit.ts` | `appendAudit()`, the only writer of `audit_logs` |
 | `orders/status.ts` | pure state machine: `ORDER_EDGES`, `transition()`, `initialStatus()` |
 | `orders/order-number.ts` | `nextOrderNumber(now)`, `formatOrderNumber`, `orderMonthKey` |
-| `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6` |
+| `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6`, `istMidnight(ymd)` (a day's 00:00 IST instant; `RangeError` for a malformed or impossible date), `istDay(at)`, `rxEnd(rx)` (the exclusive end: `min(validUntil, rxDate + 6 months)`) |
+| `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput` (the review transitions and the list view are added in the next PRs) |
 
 ## Collections and indexes
 
@@ -420,7 +423,7 @@ the public user or `null`, `no-store`. Nothing calls it yet.
 
 **Client imports (now):** components (`src/components/**`) and the client-safe `src/lib/**`
 modules import at runtime from `src/server/**` only the pure `catalogue/pricing.ts`,
-`catalogue/search.ts` and `catalogue/order.ts`; anything else from there is a statement-level
+`catalogue/search.ts`, `catalogue/order.ts` and `cart/rules.ts`; anything else from there is a statement-level
 `import type` (`src/components/server-imports.test.ts`). The server-only
 `src/lib/catalogue/cached.ts` and `errors.ts` are exempt by name, and must never be imported by a
 `"use client"` module (the test sees direct imports only); a new server-only `src/lib` file joins
