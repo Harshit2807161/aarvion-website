@@ -16,10 +16,15 @@ import {
 const SLOW_START = { timeout: 60_000 };
 
 /** One unthrottled visit in its own context, so the server's image cache is warm but the browser's is not. */
-async function warm(browser: Browser, viewport: { width: number; height: number }, dpr: number) {
+async function warm(
+  browser: Browser,
+  viewport: { width: number; height: number },
+  dpr: number,
+  path = "/",
+) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: dpr });
   const page = await ctx.newPage();
-  await page.goto("/", { waitUntil: "load" });
+  await page.goto(path, { waitUntil: "load" });
   await ctx.close();
 }
 
@@ -180,7 +185,13 @@ test.describe("home loading", () => {
 // header search island on first focus or idle and trim the hero chunk, then lower this number.
 const HOME_JS_BUDGET_BYTES = 175_000;
 
-test("first-load JS on / stays within the 175 kB ratchet", async ({ page }) => {
+// Both first-load JS tests warm the server first, in a fresh context (as the LCP tests do), so the
+// measured visit is a warm one in a cold browser. The first request after `next start` can load a
+// script that later visits do not (measured 2026-11-27: the product page read 170,855 B cold and
+// 169,590 B warm, on main), which put the product ratchet over 170 kB on the first attempt and
+// left the test passing only on CI's single retry, marked flaky.
+test("first-load JS on / stays within the 175 kB ratchet", async ({ browser, page }) => {
+  await warm(browser, { width: 1280, height: 720 }, 1);
   await page.goto("/", { waitUntil: "load" });
   const { total, count } = await scriptBytes(page);
   // A floor, so a measurement that reads nothing cannot pass.
@@ -201,7 +212,8 @@ const PRODUCT_JS_BUDGET_BYTES = 170_000;
 test.describe("product page on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 
-  test("first-load JS stays within the 170 kB ratchet", async ({ page }) => {
+  test("first-load JS stays within the 170 kB ratchet", async ({ browser, page }) => {
+    await warm(browser, { width: 390, height: 844 }, 2, PRODUCT);
     await page.goto(PRODUCT, { waitUntil: "load" });
     const { total, count } = await scriptBytes(page);
     expect(count).toBeGreaterThan(5);
