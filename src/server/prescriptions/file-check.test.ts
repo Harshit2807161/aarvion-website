@@ -6,10 +6,12 @@ import {
   htmlAsJpgName,
   jpegWithExif,
   jpegWithTrailer,
+  padPdf,
+  pdf,
   pixelBombPng,
   png,
 } from "../../../tests/helpers/rx-fixtures";
-import { RX_MAX_BYTES, checkRxFile, sniffType } from "./file-check";
+import { RX_MAX_BYTES, checkRxFile, scanPdf, sniffType } from "./file-check";
 
 const text = (s: string) => new TextEncoder().encode(s);
 const bytesOf = (b: Uint8Array) => Buffer.from(b);
@@ -92,17 +94,73 @@ describe("checkRxFile: type and size", () => {
     expect(await checkRxFile(bytes)).toEqual({ ok: false, error: "unsupported_type" });
   });
 
-  it("refuses one byte over 8 MiB and no bytes", async () => {
-    const big = new Uint8Array(RX_MAX_BYTES + 1);
-    big.set([0xff, 0xd8, 0xff]);
-    expect(await checkRxFile(big)).toEqual({ ok: false, error: "too_large" });
+  it("accepts a PDF of exactly 8 MiB and refuses one byte more or no bytes", async () => {
+    const ok = await checkRxFile(padPdf(pdf(), RX_MAX_BYTES));
+    expect(ok.ok).toBe(true);
+    expect(await checkRxFile(padPdf(pdf(), RX_MAX_BYTES + 1))).toEqual({
+      ok: false,
+      error: "too_large",
+    });
     expect(await checkRxFile(new Uint8Array())).toEqual({ ok: false, error: "empty" });
   });
 });
 
+describe("checkRxFile and scanPdf: PDFs", () => {
+  it("keeps a 2-page PDF byte for byte", async () => {
+    const input = pdf({ pages: 2 });
+    const r = await checkRxFile(input);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.file).toMatchObject({
+      contentType: "application/pdf",
+      ext: "pdf",
+      kind: "pdf",
+      pages: 2,
+      width: null,
+      height: null,
+    });
+    expect(Buffer.from(r.file.body).equals(Buffer.from(input))).toBe(true);
+  });
+
+  it.each([
+    [
+      "a hex-escaped /JS in /OpenAction",
+      "/OpenAction << /S /J#53 (app.alert(1)) >>",
+      "active_content",
+    ],
+    ["/JavaScript", "/AA << /O << /S /JavaScript /JS (x) >> >>", "active_content"],
+    ["/Launch", "/OpenAction << /S /Launch >>", "active_content"],
+    ["an embedded file", "/Names << /EmbeddedFiles 9 0 R >>", "active_content"],
+    ["/XFA", "/AcroForm << /XFA [] >>", "active_content"],
+    ["/Encrypt", "/Encrypt 5 0 R", "encrypted"],
+    ["a hex-escaped /Encrypt", "/Encr#79pt 5 0 R", "encrypted"],
+  ])("refuses %s", async (_n, extra, error) => {
+    expect(await checkRxFile(pdf({ extra }))).toEqual({ ok: false, error });
+  });
+
+  it("does not match a longer name that only starts with a blocked one", () => {
+    expect(scanPdf(pdf({ extra: "/JSONData 1 0 R /Launchpad 2 0 R" }))).toEqual({
+      ok: true,
+      pages: 1,
+    });
+  });
+
+  it("refuses 21 pages and accepts 20", async () => {
+    expect(await checkRxFile(pdf({ pages: 21 }))).toEqual({ ok: false, error: "too_many_pages" });
+    expect((await checkRxFile(pdf({ pages: 20 }))).ok).toBe(true);
+  });
+
+  it("refuses a PDF with no %%EOF in its last 1024 bytes, or with no pages", async () => {
+    const noEof = Buffer.from(pdf()).toString("latin1").replace("%%EOF", "");
+    expect(await checkRxFile(text(noEof))).toEqual({ ok: false, error: "corrupt" });
+    const farEof = Buffer.concat([pdf(), Buffer.alloc(2000, 0x20)]);
+    expect(await checkRxFile(farEof)).toEqual({ ok: false, error: "corrupt" });
+    expect(await checkRxFile(pdf({ pages: 0 }))).toEqual({ ok: false, error: "corrupt" });
+  });
+});
+
 describe("checkRxFile: sha256", () => {
-  it("is the hex digest of the stored body", async () => {
-    for (const input of [await png(800, 800)]) {
+  it("is the hex digest of the stored body, for an image and for a PDF", async () => {
+    for (const input of [await png(800, 800), pdf()]) {
       const r = await checkRxFile(input);
       if (!r.ok) throw new Error(r.error);
       expect(r.file.sha256).toMatch(/^[0-9a-f]{64}$/);

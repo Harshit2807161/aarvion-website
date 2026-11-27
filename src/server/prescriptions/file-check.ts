@@ -4,7 +4,8 @@ import sharp from "sharp";
 /**
  * Prescription file validation. The bytes decide the type (never a name or a declared type).
  * Images are decoded and re-encoded to WebP with every piece of metadata dropped, which also
- * destroys anything appended after the image data. Pure apart from sharp: no I/O, no clock, no logging, and the
+ * destroys anything appended after the image data; PDFs are not re-rendered, they are scanned
+ * byte-wise and stored unchanged. Pure apart from sharp: no I/O, no clock, no logging, and the
  * result carries error names only (never bytes or file names).
  */
 export const RX_MAX_BYTES = 8_388_608;
@@ -50,6 +51,47 @@ export function sniffType(bytes: Uint8Array): "jpeg" | "png" | "webp" | "pdf" | 
     if (/^1\.[0-7]$/.test(v) || v === "2.0") return "pdf";
   }
   return null;
+}
+
+/** Names that make a PDF refused, matched after `#xx` escapes are decoded. */
+const ACTIVE_NAMES = [
+  "JavaScript",
+  "JS",
+  "Launch",
+  "EmbeddedFile",
+  "EmbeddedFiles",
+  "RichMedia",
+  "XFA",
+  "SubmitForm",
+  "ImportData",
+];
+/** A name counts only when a delimiter follows it, so `/JSONData` is not `/JS`. */
+const nameRe = (name: string) => new RegExp(String.raw`/${name}(?=[\s/\[<(>]|$)`);
+const ACTIVE_RES = ACTIVE_NAMES.map(nameRe);
+const ENCRYPT_RE = nameRe("Encrypt");
+const PAGE_RE = /\/Type\s*\/Page(?![A-Za-z0-9])/g;
+
+/**
+ * A byte-wise PDF scan (the PDF is stored as it came, so this is the whole defence): `%%EOF`
+ * within the last 1024 bytes, no `/Encrypt`, none of ACTIVE_NAMES, 1 to 20 `/Type /Page` objects.
+ * Active content inside compressed object streams is not seen; that is listed for phase H.
+ */
+export function scanPdf(
+  bytes: Uint8Array,
+):
+  | { ok: true; pages: number }
+  | { ok: false; error: "corrupt" | "too_many_pages" | "encrypted" | "active_content" } {
+  const latin1 = Buffer.from(bytes).toString("latin1");
+  if (!latin1.slice(-1024).includes("%%EOF")) return { ok: false, error: "corrupt" };
+  const decoded = latin1.replace(/#([0-9A-Fa-f]{2})/g, (_m, h: string) =>
+    String.fromCharCode(Number.parseInt(h, 16)),
+  );
+  if (ENCRYPT_RE.test(decoded)) return { ok: false, error: "encrypted" };
+  if (ACTIVE_RES.some((re) => re.test(decoded))) return { ok: false, error: "active_content" };
+  const pages = decoded.match(PAGE_RE)?.length ?? 0;
+  if (pages === 0) return { ok: false, error: "corrupt" };
+  if (pages > RX_PDF_MAX_PAGES) return { ok: false, error: "too_many_pages" };
+  return { ok: true, pages };
 }
 
 const sha256 = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
@@ -102,7 +144,20 @@ export async function checkRxFile(
   if (bytes.length > RX_MAX_BYTES) return { ok: false, error: "too_large" };
   const kind = sniffType(bytes);
   if (kind === null) return { ok: false, error: "unsupported_type" };
-  // The PDF scan follows in the next PR (R2 part B); until then a PDF is refused.
-  if (kind === "pdf") return { ok: false, error: "unsupported_type" };
-  return checkImage(bytes);
+  if (kind !== "pdf") return checkImage(bytes);
+  const scan = scanPdf(bytes);
+  if (!scan.ok) return scan;
+  return {
+    ok: true,
+    file: {
+      body: bytes,
+      contentType: "application/pdf",
+      ext: "pdf",
+      kind: "pdf",
+      pages: scan.pages,
+      width: null,
+      height: null,
+      sha256: sha256(bytes),
+    },
+  };
 }
