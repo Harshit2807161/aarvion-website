@@ -297,14 +297,16 @@ ported prototype CSS imported by `globals.css`.
 | `catalogue/` | `schema.ts` (zod), `pricing.ts` (`sellingPricePaise`, `percentOff`, and `cartTotals`: packs, MRP, discount, payable from each line's MRP; client-safe), `categories.ts`, `collections.ts`, `seed.ts`, `search.ts`, `queries.ts` (also `getPurchasableBySlugs`: a direct, never cached read of the active products in live categories, for cart pricing), `order.ts` (pure `compareVariants`, `orderForShelf`; client-safe) |
 | `cart/rules.ts` | pure cart rules, client-safe and import-free: `CART_LIMITS` (10 per product, 20 per order), `CartLine`, `addLine`, `setLineQty`, `removeLine` (a refused or no-op change returns the same array; `product_limit` then `order_limit`), `capLines` (untrusted input to a valid cart, cut at 20 packs from the end) and `mergeLines` (max per slug, server order first, idempotent); lines are an array, so a slug like `__proto__` is ordinary |
 | `cart/carts.ts` | the `carts` collection (`CartDoc`: one document per user, lines as an array plus `rev`, never a price), `readCart` and `mutateCart`: every write is a compare-and-set on `rev`, a no-op returns the same array and writes nothing, a missing cart inserts at `rev: 1` (E11000 retries), and 25 lost races, or a 2 s total deadline (`performance.now()`, with capped exponential jitter between tries), throw `HttpError(409, "cart_conflict")` |
+| `cart/service.ts` | the priced cart: `getCart` (reprices from Mongo; retired lines are deleted in the same write and listed in `removed`; on 409 it falls back to the unpruned view), `addToCart`, `setCartQty`, `removeFromCart` (every change first drops retired lines, so a hidden product never counts toward a cap, and a refused change still writes the pruned cart; `CartResult` errors `product_not_found`, `product_limit`, `order_limit` leave the live cart untouched); `mergeGuestCart` (retired lines dropped on both sides before `mergeLines`, reports `trimmed`, writes nothing on a replay) and `quoteLines` (no write) |
 | `auth/` | `identifier.ts`, `otp.ts`, `users.ts`, `sessions.ts`, `cookie.ts`, `login.ts` (`sendOtp`, `verifyOtpAndLogin`), `guards.ts` (`getAuth`, `requireUser`, `requireRole`, `sessionRefreshHeaders`: the `Set-Cookie` that re-issues the sliding customer cookie, which every customer route that calls `requireUser` merges into its response), `roles.ts` |
 | `security/` | `rate-limit.ts` (`hitRateLimit`, `peekRateLimit`, `resetRateLimit`), `client-ip.ts` (`clientIp`, `ipBucket`), `origin.ts` (`assertSameOrigin`) |
-| `audit.ts` | `appendAudit()`, the only writer of `audit_logs` |
+| `audit.ts` | `appendAudit()`, the only writer of `audit_logs` (actions `auth.login`, `auth.logout`, `rx.upload`, `rx.view`) |
 | `orders/status.ts` | pure state machine: `ORDER_EDGES`, `transition()`, `initialStatus()` |
 | `orders/order-number.ts` | `nextOrderNumber(now)`, `formatOrderNumber`, `orderMonthKey` |
 | `prescriptions/file-check.ts` | `checkRxFile(bytes)`: magic-byte type (`sniffType`), 1 to 8 MiB; an image is re-encoded with sharp to WebP q85 (longest side 3000, shortest at least 400, 50 MP input cap, one frame, EXIF rotation applied, all metadata dropped, 5 s timeout); returns `{ ok, file }` or a named `RxFileError`, plus the sha256 of the stored body. PDFs are refused until the scan lands (part B) |
 | `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6`, `istMidnight(ymd)` (a day's 00:00 IST instant; `RangeError` for a malformed or impossible date), `istDay(at)`, `rxEnd(rx)` (the exclusive end: `min(validUntil, rxDate + 6 months)`) |
 | `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput`, and `reviewRx` (approve only from pending; reject from pending, or from approved as a revoke; a reject's `set` carries no dates, so an approved Rx keeps them; rejected is final; an unknown status is `invalid_transition`), `rxView` (the customer list item: under review, approved, expired or rejected, with IST days) |
+| `prescriptions/prescriptions.ts` | the `prescriptions` and `rx_staging` collections and their indexes; `RxDoc`, `StagingDoc`, `RxCreateBody`, `RX_UPLOAD_LIMITS`; `createStaging`, `peekStaging`, `takeStaging` (single use), `insertRx`, `listRxForUser`, `getRxForUser` (ownership in the filter), `applyRxReview` |
 
 ## Collections and indexes
 
@@ -316,8 +318,10 @@ ported prototype CSS imported by `globals.css`.
 | `otp_challenges` | `<channel>:<value>` (one live challenge per identifier) | `expiresAt_ttl` | `issueOtpChallenge`, `verifyOtpChallenge`, `checkOtpChallenge` (refunds a matching check's attempt) |
 | `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole`; lookups filter `{ $eq, $type: "string" }` so the partial indexes apply |
 | `sessions` | SHA-256 of the token | `expiresAt_ttl`, `userId_1` | `createSession`, `resolveSession`, `revokeSession` |
-| `carts` | the user's ObjectId | none | `mutateCart` |
+| `carts` | the user's ObjectId | none | `mutateCart` (through `service.ts`) |
 | `audit_logs` | ObjectId | `at_desc`, `actorUserId_at_desc` | `appendAudit` |
+| `prescriptions` | ObjectId | `userId_createdAt_desc`, `status_createdAt` (the pharmacist queue, oldest first) | `insertRx` (the upload service), `applyRxReview` (a conditional update on the status it was read in) |
+| `rx_staging` | base64url of 16 random bytes (22 chars) | `expiresAt_ttl` (TTL 0; a slot lives 15 minutes) | `createStaging`, `takeStaging` (single use) |
 | `dev_outbox` | `mock_<uuid>` | `expiresAt_1` (TTL 24 h), `to_1_createdAt_1` | mock SMS and email |
 | `counters` | `order-number:<YYMM>` | none | `nextOrderNumber` |
 
