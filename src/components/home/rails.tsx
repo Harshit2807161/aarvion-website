@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { buttonClass, ButtonLink } from "@/components/base/button";
+import { Icon } from "@/components/base/icon";
 import { Pocket } from "@/components/catalogue/pocket";
 import { ROUTES } from "@/config/routes";
 import { plural } from "@/lib/catalogue/display";
@@ -71,7 +72,8 @@ export function Rails({ model }: { model: HomeModel }) {
                 </p>
                 <div className="rail-aside-act">
                   <SearchCardLink href="#q" className={buttonClass({ variant: "forest" })}>
-                    Search medicines
+                    <Icon name="search" size={18} />
+                    <span>Search medicines</span>
                   </SearchCardLink>
                   <ButtonLink href={ROUTES.contact} variant="quiet">
                     Contact us

@@ -73,7 +73,7 @@ export function RailControls({
         <Link className="rail-all" href={ROUTES.category(slug)}>
           <span className="rail-all-t">View all {count}</span>
           <span className="sr-only"> {title.toLowerCase()} medicines</span>
-          <Icon name="chev" />
+          <Icon name="arrow" />
         </Link>
       )}
       <div className="rail-arrows" data-off={overflow ? undefined : ""}>
