@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "@/lib/cart/api";
 import { cartStore, resetCartStore } from "@/lib/cart/store";
 import { useCartView } from "@/lib/cart/use-cart-view";
-import { cartTotals } from "@/server/catalogue/pricing";
+import { cartTotals } from "@/server/catalogue/cart-totals";
 import { pricedLine, seedGuest } from "../../../tests/helpers/cart";
 
 vi.mock("@/lib/cart/api", () => ({

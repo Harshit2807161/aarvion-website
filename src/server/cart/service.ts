@@ -1,7 +1,7 @@
 import type { ObjectId } from "mongodb";
 import { HttpError } from "../http.ts";
 import { getPurchasableBySlugs, type PurchasableProduct } from "../catalogue/queries.ts";
-import { cartTotals, type CartTotals } from "../catalogue/pricing.ts";
+import { cartTotals, type CartTotals } from "../catalogue/cart-totals.ts";
 
 import { mutateCart, readCart } from "./carts.ts";
 import {

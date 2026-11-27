@@ -6,6 +6,7 @@
  * does not fix and which wait for owner approval like every new customer string.
  */
 import { CART_LIMITS } from "@/lib/cart/cart";
+import { CART_SENTENCES } from "./cart-sentences";
 
 export const CART_COPY = {
   perProductMax: `Up to ${CART_LIMITS.perProduct} of each per order`,
@@ -16,11 +17,8 @@ export const CART_COPY = {
   removeFrom: (name: string) => `Remove ${name} from cart`,
   remove: "Remove",
   each: "each",
-  inCart: (name: string, qty: number) => `${name}: ${qty} in cart`,
-  removed: (name: string) => `${name} removed from cart`,
-  // The same sentences CartControl speaks at a limit.
-  productLimit: (name: string) => `You can order up to ${CART_LIMITS.perProduct} packs of ${name}.`,
-  orderLimit: `An order can hold up to ${CART_LIMITS.perOrder} packs.`,
+  // Shared with CartControl and CartSync (cart-sentences.ts), so the wording has one source.
+  ...CART_SENTENCES,
   summary: {
     mrpTotal: "MRP total",
     discount: "Aarvion discount",

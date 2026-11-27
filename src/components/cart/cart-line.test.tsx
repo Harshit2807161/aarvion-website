@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveRegion } from "@/components/feedback/live-region";
 import * as api from "@/lib/cart/api";
 import { cartStore, resetCartStore } from "@/lib/cart/store";
-import { cartTotals } from "@/server/catalogue/pricing";
+import { cartTotals } from "@/server/catalogue/cart-totals";
 import { findClaims } from "../../../tests/helpers/claims";
 import { pricedLine as line, seedGuest } from "../../../tests/helpers/cart";
 import { CartLineItem } from "./cart-line";

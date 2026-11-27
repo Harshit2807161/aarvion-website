@@ -2,7 +2,7 @@
  * Pure cart rules, shared by the server cart (phase K) and the client cart UI. No imports, no
  * I/O, no clock: a component may import this at runtime (see server-imports.test.ts). A cart is
  * an ordered array of `{ slug, qty }`, never a slug-keyed object, so a slug like "__proto__" is
- * an ordinary line. Prices are never held here; `cartTotals` in `catalogue/pricing.ts` derives
+ * an ordinary line. Prices are never held here; `cartTotals` in `catalogue/cart-totals.ts` derives
  * them from the catalogue's MRP.
  *
  * Every change function returns `{ lines, blocked }`. A refused change, and a change that
