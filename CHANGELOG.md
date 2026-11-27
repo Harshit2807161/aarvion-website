@@ -252,6 +252,7 @@ Node 24).
 
 ### Added
 
+- Prescription IST date helpers in `src/server/prescriptions/validity.ts`: `istMidnight` (a form day to its 00:00 IST instant, `RangeError` for a malformed or impossible date), `istDay` (an instant to its IST day) and `rxEnd` (the exclusive end of validity, `min(validUntil, rxDate + 6 months)`), also run under `TZ=America/Los_Angeles` and other zones in `validity.carries.test.ts`. And `src/server/prescriptions/review.ts` (pure) with the statuses, reject reasons, patient declaration text and version, and the `RxApproveInput` and `RxRejectInput` schemas. The review transitions and list view follow in the next two PRs; nothing uses these yet.
 - Product docs (`docs/catalogue.md`, `docs/missing-products.md`), requirements v0.1, seed data
   for the 11 listed products, the 32 source photos and cutouts, draft logo SVGs, round-1 banner
   scenes and `PRODUCT.md` (#1).
