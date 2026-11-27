@@ -65,6 +65,12 @@ Open PRs on 2026-11-28:
   phone spacing), #202 (UI ledger and rulings persisted), and this handoff refresh with the docs
   fixes.
 
+Phase O (orders and payments) has a plan, not started:
+[superpowers/plans/2026-11-28-phase-o-orders-payments.md](superpowers/plans/2026-11-28-phase-o-orders-payments.md)
+(21 tasks O1–O21; its provisional rulings are in `decisions/rulings.md`, "Phase O plan"). Its wave 1
+(O1 order rules, O3 address book, O4 gateway contract and fake) is pure or server-only and can
+run beside K4–K7 and R5–R7.
+
 The controller keeps a per-phase execution ledger in the gitignored `.superpowers/sdd/<plan>/`
 of its build checkout. **At the end of each phase it is persisted to `docs/decisions/`**
 (`phase-f-ledger.md`, `phase-ca-ledger.md`, `phase-ui-ledger.md`), and its rulings are copied
@@ -151,7 +157,7 @@ phases after UI each get their own plan under `docs/superpowers/plans/` before w
 | --- | --- | --- |
 | **K** Cart | K1 cart API with guest merge; K2 shared cart store and drawer, replacing the UI plan's session-only cart and removing `/cart` from `PENDING_ROUTES` | enforce 10 per product and 20 packs per order; `requireUser` re-issues the sliding customer cookie whenever it slides the session; restore the cart-merge line on the login page (phase-ca-ledger "Carry → … K1"; UI plan "After this plan") |
 | **R** Prescriptions | file validation (magic bytes, sharp re-encode, PDF checks); private storage (Vercel Blob) and API; upload UI; `/account/prescriptions` (R3) | store `rxDate` as IST midnight via an `istMidnight` helper; pharmacist valid-until = next IST midnight; no Rx content in logs or messages (phase-ca-ledger "Carry → R phase") |
-| **O** Orders and payments | O2 COD placement (idempotent, priced on the server); checkout stepper and reduced checkout header; order history; Razorpay order + verify; webhook; reconcile cron | O2 judges the Rx at `createdAt` and passes server time as `ctx.at`; `hold` is staff-only; customer cancel only until packed; `refund_pending` in the same write as the hold; idempotent refunds; decide whether a refund is deferred while on hold (F16); COD ≤ ₹5,000; replace the fake gateway with a contract-tested fake (phase-ca-ledger, phase-f-ledger "Parked … O5") |
+| **O** Orders and payments ([plan](superpowers/plans/2026-11-28-phase-o-orders-payments.md); the handoff's O2 is the plan's O6, O5 is O4) | O2 COD placement (idempotent, priced on the server); checkout stepper and reduced checkout header; order history; Razorpay order + verify; webhook; reconcile cron | O2 judges the Rx at `createdAt` and passes server time as `ctx.at`; `hold` is staff-only; customer cancel only until packed; `refund_pending` in the same write as the hold; idempotent refunds; decide whether a refund is deferred while on hold (F16); COD ≤ ₹5,000; replace the fake gateway with a contract-tested fake (phase-ca-ledger, phase-f-ledger "Parked … O5") |
 | **N** Notifications | outbox and cron; MSG91 SMS; Resend email and templates; event wiring | adapters keep OTP codes out of logs; DLT templates; messages never carry prescription content (phase-ca-ledger "Carry → N phase") |
 | **D** Admin | shell and roles; Rx review API and UI; orders API and UI; products API and UI (MRP edit, photo swap, "needs photo swap" filter) | every MRP, photo, active or category write calls `revalidateCatalogue()`; category names admin-editable; D1 creates staff users and revokes a user's sessions on a role change; a user status (block or delete) honoured by verify and `getAuth`; prototype carries: `AAR-` order ids, ship URL with AWB over https, Rx re-check on confirm/pack/ship, required match attestation on approve, append-only audit trail UI, confirm MRP changes over 25 %, confirm deactivation (UI plan "After this plan"; phase-ca-ledger "Carry → H2/D"; the admin prototype review, recorded here) |
 | **P** Account | P1 `/account`: track an order, profile, addresses, marketing opt-out, data download and deletion; **a Sign out action** (nothing calls `POST /api/auth/logout` yet) | DPDP rights (requirements §10); deploy blocker 6 |
