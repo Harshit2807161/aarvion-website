@@ -4,7 +4,7 @@ import { CATEGORIES_COLLECTION, PRODUCTS_COLLECTION } from "./collections.ts";
 import { compareVariants } from "./order.ts";
 import { sellingPricePaise } from "./pricing.ts";
 import { matchesTokens, queryTokens } from "./search.ts";
-import { Slug, type Category, type Product } from "./schema.ts";
+import { Slug, type Category, type Product, type ProductImage } from "./schema.ts";
 
 export type PublicProduct = Omit<
   Product,
@@ -111,4 +111,50 @@ export async function getFamily(familySlug: string): Promise<PublicProduct[]> {
     })
     .toArray();
   return docs.sort(compareVariants).map(toPublicProduct);
+}
+
+/** What a cart line shows: the product facts, its current MRP and one image. */
+export type PurchasableProduct = Pick<
+  PublicProduct,
+  "slug" | "name" | "packLabel" | "dosageForm" | "composition" | "rxRequired" | "mrpPaise"
+> & { image: ProductImage };
+
+const MAX_PURCHASABLE_LOOKUP = 20;
+
+/**
+ * The products among `slugs` that can be bought right now: `active` and in a live category.
+ * A direct Mongo read, never cached, because cart prices must follow the current MRP. Slugs that
+ * are not valid slugs are ignored (they only ever reach Mongo as parsed strings); more than 20
+ * distinct slugs throws RangeError, since a cart holds at most 20 lines.
+ */
+export async function getPurchasableBySlugs(
+  slugs: readonly string[],
+): Promise<Map<string, PurchasableProduct>> {
+  const valid = [
+    ...new Set(slugs.flatMap((s) => (Slug.safeParse(s).success ? [s as Product["slug"]] : []))),
+  ];
+  if (valid.length > MAX_PURCHASABLE_LOOKUP) {
+    throw new RangeError(`at most ${MAX_PURCHASABLE_LOOKUP} slugs per lookup`);
+  }
+  const out = new Map<string, PurchasableProduct>();
+  if (valid.length === 0) return out;
+  const live = await liveSlugs();
+  const docs = await (
+    await products()
+  )
+    .find({ slug: { $in: valid }, active: true, category: { $in: live as Product["category"][] } })
+    .toArray();
+  for (const d of docs) {
+    out.set(d.slug, {
+      slug: d.slug,
+      name: d.name,
+      packLabel: d.packLabel,
+      dosageForm: d.dosageForm,
+      composition: d.composition,
+      rxRequired: d.rxRequired,
+      mrpPaise: d.mrpPaise,
+      image: d.cutout ?? d.images[0]!,
+    });
+  }
+  return out;
 }
