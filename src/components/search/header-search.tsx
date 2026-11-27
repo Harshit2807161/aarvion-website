@@ -92,7 +92,9 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
   useEffect(() => {
     if (!submitPending.current || status === "loading" || status === "idle") return;
     submitPending.current = false;
-    if (status === "done" && results.length > 0) choose(results[0]!);
+    // Not synchronously: choosing closes the panel (a state update), which an effect must not do.
+    const first = status === "done" ? results[0] : undefined;
+    if (first) queueMicrotask(() => choose(first));
   });
 
   // "Search for a medicine" anywhere on the page puts the caret in the header search.
