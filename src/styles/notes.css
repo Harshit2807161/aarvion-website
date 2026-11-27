@@ -1,0 +1,14 @@
+/* Notes: ported from design/prototype/css/flows.css */
+/* ── Notes ────────────────────────────────────────────────────────────── */
+.note { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 4px 12px; padding: 14px 16px; border-radius: var(--radius-md); background: var(--color-forest-50); color: var(--color-ink); font-size: var(--text-sm); line-height: 1.5; }
+.note > .i { width: 22px; height: 22px; color: var(--color-forest-700); }
+.note b, .note strong { font-weight: 600; }
+.note-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 8px; }
+.note--sand { background: var(--color-sand-50); }
+.note--sand > .i { color: var(--color-wait-ink); }
+.note--hold { background: var(--color-hold-50); }
+.note--hold > .i { color: var(--color-hold-ink); }
+.note--bad { background: var(--color-danger-50); }
+.note--bad > .i { color: var(--color-danger); }
+.note--proto { background: transparent; box-shadow: inset 0 0 0 1px var(--color-neutral-200); color: var(--color-text-muted); }
+.note--proto > .i { color: var(--color-neutral-500); }
