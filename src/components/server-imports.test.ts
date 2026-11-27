@@ -6,14 +6,14 @@ import { describe, expect, it } from "vitest";
 /**
  * Global Constraints: client-reachable code (`src/components/**`, and `src/lib/**` but for its
  * server-only modules) imports at runtime from `src/server/**` only the pure, framework-free
- * `catalogue/pricing`, `catalogue/search` and `catalogue/order`. Anything else there may pull
+ * `catalogue/pricing`, `catalogue/search`, `catalogue/order` and `cart/rules`. Anything else there may pull
  * Mongo, env or auth code into a client bundle, so it may be imported only with a statement-level
  * `import type` (or `export type`), which is always erased. An inline `import { type X }` is not enough: depending on the compiler settings
  * it can leave a side-effect import of the module behind.
  */
 const root = path.resolve(import.meta.dirname, "../..");
 const serverDir = path.join(root, "src/server");
-const ALLOWED = new Set(["catalogue/pricing", "catalogue/search", "catalogue/order"]);
+const ALLOWED = new Set(["catalogue/pricing", "catalogue/search", "catalogue/order", "cart/rules"]);
 
 /** The module path under src/server that `specifier` names from `file`, or null if it is not one. */
 function serverModule(specifier: string, file: string): string | null {
@@ -103,6 +103,7 @@ describe("runtimeServerImports", () => {
         import { percentOff } from "@/server/catalogue/pricing";
         import { queryTokens } from "@/server/catalogue/search.ts";
         import { compareVariants } from "../../server/catalogue/order";
+        import { addLine } from "@/server/cart/rules";
         import type { Category } from "@/server/catalogue/schema";
         import type { PublicProduct } from "../../server/catalogue/queries";
         export type { Session } from "@/server/auth/sessions";
@@ -121,6 +122,7 @@ describe("runtimeServerImports", () => {
         export { getDb } from "@/server/db/client";
         const q = await import("@/server/catalogue/queries");
         const deps = require("../../server/deps");
+        import { getCart } from "@/server/cart/carts";
       `),
     ).toEqual([
       "../../server/auth/login",
@@ -129,6 +131,7 @@ describe("runtimeServerImports", () => {
       "@/server/db/client",
       "@/server/catalogue/queries",
       "../../server/deps",
+      "@/server/cart/carts",
     ]);
   });
 
