@@ -262,6 +262,7 @@ ported prototype CSS imported by `globals.css`.
 
 ### scripts/
 
+- `check-rx-trace.ts` (`pnpm check:rx-trace`, run by CI after `pnpm build`: fails unless the upload routes' traces ship pdf-lib, sharp and the PDF worker asset)
 - `db-indexes.ts`
 - `merge-gate.sh`
 - `pr-size.ts`

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 // resolves at run time, so nothing bundled would pull pdf-lib into the function. With pdf-lib in
 // `serverExternalPackages` (next.config.ts), this import stays a runtime require that the file
 // tracer follows, so pdf-lib and its dependencies ship beside the worker. It is never called here.
+// Do not remove it: `pnpm check:rx-trace` (scripts/check-rx-trace.ts, run in CI) fails without it.
 import "pdf-lib";
 
 export type PdfScan =

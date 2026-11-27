@@ -170,6 +170,7 @@ Helpers in `tests/helpers/`:
 | `src/lib/price-source.test.ts` | UI code under `src/app/**` or `src/components/**` reads `pricePaise` or `MRP_DISCOUNT_PAISE` or subtracts 2000 itself |
 | `src/components/server-imports.test.ts` | a non-test file under `src/components/**`, or under `src/lib/**` other than the server-only `catalogue/cached.ts` and `catalogue/errors.ts`, imports from `src/server/**` (by `@/server/…` or a relative path) other than `catalogue/pricing`, `catalogue/search` or `catalogue/order` without a statement-level `import type` / `export type` (an inline `import { type X }` does not count); it parses with the TypeScript compiler API and also catches side-effect imports, re-exports, `import()` and `require()` |
 | `src/server/auth/cookie.test.ts` | the cookie `Max-Age` drifts from `SESSION_POLICY` |
+| `pnpm check:rx-trace` (CI `build` job; `scripts/check-rx-trace.test.ts` tests its rules) | an upload route's `.nft.json` loses the top-level `node_modules/pdf-lib` link, the pdf-lib or sharp package, or the `pdf-worker.*.mjs` asset (e2e runs with the full `node_modules`, so it cannot catch this) |
 | `scripts/pr-size.test.ts`, `tests/int/pr-size.test.ts` | the size counter or its excludes change |
 | `scripts/vitest-projects.test.ts` | a test file matches no Vitest project, or more than one |
 | `src/styles/tokens.test.ts` | `globals.css` drifts from the prototype's `tokens.css` or DESIGN.md colours |

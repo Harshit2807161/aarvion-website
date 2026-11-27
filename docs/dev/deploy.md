@@ -69,6 +69,9 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
 - Blobs are written `access: "private"` with exact keys (`rx/<userId>/<rxId>.<ext>`,
   `rx-staging/…`) and no overwrite; they are read only through the app's ownership-checked
   handlers. Never hand out a blob URL, `downloadUrl` or a read-capable token.
+- **Merge all of R5 before the first deploy.** R5 lands in five PRs (#224, then parts B to E).
+  Deployed part-way, finalise would be live with PDFs untraced (until E), and under `blob` staging
+  would answer `mode: "client-token"` with no token route (until D).
 - **What Vercel needs for uploads:** `FILE_STORE=blob` and the scope's `BLOB_READ_WRITE_TOKEN`
   (connecting the private store sets it), at build time and at run time. Under `blob` the browser
   uploads the file straight to Blob with a client token from `POST /api/prescriptions/blob-token`,
@@ -78,7 +81,9 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
   thread, and Next emits that file as a plain asset whose `import "pdf-lib"` resolves at run time.
   `next.config.ts` lists `pdf-lib` in `serverExternalPackages`, and `pdf-scan.ts` imports it once
   (never called), so file tracing copies `pdf-lib`, `@pdf-lib/*`, `pako` and `tslib` into the
-  function: after a build, `.next/server/app/api/prescriptions/route.js.nft.json` lists them.
+  function. `pnpm check:rx-trace` (`scripts/check-rx-trace.ts`, run by the CI `build` job after
+  `pnpm build`) fails unless the upload routes' `.nft.json` traces list the top-level
+  `node_modules/pdf-lib` link, the pdf-lib and sharp packages and the `pdf-worker.*.mjs` asset.
 - **Duration and memory:** the finalise route exports `maxDuration = 60`. Memory cannot be set in
   `vercel.json` under Fluid compute; the project default (Standard, 2 GB / 1 vCPU) is enough for
   one PDF scan per instance (a hostile object stream can take several hundred MB before the 1 s
