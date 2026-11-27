@@ -126,7 +126,8 @@ test("the header Sign in opens the dialog, signs a new address up and shows the 
   await dialog.getByRole("button", { name: "Create account" }).click();
 
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByText("Signed in as E2E")).toBeVisible();
+  // The toast, not its copy in the #live region.
+  await expect(page.locator(".toast").getByText("Signed in as E2E")).toBeVisible();
   await expect(page.locator("[data-account-pill]")).toHaveAccessibleName("Your account");
   await expect(page).toHaveURL(/\/legal\/terms$/);
 });
