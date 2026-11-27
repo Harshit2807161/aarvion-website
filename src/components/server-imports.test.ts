@@ -64,7 +64,11 @@ function runtimeServerImports(source: string, file: string): string[] {
 }
 
 /** Server-only modules under src/lib (they read the DB or env); every other src/lib file is held to the rule. */
-const SERVER_ONLY_LIB = new Set(["src/lib/catalogue/cached.ts", "src/lib/catalogue/errors.ts"]);
+const SERVER_ONLY_LIB = new Set([
+  "src/lib/catalogue/cached.ts",
+  "src/lib/catalogue/errors.ts",
+  "src/lib/site-url.ts",
+]);
 const files = [
   ...globSync("src/components/**/*.{ts,tsx}", { cwd: root }),
   ...globSync("src/lib/**/*.{ts,tsx}", { cwd: root }).filter(

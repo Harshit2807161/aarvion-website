@@ -182,8 +182,10 @@ React components, added task by task. The folders below exist today:
 - `catalogue/display.ts` (client-safe wording of catalogue data, ported from the prototype's `build.mjs`: `fullComposition`, `actives` (preservatives and salt forms dropped, each strength one non-breaking unit), `packDisplay`, `strengthTokens`, `shortName`, `plural`, `countWord`, `pocketImage` (the cutout, else the first photo), `categoryAnchor` and the `PocketProduct` type; type-only imports from `src/server`)
 - `catalogue/home-model.ts` (client-safe model of the home bento and rails: `homeModel`, `bentoTiles`, `tileList`, `BENTO_LAYOUT`, and `railPlan` / `RAIL_RISES` for the rails: a rail per category with two or more products, then one shared rail, titled "Diabetes and respiratory care" or "More medicines", for the single-product categories; imports only `catalogue/order` at runtime)
 - `catalogue/origin.ts` (`countryOfOrigin(manufacturer)`: "India" iff the address names an Indian place from `INDIAN_ADDRESS_MARKERS` (whole word, any case, not a street name), else null, so the page shows "To be added"; extend the marker list, never guess)
+- `catalogue/json-ld.ts` (`productJsonLd(p, base)`: schema.org Product with the selling price, the manufacturer's name only when the catalogue has one, and never `availability`, `aggregateRating` or `review`; `jsonLdScript` escapes `<`; `productMetadata(p)`: the title (name and actives), the MRP and price description, the canonical path and the share image; the product page renders one `application/ld+json` block)
 - `cn.ts` (`clsx` + `tailwind-merge` class helper)
 - `format/rupees.ts` (Indian rupee formatting)
+- `site-url.ts` (`siteUrl()`: `APP_URL` through `getSiteEnv()` and `resolveSiteMetadataBase`, else `http://localhost:3000`, but a production deploy without a valid `APP_URL` throws; server-only; used by the sitemap, robots and JSON-LD)
 - Also `next-url.ts` (`sanitizeNext(raw)`: the `?next=` guard for post-login redirects; returns "/" unless the value is a same-origin path of at most 512 characters with no backslash or control character and not under `/login`, `/api/` or `/dev/`; it checks the resolved output, because dot segments collapse (`/.//x` becomes `//x`), and blocks the prefixes case-insensitively (a malformed percent escape returns "/"); use it for every `next` read from a URL and pass the result straight to `router.replace`/`push`/`redirect`, never decode it)
 
 ### src/server/
@@ -281,7 +283,7 @@ ported prototype CSS imported by `globals.css`.
 
 | Module | Responsibility |
 | --- | --- |
-| `env.ts` | `getEnv()`, `requireEnv(key)`, `EnvError`, `resetEnvForTests()` |
+| `env.ts` | `getEnv()`, `getSiteEnv()` (only `APP_URL` and `VERCEL_ENV`, validated on their own; in production a missing or invalid `APP_URL` throws, never a localhost fallback), `requireEnv(key)`, `EnvError`, `resetEnvForTests()` |
 | `deps.ts` | `getDeps()` → `{ sms, email, payments, files, now }`; `setDepsForTests`, `resetDepsForTests`; re-exports `readOutbox` |
 | `providers/` | `types.ts` (interfaces), `mock-sms.ts`, `mock-email.ts`, `outbox.ts` (`dev_outbox`), `fake-payments.ts`, `memory-files.ts`, `guard.ts` (`isMockForbidden`, `PRODUCTION_DB_NAME`) |
 | `dev-only.ts` | `requireDevRoute()`: `notFound()` whenever mocks are forbidden |

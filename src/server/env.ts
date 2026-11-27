@@ -2,15 +2,18 @@ import { z } from "zod";
 
 const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
 
+const appUrl = z.preprocess(emptyToUndefined, z.url().optional());
+const vercelEnv = z.preprocess(
+  emptyToUndefined,
+  z.enum(["production", "preview", "development"]).optional(),
+);
+
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   MONGODB_URI: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   MONGODB_DB: z.preprocess(emptyToUndefined, z.string().min(1).default("aarvion")),
-  APP_URL: z.preprocess(emptyToUndefined, z.url().optional()),
-  VERCEL_ENV: z.preprocess(
-    emptyToUndefined,
-    z.enum(["production", "preview", "development"]).optional(),
-  ),
+  APP_URL: appUrl,
+  VERCEL_ENV: vercelEnv,
   SMS_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "msg91"]).default("mock")),
   EMAIL_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "resend"]).default("mock")),
   PAYMENTS_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["fake", "razorpay"]).default("fake")),
@@ -40,6 +43,32 @@ export function getEnv(): Env {
   }
   cached = result.data;
   return cached;
+}
+
+/**
+ * The two variables the SEO routes need, parsed on their own so an unrelated bad variable cannot
+ * take down robots.txt, the sitemap or every product page. `VERCEL_ENV` is validated. `APP_URL` is
+ * returned as given (blank is undefined), except in production, where a missing or invalid value
+ * throws: a production site must never publish localhost canonicals or sitemap URLs. Lazy: it
+ * throws only when called, never at import. Not cached, so tests can change the environment.
+ */
+export function getSiteEnv(): { appUrl: string | undefined; vercelEnv: Env["VERCEL_ENV"] } {
+  const env = vercelEnv.safeParse(process.env.VERCEL_ENV);
+  if (!env.success) {
+    throw new EnvError(
+      `Invalid environment variables:\nVERCEL_ENV: ${env.error.issues[0]?.message}`,
+    );
+  }
+  const raw = emptyToUndefined(process.env.APP_URL?.trim());
+  if (env.data === "production") {
+    const url = appUrl.safeParse(raw);
+    if (!url.success || url.data === undefined) {
+      throw new EnvError(
+        "APP_URL must be set to the site's public https URL when VERCEL_ENV is production",
+      );
+    }
+  }
+  return { appUrl: raw as string | undefined, vercelEnv: env.data };
 }
 
 export function resetEnvForTests(): void {
