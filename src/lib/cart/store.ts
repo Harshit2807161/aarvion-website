@@ -13,6 +13,9 @@ import {
 
 /** What the server (and the first hydration render) sees: an empty cart. Frozen and shared. */
 const SERVER_LINES: CartLines = Object.freeze({});
+/** What a sign-in resolves with; `retry` is set when it failed in a way that may pass (offline, rate limited, code not loaded). */
+export type SignInResult = { trimmed: boolean; removed: string[]; retry?: boolean };
+
 export type CartMode = "unknown" | "guest" | "user";
 
 /** Something the shopper should be told; `CartSync` speaks it through the page's live region. */
@@ -72,7 +75,7 @@ let loadingQuoter: Promise<ReturnType<typeof createQuoter>> | null = null;
 let mode: CartMode = "unknown";
 let user: UserMode | null = null; // the signed-in half, loaded on demand (user-mode.ts)
 let loadingUser: Promise<UserMode> | null = null;
-let signInPromise: Promise<{ trimmed: boolean; removed: string[] }> | null = null;
+let signInPromise: Promise<SignInResult> | null = null;
 let signingIn = false;
 let duringSignIn: CartAction[] = []; // changes made while a sign-in request is in flight, re-applied after it
 const listeners = new Set<() => void>();
@@ -80,20 +83,12 @@ const issueListeners = new Set<(issue: CartIssue) => void>();
 const notify = () => listeners.forEach((l) => l());
 const emit = (issue: CartIssue) => issueListeners.forEach((l) => l(issue));
 
-/** Keeps only the guest lines whose slug passes `keep`; returns whether any line was dropped. */
-function keepOnly(keep: (slug: string) => boolean): boolean {
-  const current = cartStore.getSnapshot();
-  const kept = Object.entries(current).filter(([slug]) => keep(slug));
-  if (kept.length === Object.keys(current).length) return false;
-  cache = Object.assign(Object.create(null), Object.fromEntries(kept));
-  writeGuest(cache!);
-  return true;
-}
-
 /** Drops lines the server says can no longer be bought, and tells the shopper once. */
 function dropRetired(slugs: readonly string[]): void {
   const gone = new Set(slugs);
-  keepOnly((slug) => !gone.has(slug));
+  const kept = Object.entries(cartStore.getSnapshot()).filter(([slug]) => !gone.has(slug));
+  cache = Object.assign(Object.create(null), Object.fromEntries(kept));
+  writeGuest(cache!);
   emit({ kind: "removed", slugs: [...gone] });
 }
 
@@ -226,31 +221,19 @@ export const cartStore = {
     return blocked;
   },
   /**
-   * Drop lines whose slug is not in the catalogue (a product retired since the cart
-   * was saved), so they never count toward the cap. Returns whether anything was dropped.
-   */
-  reconcile(known: ReadonlySet<string>): boolean {
-    // An empty set means the catalogue is not loaded, not that every product is gone.
-    if (known.size === 0 || mode === "user") return false;
-    if (!keepOnly((slug) => known.has(slug))) return false;
-    scheduleQuote();
-    notify();
-    return true;
-  },
-  /**
    * Signed in: folds the guest lines into the server cart (else just loads it), then clears guest
    * storage and switches to user mode. A second call while one runs shares its promise, so a mount
    * and a sign-in event cannot merge twice. A change made while it runs is re-applied afterwards.
    * Resolves with what the shopper should be told (it also emits `removed` and `trimmed` issues).
    */
-  signIn(): Promise<{ trimmed: boolean; removed: string[] }> {
+  signIn(): Promise<SignInResult> {
     // The chunk loads here, when someone is (or may be) signed in. A tap made while it loads is an
     // ordinary guest change: the merge below starts from the cart as it is when the chunk is ready.
     return (signInPromise ??= loadUser()
       .then((u) => u.signIn())
       .catch(() => {
         emit({ kind: "sync_failed" });
-        return { trimmed: false, removed: [] as string[] };
+        return { trimmed: false, removed: [] as string[], retry: true };
       })
       .finally(() => {
         signInPromise = null;

@@ -1,4 +1,4 @@
-import { act, render } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchSessionState } from "@/components/auth/session-state";
 import { announceSignedIn } from "@/components/auth/events";
@@ -66,6 +66,21 @@ describe("CartSync on load", () => {
     expect(cartStore.getMode()).toBe("guest");
     expect(cartStore.getSnapshot()).toEqual({ a: 1 });
     expect(live()).toBe("A medicine in your cart is no longer available, so it was removed.");
+  });
+
+  it("drops unsold lines so they free the 20-pack cap, and never touches an empty catalogue", async () => {
+    session.mockResolvedValue({ state: "out" });
+    seedGuest({ gone: 10, a: 10 });
+    setup([]); // an empty catalogue means it is not loaded
+    await settle();
+    expect(cartStore.getSnapshot()).toEqual({ gone: 10, a: 10 });
+    cleanup();
+    resetCartStore();
+    seedGuest({ gone: 10, a: 10 });
+    setup(["a", "b"]);
+    await settle();
+    expect(cartStore.getSnapshot()).toEqual({ a: 10 });
+    expect(cartStore.dispatch({ type: "inc", slug: "b" })).toBeNull(); // the cap is free again
   });
 
   it("signed in: signs the store in once, merging the guest cart", async () => {
@@ -161,7 +176,7 @@ describe("a sign-in whose code failed to load", () => {
     session.mockResolvedValue({ state: "in", name: null });
     const signIn = vi
       .spyOn(cartStore, "signIn")
-      .mockResolvedValueOnce({ trimmed: false, removed: [] }); // the chunk failed: the store is not signed in
+      .mockResolvedValueOnce({ trimmed: false, removed: [], retry: true }); // the chunk failed: the store is not signed in
     vi.mocked(getCart).mockResolvedValue(view({ a: 1 }));
     setup();
     await settle();

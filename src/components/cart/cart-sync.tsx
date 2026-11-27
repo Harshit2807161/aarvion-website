@@ -32,6 +32,18 @@ function sentence(issue: CartIssue): string {
 }
 
 /**
+ * Drops guest lines for products the catalogue no longer has, so they never count toward the cap.
+ * An empty set means the catalogue is not loaded, not that every product is gone. Returns whether
+ * anything was dropped.
+ */
+function dropUnsold(known: ReadonlySet<string>): boolean {
+  if (known.size === 0 || cartStore.getMode() === "user") return false;
+  const gone = Object.keys(cartStore.getSnapshot()).filter((slug) => !known.has(slug));
+  for (const slug of gone) cartStore.dispatch({ type: "remove", slug });
+  return gone.length > 0;
+}
+
+/**
  * Renders nothing. Keeps the cart store in step with the session. On mount it asks who is signed
  * in: a signed-in shopper signs the store in (guest lines are merged into the server cart); a
  * confirmed "nobody" leaves the guest cart and drops lines for products the catalogue no longer
@@ -43,7 +55,7 @@ function sentence(issue: CartIssue): string {
  * `announce()` replaces one still waiting. When the tab becomes visible again (or the window gains
  * focus or the network returns) a signed-in cart is reloaded, so another tab's change shows up, and a
  * session check that could not find out is asked once more, as is a sign-in that failed to load its
- * code. Mounted lazily by `CartSyncLoader`. `slugs` come from the cached catalogue.
+ * code, while a 401 stops the retries and the failure is announced once per visit. Mounted lazily by `CartSyncLoader`. `slugs` come from the cached catalogue.
  */
 export function CartSync({ slugs }: { slugs: readonly string[] }) {
   const known = useRef(slugs);
@@ -66,14 +78,27 @@ export function CartSync({ slugs }: { slugs: readonly string[] }) {
       }
       spoken.push(text);
     };
-    const offIssue = cartStore.onIssue((issue) => say(sentence(issue)));
+    let signingIn = false;
+    let saidSignInFailure = false;
+    const offIssue = cartStore.onIssue((issue) => {
+      // A failed sign-in that is retried on every wake-up says so once per visit, not every time.
+      if (issue.kind === "sync_failed" && signingIn) {
+        if (saidSignInFailure) return;
+        saidSignInFailure = true;
+      }
+      say(sentence(issue));
+    });
 
     cartStore.forgetLegacy();
-    const signIn = () =>
-      void cartStore.signIn().then(() => {
-        // The chunk (or the network) failed: try once more when the tab wakes up or the network returns.
-        if (alive && cartStore.getMode() !== "user") retrySignIn = true;
+    const signIn = () => {
+      signingIn = true;
+      void cartStore.signIn().then((r) => {
+        signingIn = false;
+        // The code or the network failed: try once more when the tab wakes up or the network returns.
+        // A 401 (signed out) is not retried.
+        if (alive && r.retry) retrySignIn = true;
       });
+    };
     const check = () =>
       void fetchSessionState().then((session) => {
         if (!alive) return;
@@ -84,7 +109,7 @@ export function CartSync({ slugs }: { slugs: readonly string[] }) {
         }
         retryUnknown = false;
         cartStore.toGuest(true); // a no-op if a sign-in finished while this answer was on its way
-        if (cartStore.reconcile(new Set(known.current))) say(COPY.removed);
+        if (dropUnsold(new Set(known.current))) say(COPY.removed);
       });
     check();
     const onSignedIn = signIn;
