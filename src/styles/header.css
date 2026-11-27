@@ -94,7 +94,9 @@
 @media (max-width: 1100px) {
   .sh-btn .acct-label, .sh-btn .cart-label { display: none; }
   .sh-actions .sh-btn { padding: 0 10px; }
-  .sh-acct { min-width: 0; }
+  /* Label hidden: a fixed 48px box fits the 20px icon or the 28px initial, so signing in never
+     shifts the header (Task 43 review). At 880px and below .sh-btn is 44px anyway. */
+  .sh-actions .sh-acct { min-width: 0; width: 48px; padding: 0; }
 }
 @media (max-width: 880px) {
   :root { --row-h: 52px; --hdr-h: 108px; }
