@@ -1,16 +1,11 @@
 import { connection } from "next/server";
-import { sessionCookieHeader } from "@/server/auth/cookie";
-import { requireUser } from "@/server/auth/guards";
+import { requireUser, sessionRefreshHeaders } from "@/server/auth/guards";
 import { toPublicUser } from "@/server/auth/users";
 import { jsonResponse, withErrors } from "@/server/http";
 
 export const GET = withErrors(async (req) => {
   await connection();
-  const { user, session, token, refreshed } = await requireUser(req);
-  const headers: Record<string, string> = {};
+  const auth = await requireUser(req);
   // Sliding customer sessions re-issue the persistent cookie so its Max-Age slides too.
-  if (refreshed && session.kind === "customer") {
-    headers["Set-Cookie"] = sessionCookieHeader(token, "customer");
-  }
-  return jsonResponse({ user: toPublicUser(user) }, { headers });
+  return jsonResponse({ user: toPublicUser(auth.user) }, { headers: sessionRefreshHeaders(auth) });
 });

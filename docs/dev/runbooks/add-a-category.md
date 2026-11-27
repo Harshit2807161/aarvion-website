@@ -30,8 +30,9 @@ used, because they are URLs (`/category/<slug>`).
 6. CHANGELOG → Added:
    `- <Name> category (<slug>), <status> (#<pr>).`
 7. Existing databases: `pnpm seed` inserts the new category (insert-only) with that scope's
-   `MONGODB_URI` and `MONGODB_DB` (not verified here for deployed databases). After UI plan
-   Task 7, cached pages need `revalidateCatalogue()` (planned).
+   `MONGODB_URI` and `MONGODB_DB` (not verified here for deployed databases). Cached
+   pages show it once the cache expires ("hours") or `revalidateCatalogue()` runs; a direct
+   database write does not run it.
 
 ## B. Change a name, status or order
 

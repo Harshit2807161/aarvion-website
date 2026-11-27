@@ -2,8 +2,18 @@ import type { ObjectId } from "mongodb";
 import { HttpError } from "../http.ts";
 import { getPurchasableBySlugs, type PurchasableProduct } from "../catalogue/queries.ts";
 import { cartTotals, type CartTotals } from "../catalogue/pricing.ts";
-import { mutateCart, readCart, type CartMutation } from "./carts.ts";
-import { addLine, removeLine, setLineQty, type CartBlock, type CartLine } from "./rules.ts";
+
+import { mutateCart, readCart } from "./carts.ts";
+import {
+  addLine,
+  mergeLines,
+  removeLine,
+  setLineQty,
+  type CartBlock,
+  type CartLine,
+} from "./rules.ts";
+
+export type { CartTotals };
 
 export type PricedLine = PurchasableProduct & { qty: number };
 /**
@@ -38,8 +48,6 @@ async function retiredSlugs(lines: readonly CartLine[]): Promise<Set<string>> {
   return new Set(lines.filter((l) => !found.has(l.slug)).map((l) => l.slug));
 }
 
-type Rule = (ls: readonly CartLine[]) => CartMutation;
-
 const without = (ls: readonly CartLine[], gone: ReadonlySet<string>) =>
   ls.some((l) => gone.has(l.slug)) ? ls.filter((l) => !gone.has(l.slug)) : ls;
 
@@ -51,7 +59,11 @@ const without = (ls: readonly CartLine[], gone: ReadonlySet<string>) =>
 async function change(
   userId: ObjectId,
   now: Date,
-  rule: Rule,
+  rule: (ls: readonly CartLine[]) => {
+    lines: readonly CartLine[];
+    blocked?: CartBlock | null;
+    trimmed?: boolean;
+  },
 ): Promise<{ view: CartView; blocked: CartBlock | null; trimmed: boolean }> {
   const gone = await retiredSlugs((await readCart(userId))?.lines ?? []);
   let removed: string[] = [];
@@ -67,7 +79,11 @@ async function change(
   };
 }
 
-async function result(userId: ObjectId, now: Date, rule: Rule): Promise<CartResult> {
+async function result(
+  userId: ObjectId,
+  now: Date,
+  rule: (ls: readonly CartLine[]) => { lines: readonly CartLine[]; blocked: CartBlock | null },
+): Promise<CartResult> {
   const { view, blocked } = await change(userId, now, rule);
   return blocked ? { ok: false, error: blocked, cart: view } : { ok: true, cart: view };
 }
@@ -123,4 +139,34 @@ export async function removeFromCart(
   now: Date,
 ): Promise<CartResult> {
   return result(userId, now, (ls) => removeLine(ls, slug));
+}
+
+const sameLines = (a: readonly CartLine[], b: readonly CartLine[]) =>
+  a.length === b.length && a.every((l, i) => l.slug === b[i]!.slug && l.qty === b[i]!.qty);
+
+/**
+ * Folds a guest cart into the user's. Retired lines are dropped from both sides first (a stale
+ * guest cart whose first lines are gone cannot crowd out its live ones), then `mergeLines` takes
+ * the larger quantity per slug and cuts at 20 packs (`trimmed`). Idempotent: a replayed merge
+ * finds nothing to change and writes nothing. Only the first 20 distinct guest slugs are looked
+ * up, which is more than any cart can hold.
+ */
+export async function mergeGuestCart(
+  userId: ObjectId,
+  guest: CartLine[],
+  now: Date,
+): Promise<CartView & { trimmed: boolean }> {
+  const slugs = [...new Set(guest.flatMap((l) => (typeof l?.slug === "string" ? [l.slug] : [])))];
+  const found = await getPurchasableBySlugs(slugs.slice(0, 20));
+  const known = guest.filter((l) => typeof l?.slug === "string" && found.has(l.slug));
+  const { view, trimmed } = await change(userId, now, (ls) => {
+    const merged = mergeLines(ls, known);
+    return { lines: sameLines(ls, merged.lines) ? ls : merged.lines, trimmed: merged.trimmed };
+  });
+  return { ...view, trimmed };
+}
+
+/** Prices lines without touching any cart; non-purchasable slugs are listed in `removed`. */
+export async function quoteLines(lines: CartLine[]): Promise<CartView> {
+  return pricedView(lines);
 }
