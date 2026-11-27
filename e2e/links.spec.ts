@@ -12,6 +12,7 @@ const START: string[] = [
   ROUTES.category("urology"),
   ROUTES.contact,
   ...Object.values(ROUTES.legal),
+  ROUTES.product("sacuwin-100"),
 ];
 
 const pending = new Set<string>(PENDING_ROUTES);

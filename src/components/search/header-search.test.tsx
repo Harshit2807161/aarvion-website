@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mockPathname, routerSpies } from "../../../tests/helpers/navigation-mocks";
+import { routerSpies } from "../../../tests/helpers/navigation-mocks";
 import { LiveRegion } from "@/components/feedback/live-region";
 import type { SearchResult } from "@/lib/catalogue/search-result";
 import { HeaderSearch } from "./header-search";
@@ -35,6 +35,7 @@ beforeEach(() => {
   });
   vi.stubGlobal("fetch", fetchMock);
   Element.prototype.scrollIntoView = vi.fn();
+  window.history.pushState({}, "", "/");
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -115,7 +116,7 @@ describe("HeaderSearch", () => {
   });
 
   it("ArrowDown then Enter on / reveals the shelf pocket and focuses its Add button", async () => {
-    mockPathname.value = "/";
+    window.history.pushState({}, "", "/");
     document.body.insertAdjacentHTML(
       "beforeend",
       `<article id="p-sacuwin-50" class="is-found-old"><div class="cart-ctl"><button data-add>Add</button></div></article>
@@ -135,7 +136,7 @@ describe("HeaderSearch", () => {
   });
 
   it("focuses the stepper's + when the pocket is already in the cart", async () => {
-    mockPathname.value = "/";
+    window.history.pushState({}, "", "/");
     document.body.insertAdjacentHTML(
       "beforeend",
       `<article id="p-sacuwin-50"><div class="cart-ctl" data-qty="2"><button data-add>Add</button><button data-inc>+</button></div></article>`,
@@ -147,7 +148,7 @@ describe("HeaderSearch", () => {
   });
 
   it("Enter on another page goes to the product page", async () => {
-    mockPathname.value = "/legal/terms";
+    window.history.pushState({}, "", "/legal/terms");
     setup();
     await typeQuery("sacu");
     fireEvent.keyDown(input(), { key: "Enter" });
@@ -246,7 +247,7 @@ describe("HeaderSearch", () => {
   });
 
   it("on / without a pocket on the page it also goes to the product page", async () => {
-    mockPathname.value = "/";
+    window.history.pushState({}, "", "/");
     setup();
     await typeQuery("sacu");
     fireEvent.click(screen.getAllByRole("option")[1]!);
@@ -254,7 +255,7 @@ describe("HeaderSearch", () => {
   });
 
   it("submit chooses the first result and is prevented", async () => {
-    mockPathname.value = "/legal/terms";
+    window.history.pushState({}, "", "/legal/terms");
     setup();
     await typeQuery("sacu");
     expect(fireEvent.submit(screen.getByRole("search"))).toBe(false);

@@ -23,7 +23,7 @@ describe("ROUTES", () => {
   });
 
   it("lists the routes that must still 404", () => {
-    expect(PENDING_ROUTES).toEqual(["/login", "/cart", "/account", "/account/prescriptions"]);
+    expect(PENDING_ROUTES).toEqual(["/cart", "/account", "/account/prescriptions"]);
   });
 
   it("lists the home sections that links target but nothing builds yet (none today)", () => {

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { CartPill } from "@/components/cart/cart-pill";
 import { CartReconcile } from "@/components/cart/cart-reconcile";
 import { HeaderSearch } from "@/components/search/header-search";
@@ -24,7 +24,10 @@ export async function withStoreChrome(children: ReactNode): Promise<ReactNode> {
   const chips = strengthChips(await getCachedFamily(STRENGTH_CHIP_FAMILY));
   return (
     <>
-      <SkipLink />
+      {/* usePathname suspends for a slug that was not prerendered; the fallback is the same link */}
+      <Suspense fallback={<a className="skip" href="#main">Skip to content</a>}>
+        <SkipLink />
+      </Suspense>
       <AnnounceBar />
       <StoreHeader search={<HeaderSearch chips={chips} />} cart={<CartPill />} />
       <CartReconcile slugs={slugs} />

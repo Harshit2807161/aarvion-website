@@ -1,5 +1,5 @@
 /* Forms: the form grid, text fields, checkbox and segmented control, plus the form-grid helpers.
-   Ported from design/prototype/css/flows.css lines 207-329 (the switch, option-card, error-summary and .field-ok rules are left out until a task uses them), with the old line-strong
+   Ported from design/prototype/css/flows.css lines 207-329 (the switch, option-card and .field-ok rules are left out until a task uses them; the error summary, lines 322-328, is at the end), with the old line-strong
    custom property renamed to --color-line-strong [C13]. Imported by globals.css
    inside @layer components. */
 .form { display: grid; gap: 20px; }
@@ -86,3 +86,11 @@
   .check-text small, .seg-opt .num { color: var(--color-neutral-800); }
   .seg-input:not(:checked) + .seg-opt { color: var(--color-neutral-900); }
 }
+
+/* Error summary (flows.css 322-328): src/components/form/error-summary.tsx. */
+.errsum { padding: 18px 20px; border-radius: var(--radius-md); background: var(--color-danger-50); box-shadow: inset 0 0 0 1.5px var(--color-danger-200); color: var(--color-ink); }
+.errsum:focus-visible { outline: 2px solid var(--color-danger); outline-offset: 2px; }
+.errsum-title { display: flex; align-items: center; gap: 10px; font: 600 1.0625rem/1.3 var(--font-display); color: var(--color-danger-ink); }
+.errsum-title .i { color: var(--color-danger); width: 22px; height: 22px; }
+.errsum ul { display: grid; gap: 2px; margin-top: 8px; padding-left: 32px; }
+.errsum a { display: inline-flex; min-height: 32px; align-items: center; color: var(--color-danger-ink); font-weight: 500; text-decoration-color: var(--color-danger-200); }

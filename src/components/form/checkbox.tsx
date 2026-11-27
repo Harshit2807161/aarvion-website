@@ -8,6 +8,8 @@ export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "
   /** Secondary line under the label, for example "Optional". */
   sub?: ReactNode;
   error?: string | null;
+  /** As on TextField: false drops `role="alert"` when an `ErrorSummary` speaks for the form. */
+  errorAlert?: boolean;
 };
 
 /**
@@ -19,6 +21,7 @@ export function Checkbox({
   label,
   sub,
   error,
+  errorAlert = true,
   className,
   "aria-describedby": extraDescribedBy,
   ...input
@@ -45,7 +48,7 @@ export function Checkbox({
         </span>
       </label>
       {hasError ? (
-        <p className="field-err" id={`${id}-err`} role="alert">
+        <p className="field-err" id={`${id}-err`} role={errorAlert ? "alert" : undefined}>
           <Icon name="alert" size={18} />
           {error}
         </p>
