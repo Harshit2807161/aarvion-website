@@ -373,6 +373,152 @@ describe("LoginFlow: done step", () => {
   });
 });
 
+describe("LoginFlow: profile step", () => {
+  const SIGNUP_REQUIRED: Reply = { status: 409, body: { error: "signup_required" } };
+  const CREATED: Reply = {
+    status: 200,
+    body: { ok: true, isNewUser: true, user: { name: "Asha Rao" } },
+  };
+  const name = () => screen.getByLabelText<HTMLInputElement>(LOGIN_COPY.nameLabel);
+  const box = (label: string) => screen.getByRole("checkbox", { name: new RegExp(`^${label}`) });
+
+  async function toProfile(...after: Reply[]) {
+    reply(VERIFY, SIGNUP_REQUIRED, ...after);
+    const view = await toCodeStep();
+    paste("482913");
+    await flush();
+    return view;
+  }
+
+  async function signUp(fullName = "Asha Rao") {
+    fireEvent.change(name(), { target: { value: fullName } });
+    fireEvent.click(box(LOGIN_COPY.adult));
+    fireEvent.click(box("I agree to the"));
+    fireEvent.click(button(LOGIN_COPY.create)!);
+    await flush();
+  }
+
+  it("a 409 shows the profile step with the verified identifier and the consent links", async () => {
+    const { container } = await toProfile();
+    expect(screen.getByRole("heading", { name: LOGIN_COPY.profileTitle })).toBeInTheDocument();
+    expect(container.textContent).toContain(`+91 98765 43210 ${LOGIN_COPY.profileSub}`);
+    for (const [name, href] of [
+      ["Terms of use", "/legal/terms"],
+      ["Privacy policy", "/legal/privacy"],
+    ]) {
+      const link = screen.getByRole("link", { name: `${name} ${LOGIN_COPY.newTab}` });
+      expect(link).toHaveAttribute("href", href);
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link.getAttribute("rel")).toContain("noopener");
+      expect(link.querySelector(".sr-only")).toHaveTextContent(LOGIN_COPY.newTab);
+    }
+    expect(screen.getAllByRole("checkbox")).toHaveLength(3);
+    expect(container.textContent).toContain(LOGIN_COPY.marketingSub);
+    expect(findClaims(container.textContent ?? "")).toEqual([]);
+  });
+
+  it("an empty submit shows the three field errors under one focused summary, no alerts", async () => {
+    await toProfile();
+    fireEvent.click(button(LOGIN_COPY.create)!);
+    await flush();
+    const summary = document.querySelector(".errsum")!;
+    expect(summary).toHaveTextContent("There are 3 problems");
+    expect(document.activeElement).toBe(summary);
+    expect(screen.queryAllByRole("alert")).toHaveLength(0);
+    for (const msg of [
+      LOGIN_COPY.nameInvalid,
+      LOGIN_COPY.adultRequired,
+      LOGIN_COPY.termsRequired,
+    ]) {
+      expect(document.querySelectorAll(".field-err")).toSatisfy((els: NodeListOf<Element>) =>
+        [...els].some((el) => el.textContent === msg),
+      );
+    }
+    expect(calls(VERIFY)).toHaveLength(1);
+  });
+
+  it("one invalid field uses that field's own alert and takes focus", async () => {
+    await toProfile();
+    fireEvent.change(name(), { target: { value: "x".repeat(81) } });
+    fireEvent.click(box(LOGIN_COPY.adult));
+    fireEvent.click(box("I agree to the"));
+    fireEvent.click(button(LOGIN_COPY.create)!);
+    await flush();
+    expect(document.querySelector(".errsum")).toBeNull();
+    expect(screen.getAllByRole("alert").map((a) => a.textContent)).toEqual([
+      LOGIN_COPY.nameTooLong,
+    ]);
+    expect(document.activeElement).toBe(name());
+  });
+
+  it("posts the code with the sign-up details, then shows the done step", async () => {
+    await toProfile(CREATED);
+    await signUp();
+    expect(calls(VERIFY)[1]!.body).toEqual({
+      channel: "phone",
+      identifier: "9876543210",
+      code: "482913",
+      signup: { name: "Asha Rao", adult: true, termsPrivacy: true, marketing: false },
+    });
+    expect(screen.getByRole("heading", { name: LOGIN_COPY.doneTitle })).toBeInTheDocument();
+  });
+
+  it("while creating, Create account shows the busy copy", async () => {
+    const created = held();
+    await toProfile(created.promise as unknown as Reply);
+    await signUp();
+    expect(button(LOGIN_COPY.creating)).toHaveAttribute("aria-busy", "true");
+    created.resolve(CREATED);
+    await flush();
+  });
+
+  it("a 429 on Create counts down live and blocks another try until it lifts", async () => {
+    await toProfile({ status: 429, body: { error: "rate_limited", retryAfterSec: 120 } }, CREATED);
+    await signUp();
+    const alert = () => document.querySelector(".auth-alert")?.textContent;
+    expect(alert()).toBe("Too many attempts from this network. Try again in 2:00.");
+    await advance(1_000);
+    expect(alert()).toBe("Too many attempts from this network. Try again in 1:59.");
+    fireEvent.click(button(LOGIN_COPY.create)!);
+    await flush();
+    expect(calls(VERIFY)).toHaveLength(2);
+    await advance(119_000);
+    expect(alert()).toBeUndefined();
+    fireEvent.click(button(LOGIN_COPY.create)!);
+    await flush();
+    expect(calls(VERIFY)).toHaveLength(3);
+  });
+
+  it("a name the server refuses is shown on the name field", async () => {
+    await toProfile(SIGNUP_REQUIRED);
+    await signUp("Asha Rao");
+    expect(screen.getAllByRole("alert").map((a) => a.textContent)).toEqual([
+      LOGIN_COPY.nameRefused,
+    ]);
+    expect(name().value).toBe("Asha Rao");
+  });
+
+  it("the dialog gets onDone with the new user's name and no redirect", async () => {
+    const onDone = vi.fn();
+    reply(VERIFY, SIGNUP_REQUIRED, CREATED);
+    render(<LoginFlow mode="dialog" onDone={onDone} />);
+    await flush();
+    fireEvent.change(screen.getByLabelText(LOGIN_COPY.mobileLabel), {
+      target: { value: "9876543210" },
+    });
+    fireEvent.click(button(LOGIN_COPY.send)!);
+    await flush();
+    fireEvent.paste(document.querySelector("#dlg-otp")!, {
+      clipboardData: { getData: () => "482913" },
+    });
+    await flush();
+    await signUp();
+    expect(onDone).toHaveBeenCalledWith({ isNewUser: true, name: "Asha Rao" });
+    await advance(900);
+    expect(routerSpies.replace).not.toHaveBeenCalled();
+  });
+});
+
 describe("LoginFlow: an existing session", () => {
   it("a signed-in visitor completes at once", async () => {
     reply(SESSION, { status: 200, body: { user: { name: "Asha Rao" } } });
