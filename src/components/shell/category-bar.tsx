@@ -10,7 +10,7 @@ type BarCategory = Pick<Category, "slug" | "name"> & { status?: Category["status
  * The category bar under the store header: one link per live category, then "All medicines".
  * A server component. Pass categories in sortOrder (the cached catalogue already is); anything
  * not live is skipped here too, so a coming-soon category never gets a link to a page it has
- * not got. Category pages are pending (Task 30), so these links 404 until then.
+ * not got. The category pages exist (/category/<slug>).
  *
  * Desktop: a 44px bar that sticks under the header row. At 880px and below it becomes a row
  * of 36px outlined chips that scrolls away with the page (see src/styles/catbar.css). The

@@ -50,7 +50,10 @@ the plan's "File Structure".
   - `layout.tsx` wraps the page in `withStoreChrome()` (`src/components/shell/store-chrome.tsx`: `SkipLink`, `AnnounceBar`, `StoreHeader` (with `CartPill` in its `cart` slot), `CartReconcile`, `CategoryBar` (live categories), the page, then the `StoreFooter` from the cached live categories), so **every build needs a seeded database**
   - `legal/privacy/page.tsx` and `legal/terms/page.tsx` are the privacy policy (`/legal/privacy`) and the terms of use (`/legal/terms`, whose payment section offers only cash on delivery, naming no online method, until `SITE_CONFIG.onlinePayments` is true), each a `LegalPage` whose copy may state only what `docs/requirements.md`, `PRODUCT.md`, the rulings and the code as built support, with unsupplied facts as `Pending` (bump `POLICY_VERSION` when a policy changes in substance)
   - `legal/{returns-cancellation,shipping,prescription-policy,grievance}/page.tsx` and `contact/page.tsx` are `LegalPage` policies and the contact page (prepaid refund wording stays conditional, "If you paid online", until `SITE_CONFIG.onlinePayments` is true; the prescription page states the Schedule H and H1 rule and never says every medicine needs a prescription [C25]; the ₹5,000 COD cap is copy, not config).
+  - `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, inside `FilmRoot` (the scroll film's root), then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`); the other home sections land with the remaining UI Tasks 21–29
   - `login/page.tsx` is `/login`: `main#main.auth-page` with the intro, the `.auth-card` holding `LoginFlow mode="page"` inside a Suspense boundary after `connection()` (so `?next=` and `allowDemo={!isMockForbidden()}` are decided per request, and client code never imports `src/server`), then `ul.auth-why`; `noindex`, `interactiveWidget: "resizes-content"`; CSS in `src/styles/auth.css`
+  - `category/[slug]/page.tsx` is the category page: `generateStaticParams` from the cached categories, `notFound()` for a slug that is not live or coming soon, and `CategoryView` (`src/components/catalogue/category-view.tsx`) with the cached products of that category, the first pocket with `priority`; `ensureStatic = "navigation"` makes an unlisted slug wait for its static result, so a hidden or unknown slug answers 404 on its first request
+  - `not-found.tsx` renders the shared `NotFoundBody` (`src/components/shell/not-found-body.tsx`) inside the layout's chrome, so a category or product 404 shows one header, one `#q` and one footer; the root `not-found.tsx` (URLs that match no route) wraps the same body in `withStoreChrome()`
   - `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`); the other home sections land with the remaining UI Tasks 21–29
   - Admin and staff routes go in a sibling group (for example `(admin)`) with no footer, as do `/dev/*` (their 404s come from the proxy and are bare).
   - the Operate *shell* (`OperateShell`) is a page component that customer cart, account and policy pages use inside `(store)`
@@ -68,6 +71,7 @@ the plan's "File Structure".
 - `src/app/globals.css`: Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored), and the plain custom properties in `:root` (durations, z-layers, `--spacing-section` (kept out of `@theme`: a `--spacing-*` token there makes Tailwind emit an `h-section` height that overrides the `.h-section` heading class; use `var(--spacing-section)`), `--sticky-top`, the shadcn roles, and the foil material `--foil-body`, `--foil-print`, `--perforation` and `--perf-v` with `/foil/…` URLs into `public/foil/`, defined once here for the pockets, rails and the ordering steps)
 - `src/app/layout.tsx`: root layout (`lang="en-IN"`, viewport, theme colour, `metadataBase` from `APP_URL`) around every route, with the `Toaster` and the page's one `LiveRegion` (exactly one may exist, so they live only here). Keep exactly one `<LiveRegion/>`, in the root layout
 - The root `src/app/not-found.tsx` (URLs that match no route) sits outside `(store)` but calls `withStoreChrome()` itself, so a shopper who lands on a dead link still gets the search and the footer
+- A `usePathname` caller in the store chrome is wrapped in its own Suspense with a static fallback (`SkipLink` falls back to the plain `<a class="skip" href="#main">`); never wrap layout children. `HeaderSearch` reads `window.location.pathname` at click instead of the hook, since a boundary delays its hydration.
 
 ### src/proxy.ts
 
@@ -102,7 +106,12 @@ React components, added task by task. The folders below exist today:
   - all fed by the store in `src/lib/cart/`
 - `catalogue/`: `Pocket` (the foil pocket, the product card of the rails, category and product pages: `li.pocket#p-<slug>` with the pack under a dome, the name and `RxBadge`, the actives clamped to two lines (three on phones) with the full composition in the title and for AT, the pack line, `StampPrice` and `CartControl`; `heading` sets its level, and `priority` makes its image eager with `fetchPriority="high"`, never a preload [C24]; images are lazy otherwise; no hooks, so it renders on the server or in a client tree; CSS in `src/styles/pocket.css`)
 - `feedback/`: the customer toast (`toast()`, `dismissToast()`, `<Toaster/>`) and the page's single polite live region (`announce()`, `<LiveRegion/>`), both mounted at the end of `<body>` in `src/app/layout.tsx`
-- `film/`: the scroll film's progress maths and engine
+- `film/`: the scroll film:
+  - `progress.ts`: the pure maths.
+  - `engine.ts`: `createFilm`, one passive scroll listener and one rAF tick, an IntersectionObserver that marks the acts near the viewport `.live`, `measuring` set on `#home` only while it measures, and the `?p=<act>:<progress>` capture jump after load. With `film: false` it does nothing at all.
+  - `film-root.tsx`: `FilmRoot` (server), `main#home.home.film-root`. An inline script adds `film` before first paint when motion is allowed, then the sections, then the engine. The server HTML is the full static page, so no JS or reduced motion shows everything.
+  - `film-engine.tsx`: `FilmEngine` (client, renders null) starts the engine (which adds `is-running` to `#home`; the pinned layout and hidden start states key on `.film.is-running`, so a page whose engine never runs keeps the static layout) in a layout effect and adds `film` for a soft navigation.
+  - CSS in `src/styles/film.css`.
 - `form/`:
   - `Checkbox` (the same for its error, including `errorAlert`)
   - `ErrorSummary` (`error-summary.tsx`: the submit summary DESIGN.md asks for, a `.errsum` box titled "There’s a problem"/"There are N problems" listing each error as a link that scrolls its field to the centre (smoothly unless reduced motion) and focuses it, leaving modified and non-primary clicks to the browser; it takes focus whenever `focusKey` changes and is not a live region or alert, so the fields it covers pass `errorAlert={false}`; CSS at the end of `src/styles/forms.css`)
@@ -128,6 +137,8 @@ React components, added task by task. The folders below exist today:
   - Also the pure phone bottom-sheet drag thresholds in `drag.ts` (28% of height, or 24px at 0.45px/ms)
   - `useDragDismiss`, which returns pointer handlers for the sheet head. The panel follows the finger through an inline transform and carries `is-dragging` from the first pointerdown until it closes (that class holds the CSS open animation off; removing it while open would replay the entrance). Only the inline transition is cleared after a snap-back
 - `product/`:
+  - `ProductView` (the product page body: the `Gallery` beside the buy box in the fixed order brand, composition, pack, price, then `VariantSwitcher`, `CartControl`, the order limit and the Rx note (only when `rxRequired`), then the facts and up to four related `Pocket`s; the page is `src/app/(store)/product/[slug]/page.tsx`, prerendered by `generateStaticParams`, with `export const ensureStatic = "navigation"` so an unprerendered slug waits for its static result and `notFound()` is a real 404 on the first hit; `dynamicParams` cannot be used with Cache Components)
+  - `Gallery` (JS-free scroll-snap track with 64px thumbnail anchors; the first photo is the LCP, eager with `fetchPriority="high"`, never preloaded [C24]; Win2Age caption when `imageSource` is `win2age`)
   - `ProductFacts` (server-safe `dl.product-facts`: the Legal Metrology declarations in fixed order, ending with customer care from `SITE_CONFIG.customerCare`; an unknown fact is `Pending`)
   - `VariantSwitcher` (`nav[aria-label="Strengths"]` of real links to `ROUTES.product(slug)` in `compareVariants` order, `aria-current="page"` on the current strength, nothing for a family of one; no script and no live region; CSS in `src/styles/product-facts.css`)
 - `search/`: the header search, mounted by `withStoreChrome` in the `StoreHeader` `search` slot on every customer page (404s included):
@@ -189,9 +200,11 @@ ported prototype CSS imported by `globals.css`.
 - `buttons.css`: `.btn*`, `.link`, `.spin`
 - `cart-control.css`: `.cart-ctl`, `.btn-add`, `.stepper`
 - `catbar.css`: the category bar and the 880px chip row, `.catbar*`
+- `category.css`: the category page's foil sheet, coming-soon panel and other-category pills, `.cat-*`
 - `css-hygiene.test.ts`
 - `empty.css`: the empty-state well, `.empty*` and `.well-count`
 - `faq-close.css`: the home's questions and closing act, `.faq*`, `.act-close`, `.close-*` (static; `.act-close .field` is scoped because `forms.css` owns `.field`)
+- `film.css`: the scroll film, every rule under `.film.is-running` (the ordering act pinned 200lvh and the close 110lvh, 160lvh and 80lvh on phones; motion is transform and opacity only, from `--ti` / `--to`; `.film-root.measuring` is a descendant selector, never `html.measuring`)
 - `footer.css`: the store footer, `.foot*`
 - `forms.css`: `.field`, `.field-box`, `.input`, `.check*`, `.seg*`
 - `header.css`: the announcement line and store header, `.announce*`, `.store-head`, `.sh-*`, `--row-h` and `--hdr-h`
@@ -199,6 +212,7 @@ ported prototype CSS imported by `globals.css`.
 - `overlay.css`: `.sheet-*` dialog, side drawer and phone bottom sheet, as `@keyframes` on Radix `[data-state]`
 - `overlay.test.ts` (compiles `globals.css` and checks the scrim rule)
 - `pocket.css`: the product card, `.pocket*`, `.blister` (the dome over `dome-floor.webp`, `--bh` 188px) and `.str`
+- `product.css`: the product page layout, `.product`, `.gallery*`, `.buy*`, `.rx-note`, `.related*`
 - `product-facts.css`: the product facts block and strength chips, `.product-facts*`, `.strengths`, `.strength-chip`
 - `prose.css`: the policy reading column, `.prose*` (62ch, title-size h2, hairlines between sections) and the `.pending` "To be added" chip
 - `prose.test.ts`

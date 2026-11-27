@@ -177,6 +177,15 @@ describe("createFilm with film on", () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
+  it("marks the root is-running while it runs and removes it on destroy", () => {
+    const root = build();
+    expect(root.classList.contains("is-running")).toBe(false);
+    const film = createFilm(root, { film: true });
+    expect(root.classList.contains("is-running")).toBe(true);
+    film.destroy();
+    expect(root.classList.contains("is-running")).toBe(false);
+  });
+
   it("marks the root measuring only while measuring", () => {
     const root = build();
     const seen: boolean[] = [];

@@ -111,6 +111,13 @@ Helpers in `tests/helpers/`:
 - `e2e/home.spec.ts` checks the hero banner: it rotates within 7 s with no console or page error
   (`collectConsoleErrors`), holds on hover, answers the keyboard, stays put under reduced motion,
   and is a scroll-snap row at 390px.
+- `e2e/film.spec.ts` checks the scroll film: under motion at 1440 `#home` gets `film`, `#how` is
+  over 2.9 viewports tall, `?p=3:0.5` activates step 2 and fills the perforation, `?p=4:0.3`
+  shows the tiles, `?p=5:1` lands the copy and the logo; under reduced motion there is no `film`
+  class, `#how` is under 1.2 viewports and nothing is hidden; scrolling top to bottom in both
+  leaves `collectConsoleErrors` empty. `?p=` works only with motion on. With the JS chunks
+  blocked (motion on), the tiles, the CTA and the logo are still at full opacity and the three
+  ordering cards do not overlap.
 - `e2e/freshness.spec.ts` [P55] changes `sacuwin-100`'s MRP straight in the `aarvion_e2e` database
   (the admin editor does not exist yet; use it instead once it does), expires the cache through
   the dev-only `POST /dev/catalogue/revalidate`, and expects the home rails to show the new
@@ -149,7 +156,9 @@ Helpers in `tests/helpers/`:
 | `e2e/styleguide.spec.ts` | also: at 390px a short drag or a tap on the overlay head leaves no running animation and the transform at identity |
 | `src/components/overlay/use-drag-dismiss.test.tsx` | the drag hook: follows the finger, dismisses over the thresholds, snaps back otherwise, never removes `is-dragging` while open, ignores a second pointer and Close, skips the snap-back transition under reduced motion |
 | `e2e/login.spec.ts` | `/login` by email against the seeded server: a new address goes Send → code (read from `/dev/outbox`) → profile → consent → Create → `/` with the `__Host-aarv_sid` cookie; after an API logout the same address signs in again (via Send a new code, past the 30 s cooldown) with no profile step; signed in, `/login?next=//evil.com` and `/.//evil.com` land on `/`; `?state=otp-locked` opens the locked demo where mocks are allowed, and the page is `noindex` with no `/dev/` link. Each run uses a fresh address and its own `x-real-ip` |
-| `e2e/links.spec.ts` | a same-origin link on `/`, `/contact`, `/login` or a `/legal/*` page does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START` as their tasks land (runs in CI against the seeded server) |
+| `e2e/catalogue.spec.ts` | the product page (`/product/sacuwin-100`) loses its buy box, struck MRP and price, facts or eager LCP photo; the strength switcher stops landing on `/product/sacuwin-50`; `/product/nope` is not a 404 on the first hit |
+| `e2e/catalogue.spec.ts` (category pages) | `/category/cardiology` (5 Add to cart buttons), `/category/urology` (coming soon), a hidden or unknown category (404 on the first request, one header and one `#q`), the home bento link |
+| `e2e/links.spec.ts` | a same-origin link on `/`, a category page, `/contact`, `/login`, a `/legal/*` page or `/product/sacuwin-100` does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START` as their tasks land (runs in CI against the seeded server) |
 | `src/styles/overlay.test.ts` | the compiled `globals.css` carries the overlay rules, the Aarvion scrim (not `bg-black/50`) and the shadcn colour mapping |
 | `scripts/deps-policy.test.ts` | a banned animation, carousel, toast or icon library (framer-motion, swiper, gsap, sonner, lucide-react, …) or an unlisted Radix package is added |
 
