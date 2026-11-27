@@ -25,6 +25,9 @@ curl -s http://localhost:3000/api/health   # {"status":"ok","version":"0.1.0","d
 - `pnpm dev` (Next.js) loads `.env.local` itself. `db:indexes` and `seed` run through
   `tsx --env-file-if-exists=.env.local`; a variable already set in the shell wins over the file,
   so `MONGODB_DB=aarvion_e2e pnpm seed` targets the e2e database.
+- `next dev` would insert a `<!-- BEGIN:nextjs-agent-rules -->` block into `AGENTS.md` when it
+  detects an AI agent. `agentRules: false` in `next.config.ts` (Next 16.4+) turns that off and
+  removes an existing block on the next run; if a block shows up in a diff anyway, revert it.
 - `pnpm db:up` waits for the container healthcheck, which also runs `rs.initiate` the first time.
   Data persists in the `mongo-data` Docker volume. `pnpm db:down` stops the container and keeps
   the volume.
