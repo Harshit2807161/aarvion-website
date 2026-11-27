@@ -15,6 +15,7 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -27,6 +28,7 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -39,6 +41,7 @@ jobs:
 
   unit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -51,6 +54,7 @@ jobs:
 
   int:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -70,6 +74,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # Pages prerender from the catalogue (Cache Components), so the build needs a seeded Mongo.
     env:
       MONGODB_URI: mongodb://localhost:27017/?replicaSet=rs0&directConnection=true
@@ -89,6 +94,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       MONGODB_URI: mongodb://localhost:27017/?replicaSet=rs0&directConnection=true
       MONGODB_DB: aarvion_e2e
