@@ -151,5 +151,9 @@ describe("indexes", () => {
       expect.arrayContaining(["userId_createdAt_desc", "status_createdAt"]),
     );
     expect(await names(RX_STAGING_COLLECTION)).toContain("expiresAt_ttl");
+    const ttl = (await db.collection(RX_STAGING_COLLECTION).indexes()).find(
+      (i) => i.name === "expiresAt_ttl",
+    );
+    expect(ttl?.expireAfterSeconds).toBe(0);
   });
 });

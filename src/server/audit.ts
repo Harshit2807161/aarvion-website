@@ -1,4 +1,4 @@
-import type { ObjectId } from "mongodb";
+import type { ClientSession, ObjectId } from "mongodb";
 import { getDb } from "./db/client.ts";
 import { registerIndexes } from "./db/indexes.ts";
 import type { Role } from "./auth/roles.ts";
@@ -19,7 +19,10 @@ export type AuditEntry = {
   meta?: Record<string, string | number | boolean | null>;
 };
 
-/** Append-only by construction: this is the only function that touches the collection. */
-export async function appendAudit(entry: AuditEntry): Promise<void> {
-  await (await getDb()).collection<AuditEntry>("audit_logs").insertOne(entry);
+/**
+ * Append-only by construction: this is the only function that touches the collection. Pass a
+ * `session` to write the row in the same transaction as the change it records.
+ */
+export async function appendAudit(entry: AuditEntry, session?: ClientSession): Promise<void> {
+  await (await getDb()).collection<AuditEntry>("audit_logs").insertOne(entry, { session });
 }
