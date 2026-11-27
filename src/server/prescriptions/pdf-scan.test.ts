@@ -1,6 +1,7 @@
+import { deflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { pdf } from "../../../tests/helpers/rx-fixtures";
-import { scanPdf } from "./pdf-scan";
+import { objStmPdf, pdf } from "../../../tests/helpers/rx-fixtures";
+import { PDF_INFLATE_BUDGET, scanPdf } from "./pdf-scan";
 
 const err = (error: string) => ({ ok: false, error });
 const catalog = (extra: string) => scanPdf(pdf({ extra }));
@@ -78,13 +79,49 @@ describe("scanPdf: pages and the end of the file", () => {
   });
 });
 
+describe("scanPdf: compressed object streams", () => {
+  it("counts the pages of a legitimate PDF whose page tree is in an object stream", () => {
+    expect(scanPdf(objStmPdf({ leaves: 3 }))).toEqual({ ok: true, pages: 3 });
+  });
+
+  it("refuses a decoy page outside the stream when the real count inside is over 20", () => {
+    expect(scanPdf(objStmPdf({ leaves: 25, decoys: 1 }))).toEqual(err("too_many_pages"));
+    expect(scanPdf(objStmPdf({ leaves: 2, count: 30, decoys: 1 }))).toEqual(err("too_many_pages"));
+  });
+
+  it("reports the real page count, not the decoy", () => {
+    expect(scanPdf(objStmPdf({ leaves: 4, decoys: 1 }))).toEqual({ ok: true, pages: 5 });
+  });
+
+  it("rescans the inflated text for active content", () => {
+    expect(scanPdf(objStmPdf({ inner: "<< /S /JavaScript /JS (x) >>" }))).toEqual(
+      err("active_content"),
+    );
+    expect(scanPdf(objStmPdf({ inner: "<< /S /J#53 >>" }))).toEqual(err("active_content"));
+  });
+
+  it("refuses any other filter on an object stream, and bad or oversized data", () => {
+    expect(scanPdf(objStmPdf({ filter: "/ASCIIHexDecode" }))).toEqual(err("corrupt"));
+    expect(scanPdf(objStmPdf({ data: Buffer.from("not zlib data") }))).toEqual(err("corrupt"));
+    const bomb = deflateSync(Buffer.alloc(PDF_INFLATE_BUDGET + 1));
+    expect(scanPdf(objStmPdf({ data: bomb }))).toEqual(err("corrupt"));
+  });
+});
+
 describe("scanPdf: hostile input stays bounded", () => {
   const wrap = (filler: string) => {
     const base = Buffer.from(pdf());
     return Buffer.concat([base.subarray(0, 9), Buffer.from(filler), base.subarray(9)]);
   };
 
-  it("refuses more than 1000 page-tree names", () => {
+  it("refuses more than 10,000 streams, and more than 1000 page-tree names", () => {
+    expect(scanPdf(wrap("stream\n".repeat(10_001)))).toEqual(err("corrupt"));
     expect(scanPdf(wrap("/Pages ".repeat(1001)))).toEqual(err("too_many_pages"));
+  });
+
+  it("reads an object stream that has no /Type but has /N and /First", () => {
+    const raw = Buffer.from(objStmPdf({ inner: "<< /S /JavaScript >>" })).toString("latin1");
+    const untyped = Buffer.from(raw.replace("/Type /ObjStm", ""), "latin1");
+    expect(scanPdf(untyped)).toEqual(err("active_content"));
   });
 });

@@ -90,3 +90,53 @@ export function padPdf(bytes: Uint8Array, size: number): Uint8Array {
   const comment = Buffer.from(`%${"x".repeat(fill - 2)}\n`, "latin1");
   return Buffer.concat([bytes.subarray(0, header), comment, bytes.subarray(header)]);
 }
+
+/**
+ * A PDF 1.5 whose page tree sits in a compressed `/Type /ObjStm`: the Pages dictionary (with
+ * `/Count`) and `leaves` page objects are inside the stream, the catalog is outside. `decoys`
+ * plain `/Type /Page` objects sit outside it, `inner` adds one more object inside, `filter` is
+ * the stream filter, and `data` replaces the stream bytes (to test bad or oversized data).
+ */
+export function objStmPdf({
+  leaves = 2,
+  count = leaves,
+  decoys = 0,
+  inner = "",
+  filter = "/FlateDecode",
+  data,
+}: {
+  leaves?: number;
+  count?: number;
+  decoys?: number;
+  inner?: string;
+  filter?: string;
+  data?: Buffer;
+} = {}): Uint8Array {
+  const kids = Array.from({ length: leaves }, (_, i) => `${3 + i} 0 R`).join(" ");
+  const objs = [
+    `<< /Type /Pages /Count ${count} /Kids [${kids}] >>`,
+    ...Array.from({ length: leaves }, () => "<< /Type /Page /Parent 2 0 R >>"),
+    ...(inner ? [inner] : []),
+  ];
+  let body = "";
+  const pairs: string[] = [];
+  objs.forEach((o, i) => {
+    pairs.push(`${i === 0 ? 2 : 2 + i} ${body.length}`);
+    body += `${o}\n`;
+  });
+  const head = `${pairs.join(" ")}\n`;
+  const stream = data ?? deflateSync(Buffer.from(head + body, "latin1"));
+  const plain = Array.from(
+    { length: decoys },
+    (_, i) => `${50 + i} 0 obj\n<< /Type /Page /Parent 2 0 R >>\nendobj\n`,
+  ).join("");
+  return Buffer.concat([
+    Buffer.from(
+      `%PDF-1.5\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n${plain}` +
+        `20 0 obj\n<< /Type /ObjStm /N ${objs.length} /First ${head.length} /Filter ${filter} /Length ${stream.length} >>\nstream\n`,
+      "latin1",
+    ),
+    stream,
+    Buffer.from("\nendstream\nendobj\ntrailer\n<< /Root 1 0 R >>\nstartxref\n0\n%%EOF\n", "latin1"),
+  ]);
+}
