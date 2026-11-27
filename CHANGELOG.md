@@ -17,7 +17,7 @@ bottom use commit SHAs.
 ## [Unreleased]
 
 ### Changed
-- The header search's listbox (`SuggestionList`, with its prices, `Rupees` and the highlighter) loads as its own chunk on the first focus, press or typing in the search, freeing 587 B of first-load JS on `/` and every product page; the input is never remounted, text typed before the chunk arrives is kept, and the combobox ARIA stays valid before and after
+- The header search's listbox (`SuggestionList`, with its prices, `Rupees` and the highlighter) loads as its own chunk on the first focus, press or typing in the search, freeing 587 B of first-load JS on `/` and every product page; the input is never remounted, text typed before the chunk arrives is kept, and the combobox ARIA stays valid before and after (#245)
 - Dropping the old `aarv-cart-ui-v0` cart key moved from the first-load cart store (`cartStore.forgetLegacy()` and every guest write) to `CartSync`'s mount and `clearGuest`, saving about 20 B of first-load JS for the /cart work
 - The cart's limit, "N in cart" and "removed from cart" sentences have one source, `CART_SENTENCES` (`src/components/cart/cart-sentences.ts`), used by `CartControl`, `CartLineItem` (through `CART_COPY`) and `CartSync`, so an owner-approved wording change cannot drift; `cartTotals` moved from `catalogue/pricing.ts` to `catalogue/cart-totals.ts` (client-allowlisted), so the lazy cart surfaces that use it do not add it to the first-load copy of `pricing.ts` (#240)
 
