@@ -82,8 +82,9 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
   `next.config.ts` lists `pdf-lib` in `serverExternalPackages`, and `pdf-scan.ts` imports it once
   (never called), so file tracing copies `pdf-lib`, `@pdf-lib/*`, `pako` and `tslib` into the
   function. `pnpm check:rx-trace` (`scripts/check-rx-trace.ts`, run by the CI `build` job after
-  `pnpm build`) fails unless the upload routes' `.nft.json` traces list the top-level
-  `node_modules/pdf-lib` link, the pdf-lib and sharp packages and the `pdf-worker.*.mjs` asset.
+  `pnpm build`) fails unless all five rx routes' `.nft.json` traces list the top-level
+  `node_modules/pdf-lib` link, the pdf-lib and sharp packages, their hashed
+  `.next/node_modules/<pkg>-<hash>` links and the `pdf-worker.*.mjs` asset.
 - **Duration and memory:** the finalise route exports `maxDuration = 60`. Memory cannot be set in
   `vercel.json` under Fluid compute; the project default (Standard, 2 GB / 1 vCPU) is enough for
   one PDF scan per instance (a hostile object stream can take several hundred MB before the 1 s

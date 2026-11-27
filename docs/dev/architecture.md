@@ -262,7 +262,7 @@ ported prototype CSS imported by `globals.css`.
 
 ### scripts/
 
-- `check-rx-trace.ts` (`pnpm check:rx-trace`, run by CI after `pnpm build`: fails unless the upload routes' traces ship pdf-lib, sharp and the PDF worker asset)
+- `check-rx-trace.ts` and its entry `check-rx-trace-run.ts` (`pnpm check:rx-trace`, run by CI after `pnpm build`: fails unless all five rx routes' traces ship pdf-lib, sharp, their hashed `.next/node_modules/<pkg>-<hash>` links and the PDF worker asset)
 - `db-indexes.ts`
 - `merge-gate.sh`
 - `pr-size.ts`

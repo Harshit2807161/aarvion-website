@@ -7,6 +7,8 @@ const complete = [
   "/app/node_modules/.pnpm/pdf-lib@1.17.1/node_modules/pdf-lib/package.json",
   "/app/node_modules/.pnpm/sharp@0.35.5/node_modules/sharp/package.json",
   "/app/.next/server/assets/pdf-worker.41hbcb1afvrv0.mjs",
+  "/app/.next/node_modules/sharp-37f4bd8db776dc8d",
+  "/app/.next/node_modules/pdf-lib-0a1b2c3d4e5f6789",
 ];
 
 describe("traceProblems", () => {
@@ -19,7 +21,7 @@ describe("traceProblems", () => {
       const files = complete.filter((_, j) => j !== i);
       expect(traceProblems(files, root)).toHaveLength(1);
     }
-    expect(traceProblems([], root)).toHaveLength(4);
+    expect(traceProblems([], root)).toHaveLength(6);
   });
 
   it("does not count a nested pdf-lib link as the one the worker resolves", () => {

@@ -97,7 +97,7 @@ Details: [docs/dev/architecture.md](docs/dev/architecture.md).
 | `pnpm fonts:subset`                           | rebuild the `src/fonts/*.woff2` subsets from `assets/fonts/` |                          |
 | `node scripts/shoot.mjs <url> <out> [widths] [--viewport-only] [--motion] [--click <selector>] [--wait <ms>]` | screenshots for the UI plan's visual checks (`--click` clicks the first match then waits 400 ms, e.g. a banner dot; `--wait` waits after load) | Playwright Chromium      |
 | `pnpm pr-size origin/main`                    | count changed lines against the 400 cap                      |                          |
-| `pnpm check:rx-trace`                         | after `pnpm build`: the upload routes' traces ship pdf-lib, sharp and the PDF worker (CI `build` job) |                          |
+| `pnpm check:rx-trace`                         | after `pnpm build`: all five rx routes' traces ship pdf-lib, sharp and the PDF worker (CI `build` job) |                          |
 
 The full local check before every push:
 

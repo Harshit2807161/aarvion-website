@@ -5,17 +5,25 @@
  *   must be traced through the top-level `node_modules/pdf-lib` link the worker resolves.
  * - `sharp`: `file-check.ts` loads it with `createRequire`, so the native package must be traced.
  * - the worker asset itself.
+ * - the hashed `.next/node_modules/sharp-<hash>` and `pdf-lib-<hash>` links that the compiled
+ *   `require("sharp-<hash>")` and `import "pdf-lib"` resolve through.
  * Without them every PDF (or image) would be refused on Vercel while every test stays green.
- * Plain Node, no imports beyond node:, so it runs with `node --experimental-strip-types`.
+ * Plain Node, no imports beyond node:. The entry point is `check-rx-trace-run.ts`, which always
+ * runs (no `import.meta.main` check that an older Node would silently skip).
  */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-/** The routes whose module graph reaches `checkRxFile`. */
+/**
+ * Every rx route: all five import `file-check.ts` (the file route and blob-token for
+ * `RX_MAX_BYTES`), so all five load sharp and pdf-lib when their module initialises.
+ */
 export const RX_TRACED_ROUTES = [
   "api/prescriptions/route",
   "api/prescriptions/staging/route",
   "api/prescriptions/staging/[id]/route",
+  "api/prescriptions/[id]/file/route",
+  "api/prescriptions/blob-token/route",
 ];
 
 /** What is missing from one route's trace; `files` are absolute paths. */
@@ -29,6 +37,12 @@ export function traceProblems(files: string[], root: string): string[] {
   }
   if (!files.some((f) => /\/sharp\/package\.json$/.test(f))) {
     problems.push("the sharp package is not traced");
+  }
+  for (const pkg of ["sharp", "pdf-lib"]) {
+    const link = new RegExp(`/\\.next/node_modules/${pkg}-[0-9a-f]+$`);
+    if (!files.some((f) => link.test(f))) {
+      problems.push(`the hashed .next/node_modules/${pkg}-<hash> link is not traced`);
+    }
   }
   if (!files.some((f) => /\/assets\/pdf-worker\.[^/]+\.mjs$/.test(f))) {
     problems.push("the pdf-worker.*.mjs asset is not traced");
@@ -45,11 +59,4 @@ export function checkRxTrace(root: string): string[] {
     const abs = files.map((f) => resolve(dirname(nft), f));
     return traceProblems(abs, root).map((p) => `${route}: ${p}`);
   });
-}
-
-if (import.meta.main) {
-  const problems = checkRxTrace(process.cwd());
-  for (const p of problems) console.error(`rx trace check: ${p}`);
-  if (problems.length > 0) process.exit(1);
-  console.log(`rx trace check: ${RX_TRACED_ROUTES.length} routes ship pdf-lib, sharp and the worker`);
 }
