@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { percentOff, sellingPricePaise } from "./pricing.ts";
+import { cartTotals, percentOff, sellingPricePaise } from "./pricing.ts";
 
 describe("sellingPricePaise", () => {
   it("subtracts Rs 20 from the MRP", () => {
@@ -71,4 +71,66 @@ describe("percentOff", () => {
       expect(() => percentOff(bad)).toThrow(RangeError);
     },
   );
+});
+
+describe("cartTotals", () => {
+  it("sums packs, MRP, the Rs 20 per pack discount and the payable amount", () => {
+    expect(
+      cartTotals([
+        { mrpPaise: 40700, qty: 2 },
+        { mrpPaise: 26300, qty: 1 },
+      ]),
+    ).toEqual({
+      packs: 3,
+      mrpPaise: 107700,
+      discountPaise: 6000,
+      discountPerPackPaise: 2000,
+      deliveryPaise: 0,
+      payablePaise: 101700,
+    });
+  });
+
+  it("payable is the sum of sellingPricePaise times qty", () => {
+    const items = [
+      { mrpPaise: 28100, qty: 4 },
+      { mrpPaise: 2100, qty: 10 },
+    ];
+    expect(cartTotals(items).payablePaise).toBe(
+      sellingPricePaise(28100) * 4 + sellingPricePaise(2100) * 10,
+    );
+  });
+
+  it("the discount is always Rs 20 times the packs, and MRP minus discount is the payable", () => {
+    const mrps = [2100, 2500, 28100, 40400, 99999, 200000, 250000];
+    let seed = 12345; // fixed LCG, so a failure reproduces
+    const next = (n: number) => (seed = (seed * 1103515245 + 12345) % 2147483648) % n;
+    for (let round = 0; round < 200; round++) {
+      const items = Array.from({ length: next(6) }, () => ({
+        mrpPaise: mrps[next(mrps.length)]!,
+        qty: next(11),
+      }));
+      const t = cartTotals(items);
+      expect(t.discountPaise).toBe(2000 * t.packs);
+      expect(t.mrpPaise - t.discountPaise).toBe(t.payablePaise);
+    }
+  });
+
+  it("an empty cart is all zeros, with the per-pack discount still stated", () => {
+    expect(cartTotals([])).toEqual({
+      packs: 0,
+      mrpPaise: 0,
+      discountPaise: 0,
+      discountPerPackPaise: 2000,
+      deliveryPaise: 0,
+      payablePaise: 0,
+    });
+  });
+
+  it("throws RangeError for an MRP that cannot carry a price", () => {
+    expect(() => cartTotals([{ mrpPaise: 2099, qty: 1 }])).toThrow(RangeError);
+  });
+
+  it.each([-1, 1.5, Number.NaN])("throws RangeError for a quantity of %s", (qty) => {
+    expect(() => cartTotals([{ mrpPaise: 40700, qty }])).toThrow(RangeError);
+  });
 });
