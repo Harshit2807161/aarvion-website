@@ -64,8 +64,9 @@ catalogue products without photos are listed in [docs/missing-products.md](../..
 
 The seed is insert-only, so running it adds the new product and changes nothing else:
 `pnpm seed` locally, and for a deployed database run it with that scope's `MONGODB_URI` and
-`MONGODB_DB` (not verified here). Once the UI plan's caching lands (Task 7), cached pages show
-the product after `revalidateCatalogue()` (planned).
+`MONGODB_DB` (not verified here). Cached pages show
+the product once the cache expires ("hours") or `revalidateCatalogue()` runs; a direct database
+write does not run it (the phase D admin writes will).
 
 ## Files touched
 

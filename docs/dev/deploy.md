@@ -48,10 +48,10 @@ refuses mocks whenever the database is `aarvion_prod`.
 
 `VERCEL_ENV` and `NODE_ENV` are set by the platform.
 
-**Build-time database (UI plan Task 7, ruling C11):** pages prerender from the DB, so
+**Build-time database (ruling C11):** pages prerender from the DB, so
 every Vercel scope needs `MONGODB_URI` and `MONGODB_DB` at build time, a seeded database, and
 Atlas network access for Vercel builds. An empty catalogue throws `CatalogueEmptyError` and fails
-the build instead of deploying an empty store. The `(store)` layout (`src/app/(store)/layout.tsx`, UI Task 9) renders the footer from the live categories, so from that PR on every customer page build reads the DB (`/api/*` and `/dev/*` sit outside `(store)` and do not; the 404 page reads the same cached categories for its chrome). **Seed the Preview database before that PR merges into a Vercel-connected repo** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
+the build instead of deploying an empty store. The `(store)` layout (`src/app/(store)/layout.tsx`) renders the footer from the live categories, so every customer page build reads the DB (`/api/*` and `/dev/*` sit outside `(store)` and do not; the 404 page reads the same cached categories for its chrome). **Seed the Preview database before the repo is connected to Vercel** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
 
 ## Prescription file store (Vercel Blob, private)
 
@@ -105,7 +105,7 @@ Nothing below exists yet; each lands before or with the production deploy.
   - `APP_URL` must be set, and must not be localhost, in production. An unset or invalid value
     silently gives a localhost `metadataBase`, so shared links and Open Graph images would
     point at localhost;
-  - `assertLegalConfigComplete()` (in `src/config/site.ts`, UI plan Task 9; the function exists,
+  - `assertLegalConfigComplete()` (in `src/config/site.ts`; the function exists,
     the call does not yet) called from `instrumentation.ts`. Gate it on
     `VERCEL_ENV === "production"`, not `NODE_ENV` (Preview builds also run with
     `NODE_ENV=production`). `SITE_CONFIG` must be filled with the drug licence numbers,

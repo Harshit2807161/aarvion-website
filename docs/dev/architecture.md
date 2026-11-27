@@ -41,20 +41,16 @@
 File-by-file detail is below, one file or subfolder per line, sorted alphabetically. When you
 add or change a file, edit only its own bullet.
 
-Planned folders (UI plan): more of `src/components/**` and `src/lib/**`. See
-the plan's "File Structure".
-
 ### src/app/
 
 - `src/app/(store)/`: route group for customer pages (URLs unchanged):
   - `layout.tsx` wraps the page in `withStoreChrome()` (`src/components/shell/store-chrome.tsx`: `SkipLink`, `AnnounceBar`, `StoreHeader` (with `AccountPill` in its `account` slot and `CartPill` in its `cart` slot), `CartReconcile`, `CategoryBar` (live categories), the page, then the `StoreFooter` from the cached live categories), so **every build needs a seeded database**
   - `legal/privacy/page.tsx` and `legal/terms/page.tsx` are the privacy policy (`/legal/privacy`) and the terms of use (`/legal/terms`, whose payment section offers only cash on delivery, naming no online method, until `SITE_CONFIG.onlinePayments` is true), each a `LegalPage` whose copy may state only what `docs/requirements.md`, `PRODUCT.md`, the rulings and the code as built support, with unsupplied facts as `Pending` (bump `POLICY_VERSION` when a policy changes in substance)
   - `legal/{returns-cancellation,shipping,prescription-policy,grievance}/page.tsx` and `contact/page.tsx` are `LegalPage` policies and the contact page (prepaid refund wording stays conditional, "If you paid online", until `SITE_CONFIG.onlinePayments` is true; the prescription page states the Schedule H and H1 rule and never says every medicine needs a prescription [C25]; the ₹5,000 COD cap is copy, not config).
-  - `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, inside `FilmRoot` (the scroll film's root), then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`); the other home sections land with the remaining UI Tasks 21–29
+  - `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, inside `FilmRoot` (the scroll film's root), then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`)
   - `login/page.tsx` is `/login`: `main#main.auth-page` with the intro, the `.auth-card` holding `LoginFlow mode="page"` inside a Suspense boundary after `connection()` (so `?next=` and `allowDemo={!isMockForbidden()}` are decided per request, and client code never imports `src/server`), then `ul.auth-why`; `noindex`, `interactiveWidget: "resizes-content"`; CSS in `src/styles/auth.css`
   - `category/[slug]/page.tsx` is the category page: `generateStaticParams` from the cached categories, `notFound()` for a slug that is not live or coming soon, and `CategoryView` (`src/components/catalogue/category-view.tsx`) with the cached products of that category, the first pocket with `priority`; `ensureStatic = "navigation"` makes an unlisted slug wait for its static result, so a hidden or unknown slug answers 404 on its first request
   - `not-found.tsx` renders the shared `NotFoundBody` (`src/components/shell/not-found-body.tsx`) inside the layout's chrome, so a category or product 404 shows one header, one `#q` and one footer; the root `not-found.tsx` (URLs that match no route) wraps the same body in `withStoreChrome()`
-  - `page.tsx` is the home: `main#home.home` (`.home`, the one root rule for the home's 1280px `--container-page` and `--space-sec`, is in `src/styles/quick-trust.css`), an sr-only h1, then `HeroBanner`, `QuickActions`, `TrustStrip`, `CategoryBento`, `Rails`, `OrderingSteps`, `Faq` and `Close`; it is async (it reads `getCachedProducts()` and `getCachedCategories()` and builds `homeModel`); the other home sections land with the remaining UI Tasks 21–29
   - Admin and staff routes go in a sibling group (for example `(admin)`) with no footer, as do `/dev/*` (their 404s come from the proxy and are bare).
   - the Operate *shell* (`OperateShell`) is a page component that customer cart, account and policy pages use inside `(store)`
 - `src/app/api/auth/logout/route.ts`: `POST /api/auth/logout` (204, clears the cookie)
@@ -89,7 +85,7 @@ React components, added task by task. The folders below exist today:
   - `demo-states.ts`: `LOGIN_DEMO_STATES` (`otp-sent`, `otp-error`, `otp-locked`, `new-account`), `isLoginDemoState` and `demoLoginState(name, now)`, each state reached by driving the real `loginReducer` with fixture events (mobile `9876543210`, code `482913`); `LoginFlow` opens one from `?state=` (read in an effect) only when the page passes `allowDemo={!isMockForbidden()}`, so never in production
   - `load-login-dialog.ts`: `loadLoginDialog()`, the one dynamic import of the dialog, so the dialog and the whole login flow stay out of every page's first-load JS (and tests can count loads)
   - `login-copy.ts` (`LOGIN_COPY`, the whole login flow's customer copy; `mmss` and `waitText`, which print "a little while" for a missing wait, never NaN; `MAX_TRIES`, `RESEND_SEC` and `CODE_TTL_MS`, client copies pinned to the server's limits by the test; `nameRefused` is the server refusing the name, `nameInvalid` the client check)
-  - `login-machine.ts`: the login state machine over steps id, code, profile and done: `loginReducer`, `initialLoginState`, `identifierOf` (post exactly this); `busy` is a guard, so a busy state ignores every event but results and `tick`, and an idle state ignores results; the UI runs the effects, calling `sendCode` and `verifyCode` while a state is `busy` (a resend is `resendStart`, then `sendCode`); `codeMessage(state, now)` is the code field's message, and `tick` lifts timed locks; when a code or profile state has `sessionCheck` true the UI calls `fetchSession()` and dispatches `sessionChecked`, because a verify that ended in `network` may still have signed in; `nameRefused` is the server refusing the name, `nameInvalid` the client check, `nameTooLong` a name over 80 characters; it re-exports
+  - `login-machine.ts`: the login state machine over steps id, code, profile and done: `loginReducer`, `initialLoginState`, `identifierOf` (post exactly this); `busy` is a guard, so a busy state ignores every event but results and `tick`, and an idle state ignores results; the UI runs the effects, calling `sendCode` and `verifyCode` while a state is `busy` (a resend is `resendStart`, then `sendCode`); `codeMessage(state, now)` is the code field's message, and `tick` lifts timed locks; when a code or profile state has `sessionCheck` true the UI calls `fetchSession()` and dispatches `sessionChecked`, because a verify that ended in `network` may still have signed in; `nameRefused` is the server refusing the name, `nameInvalid` the client check, `nameTooLong` a name over 80 characters; it re-exports `login-copy.ts`
   - `login-dialog.tsx`: `LoginDialog({ open, onOpenChange, next, onSignedIn, returnFocusTo })`, the login flow in an `Overlay` dialog (a bottom sheet below 640px) named "Sign in", with the mint swoosh as its head `mark`, that opens on the flow's identifier field and returns focus to `returnFocusTo`; after `DONE_MS` it closes and calls `onSignedIn` first (the header lives in the persistent layout), then `router.push`es `sanitizeNext(next)` when given or toasts "Signed in as <first name>"; closing during the done step skips the redirect and toast but still calls `onSignedIn`, once; in dialog mode the flow ignores the host page's `?next=`; opened by `AccountPill`
   - `login-flow.tsx`: `LoginFlow` (client, mounted by `/login` and `LoginDialog`; an optional `next` prop overrides `?next=`; `DONE_MS` = 900) drives `loginReducer` and renders the id step (the Mobile/Email `Segmented`, the field with its own `role="alert"` error, the busy Send; posts exactly `identifierOf(...)`) and the done step ("You’re signed in", focused, with `doneCheckout` when `next` starts with `/checkout`); the dialog gets `onDone` at once and the page `router.replace`s `sanitizeNext(next)` undecoded 900 ms later; a visitor already signed in skips the done step and goes at once; when the machine sets `sessionCheck` it calls `fetchSession()` and dispatches `sessionChecked`
   - `phone.ts` (`normMobile` (strips one `+91`, `91` or `0` prefix, never truncates), `formatMobile`, `MOBILE_RE`, `EMAIL_RE`)
@@ -123,7 +119,7 @@ React components, added task by task. The folders below exist today:
   - `Segmented` (native radiogroup with roving tabindex, arrows, Home and End; LTR only; no error wiring)
   - `TextField` (hint and error ids through `aria-describedby`, `aria-invalid`; the error has `role="alert"` unless `errorAlert={false}`)
   - `otpDigits`
-- `home/`: the banner carousel reducer and controller hook
+- `home/`: the home page's sections (the bullets below) and the banner carousel reducer and controller hook
   - `CategoryBento` (the static "Shop by category" act, `section#areas[data-act="pass"]`; tiles come from `bentoTiles(homeModel(...))`, whose `BENTO_LAYOUT` picks each category's grid cell and art slugs, so a new live category gets a plain `tile-diab` cell; the `data-in` ranges on the tiles are what the film engine reads; CSS in `src/styles/bento.css`)
   - `Close` (the static closing act, `section#close[data-act="pin"][data-lead]`; `img.close-swoosh` is the mint `/brand/aarvion-mark.svg` alone, 184px, and carries the film's `data-in` pan-in range itself; CSS in `src/styles/faq-close.css`)
   - `Faq` (`section#questions`, six native `<details>`; `#faq-returns` and `#faq-win2age` are link targets and `FaqHashOpen`, a tiny client effect, opens the item a hash points at; the Rx-universal first answer needs `allRx` [C25] and the online-payment copy needs `SITE_CONFIG.onlinePayments`)
@@ -136,7 +132,7 @@ React components, added task by task. The folders below exist today:
   - `LegalPage` (the Operate shell plus the `.prose` column, opening with "Last updated" from `POLICY_VERSION` via the pure `formatPolicyDate`)
   - `LegalSection`
   - `Pending` (the "To be added" chip)
-- `overlay/`: `Overlay` (dialog and side sheet; `initialFocus` is a ref or a function called at open; an optional `mark` renders in the head before the title, `.sheet-mark`), the drag thresholds and `useDragDismiss`
+- `overlay/`: the dialog and side sheet and the phone drag-to-dismiss (details below)
   - `src/components/overlay/`: `Overlay` (`variant` `"dialog"` or `"side"`, `title`, `count`, `closeLabel`, `initialFocus`, `returnFocusTo`, `footer`): Radix Dialog supplies the focus trap, Escape, scroll lock and aria-hidden siblings; `Overlay` adds `aria-modal`, returns focus to whatever opened it, or to `returnFocusTo` (Radix only does that for its own Trigger; Safari and Firefox on macOS leave `body` focused after a mouse click, so pass `returnFocusTo` for click-opened overlays) and puts the drag handlers on the sheet head only (never the panel, where a drag would fight the scrolling body). Below 640px it is a bottom sheet (CSS).
   - Also the pure phone bottom-sheet drag thresholds in `drag.ts` (28% of height, or 24px at 0.45px/ms)
   - `useDragDismiss`, which returns pointer handlers for the sheet head. The panel follows the finger through an inline transform and carries `is-dragging` from the first pointerdown until it closes (that class holds the CSS open animation off; removing it while open would replay the entrance). Only the inline transition is cleared after a snap-back
@@ -184,6 +180,8 @@ React components, added task by task. The folders below exist today:
 - `catalogue/display.ts` (client-safe wording of catalogue data, ported from the prototype's `build.mjs`: `fullComposition`, `actives` (preservatives and salt forms dropped, each strength one non-breaking unit), `packDisplay`, `strengthTokens`, `shortName`, `plural`, `countWord`, `pocketImage` (the cutout, else the first photo), `categoryAnchor` and the `PocketProduct` type; type-only imports from `src/server`)
 - `catalogue/home-model.ts` (client-safe model of the home bento and rails: `homeModel`, `bentoTiles`, `tileList`, `BENTO_LAYOUT`, and `railPlan` / `RAIL_RISES` for the rails: a rail per category with two or more products, then one shared rail, titled "Diabetes and respiratory care" or "More medicines", for the single-product categories; imports only `catalogue/order` at runtime)
 - `catalogue/origin.ts` (`countryOfOrigin(manufacturer)`: "India" iff the address names an Indian place from `INDIAN_ADDRESS_MARKERS` (whole word, any case, not a street name), else null, so the page shows "To be added"; extend the marker list, never guess)
+- `catalogue/revalidate.ts` (`revalidateCatalogue()`: expires every cached catalogue read now, `expire: 0`; every catalogue write calls it)
+- `catalogue/tags.ts` (`CATALOGUE_TAG` and the `productTag`, `familyTag` and `categoryTag` builders the cached reads are tagged with)
 - `catalogue/json-ld.ts` (`productJsonLd(p, base)`: schema.org Product with the selling price, the manufacturer's name only when the catalogue has one, and never `availability`, `aggregateRating` or `review`; `jsonLdScript` escapes `<`; `productMetadata(p)`: the title (name and actives), the MRP and price description, the canonical path and the share image; the product page renders one `application/ld+json` block)
 - `cn.ts` (`clsx` + `tailwind-merge` class helper)
 - `format/rupees.ts` (Indian rupee formatting)
@@ -433,12 +431,12 @@ AVIF/WebP, `images.qualities` 70/75/85). Every GET handler's first statement is
   database at build; an empty catalogue throws `CatalogueEmptyError` and fails the build.
 
 **Session route:** `GET /api/auth/session` (#107) is the header's auth source: always 200 with
-the public user or `null`, `no-store`. Nothing calls it yet.
+the public user or `null`, `no-store`. `AccountPill` reads it after hydration, and the login flow
+calls it (`fetchSession`) after a verify that ended in a network error.
 
-**Planned:**
-- Header auth state is fetched after hydration from `GET /api/auth/session`, so pages stay
-  static. Plan Task 43 wires it (the header's `account` slot, `AccountPill`); until then the
-  header shows a static Sign in link.
+**Design notes:**
+- Header auth state is fetched after hydration from `GET /api/auth/session` (the header's
+  `account` slot, `AccountPill`), so pages stay static.
 - Product images are content-hashed, so the CDN can cache them forever.
 
 **Client imports (now):** components (`src/components/**`) and the client-safe `src/lib/**`
