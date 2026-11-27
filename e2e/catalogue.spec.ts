@@ -27,10 +27,27 @@ test("the strength switcher moves to another strength's page", async ({ page }) 
 });
 
 // ensureStatic = "navigation" makes the first hit a real 404, not a streamed 200.
-test("an unknown product is a 404 on the first hit", async ({ page }) => {
+test("an unknown product is a 404 on the first hit with one copy of the chrome", async ({ page }) => {
   const res = await page.goto("/product/nope");
   expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "We can’t find that page" })).toBeVisible();
+  await expect(page.locator("header")).toHaveCount(1);
+  await expect(page.locator("#q")).toHaveCount(1);
+});
+
+test("a product page has its own title and description", async ({ page }) => {
+  await page.goto("/product/sacuwin-100");
+  await expect(page).toHaveTitle(/Sacuwin 100/);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    /Sacubitril \(as sodium\) 49 mg \+ Valsartan 51 mg/,
+  );
+});
+
+test("a pocket name on the home page leads to its product page", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#p-sacuwin-100 a.pocket-link").click();
+  await expect(page).toHaveURL(/\/product\/sacuwin-100$/);
 });
 
 test.describe("category pages", () => {
