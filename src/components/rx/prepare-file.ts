@@ -13,6 +13,12 @@ export const RX_REENCODE_OVER_BYTES = 1_572_864;
 export const RX_UPLOAD_MAX_SIDE = 2560;
 /** Client copy of the server's RX_IMAGE_MIN_SIDE: a resize never takes the short side below it. */
 export const RX_UPLOAD_MIN_SIDE = 400;
+/**
+ * The server fits a photo inside 3000 px, then needs 400 px on the short side, so anything longer
+ * than 7.5 : 1 is always refused as too small (RX_IMAGE_MAX_SIDE / RX_IMAGE_MIN_SIDE, pinned by
+ * test). It is refused here at once instead of after a slow upload.
+ */
+export const RX_UPLOAD_MAX_ASPECT = 7.5;
 const JPEG_QUALITY = 0.85;
 
 /** What the server stores as is. HEIC and HEIF are read here (where the browser can) but never sent. */
@@ -97,6 +103,9 @@ export async function prepareRxFile(file: File): Promise<PreparedRx> {
       : { ok: false, message: RX_COPY.unsupported(file.name) };
   }
   try {
+    const long = Math.max(bitmap.width, bitmap.height);
+    const short = Math.min(bitmap.width, bitmap.height);
+    if (long > short * RX_UPLOAD_MAX_ASPECT) return { ok: false, message: RX_COPY.tooSmall };
     const small =
       file.size <= RX_REENCODE_OVER_BYTES &&
       Math.max(bitmap.width, bitmap.height) <= RX_UPLOAD_MAX_SIDE;

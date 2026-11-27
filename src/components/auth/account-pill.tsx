@@ -29,11 +29,19 @@ import { loadLoginDialog } from "./load-login-dialog";
 import type { LoginDialogProps } from "./login-dialog";
 
 export const LOGIN_EVENT = "aarv:login";
-type LoginRequest = { next?: string };
+type LoginRequest = { next?: string; returnFocusId?: string };
 
-/** Opens the header sign-in dialog; once signed in it goes to `next` (sanitised), if given. */
-export function openLogin(next?: string): void {
-  window.dispatchEvent(new CustomEvent<LoginRequest>(LOGIN_EVENT, { detail: { next } }));
+/**
+ * Opens the header sign-in dialog; once signed in it goes to `next` (sanitised), if given. Focus
+ * returns on close to the element with id `returnFocusId` if given (a form's Send, so the shopper
+ * lands where they were), else to the pill.
+ */
+export function openLogin(next?: string, opts: { returnFocusId?: string } = {}): void {
+  window.dispatchEvent(
+    new CustomEvent<LoginRequest>(LOGIN_EVENT, {
+      detail: { next, returnFocusId: opts.returnFocusId },
+    }),
+  );
 }
 
 /** Runs `fn` when the browser is idle (after the page's own work), or soon where that is missing. */
@@ -67,6 +75,14 @@ export function AccountPill() {
   const [open, setOpen] = useState(false);
   const [next, setNext] = useState<string | undefined>(undefined);
   const ref = useRef<HTMLAnchorElement>(null);
+  const returnId = useRef<string | undefined>(undefined);
+  // Read when the dialog closes, so the target is looked up then; the pill when none was asked.
+  const [returnTo] = useState(() => ({
+    get current(): HTMLElement | null {
+      const id = returnId.current;
+      return (id ? document.getElementById(id) : null) ?? ref.current;
+    },
+  }));
   const loading = useRef<Promise<ComponentType<LoginDialogProps>> | null>(null);
 
   const refresh = useCallback(() => {
@@ -74,16 +90,20 @@ export function AccountPill() {
   }, []);
   useEffect(() => whenIdle(refresh), [refresh]);
 
-  const show = useCallback(async (nextPath?: string) => {
+  const show = useCallback(async (nextPath?: string, returnFocusId?: string) => {
     loading.current ??= loadLoginDialog();
     const Dialog = await loading.current;
     setDialog({ Dialog });
     setNext(nextPath);
+    returnId.current = returnFocusId;
     setOpen(true);
   }, []);
 
   useEffect(() => {
-    const onRequest = (e: Event) => void show((e as CustomEvent<LoginRequest>).detail?.next);
+    const onRequest = (e: Event) => {
+      const detail = (e as CustomEvent<LoginRequest>).detail;
+      void show(detail?.next, detail?.returnFocusId);
+    };
     window.addEventListener(LOGIN_EVENT, onRequest);
     return () => window.removeEventListener(LOGIN_EVENT, onRequest);
   }, [show]);
@@ -134,7 +154,7 @@ export function AccountPill() {
           onOpenChange={setOpen}
           next={next}
           onSignedIn={refresh}
-          returnFocusTo={ref}
+          returnFocusTo={returnTo}
         />
       ) : null}
     </>
