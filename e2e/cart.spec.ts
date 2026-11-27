@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { CART_LIMITS, CART_UI_STORAGE_KEY } from "../src/lib/cart/cart";
+import { CART_GUEST_STORAGE_KEY, CART_LIMITS } from "../src/lib/cart/cart";
 import { collectConsoleErrors } from "./helpers/console";
 
 /**
@@ -50,7 +50,15 @@ test("a stored cart hydrates into the stepper and the pill with no console error
 }) => {
   await page.addInitScript(
     ([key, lines]) => sessionStorage.setItem(key as string, JSON.stringify(lines)),
-    [CART_UI_STORAGE_KEY, { "sacuwin-100": 3, hyloage: 2 }] as const,
+    [
+      CART_GUEST_STORAGE_KEY,
+      {
+        lines: [
+          { slug: "sacuwin-100", qty: 3 },
+          { slug: "hyloage", qty: 2 },
+        ],
+      },
+    ] as const,
   );
   const errors = collectConsoleErrors(page);
   await page.goto("/");
