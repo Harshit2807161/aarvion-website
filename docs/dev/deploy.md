@@ -69,7 +69,7 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
 - Blobs are written `access: "private"` with exact keys (`rx/<userId>/<rxId>.<ext>`,
   `rx-staging/…`) and no overwrite; they are read only through the app's ownership-checked
   handlers. Never hand out a blob URL, `downloadUrl` or a read-capable token.
-- **Merge all of R5 before the first deploy.** R5 lands in five PRs (#224, then parts B to E).
+- **Merge all of R5 before the first deploy.** R5 landed in five PRs (#224, #231, #233, #234, #236).
   Deployed part-way, finalise would be live with PDFs untraced (until E), and under `blob` staging
   would answer `mode: "client-token"` with no token route (until D).
 - **What Vercel needs for uploads:** `FILE_STORE=blob` and the scope's `BLOB_READ_WRITE_TOKEN`
