@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
-import { ObjectId } from "mongodb";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { Collection, ObjectId } from "mongodb";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { CARTS_COLLECTION, mutateCart, readCart } from "@/server/cart/carts";
 import { addLine, type CartLine } from "@/server/cart/rules";
 import { CATEGORY_LIST } from "@/server/catalogue/categories";
@@ -87,23 +87,60 @@ describe("mutateCart", () => {
     expect(await readCart(uid)).toMatchObject({ lines: [L("a", 10)], rev: 10 });
   });
 
-  it("gives up with 409 cart_conflict after maxAttempts lost races, and loses no acknowledged write", async () => {
+  it("a lost race retries on a fresh read and then lands", async () => {
+    await mutateCart(uid, T1, (ls) => addLine(ls, "a"));
+    const spy = vi
+      .spyOn(Collection.prototype, "updateOne")
+      .mockResolvedValueOnce({ modifiedCount: 0 } as never);
+    let runs = 0;
+    const out = await mutateCart(uid, T2, (ls) => {
+      runs++;
+      return addLine(ls, "a");
+    });
+    spy.mockRestore();
+    expect(runs).toBe(2);
+    expect(out.lines).toEqual([L("a", 2)]);
+    expect(await readCart(uid)).toMatchObject({ rev: 2 });
+  });
+
+  it("gives up with 409 cart_conflict after maxAttempts lost races", async () => {
+    await mutateCart(uid, T1, (ls) => addLine(ls, "a"));
+    const spy = vi
+      .spyOn(Collection.prototype, "updateOne")
+      .mockResolvedValue({ modifiedCount: 0 } as never);
+    const err = await mutateCart(uid, T2, (ls) => addLine(ls, "a"), { maxAttempts: 3 }).catch(
+      (e) => e,
+    );
+    expect(spy).toHaveBeenCalledTimes(3);
+    spy.mockRestore();
+    expect(err).toBeInstanceOf(HttpError);
+    expect(err).toMatchObject({ status: 409, code: "cart_conflict" });
+    expect(await readCart(uid)).toMatchObject({ lines: [L("a", 1)], rev: 1 });
+  });
+
+  it("gives up with the same 409 once the total deadline has passed", async () => {
+    await mutateCart(uid, T1, (ls) => addLine(ls, "a"));
+    const spy = vi
+      .spyOn(Collection.prototype, "updateOne")
+      .mockResolvedValue({ modifiedCount: 0 } as never);
+    const err = await mutateCart(uid, T2, (ls) => addLine(ls, "a"), { deadlineMs: 40 }).catch(
+      (e) => e,
+    );
+    const calls = spy.mock.calls.length;
+    spy.mockRestore();
+    expect(err).toMatchObject({ status: 409, code: "cart_conflict" });
+    expect(calls).toBeGreaterThan(1);
+    expect(calls).toBeLessThan(25);
+  });
+
+  it("racing writers that exhaust their attempts lose no acknowledged write", async () => {
     await mutateCart(uid, T1, (ls) => addLine(ls, "seed"));
     const results = await Promise.allSettled(
       Array.from({ length: 8 }, (_, i) =>
-        mutateCart(uid, T2, (ls) => ({ lines: [...ls, L(`s${i}`, 1)] }), 1),
+        mutateCart(uid, T2, (ls) => ({ lines: [...ls, L(`s${i}`, 1)] }), { maxAttempts: 1 }),
       ),
     );
-    const lost = results.filter((r) => r.status === "rejected");
-    expect(lost.length).toBeGreaterThan(0);
-    for (const r of lost) {
-      expect((r as PromiseRejectedResult).reason).toBeInstanceOf(HttpError);
-      expect((r as PromiseRejectedResult).reason).toMatchObject({
-        status: 409,
-        code: "cart_conflict",
-      });
-    }
-    const won = results.length - lost.length;
+    const won = results.filter((r) => r.status === "fulfilled").length;
     expect((await readCart(uid))!.lines).toHaveLength(1 + won);
   });
 });
