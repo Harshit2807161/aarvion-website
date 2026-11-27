@@ -68,10 +68,10 @@ export function trackFiles(hooks: Partial<ReturnType<typeof getDeps>["files"]> =
   setDepsForTests({
     files: {
       kind: store.kind,
-      put: (p, b, t) => (puts.push(p), store.put(p, b, t)),
       get: (p, o) => store.get(p, o),
       delete: (p) => store.delete(p),
       ...hooks,
+      put: (p, b, t) => (puts.push(p), (hooks.put ?? store.put.bind(store))(p, b, t)),
     },
   });
   return { store, finals: () => puts.filter((k) => k.startsWith("rx/")) };

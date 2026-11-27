@@ -186,13 +186,25 @@ describe("finishRxUpload", () => {
     const userId = uid();
     const { finals } = trackPuts();
     const started = await stage(userId, await jpegWithExif());
+    const actual = await vi.importActual<typeof import("@/server/prescriptions/file-check")>(
+      "@/server/prescriptions/file-check",
+    );
+    // Park the first finish inside its check, so the second is certain to arrive while it holds the lease.
+    let release!: () => void;
+    let parked!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const inCheck = new Promise<void>((resolve) => (parked = resolve));
     vi.mocked(checkRxFile).mockClear();
-    const results = await Promise.all([
-      finish(userId, started.stagingId),
-      finish(userId, started.stagingId),
-    ]);
-    expect(results.filter((r) => r.ok)).toHaveLength(1);
-    expect(results.filter((r) => !r.ok)).toEqual([{ ok: false, error: "busy" }]);
+    vi.mocked(checkRxFile).mockImplementationOnce(async (bytes) => {
+      parked();
+      await gate;
+      return actual.checkRxFile(bytes);
+    });
+    const first = finish(userId, started.stagingId);
+    await inCheck;
+    expect(await finish(userId, started.stagingId)).toEqual({ ok: false, error: "busy" });
+    release();
+    expect((await first).ok).toBe(true);
     expect(vi.mocked(checkRxFile)).toHaveBeenCalledTimes(1);
     expect(finals()).toHaveLength(1);
     expect(await listRxForUser(userId)).toHaveLength(1);

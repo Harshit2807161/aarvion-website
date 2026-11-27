@@ -125,9 +125,28 @@ export async function claimStaging(
   );
 }
 
-/** Ends a lease early (an abort or a retryable refusal), so a retry can claim the slot at once. */
-export async function releaseStaging(id: string, userId: ObjectId): Promise<void> {
-  await (await staging()).updateOne({ _id: id, userId }, { $unset: { claimedUntil: "" } });
+/**
+ * Ends this claim's lease early (an abort or a retryable refusal), so a retry can claim the slot
+ * at once. Fenced to `claimedUntil`, the value this claim wrote: a call that overran its lease
+ * cannot end the lease of the finish that claimed the slot after it.
+ */
+export async function releaseStaging(
+  id: string,
+  userId: ObjectId,
+  claimedUntil: Date,
+): Promise<void> {
+  await (
+    await staging()
+  ).updateOne({ _id: id, userId, claimedUntil }, { $unset: { claimedUntil: "" } });
+}
+
+/** A refusal is final: delete the slot, but only while this claim still holds it (fenced like release). */
+export async function consumeStaging(
+  id: string,
+  userId: ObjectId,
+  claimedUntil: Date,
+): Promise<void> {
+  await (await staging()).deleteOne({ _id: id, userId, claimedUntil });
 }
 
 /** Single use: deletes and returns the live slot, atomically (inside `session`'s transaction if given). */
