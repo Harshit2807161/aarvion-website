@@ -28,7 +28,11 @@ const view = (lines: Record<string, number>, extra: Record<string, unknown> = {}
 const ok = (lines: Record<string, number>, extra: Record<string, unknown> = {}) =>
   Promise.resolve({ ok: true as const, view: view(lines, extra) });
 const fail = (error: string) => Promise.resolve({ ok: false as const, error }) as never;
-const tick = (ms: number) => vi.advanceTimersByTimeAsync(ms);
+/** Lets a lazily loaded chunk (the quoter) arrive, then advances the fake clock. */
+const tick = async (ms: number) => {
+  await vi.dynamicImportSettled();
+  await vi.advanceTimersByTimeAsync(ms);
+};
 
 const stored = () => JSON.parse(sessionStorage.getItem(CART_GUEST_STORAGE_KEY)!);
 const seed = (lines: { slug: string; qty: number }[]) =>
@@ -142,6 +146,22 @@ describe("guest mode", () => {
     expect(stored()).toEqual({ lines: [{ slug: "a", qty: 10 }] });
     expect(cartStore.dispatch(inc("b"))).toBeNull();
     expect(cartStore.reconcile(new Set(["a", "b"]))).toBe(false);
+  });
+});
+
+describe("the quoting code is a lazy chunk", () => {
+  it("store.ts has no static import of it or of the api client, so an empty cart never loads either", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync(new URL("./store.ts", import.meta.url), "utf8");
+    expect(src).not.toMatch(/^import (?!type)[^;]*from "\.\/(guest-quote|api)"/m);
+    expect(src).toContain('import("./guest-quote")');
+  });
+
+  it("sends nothing for an empty cart", async () => {
+    cartStore.dispatch(inc("a"));
+    cartStore.dispatch(dec("a"));
+    await tick(5000);
+    expect(m.quoteCart).not.toHaveBeenCalled();
   });
 });
 
