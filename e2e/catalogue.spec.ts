@@ -40,6 +40,7 @@ test.describe("category pages", () => {
     expect(res?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1, name: "Heart care" })).toBeVisible();
     await expect(page.getByRole("button", { name: /^Add .* to cart$/ })).toHaveCount(5);
+    await expect(page.locator("nav.catbar a[aria-current='page']")).toHaveText("Heart care");
     expect(errors()).toEqual([]);
   });
 
@@ -67,6 +68,11 @@ test.describe("category pages", () => {
   test("the home bento's Heart care tile lands on the category page", async ({ page }) => {
     await page.goto("/");
     await page.locator("#areas a[href='/category/cardiology']").click();
+    await expect(page).toHaveURL(/\/category\/cardiology$/);
+  });
+  test("View all 5 on the home Heart care rail lands on the category page", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#heart-care a.rail-all").click();
     await expect(page).toHaveURL(/\/category\/cardiology$/);
   });
 });
