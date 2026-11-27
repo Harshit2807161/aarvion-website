@@ -1,6 +1,6 @@
 import { capLines, type CartLine } from "@/server/cart/rules";
 import type { CartView } from "@/server/cart/service";
-import * as api from "./api";
+import type { createQuoter } from "./guest-quote";
 import {
   CART_GUEST_STORAGE_KEY,
   CART_UI_STORAGE_KEY,
@@ -12,11 +12,6 @@ import {
 
 /** What the server (and the first hydration render) sees: an empty cart. Frozen and shared. */
 const SERVER_LINES: CartLines = Object.freeze({});
-/** Guest changes re-quote after this much quiet. Longer than a tap burst, so one product's 1 to 10 is one request, not nine (the quote route allows 60 a minute per IP bucket). */
-const QUOTE_DEBOUNCE_MS = 400;
-/** After a failed quote (offline, rate limited) it tries again after each of these waits, then waits for the next change. */
-const QUOTE_RETRY_MS = [1000, 3000, 8000];
-
 /** Something the shopper should be told; `CartSync` speaks it through the page's live region. */
 export type CartIssue =
   | { kind: "removed"; slugs: string[] }
@@ -59,9 +54,9 @@ function writeGuest(lines: CartLines): void {
 let cache: CartLines | null = null;
 let view: CartView | null = null;
 let viewStale = false; // the view prices an older set of lines than the snapshot holds
-let quoteTimer: ReturnType<typeof setTimeout> | undefined;
-let quoteSeq = 0;
-let retries = 0;
+let quoteSeq = 0; // bumped on every cart change: a quote reply for an older generation is ignored
+let quoter: ReturnType<typeof createQuoter> | null = null; // loaded on demand, see guest-quote.ts
+let loadingQuoter: Promise<ReturnType<typeof createQuoter>> | null = null;
 const listeners = new Set<() => void>();
 const issueListeners = new Set<(issue: CartIssue) => void>();
 const notify = () => listeners.forEach((l) => l());
@@ -76,37 +71,47 @@ function dropRetired(slugs: readonly string[]): void {
   emit({ kind: "removed", slugs: [...gone] });
 }
 
+/** Loads the quoting half once. A failed load (offline) is retried by the next change. */
+function loadQuoter(): Promise<ReturnType<typeof createQuoter>> {
+  return (loadingQuoter ??= import("./guest-quote").then(
+    (m) =>
+      (quoter = m.createQuoter({
+        generation: () => quoteSeq,
+        lines: () => cartStore.getSnapshot(),
+        accept(v) {
+          view = v;
+          viewStale = false;
+          if (v.removed.length > 0) dropRetired(v.removed);
+        },
+        notify,
+      })),
+    (err) => {
+      loadingQuoter = null;
+      throw err;
+    },
+  ));
+}
+
 /**
- * Price the current lines after a quiet moment. Nothing is written server side. A failed quote
- * keeps the last good view, marks it stale and retries with backoff, so a rate limit or a bad
- * connection never leaves totals that look current but are not.
+ * Price the current lines after a quiet moment (`guest-quote.ts`). Nothing is written server side.
+ * A failed quote keeps the last good view, marks it stale and retries with backoff, so a rate limit
+ * or a bad connection never leaves totals that look current but are not. Every cart change
+ * supersedes any quote in flight, whether or not it sends another one: a reply for older lines
+ * must never clear `stale` or replace the view of newer ones. An empty cart needs no quote, and
+ * the quoting code is not even loaded for it.
  */
 function scheduleQuote(): void {
-  clearTimeout(quoteTimer);
-  retries = 0;
-  // Every cart change supersedes any quote in flight, whether or not it sends another one: a reply
-  // for older lines must never clear `stale` or replace the view of newer ones.
   const mine = ++quoteSeq;
-  const lines = cartStore.getSnapshot();
-  if (Object.keys(lines).length === 0) {
+  quoter?.cancel();
+  if (Object.keys(cartStore.getSnapshot()).length === 0) {
     view = null;
     viewStale = false;
     return;
   }
   viewStale = true;
-  const run = async () => {
-    const res = await api.quoteCart(toArray(lines));
-    if (mine !== quoteSeq) return; // a newer change superseded this request
-    if (res.ok) {
-      view = res.view;
-      viewStale = false;
-      if (res.view.removed.length > 0) dropRetired(res.view.removed);
-    } else if (retries < QUOTE_RETRY_MS.length) {
-      quoteTimer = setTimeout(run, QUOTE_RETRY_MS[retries++]);
-    }
-    notify();
-  };
-  quoteTimer = setTimeout(run, QUOTE_DEBOUNCE_MS);
+  loadQuoter()
+    .then((q) => mine === quoteSeq && q.schedule(mine))
+    .catch(() => {});
 }
 
 export const cartStore = {
@@ -169,11 +174,12 @@ export const cartStore = {
   },
   /** TEST ONLY: forget every cached value so the next read goes back to sessionStorage. */
   reset(): void {
-    clearTimeout(quoteTimer);
+    quoter?.cancel();
+    quoter = null;
+    loadingQuoter = null;
     cache = null;
     view = null;
     viewStale = false;
-    retries = 0;
     quoteSeq++;
     listeners.clear();
     issueListeners.clear();
