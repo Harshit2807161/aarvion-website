@@ -18,6 +18,8 @@ const schema = z.object({
   EMAIL_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["mock", "resend"]).default("mock")),
   PAYMENTS_PROVIDER: z.preprocess(emptyToUndefined, z.enum(["fake", "razorpay"]).default("fake")),
   FILE_STORE: z.preprocess(emptyToUndefined, z.enum(["memory", "local", "blob"]).default("memory")),
+  /** Folder for FILE_STORE=local (pnpm dev); gitignored. */
+  FILE_STORE_LOCAL_DIR: z.preprocess(emptyToUndefined, z.string().min(1).default(".data/files")),
   OTP_PEPPER: z.preprocess(emptyToUndefined, z.string().min(32).optional()),
   ALLOW_MOCKS_IN_PROD_BUILD: z.preprocess(emptyToUndefined, z.literal("1").optional()),
 });

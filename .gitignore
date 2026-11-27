@@ -23,3 +23,5 @@ next-env.d.ts
 # large generation sources (webp derivatives are tracked)
 assets/banners/**/*.png
 .superpowers/
+# local file store (FILE_STORE=local)
+.data/

@@ -14,6 +14,8 @@ function setEnv(vars: Record<string, string>) {
     "EMAIL_PROVIDER",
     "PAYMENTS_PROVIDER",
     "FILE_STORE",
+    "FILE_STORE_LOCAL_DIR",
+    "MONGODB_DB",
   ]) {
     delete process.env[k];
   }
@@ -62,11 +64,37 @@ describe("getDeps guard", () => {
     ["SMS_PROVIDER", "msg91"],
     ["EMAIL_PROVIDER", "resend"],
     ["PAYMENTS_PROVIDER", "razorpay"],
-    ["FILE_STORE", "blob"],
-    ["FILE_STORE", "local"],
   ])("throws not implemented for %s=%s", (k, v) => {
     setEnv({ [k]: v });
     expect(() => getDeps()).toThrow(/not implemented yet/);
+  });
+});
+
+describe("file store wiring", () => {
+  it("builds the memory store by default outside production", () => {
+    expect(getDeps().files.kind).toBe("memory");
+  });
+  it("builds the local store for FILE_STORE=local", () => {
+    setEnv({ FILE_STORE: "local", FILE_STORE_LOCAL_DIR: ".data/test-files" });
+    expect(getDeps().files.kind).toBe("local");
+  });
+  it.each(["local", "memory"])("refuses FILE_STORE=%s on Vercel (VERCEL_ENV=preview)", (store) => {
+    setEnv({ FILE_STORE: store, VERCEL_ENV: "preview", ALLOW_MOCKS_IN_PROD_BUILD: "1" });
+    expect(() => getDeps()).toThrow(
+      `FILE_STORE=${store} does not persist across Vercel functions: use blob`,
+    );
+  });
+  it.each(["local", "memory"])("refuses FILE_STORE=%s on the production database", (store) => {
+    setEnv({ FILE_STORE: store, MONGODB_DB: "aarvion_prod" });
+    expect(() => getDeps()).toThrow(/mock providers are not allowed in production/i);
+  });
+  it("refuses FILE_STORE=local in a production build without the override", () => {
+    setEnv({ FILE_STORE: "local", NODE_ENV: "production" });
+    expect(() => getDeps()).toThrow(/mock providers are not allowed in production/i);
+  });
+  it("still throws not implemented for FILE_STORE=blob", () => {
+    setEnv({ FILE_STORE: "blob" });
+    expect(() => getDeps()).toThrow(/FILE_STORE=blob: not implemented yet/);
   });
 });
 
@@ -104,12 +132,12 @@ describe("fake payment gateway", () => {
 describe("memory file store", () => {
   it("round-trips and deletes", async () => {
     const f = createMemoryFiles();
-    await f.put("a/b.txt", new Uint8Array([1, 2]), "text/plain");
-    expect(await f.get("a/b.txt")).toEqual({
+    await f.put("rx/u/b.webp", new Uint8Array([1, 2]), "image/webp");
+    expect(await f.get("rx/u/b.webp")).toEqual({
       body: new Uint8Array([1, 2]),
-      contentType: "text/plain",
+      contentType: "image/webp",
     });
-    await f.delete("a/b.txt");
-    expect(await f.get("a/b.txt")).toBeNull();
+    await f.delete("rx/u/b.webp");
+    expect(await f.get("rx/u/b.webp")).toBeNull();
   });
 });

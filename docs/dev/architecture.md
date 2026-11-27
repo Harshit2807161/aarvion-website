@@ -287,7 +287,7 @@ ported prototype CSS imported by `globals.css`.
 | --- | --- |
 | `env.ts` | `getEnv()`, `getSiteEnv()` (only `APP_URL` and `VERCEL_ENV`, validated on their own; in production a missing or invalid `APP_URL` throws, never a localhost fallback), `requireEnv(key)`, `EnvError`, `resetEnvForTests()` |
 | `deps.ts` | `getDeps()` → `{ sms, email, payments, files, now }`; `setDepsForTests`, `resetDepsForTests`; re-exports `readOutbox` |
-| `providers/` | `types.ts` (interfaces), `mock-sms.ts`, `mock-email.ts`, `outbox.ts` (`dev_outbox`), `fake-payments.ts`, `memory-files.ts`, `guard.ts` (`isMockForbidden`, `PRODUCTION_DB_NAME`) |
+| `providers/` | `types.ts` (interfaces), `mock-sms.ts`, `mock-email.ts`, `outbox.ts` (`dev_outbox`), `fake-payments.ts`, `memory-files.ts`, `local-files.ts` (`FILE_STORE=local`, dev disk store), `file-keys.ts` (`assertSafeKey`, `FileTooLargeError`), `guard.ts` (`isMockForbidden`, `PRODUCTION_DB_NAME`) |
 | `dev-only.ts` | `requireDevRoute()`: `notFound()` whenever mocks are forbidden |
 | `http.ts` | `HttpError`, `jsonResponse` (`no-store`), `readJson` (16 KB cap, exact `application/json`), `withErrors` |
 | `db/client.ts` | one cached `MongoClient` per process on `globalThis` (survives HMR, drops a failed connect); `getDb()` uses `MONGODB_DB` |
@@ -376,9 +376,13 @@ hash → refuse if idle or absolute expiry has passed (and delete it) → touch 
 ## Providers container
 
 `getDeps()` builds once per process from env. If any provider is a mock (`mock`, `fake`,
-`memory`) and `isMockForbidden()` holds, it throws "Mock providers are not allowed in
-production". Real providers (`msg91`, `resend`, `razorpay`, `local`, `blob`) are accepted by the
-env schema but throw "not implemented yet" until the N, O and R phases build them. Tests swap
+`memory`, and the dev disk store `local`) and `isMockForbidden()` holds, it throws "Mock providers
+are not allowed in production". With `VERCEL_ENV` set (any Vercel scope), `FILE_STORE` must be
+`blob`: memory and disk files do not persist across functions. The other real providers
+(`msg91`, `resend`, `razorpay`, `blob`) are accepted by the env schema but throw "not implemented
+yet" until the N, O and R phases build them. Every `FileStore` has a `kind`, checks keys with `assertSafeKey`
+(`^[a-z-]+(/[A-Za-z0-9_-]+)+(\.(webp|pdf))?$`) and throws `FileTooLargeError` past `get`'s
+`maxBytes`. Tests swap
 parts with `setDepsForTests({ now, sms, … })` and restore with `resetDepsForTests()`.
 
 ## Orders and prescriptions
