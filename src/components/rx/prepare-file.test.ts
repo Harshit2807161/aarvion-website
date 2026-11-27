@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { RX_IMAGE_MIN_SIDE, RX_MAX_BYTES } from "@/server/prescriptions/file-check";
+import {
+  RX_IMAGE_MAX_SIDE,
+  RX_IMAGE_MIN_SIDE,
+  RX_MAX_BYTES,
+} from "@/server/prescriptions/file-check";
 import {
   prepareRxFile,
+  RX_UPLOAD_MAX_ASPECT,
   RX_UPLOAD_MAX_BYTES,
   RX_UPLOAD_MAX_SIDE,
   RX_UPLOAD_MIN_SIDE,
@@ -40,14 +45,25 @@ describe("prepareRxFile", () => {
   it("pins the size cap and the minimum side to the server's", () => {
     expect(RX_UPLOAD_MAX_BYTES).toBe(RX_MAX_BYTES);
     expect(RX_UPLOAD_MIN_SIDE).toBe(RX_IMAGE_MIN_SIDE);
+    expect(RX_UPLOAD_MAX_ASPECT).toBe(RX_IMAGE_MAX_SIDE / RX_IMAGE_MIN_SIDE);
   });
 
   it("never shrinks the short side below the server's minimum (a long, narrow page)", async () => {
-    const { canvas } = stubCanvas(1000, 8000);
+    // 1000 x 7000 used to become 366 x 2560, which the server refuses; now 400 x 2800 passes.
+    const { canvas } = stubCanvas(1000, 7000);
     const r = await prepareRxFile(fileOf("long.jpg", "image/jpeg", 3 * MB));
     expect(r.ok && r.blob.type).toBe("image/jpeg");
     expect(canvas.width).toBe(RX_UPLOAD_MIN_SIDE);
-    expect(canvas.height).toBe(3200);
+    expect(canvas.height).toBe(2800);
+  });
+
+  it("refuses a photo longer than 7.5 : 1 at once, as the server would (too small)", async () => {
+    const { canvas } = stubCanvas(1000, 8000);
+    const r = await prepareRxFile(fileOf("strip.jpg", "image/jpeg", 300_000));
+    expect(r).toEqual({ ok: false, message: RX_COPY.tooSmall });
+    expect(canvas.toBlob).not.toHaveBeenCalled();
+    stubCanvas(1000, 7500);
+    expect((await prepareRxFile(fileOf("edge.jpg", "image/jpeg", 300_000))).ok).toBe(true);
   });
 
   it("refuses a type it cannot use, by name", async () => {

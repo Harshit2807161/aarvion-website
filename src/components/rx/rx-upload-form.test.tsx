@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { rxListItem } from "../../../tests/helpers/rx-list-item";
+import { SIGNED_IN_EVENT } from "@/components/auth/events";
 import { ERROR_SUMMARY_COPY } from "@/components/form/error-summary";
 import { RX_DECLARATION_TEXT } from "@/server/prescriptions/review";
 import { uploadRx } from "./rx-api";
@@ -150,27 +151,73 @@ describe("RxUploadForm", () => {
     expect(announce).not.toHaveBeenCalledWith(RX_COPY.rateLimited("25 minutes"));
   });
 
-  it("keeps the slot until the answer is definite, so a resend never uploads a copy (I2)", async () => {
-    const slot = "abcdefghijklmnopqrstuv";
+  it("keeps the slot until the answer is definite, and holds Send for each named wait (I2)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const slot = "abcdefghijklmnopqrstuv";
+      upload
+        .mockResolvedValueOnce({
+          ok: false,
+          error: "upload_unconfirmed",
+          retryAfterSec: 30,
+          stagingId: slot,
+        })
+        .mockResolvedValueOnce({ ok: false, error: "busy", retryAfterSec: 5, stagingId: slot })
+        .mockResolvedValueOnce({ ok: true, rx: RX });
+      const s = setup({ advanceTimers: vi.advanceTimersByTime });
+      await fillAll(s);
+      await s.user.click(submit());
+      expect(await screen.findByText(RX_COPY.unconfirmed("30 seconds"))).toBeInTheDocument();
+      // Send is held, with a visible countdown it is described by.
+      expect(submit()).toHaveAttribute("aria-disabled", "true");
+      expect(screen.getByText(RX_COPY.sendAgainIn("0:30"))).toHaveAttribute("id", "rx-wait");
+      expect(submit()).toHaveAttribute("aria-describedby", "rx-wait");
+      await s.user.click(submit());
+      expect(upload).toHaveBeenCalledOnce();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10_000);
+      });
+      expect(screen.getByText(RX_COPY.sendAgainIn("0:20"))).toBeInTheDocument();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(20_000);
+      });
+      expect(submit()).not.toHaveAttribute("aria-disabled");
+      // The resend finishes the same slot, and busy keeps it again.
+      await s.user.click(submit());
+      await screen.findByText(RX_COPY.busy);
+      expect(upload.mock.calls[1]![0]).toMatchObject({ stagingId: slot });
+      expect(submit()).toHaveAttribute("aria-disabled", "true");
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5_000);
+      });
+      await s.user.click(submit());
+      await waitFor(() => expect(s.onUploaded).toHaveBeenCalledOnce());
+      expect(upload.mock.calls[2]![0]).toMatchObject({ stagingId: slot });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("a new file drops the old slot and its wait", async () => {
     upload
       .mockResolvedValueOnce({
         ok: false,
         error: "upload_unconfirmed",
         retryAfterSec: 30,
-        stagingId: slot,
+        stagingId: "abcdefghijklmnopqrstuv",
       })
-      .mockResolvedValueOnce({ ok: false, error: "busy", retryAfterSec: 5, stagingId: slot })
       .mockResolvedValueOnce({ ok: true, rx: RX });
     const s = setup();
     await fillAll(s);
     await s.user.click(submit());
-    expect(await screen.findByText(RX_COPY.unconfirmed("30 seconds"))).toBeInTheDocument();
-    await s.user.click(submit());
-    await screen.findByText(RX_COPY.busy);
+    await screen.findByText(RX_COPY.unconfirmed("30 seconds"));
+    await s.user.click(screen.getByRole("button", { name: RX_COPY.remove("rx.png") }));
+    await s.user.upload(s.fileInput(), png());
+    await screen.findByText(RX_COPY.ready("2 KB"));
+    expect(submit()).not.toHaveAttribute("aria-disabled");
     await s.user.click(submit());
     await waitFor(() => expect(s.onUploaded).toHaveBeenCalledOnce());
-    expect(upload.mock.calls[1]![0]).toMatchObject({ stagingId: slot });
-    expect(upload.mock.calls[2]![0]).toMatchObject({ stagingId: slot });
+    expect(upload.mock.calls[1]![0].stagingId).toBeUndefined();
   });
 
   it("a 401 opens the sign-in dialog and keeps the chosen file", async () => {
@@ -179,8 +226,17 @@ describe("RxUploadForm", () => {
     await fillAll(s);
     await s.user.click(submit());
     expect(await screen.findByText(RX_COPY.signIn)).toBeInTheDocument();
-    expect(openLogin).toHaveBeenCalledOnce();
+    // The dialog takes focus, so the note is announced (E-M2), and focus returns to Send (E-M1).
+    expect(announce).toHaveBeenLastCalledWith(RX_COPY.signIn);
+    expect(openLogin).toHaveBeenCalledExactlyOnceWith(undefined, { returnFocusId: "rx-send" });
+    expect(submit()).toHaveAttribute("id", "rx-send");
     expect(screen.getByText("rx.png")).toBeInTheDocument();
+    // Signed in through the dialog: Send has focus and the note says to press it. No resend.
+    act(() => window.dispatchEvent(new Event(SIGNED_IN_EVENT)));
+    expect(await screen.findByText(RX_COPY.signedIn)).toBeInTheDocument();
+    expect(submit()).toHaveFocus();
+    expect(announce).toHaveBeenLastCalledWith(RX_COPY.signedIn);
+    expect(upload).toHaveBeenCalledOnce();
   });
 
   it("Cancel calls onCancel", async () => {

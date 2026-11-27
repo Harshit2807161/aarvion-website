@@ -125,6 +125,44 @@ describe("AccountPill", () => {
     expect(toast).not.toHaveBeenCalled();
   });
 
+  it("openLogin with returnFocusId: the real dialog returns focus there, after sign-in or Escape", async () => {
+    // The upload form asks this after a 401, so the shopper lands back on its Send (review E-M1).
+    render(
+      <>
+        <AccountPill />
+        <button type="button" id="rx-send">
+          Send for review
+        </button>
+      </>,
+    );
+    await settle();
+    const send = screen.getByRole("button", { name: "Send for review" });
+    send.focus();
+    act(() => openLogin(undefined, { returnFocusId: "rx-send" }));
+    await settle();
+    expect(screen.getByRole("dialog", { name: "Sign in" })).toBeInTheDocument();
+    fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+    await settle();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(send).toHaveFocus();
+
+    pill().focus();
+    act(() => openLogin(undefined, { returnFocusId: "rx-send" }));
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: "finish" }));
+    await settle(900);
+    await settle();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(send).toHaveFocus();
+
+    // A plain click on the pill still returns focus to the pill.
+    fireEvent.click(pill());
+    await settle();
+    fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+    await settle();
+    expect(pill()).toHaveFocus();
+  });
+
   it("without next: closes, toasts Signed in as <first name> and shows the account", async () => {
     render(<AccountPill />);
     await settle();
