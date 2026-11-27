@@ -58,6 +58,16 @@ describe("PUT /api/prescriptions/staging/[id]", () => {
     expect((await getDeps().files.get(slot.pathname))?.body).toEqual(new Uint8Array([1, 2, 3]));
   });
 
+  it("re-issues the sliding session cookie when the session slides", async () => {
+    const { cookie } = await signedIn();
+    const { stagingId } = await json(await STAGE(stageReq(cookie)));
+    installClock("2026-11-27T10:02:00Z"); // past the 60 s touch interval: the session slides
+    const res = await PUT(putReq(stagingId, new Uint8Array([1]), { cookie }), ctx(stagingId));
+    expect(res.status).toBe(204);
+    expect(res.headers.get("set-cookie")).toMatch(/^__Host-aarv_sid=[A-Za-z0-9_-]{43};/);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+  });
+
   it("refuses RX_MAX_BYTES + 1 with 413 file_too_large and an empty body with 400", async () => {
     const { cookie } = await signedIn();
     const { stagingId } = await json(await STAGE(stageReq(cookie)));

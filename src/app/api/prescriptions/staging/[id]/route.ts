@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { requireUser } from "@/server/auth/guards";
+import { requireUser, sessionRefreshHeaders } from "@/server/auth/guards";
 import { getDeps } from "@/server/deps";
 import { HttpError, readCappedBytes, withErrors } from "@/server/http";
 import { RX_MAX_BYTES } from "@/server/prescriptions/file-check";
@@ -45,5 +45,8 @@ export const PUT = withErrors<[Ctx]>(async (req, { params }) => {
       throw new HttpError(409, "already_uploaded");
     }
   }
-  return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+  // Re-issue the sliding cookie like every customer route (carry K1).
+  const headers = sessionRefreshHeaders(auth);
+  headers.set("Cache-Control", "no-store");
+  return new Response(null, { status: 204, headers });
 });

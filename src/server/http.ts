@@ -48,7 +48,9 @@ export async function readCappedBytes(req: Request, max: number): Promise<Uint8A
     }
     chunks.push(value);
   }
-  return new Uint8Array(Buffer.concat(chunks));
+  // A view of the concatenated buffer, not a second copy (the body can be 8 MiB).
+  const buf = Buffer.concat(chunks, total);
+  return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
 }
 
 /** Parses a JSON request body (max 16 KB) against a schema, throwing HttpError on any problem. */
