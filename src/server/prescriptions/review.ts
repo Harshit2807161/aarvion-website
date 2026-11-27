@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { PersonName } from "../auth/login.ts";
 import { addCalendarMonthsIst, istDay, istMidnight, RX_VALIDITY_MONTHS } from "./validity.ts";
 
-// Pure: no I/O, no clock (callers pass `at`), and one runtime import (`validity.ts`, also pure), so the
-// rules can be unit tested and a client could import the view types. Writes and audit rows
+// Pure: no I/O, no clock (callers pass `at`), and runtime imports only of the PersonName schema
+// (auth/login) and validity.ts (a client may still `import type` the view types). Writes and audit rows
 // belong to the service (R4); nothing here logs, and no patient data leaves a return value.
 
 export const RX_STATUSES = ["pending", "approved", "rejected"] as const;
@@ -33,15 +34,6 @@ export type RxReview =
       note: string | null;
       revoked: boolean;
     };
-
-/**
- * A person's name, as the sign-up rule has it (src/server/auth/login.ts): at least one letter,
- * and no control, format or default-ignorable character, except a zero-width (non-)joiner
- * between letters or marks. Inlined here; R4 re-points it to the shared PersonName.
- */
-const NO_HIDDEN_CHARS =
-  /^(?:[^\p{C}\p{Default_Ignorable_Code_Point}]|(?<=[\p{L}\p{M}])[\u200C\u200D](?=[\p{L}\p{M}]))*$/u;
-const PersonName = z.string().trim().min(2).max(80).regex(/\p{L}/u).regex(NO_HIDDEN_CHARS);
 
 const YMD = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
