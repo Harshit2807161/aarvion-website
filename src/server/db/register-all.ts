@@ -6,3 +6,4 @@ import "../auth/otp.ts";
 import "../auth/users.ts";
 import "../auth/sessions.ts";
 import "../audit.ts";
+import "../prescriptions/prescriptions.ts";

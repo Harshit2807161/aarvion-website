@@ -1,18 +1,21 @@
 import { createHash } from "node:crypto";
 import sharp from "sharp";
+import { PDF_MAX_PAGES, scanPdf } from "./pdf-scan";
+
+export { scanPdf };
 
 /**
  * Prescription file validation. The bytes decide the type (never a name or a declared type).
  * Images are decoded and re-encoded to WebP with every piece of metadata dropped, which also
- * destroys anything appended after the image data. Pure apart from sharp: no I/O, no clock, no logging, and the
- * result carries error names only (never bytes or file names).
+ * destroys anything appended after the image data; a PDF is parsed and checked by pdf-scan.ts and
+ * stored as it came. No I/O, no clock, no logging, and the result carries error names only (never bytes or file names).
  */
 export const RX_MAX_BYTES = 8_388_608;
 export const RX_IMAGE_MAX_SIDE = 3000;
 export const RX_IMAGE_MIN_SIDE = 400;
 export const RX_MAX_INPUT_PIXELS = 50_000_000;
 export const RX_WEBP_QUALITY = 85;
-export const RX_PDF_MAX_PAGES = 20;
+export const RX_PDF_MAX_PAGES = PDF_MAX_PAGES;
 /** A slow decode or encode is cut off and refused as corrupt. */
 export const RX_IMAGE_TIMEOUT_SECONDS = 5;
 
@@ -25,7 +28,9 @@ export type RxFileError =
   | "animated"
   | "too_many_pages"
   | "encrypted"
-  | "active_content";
+  | "active_content"
+  /** The PDF check queue is full: retry shortly (the route maps it to a retryable error). */
+  | "busy";
 
 export type CheckedRxFile = {
   body: Uint8Array;
@@ -105,7 +110,20 @@ export async function checkRxFile(
   if (bytes.length > RX_MAX_BYTES) return { ok: false, error: "too_large" };
   const kind = sniffType(bytes);
   if (kind === null) return { ok: false, error: "unsupported_type" };
-  // The PDF scan follows in the next PR (R2 part B); until then a PDF is refused.
-  if (kind === "pdf") return { ok: false, error: "unsupported_type" };
-  return checkImage(bytes);
+  if (kind !== "pdf") return checkImage(bytes);
+  const scan = await scanPdf(bytes);
+  if (!scan.ok) return scan;
+  return {
+    ok: true,
+    file: {
+      body: bytes,
+      contentType: "application/pdf",
+      ext: "pdf",
+      kind: "pdf",
+      pages: scan.pages,
+      width: null,
+      height: null,
+      sha256: sha256(bytes),
+    },
+  };
 }

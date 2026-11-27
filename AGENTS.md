@@ -33,6 +33,7 @@ Where the build stands and what is next: [docs/handoff.md](docs/handoff.md).
 | App               | Next.js 16.4 App Router, React 19.3, TypeScript 6.0 strict (held below 7)                                    |
 | Data              | MongoDB 8 (docker `mongo:8` locally), `mongodb` driver 7.9, zod 4.6                                          |
 | Images            | sharp 0.35                                                                                                   |
+| PDF check         | pdf-lib 1.17 (server only, in a worker thread; `src/server/prescriptions/pdf-worker.mjs`)                    |
 | Styling           | Tailwind CSS 4.3 (`@tailwindcss/postcss`); design tokens in `src/app/globals.css` `@theme`                   |
 | Tests             | Vitest 5.1 (`unit`, `ui`, `int`), Testing Library 16, mongodb-memory-server 11.3, Playwright 1.65 (Chromium) |
 | Fonts             | self-hosted subsets through `next/font/local` (`src/fonts/`); never Google Fonts                             |
