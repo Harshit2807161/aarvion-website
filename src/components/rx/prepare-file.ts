@@ -11,6 +11,8 @@ export const RX_UPLOAD_MAX_BYTES = 8_388_608;
 /** A photo over 1.5 MiB, or longer than this on its longest side, is re-encoded. */
 export const RX_REENCODE_OVER_BYTES = 1_572_864;
 export const RX_UPLOAD_MAX_SIDE = 2560;
+/** Client copy of the server's RX_IMAGE_MIN_SIDE: a resize never takes the short side below it. */
+export const RX_UPLOAD_MIN_SIDE = 400;
 const JPEG_QUALITY = 0.85;
 
 /** What the server stores as is. HEIC and HEIF are read here (where the browser can) but never sent. */
@@ -61,9 +63,15 @@ async function decode(file: File): Promise<ImageBitmap | null> {
   }
 }
 
-/** Draws the photo at most RX_UPLOAD_MAX_SIDE long on white (no black behind a transparent PNG). */
+/**
+ * Draws the photo at most RX_UPLOAD_MAX_SIDE long on white (no black behind a transparent PNG),
+ * but never with its short side under RX_UPLOAD_MIN_SIDE: a long, narrow page (1000 x 8000)
+ * keeps 400 px across rather than becoming a 320 px strip the server refuses as too small.
+ */
 function reencode(bitmap: ImageBitmap): Promise<Blob | null> {
-  const scale = Math.min(1, RX_UPLOAD_MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+  const fit = RX_UPLOAD_MAX_SIDE / Math.max(bitmap.width, bitmap.height);
+  const floor = RX_UPLOAD_MIN_SIDE / Math.min(bitmap.width, bitmap.height);
+  const scale = Math.min(1, Math.max(fit, floor));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(bitmap.width * scale));
   canvas.height = Math.max(1, Math.round(bitmap.height * scale));

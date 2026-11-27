@@ -45,6 +45,11 @@ export const RX_COPY = {
   sending: "Sending…",
   cancel: "Cancel",
   sent: "Prescription sent for review.",
+  // NEW: the success note names the patient as the server recorded it (a resume may return the
+  // name first sent, not the one typed since).
+  sentFor: (name: string) => `Prescription for ${name} sent for review.`,
+  // NEW: Send waits out the server's Retry-After after an open answer (unconfirmed, busy).
+  sendAgainIn: (t: string) => `You can send it again in ${t}.`,
   corrupt: "We couldn’t read this file. Try another photo or a PDF.",
   tooSmall: "This photo is too small to read. Take a closer photo of the whole page.",
   animated: "Upload a still photo, not an animation.",
@@ -58,6 +63,10 @@ export const RX_COPY = {
   // NEW: 500 upload_unconfirmed. The record may exist, so the shopper must not simply resend.
   unconfirmed: (t: string) =>
     `We couldn’t confirm your upload. Wait ${t}, then send it again or check your prescriptions.`,
+  // NEW: a resumed upload whose slot is gone with no record (it may never have committed).
+  unknown: "We couldn’t confirm that upload. Check your prescriptions before you send it again.",
   // NEW: a 401 on send. The sign-in dialog opens and the chosen file stays.
   signIn: "Sign in to send your prescription. Your file is still here.",
+  // NEW: after that sign-in; focus is on Send, which the shopper presses (no automatic resend).
+  signedIn: "Signed in. Press Send for review.",
 } as const;
