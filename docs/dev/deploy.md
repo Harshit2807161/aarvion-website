@@ -48,10 +48,10 @@ refuses mocks whenever the database is `aarvion_prod`.
 
 `VERCEL_ENV` and `NODE_ENV` are set by the platform.
 
-**Build-time database (UI plan Task 7, ruling C11):** pages prerender from the DB, so
+**Build-time database (ruling C11):** pages prerender from the DB, so
 every Vercel scope needs `MONGODB_URI` and `MONGODB_DB` at build time, a seeded database, and
 Atlas network access for Vercel builds. An empty catalogue throws `CatalogueEmptyError` and fails
-the build instead of deploying an empty store. The `(store)` layout (`src/app/(store)/layout.tsx`, UI Task 9) renders the footer from the live categories, so from that PR on every customer page build reads the DB (`/api/*` and `/dev/*` sit outside `(store)` and do not; the 404 page reads the same cached categories for its chrome). **Seed the Preview database before that PR merges into a Vercel-connected repo** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
+the build instead of deploying an empty store. The `(store)` layout (`src/app/(store)/layout.tsx`) renders the footer from the live categories, so every customer page build reads the DB (`/api/*` and `/dev/*` sit outside `(store)` and do not; the 404 page reads the same cached categories for its chrome). **Seed the Preview database before the repo is connected to Vercel** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
 
 ## Prescription file store (Vercel Blob, private)
 
@@ -69,6 +69,16 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
 - Blobs are written `access: "private"` with exact keys (`rx/<userId>/<rxId>.<ext>`,
   `rx-staging/…`) and no overwrite; they are read only through the app's ownership-checked
   handlers. Never hand out a blob URL, `downloadUrl` or a read-capable token.
+- **TODO (R5, the route that calls `checkRxFile`): make the PDF check deployable.** The check runs
+  `src/server/prescriptions/pdf-worker.mjs` in a worker thread, and Next emits that file as a plain
+  asset (`.next/server/assets/pdf-worker.*.mjs`) whose `import "pdf-lib"` is resolved at run time.
+  Nothing bundled imports pdf-lib, so file tracing will not copy `pdf-lib` and its dependencies
+  (`@pdf-lib/standard-fonts`, `@pdf-lib/upng`, `pako`, `tslib`) into the function. R5 must add
+  `outputFileTracingIncludes` for the upload route (or `serverExternalPackages: ["pdf-lib"]` plus a
+  static import so it is traced), set the function's `maxDuration` and memory (a hostile object
+  stream can take several hundred MB before the 1 s scan timeout fires), keep the upload rate
+  limit, and add a Vercel-preview smoke test that uploads a one-page PDF and expects it accepted.
+  Until then every PDF would fail closed (refused as `corrupt`) in production.
 - Never set `DEBUG` (or `NEXT_PUBLIC_DEBUG`) containing `blob` on a Vercel scope: the SDK then logs
   pathnames and request headers.
 
@@ -101,10 +111,19 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
 Nothing below exists yet; each lands before or with the production deploy.
 
 - **H4 production gates:**
+  - refuse a production build while `PENDING_ROUTES` (`src/config/routes.ts`) is non-empty: `/cart`,
+    `/account` and `/account/prescriptions` are linked from the chrome and 404 until K, R and P build
+    them (a unit test keyed on `VERCEL_ENV=production`, or an `instrumentation.ts` check);
+  - a Sign out action must exist (account pill menu or `/account`) before deploy: nothing calls
+    `POST /api/auth/logout` yet, so a signed-in shopper cannot end the 30-day sliding session;
+  - security headers (`next.config.ts`): CSP, `frame-ancestors 'none'` (`/login` can be framed
+    today), `nosniff` and HSTS;
   - a startup assertion that `VERCEL_ENV=production` implies `MONGODB_DB=aarvion_prod`;
-  - `APP_URL` must be set, and must not be localhost, in production. An unset or invalid value
-    silently gives a localhost `metadataBase`, so shared links and Open Graph images would
-    point at localhost;
+  - `APP_URL` must be set, and must not be localhost, in production. `getSiteEnv()`
+    (`src/server/env.ts`, used by the SEO routes) already throws in production when it is unset,
+    not a URL or not `https:`; the startup check that it is not localhost remains. An unset or
+    invalid value would otherwise give a localhost `metadataBase`, so shared links and Open
+    Graph images would point at localhost;
   - `assertLegalConfigComplete()` (in `src/config/site.ts`, UI plan Task 9; the function exists,
     the call does not yet) called from `instrumentation.ts`. Gate it on
     `VERCEL_ENV === "production"`, not `NODE_ENV` (Preview builds also run with

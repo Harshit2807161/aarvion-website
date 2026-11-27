@@ -8,7 +8,7 @@ are **not verified here**; refine this page after the first real incident.
 | Signal | Likely cause | Fix |
 | --- | --- | --- |
 | The Vercel build fails at `next build` | the same failure as the CI `build` job | reproduce with `pnpm build` locally; fix in a PR |
-| Build fails with `CatalogueEmptyError` (after UI plan Task 7) | the build-time database for that scope is empty or unreachable | seed it (`pnpm db:indexes && pnpm seed` with that scope's env); check Atlas network access for Vercel builds |
+| Build fails with `CatalogueEmptyError` | the build-time database for that scope is empty or unreachable | seed it (`pnpm db:indexes && pnpm seed` with that scope's env); check Atlas network access for Vercel builds |
 | `/api/health` 503 `"db":"misconfigured"` | an env var is invalid; the function log names the key (never the value) | fix the variable in that Vercel scope, redeploy |
 | `/api/health` 503 `"db":"unconfigured"` | `MONGODB_URI` missing in a production-like runtime | set it in that scope |
 | `/api/health` 503 `"db":"down"` | the database did not answer within 3.5 s | Atlas status, network access, credentials |

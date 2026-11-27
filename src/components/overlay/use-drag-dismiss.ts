@@ -1,6 +1,7 @@
 "use client";
 
 import { type PointerEvent as ReactPointerEvent, type RefObject, useRef } from "react";
+import { prefersReducedMotion } from "@/lib/motion";
 import { dragOffset, shouldDismiss } from "./drag";
 
 /** Below this width the overlay is a bottom sheet (matches the 639px query in overlay.css). */
@@ -10,7 +11,6 @@ const INTERACTIVE = "button, a, input";
 const SNAP_BACK = "transform 220ms var(--ease-drawer)";
 /** transitionend does not fire if nothing moved, so the snap-back also settles on a timer. */
 const SNAP_BACK_FALLBACK_MS = 280;
-const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
 type Drag = { id: number; startY: number; startedAt: number };
 
@@ -54,7 +54,7 @@ export function useDragDismiss({
       if (e.target === panel && e.propertyName === "transform") done();
     };
     const moved = panel.style.transform !== "";
-    if (!moved || window.matchMedia(REDUCED_MOTION).matches) {
+    if (!moved || prefersReducedMotion()) {
       panel.style.transform = "";
       done();
       return;

@@ -1,24 +1,16 @@
 import { expect, test } from "@playwright/test";
-import { PENDING_ROUTES, ROUTES } from "../src/config/routes";
+import { PENDING_ROUTES } from "../src/config/routes";
+import { START_PAGES } from "./helpers/pages";
 
 /**
  * Site-wide link check. Starting from each page below, every same-origin `a[href]` (hash
  * stripped, deduped) must return 200, except a path in PENDING_ROUTES, which must still 404.
- * Later tasks (32, 42) add their pages to START.
+ * Add pages to START_PAGES (e2e/helpers/pages.ts).
  */
-const START: string[] = [
-  "/",
-  ROUTES.category("cardiology"),
-  ROUTES.category("urology"),
-  ROUTES.contact,
-  ROUTES.login,
-  ...Object.values(ROUTES.legal),
-  ROUTES.product("sacuwin-100"),
-];
 
 const pending = new Set<string>(PENDING_ROUTES);
 
-for (const start of START) {
+for (const start of START_PAGES) {
   test(`links on ${start} resolve`, async ({ page, request }) => {
     const first = await page.goto(start);
     // A start page owned by a sibling PR that has not landed yet would 404 here; say so clearly.

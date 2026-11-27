@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect } from "react";
+import { motionAllowed } from "@/lib/motion";
 import { createFilm } from "./engine";
 
 /**
@@ -14,7 +15,7 @@ export function FilmEngine() {
   useLayoutEffect(() => {
     const home = document.getElementById("home");
     if (!home) return;
-    const film = matchMedia("(prefers-reduced-motion: no-preference)").matches;
+    const film = motionAllowed();
     if (film) home.classList.add("film");
     const { destroy } = createFilm(home, { film });
     return destroy;

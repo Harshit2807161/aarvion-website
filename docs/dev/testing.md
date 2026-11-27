@@ -77,7 +77,7 @@ Helpers in `tests/helpers/`:
 | `global-setup.ts` | downloads the mongod binary once before parallel files start |
 | `clock.ts` | `installClock(iso)` → `{ now, advance(ms) }`, installed as `deps.now` |
 | `http.ts` | `jsonPost(path, body, { origin, ip, cookie, contentType })`, `getReq`, `sessionTokenFrom(res)`, `TEST_ORIGIN` |
-| `rx-fixtures.ts` | prescription files built in code: `jpegWithExif`, `png`, `animatedWebp`, `pixelBombPng`, `jpegWithTrailer`, `htmlAsJpgName`, `pdf({ pages, extra, encrypt })`, `padPdf`. The only binaries are the 14 small attack PDFs in `tests/fixtures/rx/` (object-stream and page-count tricks from the R2 review) |
+| `rx-fixtures.ts` | prescription files built in code: `jpegWithExif`, `png`, `animatedWebp`, `pixelBombPng`, `jpegWithTrailer`, `htmlAsJpgName`, `pdf({ pages, extra, encrypt })`, `padPdf`. The only binaries are the small PDFs in `tests/fixtures/rx/` (about 1 to 2 KB each): `annot-objstm-*` (JavaScript in an annotation inside an object stream, hidden by a trick), `viewer-*` (pdf-lib parses differently from a viewer; `viewer-root-confusion` is the documented residual and is accepted), `25-untyped-leaves-*` and a legitimate `legit-openaction-destination` |
 | `session.ts` | `signedIn({ role?, phone? })` → `{ user, cookie }`: a real user (through `findOrCreateUserByIdentifier`) and session, with a staff role set before the session when asked; install the clock first |
 | `otp.ts` | `lastOtpCode(to)`, reading the mock outbox |
 | `auth.ts` | `DEFAULT_SIGNUP`, the sign-up details every login test sends by default; an existing user ignores them |
@@ -138,7 +138,6 @@ Helpers in `tests/helpers/`:
   bar, footer, rails, the header search form) and on the 404 page lands on an element, and that
   the ids in `PENDING_ANCHORS` (`src/config/routes.ts`) are still missing and still linked;
   delete an entry when its section is built.
-- Planned (UI plan): specs for the shell, catalogue, search and login.
 
 ## Guard tests (they enforce conventions)
 
@@ -169,7 +168,12 @@ Helpers in `tests/helpers/`:
 | `e2e/login.spec.ts` | `/login` by email against the seeded server: a new address goes Send → code (read from `/dev/outbox`) → profile → consent → Create → `/` with the `__Host-aarv_sid` cookie; after an API logout the same address signs in again (via Send a new code, past the 30 s cooldown) with no profile step; signed in, `/login?next=//evil.com` and `/.//evil.com` land on `/`; `?state=otp-locked` opens the locked demo where mocks are allowed, and the page is `noindex` with no `/dev/` link; on `/legal/terms` the header Sign in opens the dialog on the mobile field, Escape returns focus to the pill, then a new address signs up in it, the dialog closes, "Signed in as E2E" toasts and the pill reads "Your account"; at 390px the dialog is a bottom sheet (its bottom is the viewport's). Each run uses a fresh address and its own `x-real-ip` |
 | `e2e/catalogue.spec.ts` | the product page (`/product/sacuwin-100`) loses its buy box, struck MRP and price, facts or eager LCP photo; the strength switcher stops landing on `/product/sacuwin-50`; `/product/nope` is not a 404 on the first hit or shows more than one `header` or `#q`; a product page loses its title or description; a product page loses its title, description, canonical link or single JSON-LD block; `/robots.txt` or `/sitemap.xml` stop behaving (disallow-all outside production, products listed, no login, dev or api); a home rail pocket name stops linking to its page |
 | `e2e/catalogue.spec.ts` (category pages) | `/category/cardiology` (5 Add to cart buttons), `/category/urology` (coming soon), a hidden or unknown category (404 on the first request, one header and one `#q`), the home bento link |
-| `e2e/links.spec.ts` | a same-origin link on `/`, a category page, `/contact`, `/login`, a `/legal/*` page or `/product/sacuwin-100` does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START` as their tasks land (runs in CI against the seeded server) |
+| `e2e/cart.spec.ts` | on `/category/cardiology` Add becomes a stepper (data-qty, `.qty`), `#live` says "Sacuwin 100: 1 in cart" and the header pill reads "Cart, 1 pack"; the quantity survives a client navigation to the product page and a reload with no console errors; a cart already in `sessionStorage` hydrates into the stepper and pill on `/`; the 10-per-product limit is spoken through `#live` (the + is `aria-disabled`, so the click is forced). Extend it when K2 replaces the session cart |
+| `e2e/copy.spec.ts` | any `START_PAGES` page (or a 404) has visible text, a title or a meta description that matches a banned claim (`findClaims`, `allRx: true`: licences, ratings, guarantees, counts, "therapy" or a Latin specialty name) |
+| `e2e/links.spec.ts` | a same-origin link on `/`, a category page, `/contact`, `/login`, a `/legal/*` page or `/product/sacuwin-100` does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START_PAGES` (`e2e/helpers/pages.ts`) as their tasks land (runs in CI against the seeded server) |
+| `e2e/search.spec.ts` | the header search stops giving 3 options for "valsartan" on a policy page with Enter landing on `/product/sacuwin-50`; a strength chip stops narrowing; on `/` "mucohelp" stops scrolling its pocket into view and focusing Add to cart; Escape stops closing the list and then clearing the field; the quick-actions card stops focusing the search; the same at 390px |
+| `e2e/shell.spec.ts` | an unknown URL stops being a 404 inside the store chrome (announcement bar, header, category bar, footer with four "To be added" legal rows, exactly one `#live`) or logs a console error |
+| `e2e/smoke.spec.ts` | the home h1 stops matching /Aarvion/, or `/api/health` is not `{ status: "ok", db: "ok" }` |
 | `src/styles/overlay.test.ts` | the compiled `globals.css` carries the overlay rules, the Aarvion scrim (not `bg-black/50`) and the shadcn colour mapping |
 | `scripts/deps-policy.test.ts` | a banned animation, carousel, toast or icon library (framer-motion, swiper, gsap, sonner, lucide-react, …) or an unlisted Radix package is added |
 

@@ -120,6 +120,21 @@ describe("withErrors", () => {
     expect(res.status).toBe(200);
   });
 
+  it("passes extra arguments (a dynamic route's context) through to the handler", async () => {
+    const seen: unknown[] = [];
+    const handler = withErrors(
+      async (_req: Request, ctx: { params: Promise<{ slug: string }> }) => {
+        seen.push(await ctx.params);
+        return jsonResponse({ ok: 1 });
+      },
+    );
+    const res = await handler(new Request("http://localhost:3000/x"), {
+      params: Promise.resolve({ slug: "a-b" }),
+    });
+    expect(res.status).toBe(200);
+    expect(seen).toEqual([{ slug: "a-b" }]);
+  });
+
   it("maps HttpError with Retry-After", async () => {
     const res = await call(async () => {
       throw new HttpError(429, "rate_limited", 7);

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from "react";
 import { Icon } from "@/components/base/icon";
+import { prefersReducedMotion } from "@/lib/motion";
 
 /**
  * Titles verbatim from the prototype's error summary (design/prototype/js/flows.js `errSummary`).
@@ -13,13 +14,6 @@ export const ERROR_SUMMARY_COPY = {
 } as const;
 
 export type SummaryError = { id: string; message: string };
-
-function reducedMotion(): boolean {
-  return (
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
 
 /**
  * The error summary DESIGN.md asks for on submit: a danger-50 box with a danger-200 edge that
@@ -55,7 +49,7 @@ export function ErrorSummary({ errors, focusKey }: { errors: SummaryError[]; foc
                 ev.preventDefault();
                 el.scrollIntoView?.({
                   block: "center",
-                  behavior: reducedMotion() ? "auto" : "smooth",
+                  behavior: prefersReducedMotion() ? "auto" : "smooth",
                 });
                 el.focus({ preventScroll: true });
               }}
