@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { findClaims } from "../../../tests/helpers/claims";
 import { mockSearchParams, routerSpies } from "../../../tests/helpers/navigation-mocks";
+import { SIGNED_IN_EVENT } from "./events";
 import { LoginFlow } from "./login-flow";
 import { LOGIN_COPY } from "./login-machine";
 
@@ -335,6 +336,20 @@ describe("LoginFlow: done step", () => {
     expect(routerSpies.replace).not.toHaveBeenCalled();
     await advance(1);
     expect(routerSpies.replace).toHaveBeenCalledWith("/");
+  });
+
+  it("page mode announces the sign-in on window right before it navigates, so a mounted cart store can merge", async () => {
+    const heard = vi.fn(() => expect(routerSpies.replace).not.toHaveBeenCalled());
+    window.addEventListener(SIGNED_IN_EVENT, heard);
+    reply(VERIFY, OK);
+    await toCodeStep();
+    paste("482913");
+    await flush();
+    expect(heard).not.toHaveBeenCalled();
+    await advance(900);
+    expect(heard).toHaveBeenCalledTimes(1);
+    expect(routerSpies.replace).toHaveBeenCalledWith("/");
+    window.removeEventListener(SIGNED_IN_EVENT, heard);
   });
 
   it.each([

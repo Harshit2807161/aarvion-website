@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { routerSpies } from "../../../tests/helpers/navigation-mocks";
+import { SIGNED_IN_EVENT } from "./events";
 import { LoginDialog } from "./login-dialog";
 
 // The flow itself is tested in login-flow.test.tsx; here it only needs to finish.
@@ -82,6 +83,18 @@ describe("LoginDialog", () => {
     expect(toast).not.toHaveBeenCalled();
   });
 
+  it("announces the sign-in on window once the dialog tells the header, and not before", async () => {
+    const heard = vi.fn();
+    window.addEventListener(SIGNED_IN_EVENT, heard);
+    const { finish } = setup();
+    finish();
+    await advance(899);
+    expect(heard).not.toHaveBeenCalled();
+    await advance(1);
+    expect(heard).toHaveBeenCalledTimes(1);
+    window.removeEventListener(SIGNED_IN_EVENT, heard);
+  });
+
   it("without next it closes, toasts the first name and lets the header refresh", async () => {
     const { onOpenChange, onSignedIn, finish } = setup();
     finish();
@@ -97,22 +110,31 @@ describe("LoginDialog", () => {
   it.each([undefined, "/checkout"])(
     "closing during the done step (next=%s) skips the redirect and toast but still tells the header",
     async (next) => {
+      const heard = vi.fn();
+      window.addEventListener(SIGNED_IN_EVENT, heard);
       const { onOpenChange, onSignedIn, finish } = setup(next);
       finish();
       fireEvent.keyDown(document.activeElement!, { key: "Escape" });
       expect(onOpenChange).toHaveBeenCalledWith(false);
       expect(onSignedIn).toHaveBeenCalledTimes(1);
+      expect(heard).toHaveBeenCalledTimes(1); // the cart store hears of it on an early close too
       await advance(900);
       expect(onSignedIn).toHaveBeenCalledTimes(1);
+      expect(heard).toHaveBeenCalledTimes(1); // and only once
+      window.removeEventListener(SIGNED_IN_EVENT, heard);
       expect(toast).not.toHaveBeenCalled();
       expect(routerSpies.push).not.toHaveBeenCalled();
     },
   );
 
-  it("closing before sign-in tells the header nothing", () => {
+  it("closing before sign-in tells the header nothing, and announces nothing", () => {
+    const heard = vi.fn();
+    window.addEventListener(SIGNED_IN_EVENT, heard);
     const { onOpenChange, onSignedIn } = setup();
     fireEvent.keyDown(document.activeElement!, { key: "Escape" });
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(onSignedIn).not.toHaveBeenCalled();
+    expect(heard).not.toHaveBeenCalled();
+    window.removeEventListener(SIGNED_IN_EVENT, heard);
   });
 });

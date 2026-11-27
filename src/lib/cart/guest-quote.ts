@@ -28,6 +28,7 @@ export function createQuoter(host: QuoteHost) {
   return {
     /** Prices the cart as it is now, for generation `mine`. */
     schedule(mine: number): void {
+      if (mine !== host.generation()) return; // the chunk arrived after a newer change
       clearTimeout(timer);
       retries = 0;
       const lines = Object.entries(host.lines()).map(([slug, qty]) => ({ slug, qty }));
