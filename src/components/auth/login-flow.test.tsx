@@ -103,6 +103,7 @@ describe("LoginFlow: id step", () => {
     expect(input.hasAttribute("maxlength")).toBe(false);
     expect(input.getAttribute("inputmode")).toBe("numeric");
     expect(input.getAttribute("autocomplete")).toBe("tel-national");
+    expect(input.getAttribute("placeholder")).toBe(LOGIN_COPY.mobilePlaceholder);
     expect(document.querySelector(".prefix")!.textContent).toBe("+91");
   });
 
@@ -111,6 +112,7 @@ describe("LoginFlow: id step", () => {
     fireEvent.click(screen.getByLabelText(LOGIN_COPY.email));
     const input = screen.getByLabelText(LOGIN_COPY.emailLabel);
     expect(input.getAttribute("autocomplete")).toBe("email");
+    expect(input.getAttribute("placeholder")).toBe(LOGIN_COPY.emailPlaceholder);
     fireEvent.change(input, { target: { value: "  Asha@Example.COM " } });
     fireEvent.click(button(LOGIN_COPY.send)!);
     await flush();
@@ -161,6 +163,8 @@ describe("LoginFlow: code step", () => {
     const { container } = await toCodeStep();
     expect(container.textContent).toContain("+91 98765 43210");
     expect(container.querySelector(".otp-timer")!.textContent).toBe("Resend code in 0:30");
+    // A step change eases in (.auth-step.enter; CSS skips it under reduced motion).
+    expect(container.querySelector('[data-step="code"]')!.classList.contains("enter")).toBe(true);
     expect(button(LOGIN_COPY.resend)).toBeNull();
     await advance(30_000);
     expect(container.querySelector(".otp-timer")).toBeNull();
@@ -245,6 +249,8 @@ describe("LoginFlow: code step", () => {
     await flush();
     const alert = () => document.querySelector(".auth-alert")!.textContent;
     expect(alert()).toBe("Too many attempts from this network. Try again in 15:00.");
+    // The live count is set in mono, like the resend timer, so it never changes width.
+    expect(document.querySelector(".auth-alert .mono")!.textContent).toBe("15:00");
     expect(button(LOGIN_COPY.verify)).toBeNull();
     await advance(1_000);
     expect(alert()).toBe("Too many attempts from this network. Try again in 14:59.");
@@ -555,6 +561,7 @@ describe("LoginFlow: profile step", () => {
     await signUp();
     const alert = () => document.querySelector(".auth-alert")?.textContent;
     expect(alert()).toBe("Too many attempts from this network. Try again in 2:00.");
+    expect(document.querySelector(".auth-alert .mono")!.textContent).toBe("2:00");
     await advance(1_000);
     expect(alert()).toBe("Too many attempts from this network. Try again in 1:59.");
     fireEvent.click(button(LOGIN_COPY.create)!);

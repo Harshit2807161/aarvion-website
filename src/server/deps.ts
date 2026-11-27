@@ -1,7 +1,7 @@
 import { getEnv } from "./env.ts";
 import { isMockForbidden } from "./providers/guard.ts";
 import { createFakePayments } from "./providers/fake-payments.ts";
-import { createMemoryFiles } from "./providers/memory-files.ts";
+import { createFileStore } from "./providers/file-store.ts";
 import { mockEmail } from "./providers/mock-email.ts";
 import { mockSms } from "./providers/mock-sms.ts";
 import type { Deps } from "./providers/types.ts";
@@ -14,14 +14,15 @@ let overrides: Partial<Deps> = {};
 
 function build(): Deps {
   const env = getEnv();
+  // The file store is not in this eager check: it resolves on first use and refuses dev stores
+  // there (providers/file-store.ts), so a mis-set FILE_STORE cannot fail every route.
   const usesMocks =
     env.SMS_PROVIDER === "mock" ||
     env.EMAIL_PROVIDER === "mock" ||
-    env.PAYMENTS_PROVIDER === "fake" ||
-    env.FILE_STORE === "memory";
+    env.PAYMENTS_PROVIDER === "fake";
   if (usesMocks && isMockForbidden()) {
     throw new Error(
-      "Mock providers are not allowed in production: set SMS_PROVIDER, EMAIL_PROVIDER, PAYMENTS_PROVIDER and FILE_STORE to real providers.",
+      "Mock providers are not allowed in production: set SMS_PROVIDER, EMAIL_PROVIDER and PAYMENTS_PROVIDER to real providers.",
     );
   }
 
@@ -31,14 +32,11 @@ function build(): Deps {
     throw new Error(`EMAIL_PROVIDER=${env.EMAIL_PROVIDER}: not implemented yet`);
   if (env.PAYMENTS_PROVIDER !== "fake")
     throw new Error(`PAYMENTS_PROVIDER=${env.PAYMENTS_PROVIDER}: not implemented yet`);
-  if (env.FILE_STORE !== "memory")
-    throw new Error(`FILE_STORE=${env.FILE_STORE}: not implemented yet`);
-
   return {
     sms: mockSms,
     email: mockEmail,
     payments: createFakePayments(),
-    files: createMemoryFiles(),
+    files: createFileStore(env),
     now: () => new Date(),
   };
 }

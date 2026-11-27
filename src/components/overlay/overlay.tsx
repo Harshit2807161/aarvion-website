@@ -13,6 +13,8 @@ export type OverlayProps = {
   variant: "dialog" | "side";
   /** The accessible name of the overlay. */
   title: ReactNode;
+  /** Optional mark at the start of the head, before the title (the login dialog's swoosh). */
+  mark?: ReactNode;
   /** Optional count shown after the title (cart items, search results). */
   count?: ReactNode;
   /** Accessible name of the Close button (callers pass translated, context-aware text). */
@@ -47,6 +49,7 @@ export function Overlay({
   onOpenChange,
   variant,
   title,
+  mark,
   count,
   closeLabel,
   initialFocus,
@@ -85,6 +88,7 @@ export function Overlay({
       >
         <div className="sheet-head" {...grab}>
           <span className="sheet-grip" aria-hidden="true" />
+          {mark}
           <DialogTitle className="sheet-title">
             {title}
             {count != null ? (

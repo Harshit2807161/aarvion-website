@@ -26,7 +26,7 @@ import { ErrorSummary } from "@/components/form/error-summary";
 import { TextField } from "@/components/form/text-field";
 import { ROUTES } from "@/config/routes";
 import { verifyCode } from "./api";
-import { liveCodeMessage } from "./code-step";
+import { liveCodeMessage, withMonoTimes } from "./code-step";
 import { LOGIN_COPY, type LoginEvent, type LoginState, loginReducer, mmss } from "./login-machine";
 
 type ProfileState = Extract<LoginState, { step: "profile" }>;
@@ -130,7 +130,7 @@ export function ProfileStep({
 
   const message = liveProfileMessage(s, now);
   return (
-    <div className="auth-step" data-step="profile">
+    <div className="auth-step enter" data-step="profile">
       <div className="auth-head">
         <h2 tabIndex={-1}>{LOGIN_COPY.profileTitle}</h2>
         <p>
@@ -178,7 +178,7 @@ export function ProfileStep({
         {message ? (
           <p className="auth-alert">
             <Icon name="alert" size={18} />
-            <span>{message}</span>
+            <span>{withMonoTimes(message)}</span>
           </p>
         ) : null}
         <Button type="submit" size="lg" block busy={s.busy ? LOGIN_COPY.creating : false}>

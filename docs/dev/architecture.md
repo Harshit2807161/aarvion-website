@@ -90,7 +90,7 @@ React components, added task by task. The folders below exist today:
   - `load-login-dialog.ts`: `loadLoginDialog()`, the one dynamic import of the dialog, so the dialog and the whole login flow stay out of every page's first-load JS (and tests can count loads)
   - `login-copy.ts` (`LOGIN_COPY`, the whole login flow's customer copy; `mmss` and `waitText`, which print "a little while" for a missing wait, never NaN; `MAX_TRIES`, `RESEND_SEC` and `CODE_TTL_MS`, client copies pinned to the server's limits by the test; `nameRefused` is the server refusing the name, `nameInvalid` the client check)
   - `login-machine.ts`: the login state machine over steps id, code, profile and done: `loginReducer`, `initialLoginState`, `identifierOf` (post exactly this); `busy` is a guard, so a busy state ignores every event but results and `tick`, and an idle state ignores results; the UI runs the effects, calling `sendCode` and `verifyCode` while a state is `busy` (a resend is `resendStart`, then `sendCode`); `codeMessage(state, now)` is the code field's message, and `tick` lifts timed locks; when a code or profile state has `sessionCheck` true the UI calls `fetchSession()` and dispatches `sessionChecked`, because a verify that ended in `network` may still have signed in; `nameRefused` is the server refusing the name, `nameInvalid` the client check, `nameTooLong` a name over 80 characters; it re-exports
-  - `login-dialog.tsx`: `LoginDialog({ open, onOpenChange, next, onSignedIn, returnFocusTo })`, the login flow in an `Overlay` dialog (a bottom sheet below 640px) named "Sign in" that opens on the flow's identifier field and returns focus to `returnFocusTo`; after `DONE_MS` it closes and calls `onSignedIn` first (the header lives in the persistent layout), then `router.push`es `sanitizeNext(next)` when given or toasts "Signed in as <first name>"; closing during the done step skips the redirect and toast but still calls `onSignedIn`, once; in dialog mode the flow ignores the host page's `?next=`; opened by `AccountPill`
+  - `login-dialog.tsx`: `LoginDialog({ open, onOpenChange, next, onSignedIn, returnFocusTo })`, the login flow in an `Overlay` dialog (a bottom sheet below 640px) named "Sign in", with the mint swoosh as its head `mark`, that opens on the flow's identifier field and returns focus to `returnFocusTo`; after `DONE_MS` it closes and calls `onSignedIn` first (the header lives in the persistent layout), then `router.push`es `sanitizeNext(next)` when given or toasts "Signed in as <first name>"; closing during the done step skips the redirect and toast but still calls `onSignedIn`, once; in dialog mode the flow ignores the host page's `?next=`; opened by `AccountPill`
   - `login-flow.tsx`: `LoginFlow` (client, mounted by `/login` and `LoginDialog`; an optional `next` prop overrides `?next=`; `DONE_MS` = 900) drives `loginReducer` and renders the id step (the Mobile/Email `Segmented`, the field with its own `role="alert"` error, the busy Send; posts exactly `identifierOf(...)`) and the done step ("You’re signed in", focused, with `doneCheckout` when `next` starts with `/checkout`); the dialog gets `onDone` at once and the page `router.replace`s `sanitizeNext(next)` undecoded 900 ms later; a visitor already signed in skips the done step and goes at once; when the machine sets `sessionCheck` it calls `fetchSession()` and dispatches `sessionChecked`
   - `phone.ts` (`normMobile` (strips one `+91`, `91` or `0` prefix, never truncates), `formatMobile`, `MOBILE_RE`, `EMAIL_RE`)
   - `profile-step.tsx`: `ProfileStep`, the sign-up step after a 409 `signup_required`: full name, the required 18+ and terms consents (the terms label links to `ROUTES.legal.terms` and `.privacy` in a new tab, so the held code is not lost, each with a visually hidden `LOGIN_COPY.newTab` "(opens in a new tab)") and the optional marketing one; it re-sends the held code with `signup`; two or more invalid fields show one focused `ErrorSummary` with `errorAlert={false}` on the fields, one keeps its own alert and takes focus; `nameRefused` and `nameTooLong` land on the name field; a 429 counts down live from `lockedUntil`
@@ -136,7 +136,7 @@ React components, added task by task. The folders below exist today:
   - `LegalPage` (the Operate shell plus the `.prose` column, opening with "Last updated" from `POLICY_VERSION` via the pure `formatPolicyDate`)
   - `LegalSection`
   - `Pending` (the "To be added" chip)
-- `overlay/`: `Overlay` (dialog and side sheet; `initialFocus` is a ref or a function called at open), the drag thresholds and `useDragDismiss`
+- `overlay/`: `Overlay` (dialog and side sheet; `initialFocus` is a ref or a function called at open; an optional `mark` renders in the head before the title, `.sheet-mark`), the drag thresholds and `useDragDismiss`
   - `src/components/overlay/`: `Overlay` (`variant` `"dialog"` or `"side"`, `title`, `count`, `closeLabel`, `initialFocus`, `returnFocusTo`, `footer`): Radix Dialog supplies the focus trap, Escape, scroll lock and aria-hidden siblings; `Overlay` adds `aria-modal`, returns focus to whatever opened it, or to `returnFocusTo` (Radix only does that for its own Trigger; Safari and Firefox on macOS leave `body` focused after a mouse click, so pass `returnFocusTo` for click-opened overlays) and puts the drag handlers on the sheet head only (never the panel, where a drag would fight the scrolling body). Below 640px it is a bottom sheet (CSS).
   - Also the pure phone bottom-sheet drag thresholds in `drag.ts` (28% of height, or 24px at 0.45px/ms)
   - `useDragDismiss`, which returns pointer handlers for the sheet head. The panel follows the finger through an inline transform and carries `is-dragging` from the first pointerdown until it closes (that class holds the CSS open animation off; removing it while open would replay the entrance). Only the inline transition is cleared after a snap-back
@@ -287,7 +287,7 @@ ported prototype CSS imported by `globals.css`.
 | --- | --- |
 | `env.ts` | `getEnv()`, `getSiteEnv()` (only `APP_URL` and `VERCEL_ENV`, validated on their own; in production a missing or invalid `APP_URL` throws, never a localhost fallback), `requireEnv(key)`, `EnvError`, `resetEnvForTests()` |
 | `deps.ts` | `getDeps()` → `{ sms, email, payments, files, now }`; `setDepsForTests`, `resetDepsForTests`; re-exports `readOutbox` |
-| `providers/` | `types.ts` (interfaces), `mock-sms.ts`, `mock-email.ts`, `outbox.ts` (`dev_outbox`), `fake-payments.ts`, `memory-files.ts`, `guard.ts` (`isMockForbidden`, `PRODUCTION_DB_NAME`) |
+| `providers/` | `types.ts` (interfaces), `mock-sms.ts`, `mock-email.ts`, `outbox.ts` (`dev_outbox`), `fake-payments.ts`, `memory-files.ts`, `local-files.ts` (`FILE_STORE=local`, dev disk store), `file-store.ts` (`createFileStore`, the lazily resolved `getDeps().files`), `file-keys.ts` (`assertSafeKey`, `assertStoredType`, `FileExistsError`, `FileTooLargeError`, `DEFAULT_MAX_READ_BYTES`), `guard.ts` (`isMockForbidden`, `PRODUCTION_DB_NAME`) |
 | `dev-only.ts` | `requireDevRoute()`: `notFound()` whenever mocks are forbidden |
 | `http.ts` | `HttpError`, `jsonResponse` (`no-store`), `readJson` (16 KB cap, exact `application/json`), `withErrors` |
 | `db/client.ts` | one cached `MongoClient` per process on `globalThis` (survives HMR, drops a failed connect); `getDb()` uses `MONGODB_DB` |
@@ -302,7 +302,7 @@ ported prototype CSS imported by `globals.css`.
 | `orders/order-number.ts` | `nextOrderNumber(now)`, `formatOrderNumber`, `orderMonthKey` |
 | `prescriptions/file-check.ts` | `checkRxFile(bytes)`: magic-byte type (`sniffType`), 1 to 8 MiB; an image is re-encoded with sharp to WebP q85 (longest side 3000, shortest at least 400, 50 MP input cap, one frame, EXIF rotation applied, all metadata dropped, 5 s timeout); returns `{ ok, file }` or a named `RxFileError`, plus the sha256 of the stored body. PDFs are refused until the scan lands (part B) |
 | `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6`, `istMidnight(ymd)` (a day's 00:00 IST instant; `RangeError` for a malformed or impossible date), `istDay(at)`, `rxEnd(rx)` (the exclusive end: `min(validUntil, rxDate + 6 months)`) |
-| `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput`, and `reviewRx` (approve only from pending; reject from pending, or from approved as a revoke; a reject's `set` carries no dates, so an approved Rx keeps them; rejected is final; an unknown status is `invalid_transition`) (the list view is added in the next PR) |
+| `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput`, and `reviewRx` (approve only from pending; reject from pending, or from approved as a revoke; a reject's `set` carries no dates, so an approved Rx keeps them; rejected is final; an unknown status is `invalid_transition`), `rxView` (the customer list item: under review, approved, expired or rejected, with IST days) |
 
 ## Collections and indexes
 
@@ -375,11 +375,27 @@ hash → refuse if idle or absolute expiry has passed (and delete it) → touch 
 
 ## Providers container
 
-`getDeps()` builds once per process from env. If any provider is a mock (`mock`, `fake`,
-`memory`) and `isMockForbidden()` holds, it throws "Mock providers are not allowed in
-production". Real providers (`msg91`, `resend`, `razorpay`, `local`, `blob`) are accepted by the
-env schema but throw "not implemented yet" until the N, O and R phases build them. Tests swap
-parts with `setDepsForTests({ now, sms, … })` and restore with `resetDepsForTests()`.
+`getDeps()` builds once per process from env. If the SMS, email or payment provider is a mock
+(`mock`, `fake`) and `isMockForbidden()` holds, it throws "Mock providers are not allowed in
+production". The other real providers (`msg91`, `resend`, `razorpay`, `blob`) are accepted by the
+env schema but throw "not implemented yet" until the N, O and R phases build them.
+
+`getDeps().files` (`providers/file-store.ts`, `createFileStore`) is resolved on **first use**, so a
+mis-set `FILE_STORE` fails only file access, with an `EnvError` that names the cause, and never
+OTP login or search. It refuses `memory` and the dev disk store `local` wherever mocks are
+forbidden, and whenever `VERCEL_ENV` is set, because memory and disk files do not persist across
+Vercel functions. Every `FileStore`:
+- has a `kind`;
+- checks keys with `assertSafeKey` (`^[a-z-]+(/[A-Za-z0-9_-]+)+(\.(webp|pdf))?$`) and content
+  types with `assertStoredType` (`image/webp`, `application/pdf`, `application/octet-stream`);
+- never overwrites: a put to an existing key throws `FileExistsError`. The Blob SDK retries puts
+  internally, so a put that landed but lost its response comes back as `FileExistsError`: R4/R5
+  treat it as success only after reading the key back and checking its SHA-256, or retry with a
+  new id;
+- throws `FileTooLargeError` past `get`'s `maxBytes`, which defaults to `DEFAULT_MAX_READ_BYTES`
+  (8 MiB, the prescription cap).
+
+Tests swap parts with `setDepsForTests({ now, sms, … })` and restore with `resetDepsForTests()`.
 
 ## Orders and prescriptions
 

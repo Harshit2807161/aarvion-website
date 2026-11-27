@@ -26,6 +26,10 @@ export const LOGIN_COPY = {
   email: "Email",
   mobileLabel: "Mobile number",
   mobileHint: "Indian mobile numbers (+91) only.",
+  // Added in Task 44 (finish review), verbatim from the prototype: format examples under a visible
+  // label, never the label. Awaiting the owner's approval.
+  mobilePlaceholder: "98765 43210",
+  emailPlaceholder: "name@example.com",
   mobileRequired: "Enter your 10-digit mobile number.",
   mobileInvalid: "Enter a 10-digit mobile number that starts with 6, 7, 8 or 9.",
   emailLabel: "Email address",

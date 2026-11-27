@@ -13,7 +13,7 @@
   --cat-h: 45px;
   --hdr-h: 117px;
 }
-.announce .wrap, .store-head .wrap { width: min(80rem, 100% - 2 * var(--spacing-gutter)); }
+.announce .wrap, .store-head .wrap { width: min(var(--container-chrome), 100% - 2 * var(--spacing-gutter)); }
 
 /* ── Announcement line ── */
 .announce { --focus: var(--color-focus-dark); background: var(--color-forest-900); color: rgb(255 255 255 / 0.92); }

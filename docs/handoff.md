@@ -156,9 +156,9 @@ phases after UI each get their own plan under `docs/superpowers/plans/` before w
 
 ## Known issues
 
-- **Production cannot serve logins yet:** the real providers (`msg91`, `resend`, `razorpay`,
-  `local`, `blob`) are accepted by the env schema but throw "not implemented yet"; mocks are
-  refused in production. Built in N, O and R.
+- **Production cannot serve logins yet:** the real providers (`msg91`, `resend`, `razorpay`, `blob`)
+  are accepted by the env schema but throw "not implemented yet"; mocks are refused in
+  production. Built in N and O; the private Blob file store (`blob`) follows in R3 part B.
 - **The repository is public** (since 2026-11-19): keep secrets and personal data out of every file and commit.
 - **`MONGODB_DB=aarvion_prod` is not asserted at startup** until H4. A production deploy on
   another DB name, sharing a database with a mocks-enabled preview, would bypass the guard.

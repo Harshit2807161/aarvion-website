@@ -4,7 +4,8 @@
   which the code step needs and otp.css does not carry. For src/components/auth/ (login-flow,
   code-step, profile-step) and src/app/(store)/login/page.tsx. The page sits in flow under the
   store header, so it needs no offset of its own; scroll-padding-top (--sticky-top) is set once in
-  base.css. .auth-step.enter is ported for a later step transition; nothing sets it yet.
+  base.css. The code, profile and done steps carry .auth-step.enter, so a step change eases in
+  (only without reduced motion); .auth-alert uses tabular figures for its live countdown.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
 .otp-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; min-height: 44px; font-size: var(--text-sm); color: var(--color-text-muted); }
@@ -48,7 +49,7 @@
 .auth-done { display: grid; justify-items: center; gap: 12px; padding: 24px 0 8px; text-align: center; }
 .auth-done .done-mark { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--color-forest-50); color: var(--color-forest-700); }
 .auth-done .done-mark .i { width: 30px; height: 30px; stroke-width: 2.2; }
-.auth-alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--color-danger-50); color: var(--color-danger-ink); font-size: var(--text-sm); line-height: 1.45; font-weight: 500; }
+.auth-alert { font-variant-numeric: tabular-nums; display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--color-danger-50); color: var(--color-danger-ink); font-size: var(--text-sm); line-height: 1.45; font-weight: 500; }
 .auth-alert .i { width: 18px; height: 18px; color: var(--color-danger); margin-top: 1px; }
 @media (prefers-reduced-motion: no-preference) {
   .auth-step.enter { animation: step-in var(--duration-slow) var(--ease-out); }

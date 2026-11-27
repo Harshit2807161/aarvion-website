@@ -369,4 +369,7 @@ A change is done only when all of these hold:
   rest; `scripts/deps-policy.test.ts` enforces it); motion uses `transform` and `opacity` only.
 - Do not force-push, rewrite pushed history, delete branches, or merge without the gate.
 - Do not add `Co-Authored-By` or "Generated with" lines.
+- Do not remove `agentRules: false` from `next.config.ts` (`scripts/next-config.test.ts`): without it
+  `next dev` inserts a Next agent-rules block into this file. If you ever see one in a diff,
+  revert it; this file is the manual.
 - Do not skip, weaken or delete a failing test to get green; fix the cause or ask.

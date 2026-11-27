@@ -865,7 +865,7 @@ Shipping-label paper with a perforated total.
 - **Order slip:** a sand-50 label on the band (14px radius, soft shadow on forest) with the order number (AAR-YYMM-NNNNN) as a dot-matrix stamp in Geist Mono 600 at clamp 1.75–2.375rem, pitch 2.2px. It stamps in once (260ms after 240ms), above a dashed sand-400 rule and the meta line.
 
 ### Drawers, Dialogs and Bottom Sheets
-- **Scrim:** forest-950-based `rgb(9 22 15 / 0.5)`, fading in over 380ms. While a sheet is open, `html` stops scrolling, every other body child is `inert`, Tab is trapped, Escape closes, and focus returns to the trigger.
+- **Scrim:** forest-950 (`#0e1e15`) at 50% (`color-mix(in srgb, var(--color-forest-950) 50%, transparent)`), fading in over 380ms. While a sheet is open, `html` stops scrolling, every other body child is `inert`, Tab is trapped, Escape closes, and focus returns to the trigger.
 - **Side drawer (cart):** floats 8px from the right, top and bottom, `min(460px, 100% − 16px)` wide, 22px radius, sheet shadow. It enters by `translateX` over 480ms and leaves over 300ms on the drawer curve `cubic-bezier(0.32, 0.72, 0, 1)`. Head (Host Grotesk 600 1.375rem with a mono count), scrolling body, and a foot with the mini summary and a two-button row (1 : 1.4).
 - **Dialog (sign-in, confirmations):** centred, `min(480px, 100% − 32px)`, 24px radius, from scale 0.96 and fading (260ms / 220ms in, 200ms out).
 - **Below 640px both become bottom sheets:** 24px top corners, up to 92dvh, a 40×5 grip, `translateY` in over 460ms and out over 280ms on the drawer curve. Dragging the head down follows the finger; past 28% of the height, or past 24px at more than 0.45px/ms, it dismisses. Dragging up rubber-bands (square-root falloff). Safe-area insets pad the foot.
