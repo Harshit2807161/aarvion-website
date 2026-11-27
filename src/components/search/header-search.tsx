@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type ComponentType,
   type FocusEvent,
   type FormEvent,
   type KeyboardEvent,
@@ -15,13 +16,21 @@ import { ROUTES } from "@/config/routes";
 import { plural } from "@/lib/catalogue/display";
 import { STRENGTH_RE, type SearchResult } from "@/lib/catalogue/search-result";
 import { queryTokens } from "@/server/catalogue/search";
-import { SuggestionList } from "./suggestion-list";
+import type { SuggestionList as SuggestionListType } from "./suggestion-list";
 import { useCombobox } from "./use-combobox";
 import { useProductSearch } from "./use-product-search";
 
 const EMPTY_TEXT = "No medicine matches. Try a brand such as Sacuwin or a salt such as Valsartan.";
 const LIMITED_TEXT = "Too many searches. Try again in a moment.";
 const ERROR_TEXT = "Search is not available right now. Try again in a moment.";
+
+/**
+ * The listbox (`SuggestionList`, with its prices, `Rupees` and the highlighter) is a separate chunk,
+ * loaded on the first focus, press or typing in the search, so it stays out of every page's
+ * first-load JS. Only the panel's content waits for it: the input is this component's own and is
+ * never remounted or replaced (swapping a focused input loses IME and iOS input, #175).
+ */
+const loadSuggestionList = () => import("./suggestion-list").then((m) => m.SuggestionList);
 
 /**
  * Brings a shelf pocket into view and puts focus on its cart control (the Add button, or the
@@ -54,11 +63,26 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
   const [open, setOpen] = useState(false);
   // Enter pressed while the current query is still loading: open its first result once it settles.
   const submitPending = useRef(false);
+  // The listbox component once its chunk has arrived. Until then the panel shows no list, the
+  // combobox has no options (aria-expanded false, no aria-controls), and what is typed stays in `q`.
+  const [List, setList] = useState<ComponentType<
+    Parameters<typeof SuggestionListType>[0]
+  > | null>(null);
+  const listLoading = useRef(false);
+  function warm() {
+    if (List || listLoading.current) return;
+    listLoading.current = true;
+    loadSuggestionList().then(
+      (C) => setList(() => C),
+      () => void (listLoading.current = false), // offline: the next focus, press or key tries again
+    );
+  }
 
   const strengths = chips.filter((c) => STRENGTH_RE.test(c));
   const hasQuery = queryTokens(q).length > 0 || strength !== null;
   const { results, status } = useProductSearch(q, strength);
-  const items = hasQuery ? results : [];
+  // Only options that are on screen count: before the list chunk arrives there are none.
+  const items = hasQuery && List ? results : [];
 
   function choose(item: SearchResult) {
     setOpen(false);
@@ -136,7 +160,8 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
   // to the medicines section is the fallback.
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (items.length > 0) choose(items[0]!);
+    const ready = hasQuery ? results : [];
+    if (ready.length > 0) choose(ready[0]!);
     else if (hasQuery && status === "loading") submitPending.current = true;
   }
 
@@ -154,11 +179,11 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
     );
   } else if (status === "limited") body = <p className="sugg-empty">{LIMITED_TEXT}</p>;
   else if (status === "error") body = <p className="sugg-empty">{ERROR_TEXT}</p>;
-  else if (status === "loading" && items.length === 0) body = null;
+  else if ((status === "loading" && items.length === 0) || !List) body = null;
   else {
     listShown = items.length > 0;
     body = (
-      <SuggestionList
+      <List
         id="sugg"
         items={items}
         tokens={queryTokens(q)}
@@ -178,6 +203,9 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
       action={ROUTES.medicines}
       autoComplete="off"
       onSubmit={onSubmit}
+      onFocus={warm}
+      onPointerDown={warm}
+      onInput={warm}
       onBlur={onFocusOut}
       onKeyDown={onFormKeyDown}
     >
