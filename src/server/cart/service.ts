@@ -3,7 +3,6 @@ import { HttpError } from "../http.ts";
 import { getPurchasableBySlugs, type PurchasableProduct } from "../catalogue/queries.ts";
 import { cartTotals, type CartTotals } from "../catalogue/pricing.ts";
 
-export type { CartTotals };
 import { mutateCart, readCart } from "./carts.ts";
 import {
   addLine,
@@ -13,6 +12,8 @@ import {
   type CartBlock,
   type CartLine,
 } from "./rules.ts";
+
+export type { CartTotals };
 
 export type PricedLine = PurchasableProduct & { qty: number };
 /**

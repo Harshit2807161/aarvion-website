@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { Collection } from "mongodb";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { DELETE, PUT } from "@/app/api/cart/items/[slug]/route";
 import { POST as ADD } from "@/app/api/cart/items/route";
@@ -114,13 +115,21 @@ describe("items", () => {
     }
   });
 
-  it("an unknown product is 404 with the cart, and a retired one too", async () => {
+  it("an unknown or retired product is 404 with the cart", async () => {
     const { cookie } = await signedIn();
     const res = await ADD(items({ slug: "nope", qty: 1 }, cookie));
     expect(res.status).toBe(404);
     const out = await body(res);
     expect(out.error).toBe("product_not_found");
     expect(out.cart.lines).toEqual([]);
+    await (
+      await getDb()
+    )
+      .collection(PRODUCTS_COLLECTION)
+      .updateOne({ slug: "sacuwin-100" }, { $set: { active: false } });
+    const retired = await ADD(items({ slug: "sacuwin-100", qty: 1 }, cookie));
+    expect(retired.status).toBe(404);
+    expect((await body(retired)).error).toBe("product_not_found");
   });
 
   it("the caps answer 409 with the unchanged cart", async () => {
@@ -169,6 +178,20 @@ describe("the sliding cookie", () => {
 });
 
 describe("logging", () => {
+  it("a 500 whose message holds a slug and a phone number logs only the error name", async () => {
+    const { cookie } = await signedIn({ phone: "+919876500002" });
+    await ADD(items({ slug: "sacuwin-100", qty: 1 }, cookie));
+    const spy = vi
+      .spyOn(Collection.prototype, "updateOne")
+      .mockRejectedValue(new TypeError("write failed for sacuwin-100 and +919876500002"));
+    const res = await ADD(items({ slug: "sacuwin-100", qty: 1 }, cookie));
+    spy.mockRestore();
+    expect(res.status).toBe(500);
+    expect(await body(res)).toEqual({ error: "internal_error" });
+    expect(errors.mock.calls.at(-1)).toEqual(["route error", "TypeError"]);
+    expect(JSON.stringify(errors.mock.calls)).not.toMatch(/sacuwin|9876500002/);
+  });
+
   it("never puts a slug, phone or cookie into console.error", async () => {
     const { cookie } = await signedIn({ phone: "+919876500001" });
     await ADD(items({ slug: "nope", qty: 1 }, cookie));

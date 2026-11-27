@@ -11,8 +11,8 @@ type Ctx = { params: Promise<{ slug: string }> };
 export const PUT = withErrors(async (req, ctx: Ctx) => {
   assertSameOrigin(req);
   const auth = await requireUser(req);
+  const slug = await slugParam(ctx); // a malformed slug is refused before it costs rate-limit budget
   await limitCartUser(auth);
-  const slug = await slugParam(ctx);
   const { qty } = await readJson(req, SetBody);
   return cartResponse(await setCartQty(auth.user._id, slug, qty, getDeps().now()), auth);
 });
@@ -21,7 +21,7 @@ export const PUT = withErrors(async (req, ctx: Ctx) => {
 export const DELETE = withErrors(async (req, ctx: Ctx) => {
   assertSameOrigin(req);
   const auth = await requireUser(req);
+  const slug = await slugParam(ctx); // a malformed slug is refused before it costs rate-limit budget
   await limitCartUser(auth);
-  const slug = await slugParam(ctx);
   return cartResponse(await removeFromCart(auth.user._id, slug, getDeps().now()), auth);
 });
