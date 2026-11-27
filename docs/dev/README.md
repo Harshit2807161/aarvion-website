@@ -20,8 +20,8 @@ Each runbook gives exact steps, commands, files touched, tests to run and the CH
 - [Change an MRP](runbooks/change-an-mrp.md)
 - [Swap a product photo (Win2Age → Aarvion)](runbooks/swap-a-product-photo.md)
 - [Add a category](runbooks/add-a-category.md)
-- [Rotate a secret](runbooks/rotate-a-secret.md) (planned)
-- [Handle a failed deploy](runbooks/handle-a-failed-deploy.md) (planned)
+- [Rotate a secret](runbooks/rotate-a-secret.md)
+- [Handle a failed deploy](runbooks/handle-a-failed-deploy.md)
 
 ## Keeping these pages true
 
@@ -29,12 +29,13 @@ Each runbook gives exact steps, commands, files touched, tests to run and the CH
   procedure updates the matching page here in the same PR. Stale docs are a review finding.
 - Mark anything not yet built as **planned** and anything you could not run as **not verified
   here**.
-- Commands on these pages were last run on 2026-11-19 (macOS, pnpm 12.10.1, main at `44a31ee`):
-  `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm test:unit` (35 files, 698 tests),
-  `pnpm test:int` (18 files, 141 tests), `pnpm build`, `pnpm images:sync` (no diff) and
-  `pnpm pr-size origin/main`.
-  `pnpm db:indexes` and `pnpm seed` ran only through their int tests (in-memory replica set).
-  `pnpm db:up`, `pnpm test:e2e` and anything on Vercel or Atlas were not run here.
+- Commands on these pages were last run on 2026-11-28 (macOS, pnpm 12.10.1, main at `b5cd2f5`):
+  `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm test:unit` (126 files, 2,109 tests),
+  `pnpm test:int` (25 files, 236 tests; a first run can fail on `MongoMemoryServer` start-up when
+  other worktrees run int tests at once, so rerun), `pnpm build`, `pnpm images:sync` (no diff)
+  and `pnpm pr-size origin/main`. `pnpm test:e2e` ran in CI, and the cart spec locally against a
+  production build on its own port. `pnpm db:up` and anything on Vercel or Atlas were not run
+  here.
 
 ## Other references
 
