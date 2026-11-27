@@ -1,3 +1,4 @@
+import { FilmRoot } from "@/components/film/film-root";
 import { HeroBanner } from "@/components/home/banner";
 import { CategoryBento } from "@/components/home/category-bento";
 import { Close } from "@/components/home/close";
@@ -13,13 +14,13 @@ import { homeModel } from "@/lib/catalogue/home-model";
  * The store home (v2 prototype index.html), in the prototype's order: banner, quick actions,
  * trust strip, shop by category, the product rails, how ordering works, the questions and the
  * closing act. `.home` is the one root rule that sets the home's 1280px content width and
- * section rhythm (src/styles/quick-trust.css); the remaining sections land with UI plan Tasks 23–29.
+ * section rhythm (src/styles/quick-trust.css). `FilmRoot` is `main#home` and runs the scroll film.
  */
 export default async function Home() {
   const [products, categories] = await Promise.all([getCachedProducts(), getCachedCategories()]);
   const model = homeModel(products, categories);
   return (
-    <main id="home" className="home">
+    <FilmRoot>
       <h1 className="sr-only">Aarvion Pharmaceuticals: buy Aarvion medicines online</h1>
       <HeroBanner />
       <QuickActions />
@@ -29,6 +30,6 @@ export default async function Home() {
       <OrderingSteps />
       <Faq allRx={model.allRx} />
       <Close />
-    </main>
+    </FilmRoot>
   );
 }
