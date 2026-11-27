@@ -18,7 +18,7 @@
 /* ═══ The film: pinned stages driven by --ti (arrival) and --to (exit) ═══ */
 /* The hidden start state belongs to acts the engine has armed (`.live`): until it runs, or if its
    script never loads, every element shows in its final static state. */
-.film .live [data-in], .film .live[data-in] { --ti: 0; }
+.film .live :is([data-in]) { --ti: 0; }
 .film .act[data-act="pin"] { height: calc(100vh + var(--pin)); height: calc(100lvh + var(--pin)); }
 .film .act-steps { --pin: 200lvh; }
 .film .act-close { --pin: 110lvh; }
@@ -26,7 +26,7 @@
 .film .live [data-in], .film .live [data-out] { will-change: transform, opacity; }
 /* pass-acts that move themselves (the rails) need their own layer, or every frame of their rise
    repaints the foil */
-.film .live[data-in] { will-change: transform; }
+.film .live[data-in] { will-change: transform; --ti: 0; }
 .film .live .close-swoosh { will-change: auto; }
 .film-root.measuring [data-in], .film-root.measuring [data-out] { transform: none !important; }
 
