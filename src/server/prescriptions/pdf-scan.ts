@@ -1,5 +1,10 @@
 import { Worker } from "node:worker_threads";
 import { fileURLToPath } from "node:url";
+// Deployment tracing: Next emits pdf-worker.mjs as a plain asset whose own `import "pdf-lib"`
+// resolves at run time, so nothing bundled would pull pdf-lib into the function. With pdf-lib in
+// `serverExternalPackages` (next.config.ts), this import stays a runtime require that the file
+// tracer follows, so pdf-lib and its dependencies ship beside the worker. It is never called here.
+import "pdf-lib";
 
 export type PdfScan =
   | { ok: true; pages: number }

@@ -11,6 +11,13 @@ import { rxView } from "@/server/prescriptions/review";
 import { finishRxUpload, isUnknownCommit } from "@/server/prescriptions/upload";
 import { assertSameOrigin } from "@/server/security/origin";
 
+/**
+ * Finalising decodes and re-encodes an image (5 s cap) or scans a PDF (1 s cap, queued) and writes
+ * the result to Blob, so allow more than the platform default. Memory is a project setting under
+ * Fluid compute (docs/dev/deploy.md).
+ */
+export const maxDuration = 60;
+
 /** `busy` (the PDF check queue is full, or another finish holds the slot) clears in seconds. */
 const BUSY_RETRY_AFTER_SEC = 5;
 

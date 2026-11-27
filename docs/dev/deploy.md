@@ -69,15 +69,23 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
 - Blobs are written `access: "private"` with exact keys (`rx/<userId>/<rxId>.<ext>`,
   `rx-staging/…`) and no overwrite; they are read only through the app's ownership-checked
   handlers. Never hand out a blob URL, `downloadUrl` or a read-capable token.
-- **TODO (R5, the route that calls `checkRxFile`): make the PDF check deployable.** The check runs
-  `src/server/prescriptions/pdf-worker.mjs` in a worker thread, and Next emits that file as a plain
-  asset (`.next/server/assets/pdf-worker.*.mjs`) whose `import "pdf-lib"` is resolved at run time.
-  Nothing bundled imports pdf-lib, so file tracing will not copy `pdf-lib` and its dependencies
-  (`@pdf-lib/standard-fonts`, `@pdf-lib/upng`, `pako`, `tslib`) into the function. R5 must add
-  `outputFileTracingIncludes` for the upload route (or `serverExternalPackages: ["pdf-lib"]` plus a
-  static import so it is traced), set the function's `maxDuration` and memory (a hostile object
-  stream can take several hundred MB before the 1 s scan timeout fires), keep the upload rate
-  limit, and add a Vercel-preview smoke test that uploads a one-page PDF and expects it accepted.
+- **What Vercel needs for uploads:** `FILE_STORE=blob` and the scope's `BLOB_READ_WRITE_TOKEN`
+  (connecting the private store sets it), at build time and at run time. Under `blob` the browser
+  uploads the file straight to Blob with a client token from `POST /api/prescriptions/blob-token`,
+  pinned to its staging key (Vercel functions take at most 4.5 MB of body, the cap is 8 MiB); the
+  `PUT /api/prescriptions/staging/[id]` route answers 404 there.
+- **The PDF check on Vercel:** it runs `src/server/prescriptions/pdf-worker.mjs` in a worker
+  thread, and Next emits that file as a plain asset whose `import "pdf-lib"` resolves at run time.
+  `next.config.ts` lists `pdf-lib` in `serverExternalPackages`, and `pdf-scan.ts` imports it once
+  (never called), so file tracing copies `pdf-lib`, `@pdf-lib/*`, `pako` and `tslib` into the
+  function: after a build, `.next/server/app/api/prescriptions/route.js.nft.json` lists them.
+- **Duration and memory:** the finalise route exports `maxDuration = 60`. Memory cannot be set in
+  `vercel.json` under Fluid compute; the project default (Standard, 2 GB / 1 vCPU) is enough for
+  one PDF scan per instance (a hostile object stream can take several hundred MB before the 1 s
+  timeout). Keep it at Standard or above in Project Settings, Functions.
+- **Smoke:** `e2e/rx-upload.spec.ts` uploads a PNG and a one-page PDF against the built server
+  (`FILE_STORE=memory`). After the first Preview deploy, repeat the same flow by hand against the
+  Preview URL (with Blob), and check that a public-access client upload is refused (R7).
   Until then every PDF would fail closed (refused as `corrupt`) in production.
 - Never set `DEBUG` (or `NEXT_PUBLIC_DEBUG`) containing `blob` on a Vercel scope: the SDK then logs
   pathnames and request headers.
