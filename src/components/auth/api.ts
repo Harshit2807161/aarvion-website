@@ -36,7 +36,7 @@ export type VerifyResult =
 
 const REQUEST_TIMEOUT_MS = 15_000;
 
-type Json = Record<string, unknown>;
+export type Json = Record<string, unknown>;
 type Reply = { status: number; ok: boolean; body: Json | null } | null;
 
 /** A timeout signal; browsers without `AbortSignal.timeout` get a timer-backed controller. */
@@ -50,7 +50,7 @@ function timeoutSignal(ms: number): { signal: AbortSignal; clear: () => void } {
 }
 
 /** Sends the request and parses a JSON object body; null on transport failure. */
-async function call(path: string, init: RequestInit): Promise<Reply> {
+export async function call(path: string, init: RequestInit): Promise<Reply> {
   // A hung request must settle, or the busy state of the screen never clears.
   const { signal, clear } = timeoutSignal(REQUEST_TIMEOUT_MS);
   try {
@@ -151,22 +151,4 @@ export async function fetchSession(): Promise<{ name: string | null } | null> {
   if (!user || typeof user !== "object") return null;
   const name = (user as Json).name;
   return { name: typeof name === "string" ? name : null };
-}
-
-/**
- * Whether anyone is signed in, telling "nobody" apart from "could not find out": `out` only on a
- * 200 that says no user, `unknown` on a timeout, a 5xx or a body that is not the session shape.
- * Callers that would change state for "nobody" (the cart store dropping to a guest cart) must
- * not do it on `unknown`.
- */
-export async function fetchSessionState(): Promise<
-  { state: "in"; name: string | null } | { state: "out" } | { state: "unknown" }
-> {
-  const r = await call("/api/auth/session", { method: "GET", cache: "no-store" });
-  if (!r || !r.ok || !r.body || !("user" in r.body)) return { state: "unknown" };
-  const user = r.body.user;
-  if (user === null) return { state: "out" };
-  if (typeof user !== "object") return { state: "unknown" };
-  const name = (user as Json).name;
-  return { state: "in", name: typeof name === "string" ? name : null };
 }

@@ -1,6 +1,6 @@
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchSessionState } from "@/components/auth/api";
+import { fetchSessionState } from "@/components/auth/session-state";
 import { announceSignedIn } from "@/components/auth/events";
 import { LiveRegion } from "@/components/feedback/live-region";
 import { getCart, mergeCart } from "@/lib/cart/api";
@@ -8,7 +8,7 @@ import { cartStore, resetCartStore } from "@/lib/cart/store";
 import { seedGuest } from "../../../tests/helpers/cart";
 import { CartSync } from "./cart-sync";
 
-vi.mock("@/components/auth/api", () => ({ fetchSessionState: vi.fn() }));
+vi.mock("@/components/auth/session-state", () => ({ fetchSessionState: vi.fn() }));
 vi.mock("@/lib/cart/api", () => ({
   getCart: vi.fn(),
   addItem: vi.fn(),

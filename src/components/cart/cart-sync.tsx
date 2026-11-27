@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { fetchSessionState } from "@/components/auth/api";
+import { fetchSessionState } from "@/components/auth/session-state";
 import { SIGNED_IN_EVENT } from "@/components/auth/events";
 import { announce } from "@/components/feedback/live-region";
 import { cartStore, type CartIssue } from "@/lib/cart/store";
