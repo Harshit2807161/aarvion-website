@@ -77,7 +77,7 @@ Helpers in `tests/helpers/`:
 | `global-setup.ts` | downloads the mongod binary once before parallel files start |
 | `clock.ts` | `installClock(iso)` → `{ now, advance(ms) }`, installed as `deps.now` |
 | `http.ts` | `jsonPost(path, body, { origin, ip, cookie, contentType })`, `getReq`, `sessionTokenFrom(res)`, `TEST_ORIGIN` |
-| `rx-fixtures.ts` | prescription files built in code, no binaries: `jpegWithExif`, `png`, `animatedWebp`, `pixelBombPng`, `jpegWithTrailer`, `htmlAsJpgName` |
+| `rx-fixtures.ts` | prescription files built in code: `jpegWithExif`, `png`, `animatedWebp`, `pixelBombPng`, `jpegWithTrailer`, `htmlAsJpgName`, `pdf({ pages, extra, encrypt })`, `padPdf`. The only binaries are the 14 small attack PDFs in `tests/fixtures/rx/` (object-stream and page-count tricks from the R2 review) |
 | `session.ts` | `signedIn({ role?, phone? })` → `{ user, cookie }`: a real user (through `findOrCreateUserByIdentifier`) and session, with a staff role set before the session when asked; install the clock first |
 | `otp.ts` | `lastOtpCode(to)`, reading the mock outbox |
 | `auth.ts` | `DEFAULT_SIGNUP`, the sign-up details every login test sends by default; an existing user ignores them |
