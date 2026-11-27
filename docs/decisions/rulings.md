@@ -187,6 +187,104 @@ Copied from the Phase UI plan's "Decisions taken in this plan" (`docs/superpower
 - **C25 guard in `findClaims` (controller, 2026-11-19, Task 13a review):** `findClaims` also flags copy saying every or all medicines or products need a prescription (`RX_UNIVERSAL_CLAIMS`: "every listed medicine needs a prescription", "all our medicines require…", "currently listed…"). A page opts out with `findClaims(text, { allRx: true })` only when it computed `allRx` from catalogue data. `/guarantee/i` lets a negated disclaimer ("we do not guarantee", "cannot guarantee") through and still flags a positive guarantee. Cost if wrong: a legitimate sentence needs rewording or a narrower pattern.
 - **Cold resume (controller, 2026-11-19):** the approved project plan is committed as `docs/plan/project-plan.md`; `docs/handoff.md` is the living state document, and its "Current state" section is updated as PRs merge; `docs/progress.md` is retired to a pointer; each phase's execution ledger is persisted to `docs/decisions/` at the end of the phase, as for Phases F and CA. Cost: a few lines per PR.
 
+## Phase UI execution rulings (from the build ledger)
+Every "Ruling" line of the Phase UI execution ledger (`phase-ui-ledger.md`, 2026-11-16 to 2026-11-28), verbatim and in ledger order, so a rule is findable here without reading the ledger. The same decisions may also appear above as plan rulings; where both exist they agree, and a later line supersedes an earlier one (for example the 150 kB JS target was replaced by the ratchets: home 175 kB, product 170 kB, 2026-11-27). Do not reverse one silently.
+
+- Ruling (overrides writer #3 in part): shelf order stays the shared rule (category sortOrder → family lowest sortOrder → compareVariants), but the seed data gives the Sacuwin family the lowest product sortOrder in Heart care so the Aarvion-printed packs lead the first rail, matching the banner rule "Win2Age packs never lead" — carried into Task 7's dispatch — cost if wrong: owner reorders via sortOrder.
+- Ruling: a scoped pre-flight (rev-2 new/changed tasks 8, 9–11, 15–25, 26–28, 30–33, 35–43) runs in parallel with Task 1; Task 1 itself was scanned in rev 1 and only gained the scan's own C-rulings — cost if wrong: a Task 1 follow-up.
+- Ruling: logo = traced vector master of the owner's image (not a redraw); variants: full colour (light ground), reversed (white wordmark + mint swoosh, for forest ground), one-colour forest/white, swoosh mark, favicon/app icons. Logo colours are brand-only tokens, not UI colours — cost if wrong: owner asks for a different reversed treatment.
+- Ruling: the Montserrat 800 wordmark subset (plan Task 2) is DROPPED — the wordmark is now an outlined SVG from the official logo — carried into Task 2's dispatch.
+- Ruling: agent-maintainability = AGENTS.md (+ CLAUDE.md importing it), docs/dev/** (setup, architecture, testing, CI, data, deploy, runbooks), docs/handoff.md, CHANGELOG.md; every PR keeps them current (dispatch-common + review-common amended) — cost: a few lines per PR.
+- Ruling: stray pushed branch feat/ui-tokens (no PR) is left in place — deleting a remote branch needs the owner's OK; disclose in the summary — cost: one stale branch on GitHub.
+- Ruling: CHANGELOG entries for 1a and 1b both go into 1b once the docs PR has merged (1a merges without its own entry) — cost: one PR whose entry lands a PR later.
+- Ruling: src/app/globals.css in .prettierignore accepted (Prettier rewrites 0.10 → 0.1 and breaks the verbatim-token test).
+- Ruling (amends the 1a/1b changelog ruling): CHANGELOG entries for 1a/1b go into whichever UI PR is open first after the docs PR merges — cost: entries land a PR late.
+- Ledger: Ruling: keep the 400-line guard (owner's CLAUDE.md rule); split the docs bootstrap into ~6 PRs ≤400 each (disjoint files, opened in parallel) instead of exempting Markdown — cost: more PRs to merge.
+- Ledger: Ruling: three implementation tracks with disjoint files — A (aarvion-build): 2 → 3 → 4/5/6; B (aarvion-wt-b): 8 → 7 → (38 later); D (aarvion-wt-d): 16 → 18 → 26. Only track A runs local e2e (fixed port 3100 + shared aarvion_e2e DB would collide, and Playwright could reuse another worktree's server); tracks B and D rely on CI's isolated e2e job — cost if wrong: an e2e failure found in CI instead of locally.
+- Ruling (CHANGELOG catch-up): instead of resuming each implementer, the changelog PR (#56) is updated just before it merges to include entries for every UI PR merged before it (#45, #46, #48, #51, and the docs split PRs); from then on each PR carries its own entry — cost: one combined catch-up edit.
+- Found: Ruling: the fix moves into 2a now (unblocks every track), helper named tests/helpers/navigation-mocks.ts because Task 7 owns tests/helpers/next-mocks.ts (next/server + next/cache mocks) — cost: 2a grows ~40 lines.
+- Ruling: 18b DROPS its own ui-setup fix (71fcecb) — the single fix lands in 2a (#57) as tests/helpers/navigation-mocks.ts; 18b opens after both #57 and #58 merge — cost: 18b waits on track A.
+- Ruling: the added reducer event {type:"motion", on} is accepted (reduced-motion can only be read in an effect).
+- Ruling: merge-gate now REQUIRES pr-size (owner treats the 400 cap as binding); ALLOW_OVERSIZE=1 only with a recorded ruling (e.g. design prototype imports) — local script updated now; the script moves into the repo as scripts/merge-gate.sh (documented in ci.md) so a future maintainer has it.
+- Ruling: cold resume — commit the approved project plan as docs/plan/project-plan.md; docs/handoff.md becomes the living state document (its "Current state" section is updated as PRs merge); the repo's stale docs/progress.md is retired to a pointer; SDD ledgers are persisted to docs/decisions/ at each phase end (as for F and CA).
+- Process note: Ruling: one live agent per worktree, always.
+- Ruling: Heart care leads Sacuwin 50/100/200 then Bemptor (per #51), overriding the brief's older Bemptor-first expectation — accepted.
+- Ruling: set experimental/partialPrefetching per the current Next 16 docs' recommendation in 7b (with a config test) — cost: different prefetch behaviour, revertible.
+- Ruling: withErrors must rethrow Next control-flow errors (unstable_rethrow or equivalent current API) so prerender aborts, redirects and notFound pass through — fix in 7b with a test — cost: none.
+- Ruling: with film:false (reduced motion / no JS) createFilm is a full no-op — no scroll, IO, resize or ?p= deep link — accepted: the static composition needs none, and film-frame captures run with motion on — cost: none.
+- Ruling: BrandMark sizes from an exported BRAND_LOGO_RATIO (provisional 3.0 from the owner's image ~903×302); the logo PR pins the SVG viewBox ratio to it within 1% by test and owns the final value — cost: one constant to update.
+- Ruling: mint/navy documented as logo-only colours (DESIGN.md Logo + design.json extensions.logo), NOT theme tokens — accepted.
+- Ruling: "PHARMACEUTICALS" dropped from footer/admin lockups (the official logo has none; the legal name stays in the address and copyright) — accepted.
+- Task 2b: Ruling: no trimming of meaningful content for the cap — split along the seam: #62 = icons/BrandMark/rupees (+ restored clause); new chore/fonts-tidy PR = 2a minors + complete fonts README — cost: one more PR. Fix round 2 dispatched.
+- Logo #67: Ruling: open logo PR B (trace_logo.py) now and merge A then B back-to-back; READMEs name B's PR — cost: none. Minor 4 deferred (logo-review.md).
+- Ruling: DESIGN.md (spec) wins over the brief's markup — add the sr-only spans — cost: none.
+- Ruling: never render a "0% off" tag (percentOff < 1 when MRP > ₹2,000) — omit the tag, keep struck MRP + price — cost: none.
+- Ruling: CHANGELOG.md gets git's union merge driver (.gitattributes) so local merges of origin/main keep both sides; AGENTS.md DoD says to check for duplicates — PR #73 (controller bookkeeping) — cost: occasional duplicate line to spot.
+- Ruling: src/proxy.ts (Next 16 proxy) returns 404 for /dev/:path* when isMockForbidden(); pages keep requireDevRoute() as a second guard; `export const instant = false` verified as a real Next 16 export — accepted.
+- Ruling: merge #75 now (reviewed, correct; the open Important is bundle/design, not correctness) and land the follow-up next as Task 3b2 fix round 1 — cost: main briefly has a whole-file client button.
+- Ruling: Markdown docs COUNT toward the 400-line cap (owner flagged a docs PR failing pr-size; cap kept) — supersedes the plan's docs exclusion — cost: more splits.
+- Ruling: the footer payment line is driven by siteConfig.onlinePayments (default false → "Cash on delivery") — online payments stay hidden until live Razorpay keys exist (plan Stage 6); no claim of UPI/cards/netbanking before then — cost: one go-live flag flip.
+- Ruling: local visual checks on non-3100 ports (PORT=3200 pnpm start) so tracks don't collide.
+- Task 6a: Ruling (b): merge #83 as reviewed (no consumer of toast/live region yet) and land fix 14bc46c as an immediate follow-up PR against main, re-reviewed there — cost: main briefly carries the 3 known toast defects with no caller.
+- Ruling: REVERT the CHANGELOG union driver (#73) — it silently re-added stale/garbled lines twice (#82, #84); plain conflicts resolved by hand per the new AGENTS.md rule — PR #86 — cost: more visible conflicts.
+- Ruling: do NOT merge on local evidence without the owner's OK; keep implementing and reviewing; agents run the full local gate and paste output into PR bodies.
+- Ruling: Radix's aria-hidden on siblings + its focus trap stand in for DESIGN.md's "inert" (brief's test asserts aria-hidden) — accepted — cost: AT-only hiding, focus still trapped.
+- Task 5b: Ruling: move the styleguide demo to a follow-up PR to make room; restore the assertion and the shortened demo strings. Fix round 2 dispatched.
+- Task 6b: Ruling: move the paste listener + a partial-then-full paste test into 6b; C18 caret guard stays in 6c. Fix round 1 dispatched.
+- Ruling: hold new task dispatches that depend on unmerged work (10+ need 6/9) — avoid a pile of conflicting stacked PRs while CI is down.
+- Ruling: strict (require up-to-date with main) OFF — with parallel tracks it would force a main-merge after every merge — cost: a PR can merge with checks from a slightly older base; the merge gate + post-merge CI on main catch breakage.
+- Task 5 demo: Ruling: merged without a new review (restore of already-reviewed content, original strings). Task 5: COMPLETE (#79, #84, #91).
+- Process: Ruling: after any backgrounded merge, confirm with gh pr view <n> --json state before reporting or dispatching dependants.
+- Ruling: each track's local visual server uses its own port (3221/3231/…) — never 3100 (CI e2e) — and stops its server when done.
+- Ruling: Terms states the Rx rule ("a medicine that needs a prescription is sold only against a valid one"), not "every listed medicine needs one" — C25 data-independence wins over the brief wording.
+- Ruling: Terms' "Online payment is not available yet; cash on delivery only" line is driven by onlinePayments=false — truthful today; flips with the flag. Owner should know Razorpay's reviewer will see it (it changes the moment the flag flips at go-live).
+- Ruling: copy-only "To be added" facts (storage location, retention, liability, governing law) are documented as owner actions 23–24 and in deploy.md, since assertLegalConfigComplete can't see page copy.
+- Task 13a: Ruling: add a C25 guard pattern with an explicit data-derived allRx opt-out; tune /guarantee/ for negated disclaimers; fix AGENTS/testing.md overclaim; style ol. Pre-merge commit requested.
+- Task 10b: Ruling: trivial fix diff checked by the controller instead of a reviewer seat — cost: none material). #97 merge state confirmed below. Task 10: COMPLETE when MERGED (#96, #97).
+- Ruling: consents.channel = the OTP channel (phone/email) used when consenting — accepted (records how consent was captured).
+- Ruling (carry → 15b): drop aria-live from the stepper <output>; announce cart changes only through the single polite #live region (DESIGN.md: one live region per page) — cost: none.
+- Ruling (Task 20): trust item 4 subline gated on onlinePayments — false → 'Pay when your order arrives' — no online-payment claim before live keys — cost: one string.
+- Ruling (Task 14): prepaid refund sentences written conditionally ('If you paid online, …') — true before and after go-live.
+- Ruling: merge order 13b → 13c → 14 (links e2e needs privacy/terms on main).
+- Ruling: store home content width = one root rule '.home { --container-page: 80rem }' (plan's rule), added by Task 20's fix; section-level 80rem overrides are removed. .wrap is not widened globally.
+- Ruling (M1): session route keeps the full PublicUser as the brief says — /me already returns it to the same user; no added exposure — cost: Task 39's fetchSession maps to { name }.
+- Ruling: one-live-region intent (DESIGN.md) wins over the brief's literal output[aria-live] — the count renders as <span>; cost: none.
+- Ruling: same as footer/terms/trust — flag-off copy: step 3 'Pay by cash on delivery', example order 'Cash on delivery'; flag-on keeps the prototype's verbatim lines.
+- Ruling: --space-sec and --perforation live on the single .home root rule (prototype :root values), not on .act-steps; dashed rules elsewhere (trust, footer, label) are different patterns and stay as they are.
+- Ruling: split, not oversize — #110 keeps controls + pill + I1 + keyboard/hook tests; reconcile (+ I2, announcement, wiring, tests) moves to 15c, opened after #110 merges. Cost: one extra PR.
+- Ruling (carry → 38c): allow U+200C/U+200D (ZWNJ/ZWJ) only between two letters/marks — legitimate in Indic spellings (e.g. Marathi eyelash ra); every other \p{C} stays refused. Cost if wrong: a few rare names refused until fixed (pre-launch, no real users yet).
+- Ruling (plan defect): sanitizeNext builds its output from the resolved URL and rejects outputs starting '//' or '/\\', and applies blocked prefixes to the normalised pathname case-insensitively — safety wins over the brief's letter. Cost: none.
+- Ruling: error mapping — send 400→invalid_identifier; verify 400/413 with signup→signup_required; 5xx/403/415/non-JSON→network; 503 delivery_failed as built.
+- Task 38c: Ruling: split approved (466 > 400).
+- Ruling (pending review): R1 stamp-mrp nowrap + stamp-top flex-wrap (MRP wraps at 162–168px on 360px phones); R2 port .btn-add span 13px at 719; R3 --perforation defined once on :root (pocket needs it outside .home); --space-sec stays on .home.
+- Ruling: track aria-live via APG liveMode ('off' during autoplay) is an accepted, documented exception to the single-polite-region rule — banner never calls announce().
+- Ruling: footer BrandMark loading=lazy (React 19 auto-preloads non-lazy SSR <img>, the footer logo preloaded ahead of LCP slide 1) — folded into 19C.
+- Ruling (amends the Task 24 line): --perforation, --perf-v and foil vars defined once in globals.css :root; removed from .home; --space-sec stays on .home.
+- Ruling: css-hygiene checks selector repeats ACROSS src/styles/*.css (C12) — in 17B if it fits, else its own PR.
+- Task 39B: Ruling: split at the seam → B1 (call helper + sendCode + send tests + N1 + N5) now; B2 (verifyCode, fetchSession, SignupPayload pin + tests) after B1 merges. Content already reviewed; controller verifies each against 929de19 + the N fixes.
+- Ruling: Task 40 adds LOGIN_COPY.nameInvalid (server refused signup name) — the brief's copy list predates the name rule.
+- Ruling: tile list follows shelf order (Sacuwin first) — shelf order is pinned in order.test.ts and the prototype; the brief's string predates it. Cost: one test string.
+- Ruling: the .h-section/--spacing-section Tailwind collision gets a root fix (rename the unused spacing token), not a per-heading h-auto! workaround — in 21B if small.
+- Ruling: --spacing-section rename/move out of @theme static in its own small PR before the close act (Task 25); h-auto! + its test removed there.
+- Ruling: nameRefused is the new key for a server-refused sign-up name (nameInvalid already existed).
+- Ruling (I5, amends Task 39 brief): normMobile strips one leading +91/91/0 and never truncates — any other length is invalid. Fixed in phone.ts within 40B, with tests; identifierOf exported.
+- Ruling: failed resend (delivery_failed) → back to the id step with deliveryFailed; resend_cooldown on the id step → go to the code step (a live code exists); profile-step rate_limited gets lockedUntil + tick.
+- Ruling (N2): map \p{Nd} to ASCII, reject any character outside digits/space/-/./()/one leading +, then strip the prefix.
+- Ruling: serialized merge queue (#131 → #139 → #141 → #140): every PR edits the same architecture.md rows and CHANGELOG top, so parallel main-merges race. Phase-end carry: reduce docs hotspots (e.g. per-folder rows in short lines, or CHANGELOG via changelog.d fragments).
+- Ruling: open 41B now (move the 24-line session-check effect into B so B is self-contained); HOLD 41C (/login page + PENDING_ROUTES removal) until Task 42's profile and done steps merge — 42 and 41C may ship together.
+- Ruling: restructure docs/dev/architecture.md to one file per line (docs PR, oversize allowed as a pure move with word-multiset proof) — the long folder rows conflict on every parallel PR and cost a CI cycle per merge. Dispatched (sonnet, wt-b). Owner-requested CHANGELOG.md stays as is (its conflicts are trivial).
+- Ruling (JS budget): home first-load 170.3 kB gz vs 150 target; ~120 kB is React DOM + Next client baseline. Assert a ratchet at 175 kB now (explicit, not silent) and add a follow-up task: lazy-load the header search island on first focus/idle and trim the hero chunk, target ≤160 home; product pages keep the 150 target (Task 33 measures). Cost: ~20 kB more JS than planned on mid-range Android until the follow-up.
+- Ruling: font count 3 (not 4) is correct — plan text is stale.
+- Ruling (I3, amends the plan): hidden start states apply only under .film .live (acts the engine has armed); an e2e with JS chunks blocked must show tiles and close CTA.
+- Ruling (C24): React 19's automatic preload of the eager LCP image (first pocket / product photo) is accepted — C24 forbids Next's preload prop (which drops fetchPriority), not React's own hint.
+- RULING (Tasks 30+32, request-time render): adopt #154's leaf approach — Suspense only around the usePathname caller (SkipLink with a static fallback link; CategoryBarLink with fallback = same link without aria-current); HeaderSearch reads window.location.pathname at click. NO root-layout Suspense (it disables the Cache Components blocking-route guard app-wide). Document the rule in architecture.md.
+- RULING (soft 404): both dynamic pages export ensureStatic = 'navigation' (Task 30 reviewer built and verified: first hit 404); add a body-only (store)/not-found.tsx sharing a body component with the root not-found (one chrome on every 404); e2e asserts 404 on the FIRST goto and exactly one header.
+- Ruling (JS budgets): product first-load is 166.5 kB vs 150 (shared framework + chrome). Assert a ratchet at 170 kB on product pages now (no fixme). Follow-up task NOW: lazy-load the header search island (first focus/idle) and trim chunks, then lower both ratchets (home 175, product 170) to the measured values.
+- Ruling: keep K7 cart drawer (spec §5.5). Ruling: R5 fallback if private Blob client uploads unsupported — chunked upload through our route (<4.5 MB parts), reassembled and validated server-side.
+- perf: Ruling: the 150 kB first-load target is replaced by ratchets — home 175 kB, product 170 kB — framework baseline ~118 kB; any future reduction must not swap focused inputs. Owner note in final summary.
+- Ruling: the partial last row on one foil sheet stays (reads as a blister strip with empty slots) — owner may revisit.
+- UI I7: Ruling: ragged rail ends at 1440 stay (match prototype). Owner check: real-device motion smoothness.
+
 ## Phase K+R plan (provisional)
 Copied from the Phase K+R plan's "Decisions taken in this plan" (`docs/superpowers/plans/2026-11-27-phase-kr-cart-prescriptions.md`, 2026-11-27). Lines marked provisional await the owner; the two coordinator rulings (the K7 drawer, the chunked-upload fallback) are confirmed. Each can be overridden by the owner.
 

@@ -330,7 +330,7 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 
 - Rulings made for the owner: [docs/decisions/rulings.md](docs/decisions/rulings.md). Topic
   records: `stack.md`, `db.md`, `environments.md`, `repo.md`. Phase ledgers:
-  `phase-f-ledger.md`, `phase-ca-ledger.md`. At the end of each phase its execution ledger is
+  `phase-f-ledger.md`, `phase-ca-ledger.md`, `phase-ui-ledger.md`. At the end of each phase its execution ledger is
   persisted to `docs/decisions/` the same way.
 - To record a decision, add one bullet to the right section of `rulings.md`: **the ruling (date)**,
   the reason, and "Cost if wrong: …". If it replaces an older ruling, say "supersedes …" and edit
