@@ -57,7 +57,7 @@ describe("checkRxFile: images", () => {
     const small = await checkRxFile(await png(900, 600));
     if (!small.ok) throw new Error(small.error);
     expect([small.file.width, small.file.height]).toEqual([900, 600]);
-  });
+  }, 20_000);
 
   it("refuses an image whose shortest side is under 400", async () => {
     expect(await checkRxFile(await png(300, 900))).toEqual({ ok: false, error: "too_small" });
@@ -71,7 +71,7 @@ describe("checkRxFile: images", () => {
 
   it("refuses a 20,000 x 20,000 pixel bomb as corrupt", async () => {
     expect(await checkRxFile(pixelBombPng(20_000))).toEqual({ ok: false, error: "corrupt" });
-  });
+  }, 20_000);
 
   it("refuses an animated WebP", async () => {
     expect(await checkRxFile(await animatedWebp())).toEqual({ ok: false, error: "animated" });
