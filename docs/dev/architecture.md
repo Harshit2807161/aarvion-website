@@ -219,6 +219,7 @@ ported prototype CSS imported by `globals.css`.
 - `bento.css`: the home's category bento, `.areas`, `.sec-head`, `.bento`, `.tile*`, `.ta*`
 - `buttons.css`: `.btn*`, `.link`, `.spin`
 - `cart-control.css`: `.cart-ctl`, `.btn-add`, `.stepper`
+- `cart.css`: the cart line (`.line*`, `.well`, `.mrp`, `.line-stepper`, `.line-remove`, `.line-max`), the compact lines, the receipt (`.receipt`, `.sum*`, `.sum-updating`), the cart page grid and the phone `.dock`, with their responsive rules (flows.css 474 to 545 and 553 to 563 plus the cart rules of its 960, 720 and reduced-motion blocks; `.qty` is `.line-stepper` because `cart-control.css` owns `.qty`; `.empty*` is `empty.css`)
 - `catbar.css`: the category bar and the 880px chip row, `.catbar*`
 - `category.css`: the category page's foil sheet, coming-soon panel and other-category pills, `.cat-*`
 - `css-hygiene.test.ts`
@@ -228,6 +229,7 @@ ported prototype CSS imported by `globals.css`.
 - `footer.css`: the store footer, `.foot*`
 - `forms.css`: `.field`, `.field-box`, `.input`, `.check*`, `.seg*`
 - `header.css`: the announcement line and store header, `.announce*`, `.store-head`, `.sh-*`, `--row-h` and `--hdr-h`
+- `notes.css`: `.note*`, the inline note box (flows.css 193 to 205)
 - `otp.css`: `.otp*`
 - `overlay.css`: `.sheet-*` dialog, side drawer and phone bottom sheet, as `@keyframes` on Radix `[data-state]`
 - `overlay.test.ts` (compiles `globals.css` and checks the scrim rule)
