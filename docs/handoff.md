@@ -138,8 +138,10 @@ UI plan tasks:
 
 ## What is next
 
-No plan is written yet for the phases after UI; each gets its own plan under
-`docs/superpowers/plans/` before work starts. Scope comes from the [project plan](plan/project-plan.md)
+Phases K (cart) and R (prescriptions) have a plan:
+[superpowers/plans/2026-11-27-phase-kr-cart-prescriptions.md](superpowers/plans/2026-11-27-phase-kr-cart-prescriptions.md)
+(15 tasks K1–K7, R1–R7 and the KR8 gate; its provisional rulings are in `decisions/rulings.md`). The other
+phases after UI each get their own plan under `docs/superpowers/plans/` before work starts. Scope comes from the [project plan](plan/project-plan.md)
 (Stage 5 phase table) and `docs/requirements.md`; obligations already carried are listed per phase.
 
 | Phase | Ships | Carried obligations (where recorded) |

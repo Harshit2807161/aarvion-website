@@ -167,6 +167,7 @@ bottom use commit SHAs.
   behave the same for new and existing identifiers (`tests/int/auth-signup.test.ts`) (#116).
 
 ### Changed
+- Phase K+R plan (`docs/superpowers/plans/2026-11-27-phase-kr-cart-prescriptions.md`): 15 tasks for the server cart (caps, guest merge, `/cart`, drawer) and prescriptions (validation, private storage, `/account/prescriptions`); its rulings are in `docs/decisions/rulings.md` under "Phase K+R plan (provisional)"; `docs/handoff.md` points to it (#174)
 - Banner slides 2 to 4 are server-rendered with `data-src` / `data-srcset` and get their sources from `revealSlideImages` (`use-carousel.ts`) after window load, so they are no longer fetched before `load` next to the LCP image; each also has a `<noscript>` picture, so a phone without JavaScript still swipes to a real image (#166)
 - Scroll film engine (`src/components/film/engine.ts`) hardening before it is wired into the page: each image is decoded once, the ResizeObserver's first report no longer triggers a second measure, the `?p=<act>:<progress>` capture jump runs after `load` like the prototype, and the duplicate clamp uses `clamp01`. Tests now cover the per-item `--ti` / `--to` skip, destroy (the very handlers removed, the frame cancelled, the timer cleared) and the `film: false` no-op (#158)
 - The home rails' "View all N" is now a link to `/category/<slug>`, always visible, on a rail of one category (the shared rail has none). The in-place open/close toggle, its announcements and the `.is-open` / `.is-grid` rules are removed; the arrows stay (Task 30). (#167)
