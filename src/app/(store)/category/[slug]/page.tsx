@@ -4,6 +4,9 @@ import { CategoryView } from "@/components/catalogue/category-view";
 import { getCachedCategories, getCachedCategory, getCachedProducts } from "@/lib/catalogue/cached";
 import { assertCatalogue } from "@/lib/catalogue/errors";
 
+/** An unlisted slug waits for its static render, so `notFound()` answers a real 404 before any stream starts. */
+export const ensureStatic = "navigation";
+
 type Props = { params: Promise<{ slug: string }> };
 
 /** Every live and coming-soon category is prerendered; an empty catalogue fails the build [C11]. */

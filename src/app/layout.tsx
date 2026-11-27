@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import { LiveRegion } from "@/components/feedback/live-region";
 import { Toaster } from "@/components/feedback/toast";
 import { resolveSiteMetadataBase, SITE_CONFIG } from "@/config/site";
@@ -30,14 +29,12 @@ export const viewport: Viewport = {
  * live region (exactly one <LiveRegion/> may exist, so it lives here and nowhere else).
  * Chrome that only some routes want, such as the store footer, belongs in a route-group layout:
  * `(store)` for customer pages; admin and staff routes go in their own group and get none of it.
- * `children` is in Suspense: the chrome's client hooks (`usePathname`) are runtime data on the
- * dynamic `/category/[slug]` route, and outside Suspense they made its requests answer 500.
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={fontVariables}>
       <body>
-        <Suspense>{children}</Suspense>
+        {children}
         <Toaster />
         <LiveRegion />
       </body>

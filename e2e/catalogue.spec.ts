@@ -18,22 +18,17 @@ test.describe("category pages", () => {
     await expect(page.locator(".pocket")).toHaveCount(0);
   });
 
-  // A slug that was not prerendered streams (PPR): its first response is 200 and carries the
-  // not-found page with `noindex`; once rendered, the URL answers 404. Warm it, then check that.
-  test("a hidden or unknown category is the 404 page with the store chrome", async ({ page }) => {
+  test("a hidden or unknown category is a 404 with one copy of the store chrome", async ({
+    page,
+  }) => {
     for (const slug of ["pain-management", "nope"]) {
-      await page.goto(`/category/${slug}`);
+      const res = await page.goto(`/category/${slug}`);
+      expect(res?.status(), slug).toBe(404);
       await expect(
         page.getByRole("heading", { level: 1, name: "We can’t find that page" }),
       ).toBeVisible();
-      await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute(
-        "content",
-        /noindex/,
-      );
-      const again = await page.goto(`/category/${slug}`);
-      expect(again?.status(), slug).toBe(404);
-      // Known: the root not-found adds its own chrome inside the store layout, so it shows twice.
-      await expect(page.locator("nav.catbar").first()).toBeVisible();
+      await expect(page.locator("header")).toHaveCount(1);
+      await expect(page.locator("#q")).toHaveCount(1);
     }
   });
 
