@@ -19,11 +19,11 @@ mock-enabled deploy on the production database would expose real customers.
   always fails closed.
 
 - `APP_URL` is required in every Vercel scope that serves customers (Production, and Preview
-  if its sitemap should name the preview host). The sitemap, `robots.txt` sitemap line, canonical
+  if its sitemap should name the preview host). The canonical
   links, Open Graph URLs and product JSON-LD are built from it; unset, they point at
   `http://localhost:3000`, except in Production (`VERCEL_ENV=production`), where a missing or invalid
   value makes `getSiteEnv()` throw an `EnvError` so the build fails instead of shipping localhost
-  URLs. `robots.txt` allows crawling only when `VERCEL_ENV=production`.
+  URLs.
 
 ## Build-time database (Cache Components)
 
