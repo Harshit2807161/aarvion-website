@@ -299,12 +299,13 @@ ported prototype CSS imported by `globals.css`.
 | `cart/carts.ts` | the `carts` collection (`CartDoc`: one document per user, lines as an array plus `rev`, never a price), `readCart` and `mutateCart`: every write is a compare-and-set on `rev`, a no-op returns the same array and writes nothing, a missing cart inserts at `rev: 1` (E11000 retries), and 25 lost races, or a 2 s total deadline (`performance.now()`, with capped exponential jitter between tries), throw `HttpError(409, "cart_conflict")` |
 | `auth/` | `identifier.ts`, `otp.ts`, `users.ts`, `sessions.ts`, `cookie.ts`, `login.ts` (`sendOtp`, `verifyOtpAndLogin`), `guards.ts` (`getAuth`, `requireUser`, `requireRole`, `sessionRefreshHeaders`: the `Set-Cookie` that re-issues the sliding customer cookie, which every customer route that calls `requireUser` merges into its response), `roles.ts` |
 | `security/` | `rate-limit.ts` (`hitRateLimit`, `peekRateLimit`, `resetRateLimit`), `client-ip.ts` (`clientIp`, `ipBucket`), `origin.ts` (`assertSameOrigin`) |
-| `audit.ts` | `appendAudit()`, the only writer of `audit_logs` |
+| `audit.ts` | `appendAudit()`, the only writer of `audit_logs` (actions `auth.login`, `auth.logout`, `rx.upload`, `rx.view`) |
 | `orders/status.ts` | pure state machine: `ORDER_EDGES`, `transition()`, `initialStatus()` |
 | `orders/order-number.ts` | `nextOrderNumber(now)`, `formatOrderNumber`, `orderMonthKey` |
 | `prescriptions/file-check.ts` | `checkRxFile(bytes)`: magic-byte type (`sniffType`), 1 to 8 MiB; an image is re-encoded with sharp to WebP q85 (longest side 3000, shortest at least 400, 50 MP input cap, one frame, EXIF rotation applied, all metadata dropped, 5 s timeout); returns `{ ok, file }` or a named `RxFileError`, plus the sha256 of the stored body. PDFs are refused until the scan lands (part B) |
 | `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6`, `istMidnight(ymd)` (a day's 00:00 IST instant; `RangeError` for a malformed or impossible date), `istDay(at)`, `rxEnd(rx)` (the exclusive end: `min(validUntil, rxDate + 6 months)`) |
 | `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput`, and `reviewRx` (approve only from pending; reject from pending, or from approved as a revoke; a reject's `set` carries no dates, so an approved Rx keeps them; rejected is final; an unknown status is `invalid_transition`), `rxView` (the customer list item: under review, approved, expired or rejected, with IST days) |
+| `prescriptions/prescriptions.ts` | the `prescriptions` and `rx_staging` collections and their indexes; `RxDoc`, `StagingDoc`, `RxCreateBody`, `RX_UPLOAD_LIMITS`; `createStaging`, `peekStaging`, `takeStaging` (single use), `insertRx`, `listRxForUser`, `getRxForUser` (ownership in the filter), `applyRxReview` |
 
 ## Collections and indexes
 
@@ -318,6 +319,8 @@ ported prototype CSS imported by `globals.css`.
 | `sessions` | SHA-256 of the token | `expiresAt_ttl`, `userId_1` | `createSession`, `resolveSession`, `revokeSession` |
 | `carts` | the user's ObjectId | none | `mutateCart` |
 | `audit_logs` | ObjectId | `at_desc`, `actorUserId_at_desc` | `appendAudit` |
+| `prescriptions` | ObjectId | `userId_createdAt_desc`, `status_createdAt` (the pharmacist queue, oldest first) | `insertRx` (the upload service), `applyRxReview` (a conditional update on the status it was read in) |
+| `rx_staging` | base64url of 16 random bytes (22 chars) | `expiresAt_ttl` (TTL 0; a slot lives 15 minutes) | `createStaging`, `takeStaging` (single use) |
 | `dev_outbox` | `mock_<uuid>` | `expiresAt_1` (TTL 24 h), `to_1_createdAt_1` | mock SMS and email |
 | `counters` | `order-number:<YYMM>` | none | `nextOrderNumber` |
 
