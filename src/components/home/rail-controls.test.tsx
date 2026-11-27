@@ -2,18 +2,19 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RailControls } from "./rail-controls";
 
-const announce = vi.hoisted(() => vi.fn());
-vi.mock("@/components/feedback/live-region", () => ({ announce }));
-
 let observed: (() => void) | null = null;
 
-function setup({ scrollWidth = 1000, clientWidth = 600 } = {}) {
+function setup({
+  scrollWidth = 1000,
+  clientWidth = 600,
+  slug = "cardiology" as string | null,
+} = {}) {
   const view = render(
     <section className="rail" id="heart-care">
       <div className="rail-head">
         <h2 className="h-section">Heart care</h2>
         <div data-rail-controls="">
-          <RailControls railId="heart-care" title="Heart care" count={5} />
+          <RailControls railId="heart-care" title="Heart care" count={5} slug={slug ?? undefined} />
         </div>
       </div>
       <ul className="rail-row" id="row-heart-care" />
@@ -30,7 +31,7 @@ function setup({ scrollWidth = 1000, clientWidth = 600 } = {}) {
   return { ...view, row, scrollBy, rail: view.container.querySelector(".rail")! };
 }
 
-const toggle = () => document.querySelector<HTMLButtonElement>("button.rail-all")!;
+const viewAll = () => document.querySelector<HTMLAnchorElement>("a.rail-all");
 const arrows = (c: HTMLElement) => c.querySelector<HTMLElement>(".rail-arrows")!;
 const off = (c: HTMLElement) => arrows(c).hasAttribute("data-off");
 
@@ -50,23 +51,31 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllGlobals();
-  announce.mockClear();
 });
 
 describe("RailControls", () => {
-  it("shows neither control when the strip fits", () => {
+  it("hides the arrows when the strip fits, but keeps the View all link", () => {
     const { container } = setup({ scrollWidth: 600, clientWidth: 600 });
-    expect(toggle().hidden).toBe(true);
     expect(off(container)).toBe(true);
+    expect(viewAll()).not.toBeNull();
   });
 
-  it("offers View all 5 and the arrows when the strip overflows, back disabled at the start", () => {
+  it("links View all 5 to the category page, always visible", () => {
+    setup();
+    expect(viewAll()!.getAttribute("href")).toBe("/category/cardiology");
+    expect(viewAll()!.textContent).toContain("View all 5");
+    expect(viewAll()!.textContent).toContain("heart care medicines");
+    expect(viewAll()!.hasAttribute("aria-expanded")).toBe(false);
+  });
+
+  it("shows no View all on the shared rail (no slug), only the arrows", () => {
+    setup({ slug: null });
+    expect(viewAll()).toBeNull();
+    expect(screen.getByRole("button", { name: "Scroll Heart care forward" })).toBeInTheDocument();
+  });
+
+  it("offers the arrows when the strip overflows, back disabled at the start", () => {
     const { container } = setup();
-    expect(toggle().hidden).toBe(false);
-    expect(toggle().textContent).toContain("View all 5");
-    expect(toggle().textContent).toContain("heart care medicines");
-    expect(toggle().getAttribute("aria-expanded")).toBe("false");
-    expect(toggle().getAttribute("aria-controls")).toBe("row-heart-care");
     expect(off(container)).toBe(false);
     const back = screen.getByRole("button", { name: "Scroll Heart care back" });
     const fwd = screen.getByRole("button", { name: "Scroll Heart care forward" });
@@ -113,46 +122,7 @@ describe("RailControls", () => {
     }
   });
 
-  it("opens the strip in place, keeps focus on the toggle and announces it", () => {
-    const { container, row, rail } = setup();
-    toggle().focus();
-    fireEvent.click(toggle());
-    expect(toggle().getAttribute("aria-expanded")).toBe("true");
-    expect(toggle().textContent).toContain("Show fewer");
-    expect(row.classList.contains("is-grid")).toBe(true);
-    expect(rail.classList.contains("is-open")).toBe(true);
-    expect(off(container)).toBe(true);
-    expect(document.activeElement).toBe(toggle());
-    expect(announce).toHaveBeenCalledWith("Heart care: all 5 medicines shown");
-  });
-
-  it("closes again on the second click and restores everything", () => {
-    const { container, row, rail } = setup();
-    fireEvent.click(toggle());
-    fireEvent.click(toggle());
-    expect(toggle().getAttribute("aria-expanded")).toBe("false");
-    expect(toggle().textContent).toContain("View all 5");
-    expect(row.classList.contains("is-grid")).toBe(false);
-    expect(rail.classList.contains("is-open")).toBe(false);
-    expect(off(container)).toBe(false);
-    expect(announce).toHaveBeenLastCalledWith("Heart care: showing one row");
-  });
-
-  it("keeps the toggle visible and focused after Show fewer even if the row was measured while open", () => {
-    const { row } = setup();
-    toggle().focus();
-    fireEvent.click(toggle());
-    Object.defineProperties(row, {
-      scrollWidth: { configurable: true, value: 600 },
-      clientWidth: { configurable: true, value: 600 },
-    });
-    act(() => observed?.());
-    fireEvent.click(toggle());
-    expect(toggle().hidden).toBe(false);
-    expect(document.activeElement).toBe(toggle());
-  });
-
-  it("removes its listener, observer and sheet classes on unmount", () => {
+  it("removes its listener and observer on unmount", () => {
     const disconnect = vi.fn();
     vi.stubGlobal(
       "ResizeObserver",
@@ -161,32 +131,10 @@ describe("RailControls", () => {
         disconnect = disconnect;
       },
     );
-    const { row, rail, unmount } = setup();
+    const { row, unmount } = setup();
     const remove = vi.spyOn(row, "removeEventListener");
-    fireEvent.click(toggle());
     unmount();
     expect(remove).toHaveBeenCalledWith("scroll", expect.any(Function));
     expect(disconnect).toHaveBeenCalled();
-    expect(row.classList.contains("is-grid")).toBe(false);
-    expect(rail.classList.contains("is-open")).toBe(false);
-  });
-
-  it("scrolls the rail into view when it closes with its head above the viewport", () => {
-    const { rail } = setup();
-    const into = vi.fn();
-    rail.scrollIntoView = into;
-    rail.getBoundingClientRect = () => ({ top: -300 }) as DOMRect;
-    fireEvent.click(toggle());
-    expect(into).not.toHaveBeenCalled();
-    fireEvent.click(toggle());
-    expect(into).toHaveBeenCalledWith({ block: "start" });
-  });
-
-  it("keeps the toggle while open even though a sheet no longer overflows", () => {
-    const { row } = setup();
-    fireEvent.click(toggle());
-    Object.defineProperty(row, "scrollWidth", { configurable: true, value: 600 });
-    act(() => observed?.());
-    expect(toggle().hidden).toBe(false);
   });
 });
