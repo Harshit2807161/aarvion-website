@@ -24,19 +24,12 @@ export async function withStoreChrome(children: ReactNode): Promise<ReactNode> {
   const chips = strengthChips(await getCachedFamily(STRENGTH_CHIP_FAMILY));
   return (
     <>
-      {/* usePathname reads the URL: the skip link and the search are suspended so a page rendered at request time stays valid */}
+      {/* usePathname reads the URL: the skip link is suspended so a page rendered at request time stays valid */}
       <Suspense>
         <SkipLink />
       </Suspense>
       <AnnounceBar />
-      <StoreHeader
-        search={
-          <Suspense>
-            <HeaderSearch chips={chips} />
-          </Suspense>
-        }
-        cart={<CartPill />}
-      />
+      <StoreHeader search={<HeaderSearch chips={chips} />} cart={<CartPill />} />
       <CartReconcile slugs={slugs} />
       <CategoryBar categories={live} />
       {children}
