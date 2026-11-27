@@ -1,8 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Fragment } from "react";
 import { RxBadge } from "@/components/base/badge";
 import { StampPrice } from "@/components/base/stamp-price";
 import { CartControl } from "@/components/cart/cart-control";
+import { ROUTES } from "@/config/routes";
 import {
   actives,
   fullComposition,
@@ -58,7 +60,9 @@ export function Pocket({
         </div>
         <div className="pocket-body">
           <Heading className="pocket-name">
-            <span>{product.name}</span>
+            <Link className="pocket-link" href={ROUTES.product(product.slug)}>
+              <span>{product.name}</span>
+            </Link>
             {product.rxRequired && <RxBadge />}
           </Heading>
           {/* The actives are what fits two lines; the full composition is the title and what AT reads. */}

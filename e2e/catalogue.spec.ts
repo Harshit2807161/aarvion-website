@@ -31,3 +31,9 @@ test("an unknown product is a 404 on the first hit", async ({ page }) => {
   expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "We can’t find that page" })).toBeVisible();
 });
+
+test("a pocket name leads to its product page", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#p-sacuwin-100 a.pocket-link").click();
+  await expect(page).toHaveURL(/\/product\/sacuwin-100$/);
+});
