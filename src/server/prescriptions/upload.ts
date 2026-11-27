@@ -84,8 +84,11 @@ const TRANSACTION_OPTIONS = {
   readConcern: { level: "majority" },
 } as const;
 
-/** The commit's outcome is unknown (no majority in time, or the commit timed out), not a clean abort. */
-function isUnknownCommit(e: unknown): boolean {
+/**
+ * The commit's outcome is unknown (no majority in time, or the commit timed out), not a clean
+ * abort. Exported for the finalise route, which answers it with a retryable 500.
+ */
+export function isUnknownCommit(e: unknown): boolean {
   return (
     e instanceof MongoError &&
     (e.hasErrorLabel("UnknownTransactionCommitResult") ||
