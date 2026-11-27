@@ -1,6 +1,6 @@
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { assertSafeKey, assertWithinCap } from "./file-keys.ts";
+import { assertSafeKey, assertStoredType, assertWithinCap, FileExistsError } from "./file-keys.ts";
 import type { FileStore } from "./types.ts";
 
 /**
@@ -13,14 +13,25 @@ export function createLocalFiles(dir: string): FileStore {
     assertSafeKey(key);
     return path.join(root, key);
   };
-  const isMissing = (err: unknown) => (err as { code?: string }).code === "ENOENT";
+  // ENOTDIR: a parent segment of the key is a file, which also means "no such file".
+  const isMissing = (err: unknown) => {
+    const code = (err as { code?: string }).code;
+    return code === "ENOENT" || code === "ENOTDIR";
+  };
 
   return {
     kind: "local",
     async put(key, body, contentType) {
       const file = fileOf(key);
+      assertStoredType(contentType);
       await mkdir(path.dirname(file), { recursive: true });
-      await writeFile(file, body);
+      try {
+        // "wx" fails if the file exists: like Blob's allowOverwrite: false, never replace bytes.
+        await writeFile(file, body, { flag: "wx" });
+      } catch (err) {
+        if ((err as { code?: string }).code === "EEXIST") throw new FileExistsError();
+        throw err;
+      }
       await writeFile(`${file}.type`, contentType);
     },
     async get(key, opts) {
