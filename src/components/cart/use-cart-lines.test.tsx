@@ -1,6 +1,6 @@
 import { act, render } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
-import { cartStore } from "@/lib/cart/store";
+import { cartStore, resetCartStore } from "@/lib/cart/store";
 import { useCartLines } from "@/lib/cart/use-cart-lines";
 import { seedGuest } from "../../../tests/helpers/cart";
 
@@ -13,7 +13,7 @@ function Probe() {
 describe("useCartLines", () => {
   beforeEach(() => {
     sessionStorage.clear();
-    cartStore.reset();
+    resetCartStore();
     renders = 0;
   });
 

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "./api";
 import { CART_GUEST_STORAGE_KEY, CART_LIMITS, CART_UI_STORAGE_KEY, cartCount } from "./cart";
-import { cartStore, type CartIssue } from "./store";
+import { cartStore, resetCartStore, type CartIssue } from "./store";
 
 vi.mock("./api", () => ({
   getCart: vi.fn(),
@@ -49,7 +49,7 @@ beforeEach(() => {
   });
   vi.useFakeTimers();
   vi.resetAllMocks();
-  cartStore.reset();
+  resetCartStore();
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -109,10 +109,10 @@ describe("guest mode", () => {
   it("survives malformed data and blocked storage", () => {
     sessionStorage.setItem(CART_GUEST_STORAGE_KEY, "{not json");
     expect(cartStore.getSnapshot()).toEqual({});
-    cartStore.reset();
+    resetCartStore();
     sessionStorage.setItem(CART_GUEST_STORAGE_KEY, JSON.stringify({ lines: "x" }));
     expect(cartStore.getSnapshot()).toEqual({});
-    cartStore.reset();
+    resetCartStore();
     const blocked = () => {
       throw new Error("blocked");
     };
@@ -274,5 +274,104 @@ describe("the guest view", () => {
     expect(cartStore.getSnapshot()).toEqual({ a: 2 });
     expect(stored()).toEqual({ lines: [{ slug: "a", qty: 2 }] });
     expect(issues).toEqual([{ kind: "removed", slugs: ["x"] }]);
+  });
+});
+
+describe("signIn", () => {
+  it("merges the guest cart once, clears guest storage and switches to user mode", async () => {
+    seed([{ slug: "a", qty: 1 }]);
+    m.mergeCart.mockImplementation(() => ok({ a: 2, b: 1 }, { trimmed: true, removed: ["ghost"] }));
+    const issues: CartIssue[] = [];
+    cartStore.onIssue((i) => issues.push(i));
+    const out = await cartStore.signIn();
+    expect(m.mergeCart).toHaveBeenCalledTimes(1);
+    expect(m.mergeCart).toHaveBeenCalledWith([{ slug: "a", qty: 1 }]);
+    expect(m.getCart).not.toHaveBeenCalled();
+    expect(out).toEqual({ trimmed: true, removed: ["ghost"] });
+    expect(issues).toEqual([{ kind: "removed", slugs: ["ghost"] }, { kind: "trimmed" }]);
+    expect(cartStore.getMode()).toBe("user");
+    expect(cartStore.getSnapshot()).toEqual({ a: 2, b: 1 });
+    expect(cartStore.getView()?.totals.packs).toBe(3);
+    expect(sessionStorage.getItem(CART_GUEST_STORAGE_KEY)).toBeNull();
+  });
+
+  it("merges what the shopper has now, even with blocked storage", async () => {
+    const blocked = () => {
+      throw new Error("blocked");
+    };
+    vi.stubGlobal("sessionStorage", { getItem: blocked, setItem: blocked, removeItem: blocked });
+    cartStore.dispatch(inc("a"));
+    m.mergeCart.mockImplementation(() => ok({ a: 1 }));
+    await cartStore.signIn();
+    expect(m.mergeCart).toHaveBeenCalledWith([{ slug: "a", qty: 1 }]);
+  });
+
+  it("just loads the server cart when there is no guest cart", async () => {
+    m.getCart.mockImplementation(() => ok({ a: 3 }));
+    expect(await cartStore.signIn()).toEqual({ trimmed: false, removed: [] });
+    expect(m.mergeCart).not.toHaveBeenCalled();
+    expect(cartStore.getSnapshot()).toEqual({ a: 3 });
+  });
+
+  it("a second call while the first is pending reuses its promise", async () => {
+    seed([{ slug: "a", qty: 1 }]);
+    let release: () => void = () => {};
+    m.mergeCart.mockImplementation(
+      () => new Promise((r) => (release = () => r({ ok: true, view: view({ a: 1 }) } as never))),
+    );
+    const first = cartStore.signIn();
+    expect(cartStore.signIn()).toBe(first);
+    await vi.dynamicImportSettled(); // the user-mode chunk loads, then the merge starts
+    release();
+    await first;
+    expect(m.mergeCart).toHaveBeenCalledTimes(1);
+  });
+
+  it("a tap made while the user-mode chunk loads is merged, not lost", async () => {
+    seed([{ slug: "a", qty: 1 }]);
+    m.mergeCart.mockImplementation(() => ok({ a: 1, b: 1 }));
+    const signing = cartStore.signIn(); // the chunk has not loaded yet
+    cartStore.dispatch(inc("b"));
+    await signing;
+    expect(m.mergeCart).toHaveBeenCalledWith([
+      { slug: "a", qty: 1 },
+      { slug: "b", qty: 1 },
+    ]);
+    expect(cartStore.getSnapshot()).toEqual({ a: 1, b: 1 });
+  });
+
+  it("a change made while the merge is in flight survives it", async () => {
+    seed([{ slug: "a", qty: 1 }]);
+    let release: () => void = () => {};
+    m.mergeCart.mockImplementation(
+      () => new Promise((r) => (release = () => r({ ok: true, view: view({ a: 1 }) } as never))),
+    );
+    m.addItem.mockImplementation(() => ok({ a: 1, b: 1 }));
+    const signing = cartStore.signIn();
+    await vi.dynamicImportSettled(); // the merge request is now in flight
+    cartStore.dispatch(inc("b"));
+    release();
+    await signing;
+    expect(cartStore.getSnapshot()).toEqual({ a: 1, b: 1 });
+    await tick(0);
+    expect(m.addItem).toHaveBeenCalledWith("b", 1);
+  });
+
+  it("a guest page load does not pull the user-mode chunk in", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync(new URL("./store.ts", import.meta.url), "utf8");
+    expect(src).not.toMatch(/^import (?!type)[^;]*from "\.\/user-mode"/m); // type-only imports are erased
+    expect(src).toContain('import("./user-mode")');
+    expect(src).not.toMatch(
+      /import \* as api|import \{[^}]*(getCart|addItem|setQty|removeItem|mergeCart)/,
+    );
+  });
+
+  it("toGuest(true) leaves a store that is already signed in alone", async () => {
+    m.getCart.mockImplementation(() => ok({ a: 3 }));
+    await cartStore.signIn();
+    cartStore.toGuest(true);
+    expect(cartStore.getMode()).toBe("user");
+    expect(cartStore.getSnapshot()).toEqual({ a: 3 });
   });
 });

@@ -1,6 +1,7 @@
 import { capLines, type CartLine } from "@/server/cart/rules";
 import type { CartView } from "@/server/cart/service";
 import type { createQuoter } from "./guest-quote";
+import type { Host, UserMode } from "./user-mode";
 import {
   CART_GUEST_STORAGE_KEY,
   CART_UI_STORAGE_KEY,
@@ -12,6 +13,8 @@ import {
 
 /** What the server (and the first hydration render) sees: an empty cart. Frozen and shared. */
 const SERVER_LINES: CartLines = Object.freeze({});
+export type CartMode = "unknown" | "guest" | "user";
+
 /** Something the shopper should be told; `CartSync` speaks it through the page's live region. */
 export type CartIssue =
   | { kind: "removed"; slugs: string[] }
@@ -40,6 +43,15 @@ function readGuest(): CartLines {
   }
 }
 
+function clearGuest(): void {
+  try {
+    sessionStorage.removeItem(CART_GUEST_STORAGE_KEY);
+    sessionStorage.removeItem(CART_UI_STORAGE_KEY);
+  } catch {
+    // Nothing to clear.
+  }
+}
+
 function writeGuest(lines: CartLines): void {
   try {
     sessionStorage.setItem(CART_GUEST_STORAGE_KEY, JSON.stringify({ lines: toArray(lines) }));
@@ -57,6 +69,12 @@ let viewStale = false; // the view prices an older set of lines than the snapsho
 let quoteSeq = 0; // bumped on every cart change: a quote reply for an older generation is ignored
 let quoter: ReturnType<typeof createQuoter> | null = null; // loaded on demand, see guest-quote.ts
 let loadingQuoter: Promise<ReturnType<typeof createQuoter>> | null = null;
+let mode: CartMode = "unknown";
+let user: UserMode | null = null; // the signed-in half, loaded on demand (user-mode.ts)
+let loadingUser: Promise<UserMode> | null = null;
+let signInPromise: Promise<{ trimmed: boolean; removed: string[] }> | null = null;
+let signingIn = false;
+let duringSignIn: CartAction[] = []; // changes made while a sign-in request is in flight, re-applied after it
 const listeners = new Set<() => void>();
 const issueListeners = new Set<(issue: CartIssue) => void>();
 const notify = () => listeners.forEach((l) => l());
@@ -114,6 +132,48 @@ function scheduleQuote(): void {
     .catch(() => {});
 }
 
+/** What the lazily loaded user mode may change here. */
+const host: Host = {
+  setLines(lines) {
+    cache = lines;
+  },
+  setMode(m) {
+    mode = m;
+  },
+  setView(v) {
+    view = v;
+    viewStale = false;
+  },
+  notify,
+  emit,
+  clearGuest,
+  stopQuoting() {
+    quoter?.cancel();
+    quoteSeq++;
+  },
+  beginSignIn() {
+    signingIn = true;
+    duringSignIn = [];
+  },
+  endSignIn() {
+    signingIn = false;
+    const taps = duringSignIn;
+    duringSignIn = [];
+    return taps;
+  },
+};
+
+/** Loads the signed-in half once. A failed load (offline) is retried by the next call. */
+function loadUser(): Promise<UserMode> {
+  return (loadingUser ??= import("./user-mode").then(
+    (m) => (user = m.createUserMode(host)),
+    (err) => {
+      loadingUser = null;
+      throw err;
+    },
+  ));
+}
+
 export const cartStore = {
   subscribe(listener: () => void): () => void {
     listeners.add(listener);
@@ -124,6 +184,9 @@ export const cartStore = {
   },
   getServerSnapshot(): CartLines {
     return SERVER_LINES;
+  },
+  getMode(): CartMode {
+    return mode;
   },
   /** The last priced view (a quote of the guest lines), or null before one exists. Check `isViewStale()` before showing totals as current. */
   getView(): CartView | null {
@@ -143,8 +206,13 @@ export const cartStore = {
     const { lines, blocked } = applyCart(current, action);
     if (lines === current) return blocked;
     cache = lines;
-    writeGuest(lines);
-    scheduleQuote();
+    if (mode === "user" && user) {
+      user.send(action, lines[action.slug] ?? 0);
+    } else {
+      if (signingIn) duringSignIn.push(action);
+      writeGuest(lines);
+      scheduleQuote();
+    }
     notify();
     return blocked;
   },
@@ -154,7 +222,7 @@ export const cartStore = {
    */
   reconcile(known: ReadonlySet<string>): boolean {
     // An empty set means the catalogue is not loaded, not that every product is gone.
-    if (known.size === 0) return false;
+    if (known.size === 0 || mode === "user") return false;
     const current = cartStore.getSnapshot();
     const kept = Object.entries(current).filter(([slug]) => known.has(slug));
     if (kept.length === Object.keys(current).length) return false;
@@ -164,6 +232,42 @@ export const cartStore = {
     notify();
     return true;
   },
+  /**
+   * Signed in: folds the guest lines into the server cart (else just loads it), then clears guest
+   * storage and switches to user mode. A second call while one runs shares its promise, so a mount
+   * and a sign-in event cannot merge twice. A change made while it runs is re-applied afterwards.
+   * Resolves with what the shopper should be told (it also emits `removed` and `trimmed` issues).
+   */
+  signIn(): Promise<{ trimmed: boolean; removed: string[] }> {
+    // The chunk loads here, when someone is (or may be) signed in. A tap made while it loads is an
+    // ordinary guest change: the merge below starts from the cart as it is when the chunk is ready.
+    return (signInPromise ??= loadUser()
+      .then((u) => u.signIn())
+      .catch(() => {
+        emit({ kind: "sync_failed" });
+        return { trimmed: false, removed: [] as string[] };
+      })
+      .finally(() => {
+        signInPromise = null;
+      }));
+  },
+  /**
+   * Guest mode. With no argument this is the signed-out fall-back (a 401 on a user request): the
+   * cart empties and the server cart waits for the next sign-in. `keepLines` is for a page load
+   * that finds nobody signed in: the guest cart stays, and a store that is already signed in is
+   * left alone (a stale answer must not undo a sign-in).
+   */
+  toGuest(keepLines = false): void {
+    if (keepLines && mode === "user") return;
+    mode = "guest";
+    user?.abandon();
+    cache = keepLines ? (cache ?? readGuest()) : toRecord([]);
+    if (!keepLines) writeGuest(cache);
+    view = null;
+    viewStale = false;
+    scheduleQuote();
+    notify();
+  },
   /** Drops the old `aarv-cart-ui-v0` key, which is never migrated (pre-launch). Run once on load. */
   forgetLegacy(): void {
     try {
@@ -172,16 +276,24 @@ export const cartStore = {
       // Nothing to forget.
     }
   },
-  /** TEST ONLY: forget every cached value so the next read goes back to sessionStorage. */
-  reset(): void {
-    quoter?.cancel();
-    quoter = null;
-    loadingQuoter = null;
-    cache = null;
-    view = null;
-    viewStale = false;
-    quoteSeq++;
-    listeners.clear();
-    issueListeners.clear();
-  },
 };
+
+/** TEST ONLY: forgets every cached value so the next read goes back to sessionStorage. It is a standalone export, not a store method, so the production build drops it. */
+export function resetCartStore(): void {
+  quoter?.cancel();
+  quoter = null;
+  loadingQuoter = null;
+  cache = null;
+  view = null;
+  viewStale = false;
+  quoteSeq++;
+  mode = "unknown";
+  user?.abandon();
+  user = null;
+  loadingUser = null;
+  signInPromise = null;
+  signingIn = false;
+  duringSignIn = [];
+  listeners.clear();
+  issueListeners.clear();
+}
