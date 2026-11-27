@@ -29,6 +29,12 @@ export type UserMode = {
   signIn(): Promise<{ trimmed: boolean; removed: string[] }>;
   /** Sends a change that was already applied locally. */
   send(action: CartAction, next: number): void;
+  /**
+   * Reloads the server cart through the queue, so it never races a pending change. Quiet: a failed
+   * reload says nothing and reverts no tap still on its way (only a 401 matters). One waiting
+   * reload is enough, so visibility and focus together make one request.
+   */
+  refresh(): void;
   /** Forgets the queue (a 401 or a reset): replies from before it are ignored. */
   abandon(): void;
 };
@@ -44,6 +50,7 @@ export function createUserMode(host: Host): UserMode {
   let pending = 0; // requests queued or in flight, never below 0
   let epoch = 0; // bumped when the queue is abandoned: older replies are ignored
   let chain: Promise<void> = Promise.resolve();
+  let refreshQueued = false; // a refresh is already waiting in the queue
 
   function adopt(v: CartView): void {
     serverLines = toRecord(v.lines.map((l) => ({ slug: l.slug, qty: l.qty })));
@@ -54,7 +61,7 @@ export function createUserMode(host: Host): UserMode {
    * One request at a time, in order. Never rejects (the api functions never throw, and a listener
    * that throws must not wedge the queue for the rest of the page's life).
    */
-  function enqueue(send: () => Promise<api.CartApiResult>): void {
+  function enqueue(send: () => Promise<api.CartApiResult>, quiet = false): void {
     pending++;
     const mine = epoch;
     chain = chain
@@ -63,12 +70,12 @@ export function createUserMode(host: Host): UserMode {
         const res = await send();
         if (mine !== epoch) return;
         pending = Math.max(0, pending - 1);
-        settle(res);
+        settle(res, quiet);
       })
       .catch(() => {});
   }
 
-  function settle(res: api.CartApiResult): void {
+  function settle(res: api.CartApiResult, quiet: boolean): void {
     if (res.ok) {
       adopt(res.view);
       if (pending === 0) host.setLines(serverLines); // an older reply must not undo a newer optimistic tap
@@ -77,11 +84,23 @@ export function createUserMode(host: Host): UserMode {
       return;
     }
     if (res.error === "unauthenticated") return cartStore.toGuest();
+    if (quiet) return; // a failed background reload changes nothing and says nothing
     if (res.view) adopt(res.view);
     host.setLines(serverLines); // a refusal or a lost request puts the lines back as the server has them
     host.notify();
     if (res.error === "network" || res.error === "rate_limited") host.emit({ kind: "sync_failed" });
     else host.emit({ kind: "refused", error: res.error });
+    // A request that timed out may still have been applied: look at the server's cart before any retry.
+    if (res.error === "network") refresh();
+  }
+
+  function refresh(): void {
+    if (refreshQueued) return;
+    refreshQueued = true;
+    enqueue(() => {
+      refreshQueued = false;
+      return api.getCart();
+    }, true);
   }
 
   async function signIn(): Promise<{ trimmed: boolean; removed: string[] }> {
@@ -107,7 +126,11 @@ export function createUserMode(host: Host): UserMode {
     host.setLines(serverLines);
     host.clearGuest(); // only now: a failed merge keeps the guest cart for the next try
     host.notify();
-    for (const action of replay) cartStore.dispatch(action); // a tap made while signing in is not lost
+    for (const action of replay) {
+      // A tap made while signing in is not lost; if the merged cart refuses it, say so.
+      const blocked = cartStore.dispatch(action);
+      if (blocked) host.emit({ kind: "refused", error: blocked });
+    }
     const removed = res.view.removed;
     const trimmed = res.view.trimmed === true;
     if (removed.length > 0) host.emit({ kind: "removed", slugs: removed });
@@ -117,6 +140,7 @@ export function createUserMode(host: Host): UserMode {
 
   return {
     signIn,
+    refresh,
     send(action, next) {
       // A "+" is relative (`addItem`), so it lands on the server's quantity, not this tab's cached
       // one (another tab may have set 5). The rest are absolute: the API has no relative decrement.
@@ -129,6 +153,7 @@ export function createUserMode(host: Host): UserMode {
     abandon() {
       epoch++;
       pending = 0;
+      refreshQueued = false;
       serverLines = toRecord([]);
     },
   };

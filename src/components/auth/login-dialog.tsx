@@ -7,6 +7,7 @@ import { Overlay } from "@/components/overlay/overlay";
 import { sanitizeNext } from "@/lib/next-url";
 import { DONE_MS, type LoginDone, LoginFlow } from "./login-flow";
 import { LOGIN_COPY } from "./login-machine";
+import { announceSignedIn } from "./events";
 
 export type LoginDialogProps = {
   open: boolean;
@@ -52,6 +53,7 @@ export function LoginDialog({
     if (!signedIn.current) return;
     signedIn.current = false;
     onSignedIn?.();
+    announceSignedIn(); // the cart store merges the guest cart now
   }
 
   function done(r: LoginDone) {

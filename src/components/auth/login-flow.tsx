@@ -29,6 +29,7 @@ import { sanitizeNext } from "@/lib/next-url";
 import { type Channel, fetchSession, sendCode } from "./api";
 import { CodeStep } from "./code-step";
 import { type LoginDemoState, demoLoginState, isLoginDemoState } from "./demo-states";
+import { announceSignedIn } from "./events";
 import { ProfileStep } from "./profile-step";
 import {
   LOGIN_COPY,
@@ -77,7 +78,11 @@ export function LoginFlow({ mode, allowDemo = false, onDone, next: nextProp }: L
 
   // The dialog goes only where its opener says; the host page's own ?next= is not its business.
   const next = sanitizeNext(nextProp ?? (mode === "page" ? searchParams.get("next") : null));
-  const goNext = useEffectEvent(() => router.replace(next));
+  const goNext = useEffectEvent(() => {
+    // The layout (and the cart store's sign-in) stays mounted across this soft navigation.
+    announceSignedIn();
+    router.replace(next);
+  });
   const finish = useEffectEvent((r: LoginDone) => {
     if (finished.current) return;
     finished.current = true;
