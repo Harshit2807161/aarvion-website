@@ -2,7 +2,14 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { assertSafeKey, FileTooLargeError } from "./file-keys.ts";
+import { RX_MAX_BYTES } from "../prescriptions/file-check.ts";
+import {
+  assertSafeKey,
+  assertStoredType,
+  DEFAULT_MAX_READ_BYTES,
+  FileExistsError,
+  FileTooLargeError,
+} from "./file-keys.ts";
 import { createLocalFiles } from "./local-files.ts";
 import { createMemoryFiles } from "./memory-files.ts";
 
@@ -32,6 +39,18 @@ describe("assertSafeKey", () => {
   });
 });
 
+describe("content types and the default read cap", () => {
+  it.each(["image/webp", "application/pdf", "application/octet-stream"])("accepts %s", (t) => {
+    expect(() => assertStoredType(t)).not.toThrow();
+  });
+  it.each(["text/html", "image/svg+xml", "image/jpeg", ""])("refuses %j", (t) => {
+    expect(() => assertStoredType(t)).toThrow(/unsupported stored content type/);
+  });
+  it("defaults reads to the prescription file cap", () => {
+    expect(DEFAULT_MAX_READ_BYTES).toBe(RX_MAX_BYTES);
+  });
+});
+
 describe("local file store", () => {
   it("round-trips bytes and content type, then deletes", async () => {
     const files = createLocalFiles(dir);
@@ -47,8 +66,40 @@ describe("local file store", () => {
     await expect(files.delete("rx/u1/r1.webp")).resolves.toBeUndefined();
   });
 
-  it("returns null for a missing key", async () => {
-    expect(await createLocalFiles(dir).get("rx/nobody/none.pdf")).toBeNull();
+  it("returns null for a missing key, also when a parent segment is a file", async () => {
+    const files = createLocalFiles(dir);
+    expect(await files.get("rx/nobody/none.pdf")).toBeNull();
+    await files.put("rx-staging/u1/s1", new Uint8Array([1]), "application/octet-stream");
+    expect(await files.get("rx-staging/u1/s1/x")).toBeNull();
+  });
+
+  it("refuses a put to an existing key with FileExistsError and keeps the first bytes", async () => {
+    const files = createLocalFiles(dir);
+    await files.put("rx/u1/r1.webp", new Uint8Array([1]), "image/webp");
+    const err = await files
+      .put("rx/u1/r1.webp", new Uint8Array([2]), "image/webp")
+      .catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(FileExistsError);
+    expect((err as Error).name).toBe("FileExistsError");
+    expect((await files.get("rx/u1/r1.webp"))?.body).toEqual(new Uint8Array([1]));
+  });
+
+  it("refuses an unsupported content type before writing", async () => {
+    const files = createLocalFiles(dir);
+    await expect(files.put("rx/u1/x.webp", new Uint8Array(1), "text/html")).rejects.toThrow(
+      /unsupported stored content type/,
+    );
+    expect(await files.get("rx/u1/x.webp")).toBeNull();
+  });
+
+  it("caps a read at the default cap when no maxBytes is given", async () => {
+    const files = createLocalFiles(dir);
+    await files.put(
+      "rx/u1/huge.pdf",
+      new Uint8Array(DEFAULT_MAX_READ_BYTES + 1),
+      "application/pdf",
+    );
+    await expect(files.get("rx/u1/huge.pdf")).rejects.toBeInstanceOf(FileTooLargeError);
   });
 
   it("throws FileTooLargeError over maxBytes and returns the file at exactly maxBytes", async () => {
@@ -69,6 +120,18 @@ describe("local file store", () => {
 });
 
 describe("memory file store", () => {
+  it("refuses a put to an existing key with FileExistsError", async () => {
+    const files = createMemoryFiles();
+    await files.put("rx/u/a.webp", new Uint8Array([1]), "image/webp");
+    await expect(
+      files.put("rx/u/a.webp", new Uint8Array([2]), "image/webp"),
+    ).rejects.toBeInstanceOf(FileExistsError);
+    expect((await files.get("rx/u/a.webp"))?.body).toEqual(new Uint8Array([1]));
+    await expect(files.put("rx/u/b.webp", new Uint8Array(1), "text/html")).rejects.toThrow(
+      /unsupported stored content type/,
+    );
+  });
+
   it("is kind memory, checks keys and honours maxBytes", async () => {
     const files = createMemoryFiles();
     expect(files.kind).toBe("memory");

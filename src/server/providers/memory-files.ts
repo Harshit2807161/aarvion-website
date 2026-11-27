@@ -1,4 +1,4 @@
-import { assertSafeKey, assertWithinCap } from "./file-keys.ts";
+import { assertSafeKey, assertStoredType, assertWithinCap, FileExistsError } from "./file-keys.ts";
 import type { FileStore } from "./types.ts";
 
 /** Per-process store for tests and e2e. Refused on Vercel and in production (deps.ts). */
@@ -8,6 +8,8 @@ export function createMemoryFiles(): FileStore {
     kind: "memory",
     async put(path, body, contentType) {
       assertSafeKey(path);
+      assertStoredType(contentType);
+      if (store.has(path)) throw new FileExistsError();
       store.set(path, { body: body.slice(), contentType });
     },
     async get(path, opts) {
