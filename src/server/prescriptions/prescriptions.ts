@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { ObjectId } from "mongodb";
+import type { ClientSession, ObjectId } from "mongodb";
 import { z } from "zod";
 import { PersonName } from "../auth/login.ts";
 import { getDb } from "../db/client.ts";
@@ -52,6 +52,8 @@ export type StagingDoc = {
   key: string;
   createdAt: Date;
   expiresAt: Date;
+  /** While a finish is working on the slot: when its lease ends (a crashed claim just expires). */
+  claimedUntil?: Date;
 };
 
 export const RX_STAGING_TTL_MS = 15 * 60_000;
@@ -98,17 +100,70 @@ export async function peekStaging(
   return (await staging()).findOne({ _id: id, userId, expiresAt: { $gt: now } });
 }
 
-/** Single use: deletes and returns the live slot, atomically. */
-export async function takeStaging(
+/** How long one finish may hold a slot before another can claim it. */
+export const RX_CLAIM_LEASE_MS = 30_000;
+
+/**
+ * Lease the live slot to one finish, atomically, so the expensive work (re-encode, final put)
+ * runs once at a time per slot. Null when the slot is missing, expired, another user's, or
+ * leased by a running finish (the caller peeks to tell which).
+ */
+export async function claimStaging(
   id: string,
   userId: ObjectId,
   now: Date,
 ): Promise<StagingDoc | null> {
-  return (await staging()).findOneAndDelete({ _id: id, userId, expiresAt: { $gt: now } });
+  return (await staging()).findOneAndUpdate(
+    {
+      _id: id,
+      userId,
+      expiresAt: { $gt: now },
+      $or: [{ claimedUntil: { $exists: false } }, { claimedUntil: { $lte: now } }],
+    },
+    { $set: { claimedUntil: new Date(now.getTime() + RX_CLAIM_LEASE_MS) } },
+    { returnDocument: "after" },
+  );
 }
 
-export async function insertRx(doc: RxDoc): Promise<void> {
-  await (await prescriptions()).insertOne(doc);
+/**
+ * Ends this claim's lease early (an abort or a retryable refusal), so a retry can claim the slot
+ * at once. Fenced to `claimedUntil`, the value this claim wrote: a call that overran its lease
+ * cannot end the lease of the finish that claimed the slot after it.
+ */
+export async function releaseStaging(
+  id: string,
+  userId: ObjectId,
+  claimedUntil: Date,
+): Promise<void> {
+  await (
+    await staging()
+  ).updateOne({ _id: id, userId, claimedUntil }, { $unset: { claimedUntil: "" } });
+}
+
+/** A refusal is final: delete the slot, but only while this claim still holds it (fenced like release). */
+export async function consumeStaging(
+  id: string,
+  userId: ObjectId,
+  claimedUntil: Date,
+): Promise<void> {
+  await (await staging()).deleteOne({ _id: id, userId, claimedUntil });
+}
+
+/** Single use: deletes and returns the live slot, atomically (inside `session`'s transaction if given). */
+export async function takeStaging(
+  id: string,
+  userId: ObjectId,
+  now: Date,
+  session?: ClientSession,
+): Promise<StagingDoc | null> {
+  return (await staging()).findOneAndDelete(
+    { _id: id, userId, expiresAt: { $gt: now } },
+    { session },
+  );
+}
+
+export async function insertRx(doc: RxDoc, session?: ClientSession): Promise<void> {
+  await (await prescriptions()).insertOne(doc, { session });
 }
 
 /** The user's prescriptions, newest first. */

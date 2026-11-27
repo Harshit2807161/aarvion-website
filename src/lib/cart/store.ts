@@ -1,6 +1,7 @@
 import { capLines, type CartLine } from "@/server/cart/rules";
 import type { CartView } from "@/server/cart/service";
-import * as api from "./api";
+import type { createQuoter } from "./guest-quote";
+import type { Host, UserMode } from "./user-mode";
 import {
   CART_GUEST_STORAGE_KEY,
   CART_UI_STORAGE_KEY,
@@ -12,11 +13,6 @@ import {
 
 /** What the server (and the first hydration render) sees: an empty cart. Frozen and shared. */
 const SERVER_LINES: CartLines = Object.freeze({});
-/** Guest changes re-quote after this much quiet. Longer than a tap burst, so one product's 1 to 10 is one request, not nine (the quote route allows 60 a minute per IP bucket). */
-const QUOTE_DEBOUNCE_MS = 400;
-/** After a failed quote (offline, rate limited) it tries again after each of these waits, then waits for the next change. */
-const QUOTE_RETRY_MS = [1000, 3000, 8000];
-
 export type CartMode = "unknown" | "guest" | "user";
 
 /** Something the shopper should be told; `CartSync` speaks it through the page's live region. */
@@ -70,14 +66,12 @@ function writeGuest(lines: CartLines): void {
 let cache: CartLines | null = null;
 let view: CartView | null = null;
 let viewStale = false; // the view prices an older set of lines than the snapshot holds
-let quoteTimer: ReturnType<typeof setTimeout> | undefined;
-let quoteSeq = 0;
-let retries = 0;
+let quoteSeq = 0; // bumped on every cart change: a quote reply for an older generation is ignored
+let quoter: ReturnType<typeof createQuoter> | null = null; // loaded on demand, see guest-quote.ts
+let loadingQuoter: Promise<ReturnType<typeof createQuoter>> | null = null;
 let mode: CartMode = "unknown";
-let serverLines: CartLines = toRecord([]); // the last lines the server confirmed (user mode)
-let pending = 0; // user-mode requests queued or in flight, never below 0
-let epoch = 0; // bumped when the queue is abandoned (a 401, a reset): replies from an older epoch are ignored
-let chain: Promise<void> = Promise.resolve();
+let user: UserMode | null = null; // the signed-in half, loaded on demand (user-mode.ts)
+let loadingUser: Promise<UserMode> | null = null;
 let signInPromise: Promise<{ trimmed: boolean; removed: string[] }> | null = null;
 let signingIn = false;
 let duringSignIn: CartAction[] = []; // changes made while a sign-in request is in flight, re-applied after it
@@ -95,107 +89,89 @@ function dropRetired(slugs: readonly string[]): void {
   emit({ kind: "removed", slugs: [...gone] });
 }
 
+/** Loads the quoting half once. A failed load (offline) is retried by the next change. */
+function loadQuoter(): Promise<ReturnType<typeof createQuoter>> {
+  return (loadingQuoter ??= import("./guest-quote").then(
+    (m) =>
+      (quoter = m.createQuoter({
+        generation: () => quoteSeq,
+        lines: () => cartStore.getSnapshot(),
+        accept(v) {
+          view = v;
+          viewStale = false;
+          if (v.removed.length > 0) dropRetired(v.removed);
+        },
+        notify,
+      })),
+    (err) => {
+      loadingQuoter = null;
+      throw err;
+    },
+  ));
+}
+
 /**
- * Price the current lines after a quiet moment. Nothing is written server side. A failed quote
- * keeps the last good view, marks it stale and retries with backoff, so a rate limit or a bad
- * connection never leaves totals that look current but are not.
+ * Price the current lines after a quiet moment (`guest-quote.ts`). Nothing is written server side.
+ * A failed quote keeps the last good view, marks it stale and retries with backoff, so a rate limit
+ * or a bad connection never leaves totals that look current but are not. Every cart change
+ * supersedes any quote in flight, whether or not it sends another one: a reply for older lines
+ * must never clear `stale` or replace the view of newer ones. An empty cart needs no quote, and
+ * the quoting code is not even loaded for it.
  */
 function scheduleQuote(): void {
-  clearTimeout(quoteTimer);
-  retries = 0;
-  const lines = cartStore.getSnapshot();
-  if (Object.keys(lines).length === 0) {
+  const mine = ++quoteSeq;
+  quoter?.cancel();
+  if (Object.keys(cartStore.getSnapshot()).length === 0) {
     view = null;
     viewStale = false;
     return;
   }
   viewStale = true;
-  const run = async () => {
-    const seq = ++quoteSeq;
-    const res = await api.quoteCart(toArray(lines));
-    if (seq !== quoteSeq) return; // a newer change superseded this request
-    if (res.ok) {
-      view = res.view;
-      viewStale = false;
-      if (res.view.removed.length > 0) dropRetired(res.view.removed);
-    } else if (retries < QUOTE_RETRY_MS.length) {
-      quoteTimer = setTimeout(run, QUOTE_RETRY_MS[retries++]);
-    }
-    notify();
-  };
-  quoteTimer = setTimeout(run, QUOTE_DEBOUNCE_MS);
-}
-
-function adopt(v: CartView): void {
-  serverLines = toRecord(v.lines.map((l) => ({ slug: l.slug, qty: l.qty })));
-  view = v;
-  viewStale = false;
-}
-
-/**
- * User mode: one request at a time, in order. Never rejects (the api functions never throw, and a
- * listener that throws must not wedge the queue for the rest of the page's life).
- */
-function enqueue(send: () => Promise<api.CartApiResult>): void {
-  pending++;
-  const mine = epoch;
-  chain = chain
-    .then(async () => {
-      if (mine !== epoch) return; // the queue was abandoned (a 401): this change is moot
-      const res = await send();
-      if (mine !== epoch) return;
-      pending = Math.max(0, pending - 1);
-      settle(res);
-    })
+  loadQuoter()
+    .then((q) => mine === quoteSeq && q.schedule(mine))
     .catch(() => {});
 }
 
-function settle(res: api.CartApiResult): void {
-  if (res.ok) {
-    adopt(res.view);
-    if (pending === 0) cache = serverLines; // an older reply must not undo a newer optimistic tap
-    if (res.view.removed.length > 0) emit({ kind: "removed", slugs: res.view.removed });
-    notify();
-    return;
-  }
-  if (res.error === "unauthenticated") return cartStore.toGuest();
-  if (res.view) adopt(res.view);
-  cache = serverLines; // a refusal or a lost request puts the lines back as the server has them
-  notify();
-  if (res.error === "network" || res.error === "rate_limited") emit({ kind: "sync_failed" });
-  else emit({ kind: "refused", error: res.error });
-}
+/** What the lazily loaded user mode may change here. */
+const host: Host = {
+  setLines(lines) {
+    cache = lines;
+  },
+  setMode(m) {
+    mode = m;
+  },
+  setView(v) {
+    view = v;
+    viewStale = false;
+  },
+  notify,
+  emit,
+  clearGuest,
+  stopQuoting() {
+    quoter?.cancel();
+    quoteSeq++;
+  },
+  beginSignIn() {
+    signingIn = true;
+    duringSignIn = [];
+  },
+  endSignIn() {
+    signingIn = false;
+    const taps = duringSignIn;
+    duringSignIn = [];
+    return taps;
+  },
+};
 
-async function doSignIn(): Promise<{ trimmed: boolean; removed: string[] }> {
-  const none = { trimmed: false, removed: [] as string[] };
-  // Signed in already with changes on their way: their replies bring the server's lines.
-  if (mode === "user" && pending > 0) return none;
-  const guest = mode === "user" ? [] : toArray(cartStore.getSnapshot());
-  signingIn = true;
-  duringSignIn = [];
-  const res = guest.length > 0 ? await api.mergeCart(guest) : await api.getCart();
-  signingIn = false;
-  const replay = duringSignIn;
-  duringSignIn = [];
-  if (!res.ok) {
-    if (res.error === "unauthenticated") {
-      if (mode === "user") cartStore.toGuest();
-    } else emit({ kind: "sync_failed" });
-    return none;
-  }
-  clearTimeout(quoteTimer);
-  quoteSeq++;
-  adopt(res.view);
-  mode = "user";
-  cache = serverLines;
-  clearGuest(); // only now: a failed merge keeps the guest cart for the next try
-  notify();
-  for (const action of replay) cartStore.dispatch(action); // a tap made while signing in is not lost
-  const removed = res.view.removed;
-  const trimmed = res.view.trimmed === true;
-  if (removed.length > 0) emit({ kind: "removed", slugs: removed });
-  if (trimmed) emit({ kind: "trimmed" });
-  return { trimmed, removed };
+/** Loads the signed-in half once. A failed load (offline) is retried by the next call. */
+function loadUser(): Promise<UserMode> {
+  return (loadingUser ??= import("./user-mode").then(
+    (m) => (user = m.createUserMode(host)),
+    (err) => {
+      loadingUser = null;
+      throw err;
+    },
+  ));
 }
 
 export const cartStore = {
@@ -212,7 +188,7 @@ export const cartStore = {
   getMode(): CartMode {
     return mode;
   },
-  /** The last priced view (the server's when signed in, else a quote of the guest lines), or null before one exists. Check `isViewStale()` before showing totals as current. */
+  /** The last priced view (a quote of the guest lines), or null before one exists. Check `isViewStale()` before showing totals as current. */
   getView(): CartView | null {
     return view;
   },
@@ -230,12 +206,8 @@ export const cartStore = {
     const { lines, blocked } = applyCart(current, action);
     if (lines === current) return blocked;
     cache = lines;
-    if (mode === "user") {
-      // Absolute quantities, so a request that timed out and is repeated cannot add a pack twice.
-      const next = lines[action.slug] ?? 0;
-      enqueue(() =>
-        action.type === "remove" ? api.removeItem(action.slug) : api.setQty(action.slug, next),
-      );
+    if (mode === "user" && user) {
+      user.send(action, lines[action.slug] ?? 0);
     } else {
       if (signingIn) duringSignIn.push(action);
       writeGuest(lines);
@@ -267,9 +239,17 @@ export const cartStore = {
    * Resolves with what the shopper should be told (it also emits `removed` and `trimmed` issues).
    */
   signIn(): Promise<{ trimmed: boolean; removed: string[] }> {
-    return (signInPromise ??= doSignIn().finally(() => {
-      signInPromise = null;
-    }));
+    // The chunk loads here, when someone is (or may be) signed in. A tap made while it loads is an
+    // ordinary guest change: the merge below starts from the cart as it is when the chunk is ready.
+    return (signInPromise ??= loadUser()
+      .then((u) => u.signIn())
+      .catch(() => {
+        emit({ kind: "sync_failed" });
+        return { trimmed: false, removed: [] as string[] };
+      })
+      .finally(() => {
+        signInPromise = null;
+      }));
   },
   /**
    * Guest mode. With no argument this is the signed-out fall-back (a 401 on a user request): the
@@ -280,9 +260,7 @@ export const cartStore = {
   toGuest(keepLines = false): void {
     if (keepLines && mode === "user") return;
     mode = "guest";
-    epoch++;
-    pending = 0;
-    serverLines = toRecord([]);
+    user?.abandon();
     cache = keepLines ? (cache ?? readGuest()) : toRecord([]);
     if (!keepLines) writeGuest(cache);
     view = null;
@@ -298,23 +276,24 @@ export const cartStore = {
       // Nothing to forget.
     }
   },
-  /** TEST ONLY: forget every cached value so the next read goes back to sessionStorage. */
-  reset(): void {
-    clearTimeout(quoteTimer);
-    cache = null;
-    view = null;
-    viewStale = false;
-    retries = 0;
-    quoteSeq++;
-    mode = "unknown";
-    serverLines = toRecord([]);
-    epoch++;
-    pending = 0;
-    chain = Promise.resolve();
-    signInPromise = null;
-    signingIn = false;
-    duringSignIn = [];
-    listeners.clear();
-    issueListeners.clear();
-  },
 };
+
+/** TEST ONLY: forgets every cached value so the next read goes back to sessionStorage. It is a standalone export, not a store method, so the production build drops it. */
+export function resetCartStore(): void {
+  quoter?.cancel();
+  quoter = null;
+  loadingQuoter = null;
+  cache = null;
+  view = null;
+  viewStale = false;
+  quoteSeq++;
+  mode = "unknown";
+  user?.abandon();
+  user = null;
+  loadingUser = null;
+  signInPromise = null;
+  signingIn = false;
+  duringSignIn = [];
+  listeners.clear();
+  issueListeners.clear();
+}

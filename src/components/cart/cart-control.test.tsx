@@ -4,7 +4,7 @@ import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveRegion } from "@/components/feedback/live-region";
-import { cartStore } from "@/lib/cart/store";
+import { cartStore, resetCartStore } from "@/lib/cart/store";
 import { CartControl } from "./cart-control";
 import { CartPill } from "./cart-pill";
 import { CartReconcile } from "./cart-reconcile";
@@ -36,7 +36,7 @@ const spoken = async () => {
 beforeEach(() => {
   vi.useFakeTimers();
   sessionStorage.clear();
-  cartStore.reset();
+  resetCartStore();
 });
 
 describe("CartControl", () => {

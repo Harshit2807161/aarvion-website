@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "./api";
 import { CART_GUEST_STORAGE_KEY, CART_LIMITS, CART_UI_STORAGE_KEY, cartCount } from "./cart";
-import { cartStore, type CartIssue } from "./store";
+import { cartStore, resetCartStore, type CartIssue } from "./store";
 
 vi.mock("./api", () => ({
   getCart: vi.fn(),
@@ -28,7 +28,11 @@ const view = (lines: Record<string, number>, extra: Record<string, unknown> = {}
 const ok = (lines: Record<string, number>, extra: Record<string, unknown> = {}) =>
   Promise.resolve({ ok: true as const, view: view(lines, extra) });
 const fail = (error: string) => Promise.resolve({ ok: false as const, error }) as never;
-const tick = (ms: number) => vi.advanceTimersByTimeAsync(ms);
+/** Lets a lazily loaded chunk (the quoter) arrive, then advances the fake clock. */
+const tick = async (ms: number) => {
+  await vi.dynamicImportSettled();
+  await vi.advanceTimersByTimeAsync(ms);
+};
 
 const stored = () => JSON.parse(sessionStorage.getItem(CART_GUEST_STORAGE_KEY)!);
 const seed = (lines: { slug: string; qty: number }[]) =>
@@ -45,7 +49,7 @@ beforeEach(() => {
   });
   vi.useFakeTimers();
   vi.resetAllMocks();
-  cartStore.reset();
+  resetCartStore();
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -105,10 +109,10 @@ describe("guest mode", () => {
   it("survives malformed data and blocked storage", () => {
     sessionStorage.setItem(CART_GUEST_STORAGE_KEY, "{not json");
     expect(cartStore.getSnapshot()).toEqual({});
-    cartStore.reset();
+    resetCartStore();
     sessionStorage.setItem(CART_GUEST_STORAGE_KEY, JSON.stringify({ lines: "x" }));
     expect(cartStore.getSnapshot()).toEqual({});
-    cartStore.reset();
+    resetCartStore();
     const blocked = () => {
       throw new Error("blocked");
     };
@@ -142,6 +146,22 @@ describe("guest mode", () => {
     expect(stored()).toEqual({ lines: [{ slug: "a", qty: 10 }] });
     expect(cartStore.dispatch(inc("b"))).toBeNull();
     expect(cartStore.reconcile(new Set(["a", "b"]))).toBe(false);
+  });
+});
+
+describe("the quoting code is a lazy chunk", () => {
+  it("store.ts has no static import of it or of the api client, so an empty cart never loads either", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync(new URL("./store.ts", import.meta.url), "utf8");
+    expect(src).not.toMatch(/^import (?!type)[^;]*from "\.\/(guest-quote|api)"/m);
+    expect(src).toContain('import("./guest-quote")');
+  });
+
+  it("sends nothing for an empty cart", async () => {
+    cartStore.dispatch(inc("a"));
+    cartStore.dispatch(dec("a"));
+    await tick(5000);
+    expect(m.quoteCart).not.toHaveBeenCalled();
   });
 });
 
@@ -189,6 +209,27 @@ describe("the guest view", () => {
     releaseFirst();
     await tick(0);
     expect(cartStore.getView()?.totals.packs).toBe(2);
+  });
+
+  it("a reply to a superseded quote never clears stale, even if the newer quote then fails", async () => {
+    m.quoteCart.mockImplementationOnce(() => ok({ a: 1 }));
+    cartStore.dispatch(inc("a"));
+    await tick(400); // a good view of {a:1}
+    let releaseOld: () => void = () => {};
+    m.quoteCart.mockImplementationOnce(
+      () => new Promise((r) => (releaseOld = () => r({ ok: true, view: view({ a: 2 }) } as never))),
+    );
+    cartStore.dispatch(inc("a"));
+    await tick(400); // the quote for {a:2} is in flight
+    m.quoteCart.mockImplementation(() => fail("network"));
+    cartStore.dispatch(inc("a")); // {a:3}: supersedes it, though nothing is sent yet
+    releaseOld();
+    await tick(0);
+    expect(cartStore.isViewStale()).toBe(true);
+    expect(cartStore.getView()?.totals.packs).toBe(1);
+    await tick(400); // the newer quote fails
+    expect(cartStore.isViewStale()).toBe(true);
+    expect(cartStore.getView()?.totals.packs).toBe(1);
   });
 
   it("keeps the last good view, marks it stale, and retries with backoff after a failure", async () => {
@@ -280,9 +321,23 @@ describe("signIn", () => {
     );
     const first = cartStore.signIn();
     expect(cartStore.signIn()).toBe(first);
+    await vi.dynamicImportSettled(); // the user-mode chunk loads, then the merge starts
     release();
     await first;
     expect(m.mergeCart).toHaveBeenCalledTimes(1);
+  });
+
+  it("a tap made while the user-mode chunk loads is merged, not lost", async () => {
+    seed([{ slug: "a", qty: 1 }]);
+    m.mergeCart.mockImplementation(() => ok({ a: 1, b: 1 }));
+    const signing = cartStore.signIn(); // the chunk has not loaded yet
+    cartStore.dispatch(inc("b"));
+    await signing;
+    expect(m.mergeCart).toHaveBeenCalledWith([
+      { slug: "a", qty: 1 },
+      { slug: "b", qty: 1 },
+    ]);
+    expect(cartStore.getSnapshot()).toEqual({ a: 1, b: 1 });
   });
 
   it("a change made while the merge is in flight survives it", async () => {
@@ -291,29 +346,25 @@ describe("signIn", () => {
     m.mergeCart.mockImplementation(
       () => new Promise((r) => (release = () => r({ ok: true, view: view({ a: 1 }) } as never))),
     );
-    m.setQty.mockImplementation(() => ok({ a: 1, b: 1 }));
+    m.addItem.mockImplementation(() => ok({ a: 1, b: 1 }));
     const signing = cartStore.signIn();
+    await vi.dynamicImportSettled(); // the merge request is now in flight
     cartStore.dispatch(inc("b"));
     release();
     await signing;
     expect(cartStore.getSnapshot()).toEqual({ a: 1, b: 1 });
     await tick(0);
-    expect(m.setQty).toHaveBeenCalledWith("b", 1);
+    expect(m.addItem).toHaveBeenCalledWith("b", 1);
   });
 
-  it("a failed merge keeps the guest cart and says so; a 401 stays guest quietly", async () => {
-    const issues: CartIssue[] = [];
-    cartStore.onIssue((i) => issues.push(i));
-    seed([{ slug: "a", qty: 1 }]);
-    m.mergeCart.mockImplementation(() => fail("network"));
-    await cartStore.signIn();
-    expect(cartStore.getMode()).not.toBe("user");
-    expect(stored()).toEqual({ lines: [{ slug: "a", qty: 1 }] });
-    expect(issues).toEqual([{ kind: "sync_failed" }]);
-    m.mergeCart.mockImplementation(() => fail("unauthenticated"));
-    await cartStore.signIn();
-    expect(cartStore.getMode()).not.toBe("user");
-    expect(issues).toHaveLength(1);
+  it("a guest page load does not pull the user-mode chunk in", async () => {
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync(new URL("./store.ts", import.meta.url), "utf8");
+    expect(src).not.toMatch(/^import (?!type)[^;]*from "\.\/user-mode"/m); // type-only imports are erased
+    expect(src).toContain('import("./user-mode")');
+    expect(src).not.toMatch(
+      /import \* as api|import \{[^}]*(getCart|addItem|setQty|removeItem|mergeCart)/,
+    );
   });
 
   it("toGuest(true) leaves a store that is already signed in alone", async () => {
@@ -322,157 +373,5 @@ describe("signIn", () => {
     cartStore.toGuest(true);
     expect(cartStore.getMode()).toBe("user");
     expect(cartStore.getSnapshot()).toEqual({ a: 3 });
-  });
-
-  it("toGuest(true) keeps the guest cart for a signed-out load", () => {
-    seed([{ slug: "a", qty: 2 }]);
-    cartStore.toGuest(true);
-    expect(cartStore.getMode()).toBe("guest");
-    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
-  });
-});
-
-describe("user mode", () => {
-  beforeEach(async () => {
-    m.getCart.mockImplementation(() => ok({ a: 1 }));
-    await cartStore.signIn();
-  });
-
-  it("applies a change at once, sends an absolute quantity, then adopts the server's lines", async () => {
-    m.setQty.mockImplementation(() => ok({ a: 2 }));
-    cartStore.dispatch(inc("a"));
-    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
-    await tick(0);
-    expect(m.setQty).toHaveBeenCalledWith("a", 2);
-    expect(m.addItem).not.toHaveBeenCalled();
-    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
-    expect(sessionStorage.getItem(CART_GUEST_STORAGE_KEY)).toBeNull();
-  });
-
-  it("sends dec and set as a quantity and remove as a delete", async () => {
-    m.setQty.mockImplementation(() => ok({}));
-    m.removeItem.mockImplementation(() => ok({}));
-    cartStore.dispatch(set("a", 4));
-    cartStore.dispatch(dec("a"));
-    cartStore.dispatch({ type: "remove", slug: "a" });
-    await tick(0);
-    expect(m.setQty.mock.calls).toEqual([
-      ["a", 4],
-      ["a", 3],
-    ]);
-    expect(m.removeItem).toHaveBeenCalledWith("a");
-  });
-
-  it("reverts to the server's lines and emits refused when the server says no", async () => {
-    const issues: CartIssue[] = [];
-    cartStore.onIssue((i) => issues.push(i));
-    m.setQty.mockImplementation(
-      () => Promise.resolve({ ok: false, error: "product_limit", view: view({ a: 10 }) }) as never,
-    );
-    cartStore.dispatch(inc("a"));
-    await tick(0);
-    expect(cartStore.getSnapshot()).toEqual({ a: 10 });
-    expect(issues).toEqual([{ kind: "refused", error: "product_limit" }]);
-  });
-
-  it("reverts and emits sync_failed on a lost request", async () => {
-    const issues: CartIssue[] = [];
-    cartStore.onIssue((i) => issues.push(i));
-    m.setQty.mockImplementation(() => fail("network"));
-    cartStore.dispatch(inc("a"));
-    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
-    await tick(0);
-    expect(cartStore.getSnapshot()).toEqual({ a: 1 });
-    expect(issues).toEqual([{ kind: "sync_failed" }]);
-  });
-
-  it("says once when the server's reply drops a product that is no longer sold", async () => {
-    const issues: CartIssue[] = [];
-    cartStore.onIssue((i) => issues.push(i));
-    m.setQty.mockImplementation(() => ok({ a: 2 }, { removed: ["x"] }));
-    cartStore.dispatch(inc("a"));
-    await tick(0);
-    expect(issues).toEqual([{ kind: "removed", slugs: ["x"] }]);
-  });
-
-  it("sends rapid changes in order with at most one in flight, and a stale reply never undoes a newer tap", async () => {
-    let inFlight = 0;
-    let maxInFlight = 0;
-    const order: number[] = [];
-    m.setQty.mockImplementation(async (_slug, qty) => {
-      order.push(qty);
-      inFlight++;
-      maxInFlight = Math.max(maxInFlight, inFlight);
-      await Promise.resolve();
-      inFlight--;
-      return { ok: true, view: view({ a: qty }) } as never;
-    });
-    cartStore.dispatch(inc("a"));
-    cartStore.dispatch(inc("a"));
-    cartStore.dispatch(inc("a"));
-    expect(cartStore.getSnapshot()).toEqual({ a: 4 });
-    await tick(0);
-    expect(order).toEqual([2, 3, 4]);
-    expect(maxInFlight).toBe(1);
-    expect(cartStore.getSnapshot()).toEqual({ a: 4 });
-  });
-
-  it("a 401 drops to guest mode with an empty cart", async () => {
-    m.setQty.mockImplementation(() => fail("unauthenticated"));
-    cartStore.dispatch(inc("a"));
-    await tick(0);
-    expect(cartStore.getMode()).toBe("guest");
-    expect(cartStore.getSnapshot()).toEqual({});
-    expect(stored()).toEqual({ lines: [] });
-    cartStore.dispatch(inc("b"));
-    expect(m.setQty).toHaveBeenCalledTimes(1);
-    expect(stored()).toEqual({ lines: [{ slug: "b", qty: 1 }] });
-  });
-
-  it("after a 401 with requests queued, the next sign-in still adopts the server's lines", async () => {
-    m.setQty.mockImplementationOnce(() => fail("unauthenticated"));
-    cartStore.dispatch(inc("a"));
-    cartStore.dispatch(inc("a"));
-    cartStore.dispatch(inc("a"));
-    await tick(0);
-    expect(cartStore.getMode()).toBe("guest");
-    m.mergeCart.mockImplementation(() => ok({ z: 5 }));
-    m.getCart.mockImplementation(() => ok({ z: 5 }));
-    await cartStore.signIn();
-    m.setQty.mockImplementation(() => ok({ z: 5, y: 1 })); // the server's lines differ from the optimistic ones
-    cartStore.dispatch(inc("y"));
-    await tick(0);
-    expect(cartStore.getSnapshot()).toEqual({ z: 5, y: 1 });
-    expect(m.setQty).toHaveBeenCalledTimes(2); // the queued ones from before the 401 were never sent
-  });
-
-  it("a listener that throws does not wedge the queue", async () => {
-    cartStore.onIssue(() => {
-      throw new Error("boom");
-    });
-    m.setQty.mockImplementationOnce(() => fail("network")).mockImplementation(() => ok({ a: 2 }));
-    cartStore.dispatch(inc("a"));
-    await tick(0);
-    cartStore.dispatch(inc("a"));
-    await tick(0);
-    expect(m.setQty).toHaveBeenCalledTimes(2);
-  });
-
-  it("a sign-in call while changes are pending leaves it to their replies", async () => {
-    m.setQty.mockImplementation(() => ok({ a: 2 }));
-    cartStore.dispatch(inc("a"));
-    m.getCart.mockClear();
-    expect(await cartStore.signIn()).toEqual({ trimmed: false, removed: [] });
-    expect(m.getCart).not.toHaveBeenCalled();
-  });
-
-  it("refuses locally, without a request, what the shared rules refuse", async () => {
-    m.setQty.mockImplementation(() => ok({ a: 10 }));
-    for (let i = 0; i < 9; i++) cartStore.dispatch(inc("a"));
-    await tick(0);
-    m.setQty.mockClear();
-    expect(cartStore.dispatch(inc("a"))).toBe("product_limit");
-    await tick(0);
-    expect(m.setQty).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -13,6 +12,7 @@ import { ensureIndexes } from "@/server/db/indexes";
 import "@/server/db/register-all";
 import type { ImageManifest } from "../../scripts/sync-product-images";
 import { startMemoryReplSet, stopMemoryReplSet } from "../helpers/mongo";
+import { runPnpm } from "../helpers/run-script";
 
 let uri: string;
 beforeAll(async () => {
@@ -84,32 +84,28 @@ describe("seedCatalogue", () => {
 });
 
 function runSeed(env: Record<string, string>) {
-  return spawnSync("pnpm", ["seed"], {
-    cwd: process.cwd(),
-    encoding: "utf8",
-    env: { ...process.env, MONGODB_URI: uri, ...env },
-  });
+  return runPnpm(["seed"], { ...process.env, MONGODB_URI: uri, ...env });
 }
 
 describe("pnpm seed", () => {
-  it("seeds, and is idempotent on a second run", () => {
+  it("seeds, and is idempotent on a second run", async () => {
     const env = { MONGODB_DB: "seed_script_test" };
-    const first = runSeed(env);
+    const first = await runSeed(env);
     expect(first.status, first.stderr).toBe(0);
     expect(first.stdout).toContain("products: 11 inserted");
-    const second = runSeed(env);
+    const second = await runSeed(env);
     expect(second.status, second.stderr).toBe(0);
     expect(second.stdout).toContain("products: 0 inserted, 11 existing");
   });
 
-  it("exits 1 and names the slug when the manifest lacks a product", () => {
+  it("exits 1 and names the slug when the manifest lacks a product", async () => {
     const dir = mkdtempSync(join(tmpdir(), "seed-data-"));
     cpSync("data", dir, { recursive: true });
     const file = join(dir, "product-images.json");
     const m = JSON.parse(readFileSync(file, "utf8"));
     delete m["hyloage"];
     writeFileSync(file, JSON.stringify(m));
-    const r = runSeed({ MONGODB_DB: "seed_script_missing", SEED_DATA_DIR: dir });
+    const r = await runSeed({ MONGODB_DB: "seed_script_missing", SEED_DATA_DIR: dir });
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("hyloage");
   });
