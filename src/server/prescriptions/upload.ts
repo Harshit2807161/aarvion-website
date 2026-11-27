@@ -9,6 +9,7 @@ import { hitRateLimit } from "../security/rate-limit.ts";
 import { checkRxFile, RX_MAX_BYTES, type CheckedRxFile, type RxFileError } from "./file-check.ts";
 import {
   claimStaging,
+  consumeStaging,
   createStaging,
   getRxForUser,
   insertRx,
@@ -124,11 +125,12 @@ export async function finishRxUpload(i: {
     const live = await peekStaging(body.stagingId, i.userId, i.now);
     return { ok: false, error: live ? "busy" : "upload_expired" };
   }
+  const release = () => releaseStaging(body.stagingId, i.userId, slot.claimedUntil!);
   const refuse = async (
     error: "too_large" | "file_missing" | RxFileError,
   ): Promise<FinishResult> => {
     await dropQuietly(slot.key);
-    await takeStaging(body.stagingId, i.userId, i.now);
+    await consumeStaging(body.stagingId, i.userId, slot.claimedUntil!);
     return { ok: false, error };
   };
 
@@ -137,7 +139,7 @@ export async function finishRxUpload(i: {
     staged = await files.get(slot.key, { maxBytes: RX_MAX_BYTES });
   } catch (e) {
     if (!(e instanceof FileTooLargeError)) {
-      await releaseStaging(body.stagingId, i.userId);
+      await release();
       throw e;
     }
     return refuse("too_large");
@@ -147,7 +149,7 @@ export async function finishRxUpload(i: {
   const checked = await checkRxFile(staged.body);
   if (!checked.ok) {
     if (checked.error !== "busy") return refuse(checked.error);
-    await releaseStaging(body.stagingId, i.userId);
+    await release();
     return checked;
   }
   const file = checked.file;
@@ -157,7 +159,7 @@ export async function finishRxUpload(i: {
   try {
     await putFinal(key, file);
   } catch (e) {
-    await releaseStaging(body.stagingId, i.userId);
+    await release();
     throw e;
   }
   const doc: RxDoc = {
@@ -217,7 +219,7 @@ export async function finishRxUpload(i: {
       taken = true;
     } else {
       await dropQuietly(key);
-      await releaseStaging(body.stagingId, i.userId).catch(() => {});
+      await release().catch(() => {});
       throw e;
     }
   } finally {
