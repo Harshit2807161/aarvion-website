@@ -157,6 +157,9 @@ React components, added task by task. The folders below exist today:
   - `Gallery` (JS-free scroll-snap track with 64px thumbnail anchors; the first photo is the LCP, eager with `fetchPriority="high"`, never preloaded [C24]; Win2Age caption when `imageSource` is `win2age`)
   - `ProductFacts` (server-safe `dl.product-facts`: the Legal Metrology declarations in fixed order, ending with customer care from `SITE_CONFIG.customerCare`; an unknown fact is `Pending`)
   - `VariantSwitcher` (`nav[aria-label="Strengths"]` of real links to `ROUTES.product(slug)` in `compareVariants` order, `aria-current="page"` on the current strength, nothing for a family of one; no script and no live region; CSS in `src/styles/product-facts.css`)
+- `rx/`: the prescription upload pieces (lazy surfaces only, never first-load code):
+  - `prepare-file.ts`: `prepareRxFile(file)` (type by MIME or extension; a photo over 1.5 MiB or 2560 px, or any HEIC, is redrawn as a JPEG at most 2560 px at quality 0.85; a PDF goes as is; over 8 MiB is refused with the prototype's wording); a convenience, the server decides
+  - `rx-copy.ts`: `RX_COPY` (prototype wording; entries marked NEW await owner approval) and `fileSize()`
 - `search/`: the header search, mounted by `withStoreChrome` in the `StoreHeader` `search` slot on every customer page (404s included):
   - `HeaderSearch` (client; the `form.search` with `input#q`, the strength chips and the panel; `STRENGTH_CHIP_FAMILY` and `strengthChips` in `strength-chips.ts` give the chips from the family's variants, none if it is gone; Escape on a chip closes the panel and refocuses `#q`; focus opens it, pointer and mouse down on the chips are prevented so a press does not blur the input, `focusout` outside the form closes it, submit and Enter choose the first or active result; on `/` a result whose `#p-<slug>` pocket exists is scrolled into view, marked `is-found` and its Add or + is focused, anywhere else it goes to `/product/<slug>`; the count is announced through `announce()`, a 429 shows "Too many searches" and is never retried; Escape closes the list, then clears the field, and stops bubbling to ancestor handlers while it does either (a Radix dialog listens in the capture phase and is not protected; one mounting this search would need its own guard); a `[data-search]` click anywhere focuses `#q`; without JS it is a GET form to `/#medicines`), and its parts:
   - `highlight` (pure, no RegExp)
@@ -243,6 +246,7 @@ ported prototype CSS imported by `globals.css`.
 - `prose.test.ts`
 - `quick-trust.css`: the home quick-action cards and trust strip, `.quick`, `.qa*`, `.trust*`, and the `.home` 1280 width token
 - `rails.css`: the home product rails, `.meds`, `.rail*` (strip, row, aside, the `[data-rail-controls]` slot, the arrow and "View all" rules, the `.is-open` / `.is-grid` sheet) and the phone scroll-snap row (`--pw` at least 164px)
+- `rx.css`: the prescription upload and list, `.drop*`, `.file*`, `.rxc`, `.rx-doc`, `.tab-head*`, `.rx-list`, `.rx-item`, `.rx-title`, `.rx-meta`, `.rx-why` (flows.css 621 to 651 without `.opt*`, 727 to 729, 743 to 752 and `.file-info` from 784)
 - `section-token.test.ts` (compiled CSS has no `.h-section` height)
 - `shell.css`: the Operate shell, `.band*` and `.work*`
 - `shell.test.ts`
