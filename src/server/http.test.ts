@@ -4,7 +4,7 @@ import { makeDynamicHangingPromise } from "next/dist/server/dynamic-rendering-ut
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { EnvError } from "./env";
-import { HttpError, jsonResponse, readJson, withErrors } from "./http";
+import { HttpError, jsonResponse, readCappedBytes, readJson, withErrors } from "./http";
 import { jsonPost } from "../../tests/helpers/http";
 
 const Body = z.object({ a: z.string() });
@@ -108,6 +108,24 @@ describe("readJson", () => {
   it("400 invalid_request for a schema mismatch", async () => {
     const e = await thrown(readJson(jsonPost("/x", { a: 1 }), Body));
     expect([e.status, e.code]).toEqual([400, "invalid_request"]);
+  });
+});
+
+describe("readCappedBytes", () => {
+  const put = (body: BodyInit | null, headers: Record<string, string> = {}) =>
+    new Request("http://localhost/x", { method: "PUT", body, headers });
+
+  it("returns the exact bytes, and an empty array for no body", async () => {
+    expect(await readCappedBytes(put(new Uint8Array([1, 2, 3])), 3)).toEqual(
+      new Uint8Array([1, 2, 3]),
+    );
+    expect((await readCappedBytes(put(null), 3)).byteLength).toBe(0);
+  });
+
+  it("refuses one byte over the cap, by stream and by declared length", async () => {
+    expect((await thrown(readCappedBytes(put(new Uint8Array(4)), 3))).status).toBe(413);
+    const declared = put(new Uint8Array(1), { "content-length": "4" });
+    expect((await thrown(readCappedBytes(declared, 3))).code).toBe("payload_too_large");
   });
 });
 

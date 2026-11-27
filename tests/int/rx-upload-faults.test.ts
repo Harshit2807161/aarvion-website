@@ -4,6 +4,7 @@ import { getDb } from "@/server/db/client";
 import { getDeps } from "@/server/deps";
 import {
   claimStaging,
+  consumeStaging,
   listRxForUser,
   peekStaging,
   PRESCRIPTIONS_COLLECTION,
@@ -137,6 +138,17 @@ describe("the slot lease", () => {
     expect(await claimStaging(started.stagingId, userId, at(31_001))).toBeNull();
     await releaseStaging(started.stagingId, userId, b!.claimedUntil!);
     expect(await claimStaging(started.stagingId, userId, at(31_002))).not.toBeNull();
+  });
+
+  it("is fenced: a refusal from an overrun claim cannot consume the newer claim's slot", async () => {
+    const userId = uid();
+    const started = await stage(userId, await jpegWithExif());
+    const a = await claimStaging(started.stagingId, userId, NOW);
+    const b = await claimStaging(started.stagingId, userId, at(31_000));
+    await consumeStaging(started.stagingId, userId, a!.claimedUntil!);
+    expect(await peekStaging(started.stagingId, userId, at(31_000))).not.toBeNull();
+    await consumeStaging(started.stagingId, userId, b!.claimedUntil!);
+    expect(await peekStaging(started.stagingId, userId, at(31_000))).toBeNull();
   });
 
   it("an overrun finish loses cleanly: one record, its own final file deleted, the winner's kept", async () => {
