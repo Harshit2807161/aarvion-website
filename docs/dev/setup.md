@@ -62,7 +62,8 @@ add a row below, and a line to the CHANGELOG.
 | `SMS_PROVIDER` | `mock` or `msg91`; default `mock` | `msg91` is not implemented yet (N phase) and throws | `mock` |
 | `EMAIL_PROVIDER` | `mock` or `resend`; default `mock` | `resend` is not implemented yet (N phase) and throws | `mock` |
 | `PAYMENTS_PROVIDER` | `fake` or `razorpay`; default `fake` | `razorpay` is not implemented yet (O phase) and throws | `fake` |
-| `FILE_STORE` | `memory`, `local` or `blob`; default `memory` | `local` and `blob` are not implemented yet (R phase) and throw | `memory` |
+| `FILE_STORE` | `memory`, `local` or `blob`; default `memory` | `memory` for tests and e2e; `local` for `pnpm dev` when uploads should survive a restart; `blob` (not implemented yet, Task R3 part B) on every Vercel scope (memory and local are refused whenever `VERCEL_ENV` is set, and in production) | `memory` |
+| `FILE_STORE_LOCAL_DIR` | Folder for `FILE_STORE=local`; default `.data/files` (gitignored) | `pnpm dev` with `FILE_STORE=local` | `.data/files` |
 | `NODE_ENV` | Set by Next.js and Vitest | never set it by hand | |
 | `SEED_DATA_DIR` | `pnpm seed` reads its JSON from this directory instead of `data/` | tests only | |
 | `MONGOMS_DOWNLOAD_DIR` | Where mongodb-memory-server caches the mongod binary | the CI `int` job | `${{ runner.temp }}/mongodb-binaries` |

@@ -24,6 +24,13 @@ describe("env", () => {
     expect(getEnv().MONGODB_DB).toBe("aarvion");
   });
 
+  it("defaults FILE_STORE_LOCAL_DIR to .data/files", async () => {
+    vi.stubEnv("FILE_STORE_LOCAL_DIR", "");
+    const { getEnv, resetEnvForTests } = await import("./env");
+    resetEnvForTests();
+    expect(getEnv().FILE_STORE_LOCAL_DIR).toBe(".data/files");
+  });
+
   it("rejects an invalid VERCEL_ENV with the key named", async () => {
     vi.stubEnv("VERCEL_ENV", "staging");
     const { getEnv, resetEnvForTests, EnvError } = await import("./env");
