@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { ProductView } from "@/components/product/product-view";
 import {
   getCachedCategory,
@@ -18,19 +17,14 @@ export async function generateStaticParams() {
 }
 
 /**
- * /product/<slug>: an unknown, inactive or not-live slug shows the not-found page. `params` is read
- * inside Suspense: with Cache Components, a render at request time (a slug outside
- * generateStaticParams) that reads it in the page body is uncached data outside a boundary, a 500.
+ * Wait for the static result of a slug that was not prerendered, so `notFound()` runs before the
+ * response starts and the first hit is a real 404 (Cache Components otherwise streams the shell
+ * first and answers 200). It needs every read in the route tree to be cached.
  */
-export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  return (
-    <Suspense>
-      <Product params={params} />
-    </Suspense>
-  );
-}
+export const ensureStatic = "navigation";
 
-async function Product({ params }: { params: Promise<{ slug: string }> }) {
+/** /product/<slug>: an unknown, inactive or not-live slug is a 404. */
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const product = await getCachedProduct((await params).slug);
   if (!product) notFound();
   const [family, category, all] = await Promise.all([

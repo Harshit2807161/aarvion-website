@@ -24,8 +24,8 @@ export async function withStoreChrome(children: ReactNode): Promise<ReactNode> {
   const chips = strengthChips(await getCachedFamily(STRENGTH_CHIP_FAMILY));
   return (
     <>
-      {/* usePathname reads the URL: the skip link is suspended so a page rendered at request time stays valid */}
-      <Suspense>
+      {/* usePathname suspends for a slug that was not prerendered; the fallback is the same link */}
+      <Suspense fallback={<a className="skip" href="#main">Skip to content</a>}>
         <SkipLink />
       </Suspense>
       <AnnounceBar />
