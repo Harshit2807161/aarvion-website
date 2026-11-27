@@ -1,6 +1,6 @@
 import { Collection } from "mongodb";
 import { describe, expect, it, vi } from "vitest";
-import { GET as FILE } from "@/app/api/prescriptions/[id]/file/route";
+import { GET as FILE, HEAD } from "@/app/api/prescriptions/[id]/file/route";
 import { POST as FINALISE } from "@/app/api/prescriptions/route";
 import { USERS_COLLECTION } from "@/server/auth/users";
 import { getDb } from "@/server/db/client";
@@ -109,6 +109,23 @@ describe("GET /api/prescriptions/[id]/file", () => {
       expect(res.headers.get("content-type")).toBe("application/json");
       expect(await json(res)).toEqual({ error: "not_found" });
     }
+    expect(await views()).toEqual([]);
+  });
+
+  it("answers the same 404 when the record exists but its file is gone, with no audit row", async () => {
+    const { id, cookie } = await uploaded();
+    const rx = await (await getDb()).collection(PRESCRIPTIONS_COLLECTION).findOne({});
+    await getDeps().files.delete(rx!.file.key);
+    const res = await fileOf(id, cookie);
+    expect(res.status).toBe(404);
+    expect(await json(res)).toEqual({ error: "not_found" });
+    expect(await views()).toEqual([]);
+  });
+
+  it("refuses HEAD with 405, so no audit row is written without bytes", async () => {
+    const res = HEAD();
+    expect(res.status).toBe(405);
+    expect(res.headers.get("allow")).toBe("GET");
     expect(await views()).toEqual([]);
   });
 

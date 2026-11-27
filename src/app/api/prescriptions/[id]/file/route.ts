@@ -52,3 +52,14 @@ export const GET = withErrors(async (req, { params }: Ctx) => {
   headers.set("Referrer-Policy", "no-referrer");
   return new Response(Buffer.from(file.body), { status: 200, headers });
 });
+
+/**
+ * Next would answer HEAD from GET, writing an `rx.view` row for a response that sends no bytes.
+ * The file is only ever fetched, so HEAD is refused.
+ */
+export function HEAD(): Response {
+  return new Response(null, {
+    status: 405,
+    headers: { Allow: "GET", "Cache-Control": "no-store" },
+  });
+}
