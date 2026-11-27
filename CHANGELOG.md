@@ -236,6 +236,7 @@ bottom use commit SHAs.
   official logo (#67).
 
 ### Fixed
+- Header search: Enter (or a click) can no longer open a medicine from the previous query. `useProductSearch` returns no results until the current query has settled (it used to keep the previous list while `loading`), so the list is not offered. With JavaScript the form never submits natively (that lost what was typed and put the query in server logs): Enter opens the first result, an Enter pressed while the query is loading is remembered and opens that query's first result once it settles (typing again drops it), and with no match, a limit or an error the panel's message stays. The no-JS GET fallback is unchanged. New ui tests with a deferred fetch pin it (#196).
 - Login finish review (Task 44): the sign-in dialog head carries the mint swoosh again (`Overlay` gains a `mark` slot, `.sheet-mark` in `overlay.css`); the mobile and email fields show their format placeholders (`LOGIN_COPY.mobilePlaceholder` and `.emailPlaceholder`, awaiting owner approval); a live lock countdown is set in Geist Mono with tabular figures, so it no longer jitters; the code, profile and done steps ease in (`.auth-step.enter`, off under reduced motion) (#190)
 - Home finish review (Task 29): the rail "View all N" link now points forward (the arrow icon, not a disclosure chevron) and sits at the head's right edge when the strip fits, since hidden arrows no longer reserve space; the rail aside's "Search medicines" button has the prototype's search icon (#170)
 
