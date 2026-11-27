@@ -44,7 +44,12 @@ afterEach(() => {
 });
 
 const input = () => screen.getByRole("combobox");
-const settle = () => act(() => vi.advanceTimersByTimeAsync(400));
+/** Lets the lazily loaded listbox chunk arrive and the debounce and fetch settle. */
+const settle = () =>
+  act(async () => {
+    await vi.dynamicImportSettled();
+    await vi.advanceTimersByTimeAsync(400);
+  });
 async function typeQuery(v: string) {
   fireEvent.focus(input());
   fireEvent.change(input(), { target: { value: v } });
