@@ -1,4 +1,4 @@
-import { ClientSession, MongoServerError, ObjectId } from "mongodb";
+import { ClientSession, Collection, MongoServerError, ObjectId } from "mongodb";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { getDb } from "@/server/db/client";
 import { getDeps, resetDepsForTests, setDepsForTests } from "@/server/deps";
@@ -6,6 +6,7 @@ import "@/server/db/register-all.ts";
 import { resetEnvForTests } from "@/server/env";
 import { createFileStore } from "@/server/providers/file-store";
 import {
+  claimStaging,
   listRxForUser,
   peekStaging,
   PRESCRIPTIONS_COLLECTION,
@@ -181,22 +182,103 @@ describe("finishRxUpload", () => {
     });
   });
 
-  it("keeps the final file, and rethrows, when the commit result is unknown", async () => {
+  it("leases the slot: a concurrent finish gets busy and does none of the work", async () => {
+    const userId = uid();
+    const { finals } = trackPuts();
+    const started = await stage(userId, await jpegWithExif());
+    vi.mocked(checkRxFile).mockClear();
+    const results = await Promise.all([
+      finish(userId, started.stagingId),
+      finish(userId, started.stagingId),
+    ]);
+    expect(results.filter((r) => r.ok)).toHaveLength(1);
+    expect(results.filter((r) => !r.ok)).toEqual([{ ok: false, error: "busy" }]);
+    expect(vi.mocked(checkRxFile)).toHaveBeenCalledTimes(1);
+    expect(finals()).toHaveLength(1);
+    expect(await listRxForUser(userId)).toHaveLength(1);
+    // Once it is done the slot is gone.
+    expect(await finish(userId, started.stagingId)).toEqual({ ok: false, error: "upload_expired" });
+  });
+
+  it("lets a crashed claim expire, then finishes", async () => {
+    const userId = uid();
+    const started = await stage(userId, await jpegWithExif());
+    await claimStaging(started.stagingId, userId, NOW);
+    expect(await finish(userId, started.stagingId)).toEqual({ ok: false, error: "busy" });
+    const later = new Date(NOW.getTime() + 31_000);
+    expect((await finish(userId, started.stagingId, later)).ok).toBe(true);
+  });
+
+  it("releases the lease on a busy PDF check, and consumes the slot on a refusal", async () => {
+    const userId = uid();
+    const busy = await stage(userId, await jpegWithExif());
+    vi.mocked(checkRxFile).mockResolvedValueOnce({ ok: false, error: "busy" });
+    expect(await finish(userId, busy.stagingId)).toEqual({ ok: false, error: "busy" });
+    expect((await finish(userId, busy.stagingId)).ok).toBe(true);
+    const bad = await stage(userId, new Uint8Array([1, 2, 3]));
+    expect(await finish(userId, bad.stagingId)).toEqual({ ok: false, error: "unsupported_type" });
+    expect(await peekStaging(bad.stagingId, userId, NOW)).toBeNull();
+  });
+
+  /** The commit may apply, then reports an unknown result (code 50 is not retried by the driver). */
+  function unknownCommit(applies: boolean) {
+    const real = ClientSession.prototype.commitTransaction;
+    return vi
+      .spyOn(ClientSession.prototype, "commitTransaction")
+      .mockImplementation(async function (this: InstanceType<typeof ClientSession>) {
+        if (applies) await real.call(this);
+        throw new MongoServerError({ message: "commit timed out", code: 50 });
+      });
+  }
+
+  it("succeeds, keeping the file, when the commit result is unknown but the record committed", async () => {
+    const userId = uid();
+    const started = await stage(userId, await jpegWithExif());
+    const spy = unknownCommit(true);
+    try {
+      expect((await finish(userId, started.stagingId)).ok).toBe(true);
+    } finally {
+      spy.mockRestore();
+    }
+    const doc = (await listRxForUser(userId))[0]!;
+    expect(await getDeps().files.get(doc.file.key)).not.toBeNull();
+  });
+
+  it("keeps the file and rethrows when the commit result is unknown and no record is found", async () => {
     const userId = uid();
     const { finals, store } = trackPuts();
     const started = await stage(userId, await jpegWithExif());
-    const real = ClientSession.prototype.commitTransaction;
-    const spy = vi
-      .spyOn(ClientSession.prototype, "commitTransaction")
-      .mockImplementation(async function (this: InstanceType<typeof ClientSession>) {
-        await real.call(this); // the commit applies, but its result is reported as unknown (code 50)
-        throw new MongoServerError({ message: "commit timed out", code: 50 });
-      });
+    const spy = unknownCommit(false);
     try {
       await expect(finish(userId, started.stagingId)).rejects.toThrow("commit timed out");
     } finally {
       spy.mockRestore();
     }
+    expect(await store.get(finals()[0]!)).not.toBeNull();
+  });
+
+  it("keeps the file when the commit result is unknown and the follow-up read fails", async () => {
+    const userId = uid();
+    const { finals, store } = trackPuts();
+    const started = await stage(userId, await jpegWithExif());
+    const commit = unknownCommit(true);
+    const real = Collection.prototype.findOne;
+    const find = vi.spyOn(Collection.prototype, "findOne").mockImplementation(function (
+      this: InstanceType<typeof Collection>,
+      ...args: Parameters<typeof real>
+    ) {
+      if (this.collectionName === PRESCRIPTIONS_COLLECTION) {
+        return Promise.reject(new Error("read down"));
+      }
+      return real.apply(this, args);
+    } as typeof real);
+    try {
+      await expect(finish(userId, started.stagingId)).rejects.toThrow("commit timed out");
+    } finally {
+      commit.mockRestore();
+      find.mockRestore();
+    }
+    // The commit applied, so the record exists and its file must too.
     const doc = (await listRxForUser(userId))[0]!;
     expect(finals()).toEqual([doc.file.key]);
     expect(await store.get(doc.file.key)).not.toBeNull();
