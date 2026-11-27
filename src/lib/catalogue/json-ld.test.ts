@@ -57,6 +57,11 @@ describe("productMetadata", () => {
       "MRP ₹407, our price ₹387. Strip of 14 tablets. Needs a valid prescription; a pharmacist checks every order.",
     );
     expect(m.alternates?.canonical).toBe("/product/sacuwin-100");
+    expect(m.openGraph).toMatchObject({
+      title: m.title,
+      description: m.description,
+      url: "/product/sacuwin-100",
+    });
     expect(m.openGraph?.images).toEqual([
       expect.objectContaining({ url: bySlug("sacuwin-100").images[0]!.src }),
     ]);

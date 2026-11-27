@@ -70,7 +70,7 @@ the plan's "File Structure".
 - `global-error.tsx` (its own `<html>`, inline styles) show no chrome.
 - `src/app/globals.css`: Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored), and the plain custom properties in `:root` (durations, z-layers, `--spacing-section` (kept out of `@theme`: a `--spacing-*` token there makes Tailwind emit an `h-section` height that overrides the `.h-section` heading class; use `var(--spacing-section)`), `--sticky-top`, the shadcn roles, and the foil material `--foil-body`, `--foil-print`, `--perforation` and `--perf-v` with `/foil/…` URLs into `public/foil/`, defined once here for the pockets, rails and the ordering steps)
 - `src/app/layout.tsx`: root layout (`lang="en-IN"`, viewport, theme colour, `metadataBase` from `APP_URL`) around every route, with the `Toaster` and the page's one `LiveRegion` (exactly one may exist, so they live only here). Keep exactly one `<LiveRegion/>`, in the root layout
-- `src/app/sitemap.ts` and `src/app/robots.ts`: `/sitemap.xml` lists absolute URLs for the home page, the live categories, every public product, the six policies and contact (never `/login`, `/dev`, `/api`, cart or account); `/robots.txt` allows crawling only when `VERCEL_ENV=production` (disallowing `/api/`, `/dev/` and `/login`, and naming the sitemap) and disallows everything elsewhere. Both build from `siteUrl()`
+- `src/app/sitemap.ts` and `src/app/robots.ts`: `/sitemap.xml` lists absolute URLs for the home page, the live categories, every public product, the six policies and contact (never `/login`, `/dev`, `/api`, cart or account); `/robots.txt` allows crawling only when `VERCEL_ENV=production` (via `getSiteEnv()`) (disallowing `/api/`, `/dev/` and `/login`, and naming the sitemap) and disallows everything elsewhere. Both build from `siteUrl()`
 - The root `src/app/not-found.tsx` (URLs that match no route) sits outside `(store)` but calls `withStoreChrome()` itself, so a shopper who lands on a dead link still gets the search and the footer
 - A `usePathname` caller in the store chrome is wrapped in its own Suspense with a static fallback (`SkipLink` falls back to the plain `<a class="skip" href="#main">`); never wrap layout children. `HeaderSearch` reads `window.location.pathname` at click instead of the hook, since a boundary delays its hydration.
 
@@ -184,7 +184,7 @@ React components, added task by task. The folders below exist today:
 - `catalogue/json-ld.ts` (`productJsonLd(p, base)`: schema.org Product with the selling price, the manufacturer's name only when the catalogue has one, and never `availability`, `aggregateRating` or `review`; `jsonLdScript` escapes `<`; `productMetadata(p)`: the title (name and actives), the MRP and price description, the canonical path and the share image; the product page renders one `application/ld+json` block)
 - `cn.ts` (`clsx` + `tailwind-merge` class helper)
 - `format/rupees.ts` (Indian rupee formatting)
-- `site-url.ts` (`siteUrl()`: `APP_URL` through `resolveSiteMetadataBase`, else `http://localhost:3000`; used by the sitemap, robots and JSON-LD)
+- `site-url.ts` (`siteUrl()`: `APP_URL` through `getSiteEnv()` and `resolveSiteMetadataBase`, else `http://localhost:3000`, but a production deploy without a valid `APP_URL` throws; server-only; used by the sitemap, robots and JSON-LD)
 - Also `next-url.ts` (`sanitizeNext(raw)`: the `?next=` guard for post-login redirects; returns "/" unless the value is a same-origin path of at most 512 characters with no backslash or control character and not under `/login`, `/api/` or `/dev/`; it checks the resolved output, because dot segments collapse (`/.//x` becomes `//x`), and blocks the prefixes case-insensitively (a malformed percent escape returns "/"); use it for every `next` read from a URL and pass the result straight to `router.replace`/`push`/`redirect`, never decode it)
 
 ### src/server/
@@ -282,7 +282,7 @@ ported prototype CSS imported by `globals.css`.
 
 | Module | Responsibility |
 | --- | --- |
-| `env.ts` | `getEnv()`, `requireEnv(key)`, `EnvError`, `resetEnvForTests()` |
+| `env.ts` | `getEnv()`, `getSiteEnv()` (only `APP_URL` and `VERCEL_ENV`, validated on their own; in production a missing or invalid `APP_URL` throws, never a localhost fallback), `requireEnv(key)`, `EnvError`, `resetEnvForTests()` |
 | `deps.ts` | `getDeps()` → `{ sms, email, payments, files, now }`; `setDepsForTests`, `resetDepsForTests`; re-exports `readOutbox` |
 | `providers/` | `types.ts` (interfaces), `mock-sms.ts`, `mock-email.ts`, `outbox.ts` (`dev_outbox`), `fake-payments.ts`, `memory-files.ts`, `guard.ts` (`isMockForbidden`, `PRODUCTION_DB_NAME`) |
 | `dev-only.ts` | `requireDevRoute()`: `notFound()` whenever mocks are forbidden |

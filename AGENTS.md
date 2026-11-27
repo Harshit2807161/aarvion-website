@@ -281,7 +281,7 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
   read `getDeps().now()` once per request.
 - Writes that can race are single-document atomic operations (`$inc`, conditional updates,
   upserts with one E11000 retry). Never read-then-write.
-- Never throw on missing env at import time; `getEnv()` is the only env authority.
+- Never throw on missing env at import time; `getEnv()` is the only env authority (`getSiteEnv()` in `src/server/env.ts` is its narrow sibling for `APP_URL` and `VERCEL_ENV`, used by the SEO routes; the root layout's raw `APP_URL` read is the one documented exception).
 - Every index has an explicit `name`; to change one, rename it, never change it in place
   ([docs/decisions/db.md](docs/decisions/db.md)); every module that calls `registerIndexes` is
   imported by `src/server/db/register-all.ts`.

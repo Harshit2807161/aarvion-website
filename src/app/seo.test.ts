@@ -28,6 +28,12 @@ describe("sitemap", () => {
     expect(new Set(urls).size).toBe(urls.length);
   });
 
+  it("fails in production without a valid APP_URL", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("APP_URL", "");
+    await expect(sitemap()).rejects.toThrow(/APP_URL/);
+  });
+
   it("leaves out coming-soon and hidden categories, login, dev and api", async () => {
     const urls = (await sitemap()).map((e) => e.url);
     expect(urls.filter((u) => /\/(login|dev|api|cart|account)|urology|pain/.test(u))).toEqual([]);
@@ -42,6 +48,12 @@ describe("robots", () => {
       rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/dev/", "/login"] },
       sitemap: "https://aarvion.example/sitemap.xml",
     });
+  });
+
+  it("throws in production without a valid APP_URL, so the build fails", () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("APP_URL", "");
+    expect(() => robots()).toThrow(/APP_URL/);
   });
 
   it.each(["preview", "development", ""])("disallows everything when VERCEL_ENV is %j", (env) => {

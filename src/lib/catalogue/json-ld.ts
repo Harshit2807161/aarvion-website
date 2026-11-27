@@ -36,7 +36,7 @@ export function productJsonLd(p: PublicProduct, base: URL): ProductJsonLd {
     "@context": "https://schema.org",
     "@type": "Product",
     name: p.name,
-    sku: p.slug,
+    sku: p.slug, // the catalogue has no SKU field: the slug is the stable identifier
     image: p.images.map((i) => new URL(i.src, base).href),
     description: `${fullComposition(p.composition)}. ${p.packLabel}.`,
     brand: { "@type": "Brand", name: SITE_CONFIG.legalName },
@@ -69,11 +69,16 @@ export function productMetadata(p: PublicProduct): Metadata {
   const price = formatRupees(sellingPricePaise(p.mrpPaise));
   const rx = p.rxRequired ? " Needs a valid prescription; a pharmacist checks every order." : "";
   const photo = p.images[0]!;
+  const name = `${p.name}, ${activeText}`;
+  const description = `MRP ${formatRupees(p.mrpPaise)}, our price ${price}. ${p.packLabel}.${rx}`;
   return {
-    title: `${p.name}, ${activeText}`,
-    description: `MRP ${formatRupees(p.mrpPaise)}, our price ${price}. ${p.packLabel}.${rx}`,
+    title: name,
+    description,
     alternates: { canonical: ROUTES.product(p.slug) },
     openGraph: {
+      title: name,
+      description,
+      url: ROUTES.product(p.slug),
       images: [{ url: photo.src, width: photo.width, height: photo.height, alt: photo.alt }],
     },
   };
