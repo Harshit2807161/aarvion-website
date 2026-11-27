@@ -65,19 +65,18 @@ describe("Rails", () => {
     expect(heart.querySelector("li.pocket h3.pocket-name")).not.toBeNull();
   });
 
-  it("counts the medicines and holds each rail's controls, hidden until measured", () => {
+  it("counts the medicines; View all links to each single-category rail, not the shared one", () => {
     const rails = [...setup().querySelectorAll("section.rail")];
     expect(rails.map((r) => r.querySelector("p.rail-count")?.textContent)).toEqual([
       "5 medicines",
       "4 medicines",
       "2 medicines",
     ]);
-    const slots = rails.map((r) => r.querySelector(".rail-head > [data-rail-controls]"));
-    expect(slots.every((s) => s?.querySelector("button.rail-all[hidden]") != null)).toBe(true);
-    expect(rails.map((r) => r.querySelector(".rail-all")?.getAttribute("aria-controls"))).toEqual([
-      "row-heart-care",
-      "row-eye-care",
-      "row-diabetes-care",
+    expect(rails.every((r) => r.querySelector(".rail-head > [data-rail-controls]"))).toBe(true);
+    expect(rails.map((r) => r.querySelector("a.rail-all")?.getAttribute("href") ?? null)).toEqual([
+      "/category/cardiology",
+      "/category/ophthalmology",
+      null,
     ]);
   });
 
