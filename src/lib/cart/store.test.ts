@@ -361,7 +361,7 @@ describe("signIn", () => {
     expect((await cartStore.signIn()).retry).toBe(true); // may pass: ask again later
     expect(cartStore.getMode()).not.toBe("user");
     expect(stored()).toEqual({ lines: [{ slug: "a", qty: 1 }] });
-    expect(issues).toEqual([{ kind: "sync_failed" }]);
+    expect(issues).toEqual([{ kind: "sync_failed", signIn: true }]);
     m.mergeCart.mockImplementation(() => fail("unauthenticated"));
     expect((await cartStore.signIn()).retry).toBeUndefined(); // signed out: asking again cannot help
     expect(cartStore.getMode()).not.toBe("user");
