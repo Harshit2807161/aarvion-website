@@ -68,6 +68,7 @@ the plan's "File Structure".
 - `src/app/globals.css`: Tailwind 4 entry: the design tokens in `@theme`, copied verbatim from the prototype (Prettier-ignored), and the plain custom properties in `:root` (durations, z-layers, `--spacing-section` (kept out of `@theme`: a `--spacing-*` token there makes Tailwind emit an `h-section` height that overrides the `.h-section` heading class; use `var(--spacing-section)`), `--sticky-top`, the shadcn roles, and the foil material `--foil-body`, `--foil-print`, `--perforation` and `--perf-v` with `/foil/…` URLs into `public/foil/`, defined once here for the pockets, rails and the ordering steps)
 - `src/app/layout.tsx`: root layout (`lang="en-IN"`, viewport, theme colour, `metadataBase` from `APP_URL`) around every route, with the `Toaster` and the page's one `LiveRegion` (exactly one may exist, so they live only here). Keep exactly one `<LiveRegion/>`, in the root layout
 - The root `src/app/not-found.tsx` (URLs that match no route) sits outside `(store)` but calls `withStoreChrome()` itself, so a shopper who lands on a dead link still gets the search and the footer
+- A `usePathname` caller in the store chrome is wrapped in its own Suspense with a static fallback (`SkipLink` falls back to the plain `<a class="skip" href="#main">`); never wrap layout children. `HeaderSearch` reads `window.location.pathname` at click instead of the hook, since a boundary delays its hydration.
 
 ### src/proxy.ts
 
@@ -127,6 +128,8 @@ React components, added task by task. The folders below exist today:
   - Also the pure phone bottom-sheet drag thresholds in `drag.ts` (28% of height, or 24px at 0.45px/ms)
   - `useDragDismiss`, which returns pointer handlers for the sheet head. The panel follows the finger through an inline transform and carries `is-dragging` from the first pointerdown until it closes (that class holds the CSS open animation off; removing it while open would replay the entrance). Only the inline transition is cleared after a snap-back
 - `product/`:
+  - `ProductView` (the product page body: the `Gallery` beside the buy box in the fixed order brand, composition, pack, price, then `VariantSwitcher`, `CartControl`, the order limit and the Rx note (only when `rxRequired`), then the facts and up to four related `Pocket`s; the page is `src/app/(store)/product/[slug]/page.tsx`, prerendered by `generateStaticParams`, with `export const ensureStatic = "navigation"` so an unprerendered slug waits for its static result and `notFound()` is a real 404 on the first hit; `dynamicParams` cannot be used with Cache Components)
+  - `Gallery` (JS-free scroll-snap track with 64px thumbnail anchors; the first photo is the LCP, eager with `fetchPriority="high"`, never preloaded [C24]; Win2Age caption when `imageSource` is `win2age`)
   - `ProductFacts` (server-safe `dl.product-facts`: the Legal Metrology declarations in fixed order, ending with customer care from `SITE_CONFIG.customerCare`; an unknown fact is `Pending`)
   - `VariantSwitcher` (`nav[aria-label="Strengths"]` of real links to `ROUTES.product(slug)` in `compareVariants` order, `aria-current="page"` on the current strength, nothing for a family of one; no script and no live region; CSS in `src/styles/product-facts.css`)
 - `search/`: the header search, mounted by `withStoreChrome` in the `StoreHeader` `search` slot on every customer page (404s included):
@@ -198,6 +201,7 @@ ported prototype CSS imported by `globals.css`.
 - `overlay.css`: `.sheet-*` dialog, side drawer and phone bottom sheet, as `@keyframes` on Radix `[data-state]`
 - `overlay.test.ts` (compiles `globals.css` and checks the scrim rule)
 - `pocket.css`: the product card, `.pocket*`, `.blister` (the dome over `dome-floor.webp`, `--bh` 188px) and `.str`
+- `product.css`: the product page layout, `.product`, `.gallery*`, `.buy*`, `.rx-note`, `.related*`
 - `product-facts.css`: the product facts block and strength chips, `.product-facts*`, `.strengths`, `.strength-chip`
 - `prose.css`: the policy reading column, `.prose*` (62ch, title-size h2, hairlines between sections) and the `.pending` "To be added" chip
 - `prose.test.ts`
