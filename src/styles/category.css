@@ -7,7 +7,7 @@
 */
 .cat-strip { padding: 2px 10px 4px; border-radius: var(--radius-strip); background: var(--foil-print); box-shadow: var(--shadow-md), inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(40 50 45 / 0.1); }
 .cat-grid { --pw: 248px; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--pw), 1fr)); padding-top: 4px; }
-.cat-soon { display: grid; justify-items: start; gap: 20px; padding: 32px; border: 1.5px dashed var(--color-sand-200); border-radius: 22px; background: var(--color-sand-50); }
+.cat-soon { display: grid; justify-items: start; gap: 20px; padding: 32px; border: 1.5px dashed var(--color-sand-300); border-radius: 22px; background: var(--color-sand-50); }
 .cat-soon p { max-width: 36rem; color: var(--color-ink); text-wrap: pretty; }
 .cat-others { margin-top: 48px; }
 .cat-others-title { margin-bottom: 14px; font: 600 1.0625rem/1.2 var(--font-display); letter-spacing: -0.012em; color: var(--color-ink); }
