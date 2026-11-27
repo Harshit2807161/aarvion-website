@@ -52,7 +52,7 @@ a reference artefact and does not need regenerating for a price change.
 - Dropping the database and seeding again is **only for your local docker database** (or a fresh
   one) with no admin edits, orders or carts to keep, and **never Preview or Production**: check
   `db.getName()` first, then follow [setup.md](../setup.md#first-run).
-- Pages are cached (UI plan Task 7) and a direct database write is **not** expired: in
+- Pages are cached and a direct database write is **not** expired: in
   Production the old price can show for up to 1 h, so until phase D, **edit, then redeploy**. Browsers may keep
   a page for 5 minutes; cart and checkout always reprice from Mongo
   ([environments.md](../../decisions/environments.md)).

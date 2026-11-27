@@ -5,107 +5,110 @@ The living state document for whoever takes over the Aarvion storefront, agent o
 an owner action updates "Current state" in the same PR**, so this page stays the one place that
 says where the build is.
 
-Repo: `Harshit2807161/aarvion-website` (private). Owner: Aarvion Pharmaceuticals, New Delhi. The
+Repo: `Harshit2807161/aarvion-website` (public since 2026-11-19). Owner: Aarvion Pharmaceuticals, New Delhi. The
 owner delegated design and build decisions and authorised the build controller to merge green
 PRs ([project plan](plan/project-plan.md), Context, point 3); every ruling made for them is in
 [decisions/rulings.md](decisions/rulings.md) for review. History by PR: [CHANGELOG.md](../CHANGELOG.md).
 
 ## Current state
 
-**As of 2026-11-19, `main` is at `72831d5` (#126).** What a visitor sees: the store
-chrome, a home page with the rotating hero banner, quick actions, the trust strip and How
-ordering works (rails, bento, FAQ and the close still to come), and the JSON APIs below. No
-deployment exists.
+**As of 2026-11-28, `main` is at `b5cd2f5` (#197).** The UI phase (44 tasks) is complete and
+reviewed. Phase K+R (server cart and prescriptions) is in progress. Nothing is deployed.
+
+What a visitor sees on a local build: the store chrome (announcement bar, header with search,
+sign-in dialog and cart pill, category bar, footer); a complete home page (hero banner, quick
+actions, trust strip, "Shop by category" bento, product rails, How ordering works with the
+scroll film, FAQ, the close); category pages (`/category/<slug>`, with coming-soon and 404
+cases); product pages (`/product/<slug>`: gallery, buy box, strength switcher, facts, JSON-LD);
+header search; the sign-in dialog and `/login` (OTP by email or phone, sign-up with consent);
+the policy pages (`/legal/{privacy,terms,returns-cancellation,shipping,prescription-policy,
+grievance}`) and `/contact`; `/sitemap.xml` and `/robots.txt`; 404 and error pages. Cart
+controls work on a session-only cart (a server cart is being built, below). `/cart`, `/account`
+and `/account/prescriptions` still 404 (`PENDING_ROUTES`): see "Deploy blockers".
+
+Routes on `main`:
+- Pages: `/`, `/category/[slug]`, `/product/[slug]`, `/login`, `/contact`, `/legal/*`,
+  `/sitemap.xml`, `/robots.txt`, and the dev-only `/dev/styleguide`.
+- APIs: `GET /api/health`, `POST /api/auth/otp/send`, `POST /api/auth/otp/verify`,
+  `GET /api/auth/me`, `GET /api/auth/session`, `POST /api/auth/logout`, `GET /api/products`
+  (search).
+- Dev only (a real 404 in production, decided in `src/proxy.ts`): `GET /dev/outbox`,
+  `/dev/styleguide`, `/dev/catalogue/revalidate`.
+
+Collections: [architecture.md](dev/architecture.md#collections-and-indexes).
 
 ### Merged
 
 | Phase | PRs | What exists |
 | --- | --- | --- |
 | Stages 0–3: data, requirements, design | #1, #37, #43 | catalogue docs and seed data; requirements v0.1 (owner accepted the defaults); `DESIGN.md`; the hi-fi prototype (store v2 approved by the owner on 2026-11-18) |
-| F Foundation (F1–F4) | #2, #3, #10, #11, #13, #14; Dependabot #4–#8 | Next.js app, env loader, health route, CI and PR guards, Mongo client and index registry, provider container with mocks, Playwright harness |
-| C Catalogue (C1–C2) | #16–#20 | schemas, pricing, hashed images, insert-only seed, queries and search |
-| A Auth (A1–A4) | #21–#23, #25–#33, #40 | rate limiter, OTP send and verify, sessions, guards, `/api/auth/me`, logout, audit log, preview isolation, `/dev/outbox`, auth e2e |
+| F Foundation | #2–#14 | Next.js app, env loader, health route, CI and PR guards, Mongo client and index registry, provider container with mocks, Playwright harness |
+| C Catalogue | #16–#20 | schemas, pricing, hashed images, insert-only seed, queries and search |
+| A Auth | #21–#40 | rate limiter, OTP send and verify, sessions, guards, `/api/auth/me`, logout, audit log, preview isolation, `/dev/outbox`, auth e2e |
 | O1 order domain | #35, #36, #38, #39 | Rx validity, pure order state machine, order numbers |
-| Plans and records | #15, #41, #42, #44, #61 | Phase CA plan, rulings log, Phase CA ledger, UI plan (revision 2), the approved project plan (`docs/plan/project-plan.md`) |
-| Agent docs and the merge gate | #49, #52, #53, #54, #66 | AGENTS.md and CLAUDE.md; testing, CI, data, deploy and runbook pages under `docs/dev/`; `scripts/merge-gate.sh` |
-| UI phase so far | #45, #46, #48, #51, #57, #58, #59, #60, #62, #63, #64, #65, #69 | Tailwind 4 tokens and base styles, `cn()`, test-project mapping, dependency policy; foil and banner rasters in `public/` with provenance; shopper category names and Sacuwin-first `sortOrder`; font subsets and `scripts/shoot.mjs`; the icon set, `BrandMark` and rupee formatting; the banner carousel reducer and controller hook; the scroll film's progress maths and engine; Cache Components on, with `await connection()` first in every GET and the shared shelf order |
-| Official logo | #67, #70 | the owner's logo traced to vectors: served from `public/brand/` (usage guide in its README), masters in `assets/brand/official/`, app icons and the Open Graph image in `src/app/`, all generated by `scripts/trace_logo.py`; the draft redraw is gone |
-
-Routes on `main`: `GET /api/health`, `POST /api/auth/otp/send`, `POST /api/auth/otp/verify`,
-`GET /api/auth/me`, `GET /api/auth/session`, `GET /api/products` (search), `POST /api/auth/logout`, `GET /dev/outbox` (dev only). Collections:
-[architecture.md](dev/architecture.md#collections-and-indexes).
+| Agent docs and merge gate | #49–#66, #86 | AGENTS.md, CLAUDE.md, `docs/dev/`, CHANGELOG, `scripts/merge-gate.sh`, the project plan |
+| **UI phase (complete)** | #45–#192 (44 tasks) | tokens, fonts, icons, base and form components, overlay, toast and live region; cached tagged catalogue reads; shell (header, category bar, footer, 404 and error pages, policies); cart store, controls and pill (session-only); the whole home with the scroll film; category and product pages with SEO; header search; login, sign-up and the sign-in dialog; the official logo. Execution ledger: [decisions/phase-ui-ledger.md](decisions/phase-ui-ledger.md); rulings: [decisions/rulings.md](decisions/rulings.md) ("Phase UI") |
+| K+R, merged so far | #179, #181, #184, #185, #186, #187, #189, #180, #182, #191, #194, #195, #197 | pure cart rules and totals, the compare-and-set cart store and priced cart service; IST date helpers, review transitions and the list view for prescriptions; image validation and re-encode; local and private Vercel Blob file stores; `sessionRefreshHeaders`; the exported `PersonName` rule |
 
 ### In flight
 
-The **UI phase plan**, revision 2:
-[superpowers/plans/2026-11-17-phase-ui.md](superpowers/plans/2026-11-17-phase-ui.md). 44 tasks,
-one PR each (split into `-a`/`-b` PRs when over 400 lines), run with subagent-driven
-development: an implementer per task, a task review, then the controller merges through
-`scripts/merge-gate.sh`. Its Global Constraints, Decisions and "Order and dependencies" sections
-are binding. The owner allowed parallel worktrees, so three tracks with disjoint files run at
-once: **A** Tasks 2 → 3 → 4/5/6; **B** 8 → 7, then 38; **D** 16 → 18 → 26 → 27 (done so far).
-Only track A runs e2e locally (port 3100 and the `aarvion_e2e` database would collide); B and D
-rely on CI.
+Phase K+R: [superpowers/plans/2026-11-27-phase-kr-cart-prescriptions.md](superpowers/plans/2026-11-27-phase-kr-cart-prescriptions.md)
+(15 tasks K1–K7, R1–R7, the KR8 gate; provisional rulings in `decisions/rulings.md`). K1 (cart
+API) and R1–R3 are largely on `main`; K2 onward (shared cart store, drawer, `/cart`) and R4
+onward (review service, upload routes, `/account/prescriptions`) are not.
 
-Open PRs on 2026-11-19:
-- UI: #68 (Task 7b, tagged cached catalogue reads and revalidation), #71 (Task 3a, Rx badge,
-  status tags and the stamp price with % off).
-- Agent docs, the rest of the split of #47: #50 (docs index, setup, architecture), #55 (this
-  page), #56 (CHANGELOG, with the catch-up for every merged PR).
+Open PRs on 2026-11-28:
+- Phase K+R: #193 (R2, PDF check), #198 (R4, prescription records and staging slots), #199 (K1,
+  guest merge and the no-write quote).
+- Phase-end review fixes for the UI phase: #196 (search Enter never opens an earlier query's
+  result), #200 (add-to-cart e2e), #201 (ordering steps: refund copy gated on `onlinePayments`,
+  phone spacing), #202 (UI ledger and rulings persisted), and this handoff refresh with the docs
+  fixes.
 
-The controller keeps a per-phase execution ledger (task status, rulings, carries) in the
-gitignored `.superpowers/sdd/<plan>/` of its build checkout. **At the end of each phase the
-ledger is persisted to `docs/decisions/`** (as `phase-f-ledger.md` and `phase-ca-ledger.md`
-were), and the rulings it makes are copied into `docs/decisions/rulings.md` as they happen.
+The controller keeps a per-phase execution ledger in the gitignored `.superpowers/sdd/<plan>/`
+of its build checkout. **At the end of each phase it is persisted to `docs/decisions/`**
+(`phase-f-ledger.md`, `phase-ca-ledger.md`, `phase-ui-ledger.md`), and its rulings are copied
+into `docs/decisions/rulings.md`.
 
-UI plan tasks:
+### Deploy blockers
 
-| # | Task | Branch | Spec | Status |
-| --- | --- | --- | --- | --- |
-| 1 | Tailwind 4, design tokens, merged base styles and the rulings record | `feat/ui-tokens-a`, `-b` | F5 | merged (#45, #46) |
-| 2 | Self-hosted subset fonts, icons, rupee formatting and the screenshot tool | `feat/ui-fonts-icons` | F5 | merged (#57, #62, #69) |
-| 3 | Button, badges, stamp price with % off, and the styleguide | `feat/ui-base-components` | F5 | 3a open (#71) |
-| 4 | Dialog and sheet overlay with the phone bottom sheet | `feat/ui-overlay` | F6 | not started |
-| 5 | Text field, checkbox and segmented control | `feat/ui-fields` | F6 | not started |
-| 6 | OTP field, customer toast and live region | `feat/ui-otp-toast` | F6 | not started |
-| 7 | Cache Components, shelf order and the cached, tagged catalogue | `feat/catalogue-cache` | C3 | 7a merged (#60); 7b open (#68) |
-| 8 | Shopper category names | `feat/category-display-names` | v2 brief | merged (#51) |
-| 9 | Site config, routes, store footer and the Operate shell | `feat/site-footer-config` | F7 | 9a merged (#76); 9b footer open (#82); 9c Operate shell not opened |
-| 10 | Announcement bar and store header | `feat/store-header` | F7 | not started |
-| 11 | Category bar and mobile chip row | `feat/category-bar` | F7 | not started |
-| 12 | 404 and error pages | `feat/error-pages` | F7 | not started |
-| 13 | Privacy policy and terms of use | `feat/legal-privacy-terms` | F8 | not started |
-| 14 | Refunds, shipping, prescription and grievance policies, and contact | `feat/legal-policies` | F8 | not started |
-| 15 | Session-only cart store, cart controls and the header cart pill | `feat/cart-ui-store` | C3/C4 until K2 | not started |
-| 16 | Foil and banner rasters into `public/` with provenance | `chore/public-rasters` | C3 | merged (#48) |
-| 17 | Display helpers and the foil pocket with % off | `feat/catalogue-pocket` | C3 | not started |
-| 18 | Banner carousel controller | `feat/banner-carousel-controller` | C3 | merged (#58, #63, #64) |
-| 19 | Hero banner with LCP on slide 1 | `feat/home-banner` | C3 | not started |
-| 20 | Quick actions and trust strip | `feat/home-quick-trust` | C3 | not started |
-| 21 | "Shop by category" bento | `feat/home-category-bento` | C3 | not started |
-| 22 | Product rails | `feat/home-rails` | C3 | not started |
-| 23 | Rail controls: arrows and the "View all" interim | `feat/rail-controls` | C3 | not started |
-| 24 | "How ordering works" (static) | `feat/home-ordering-steps` | C3 | not started |
-| 25 | FAQ and the closing act (static) | `feat/home-faq-close` | C3 | not started |
-| 26 | Film math | `feat/film-math` | C3 | merged (#59) |
-| 27 | Film engine | `feat/film-engine` | C3 | merged (#65) |
-| 28 | Film motion, the hydration-safe flag and the home budgets | `feat/film-motion` | C3 | not started |
-| 29 | Home finish-review gate | `fix/home-finish-review` | C3 | not started |
-| 30 | Category page, and "View all" becomes a link | `feat/category-page` | C3b | not started |
-| 31 | Country of origin, product facts and the strength switcher | `feat/product-facts` | C4 | not started |
-| 32 | Product page | `feat/product-page` | C4 | not started |
-| 33 | Product SEO, sitemap, robots, product budgets and catalogue freshness | `feat/product-seo` | C4 | not started |
-| 34 | Category and product finish-review gate | `fix/catalogue-pages-finish-review` | C3b, C4 | not started |
-| 35 | Search API | `feat/search-api` | C5 | not started |
-| 36 | Search combobox parts | `feat/search-combobox-parts` | C5 | not started |
-| 37 | Header search on every customer page | `feat/header-search` | C5 | not started |
-| 38 | Sign-up consent on verify, and the session route | `feat/auth-signup-consent` | A5 | not started |
-| 39 | Phone helpers, the login API client and the `?next=` sanitiser | `feat/login-api` | A5 | not started |
-| 40 | Login state machine and copy | `feat/login-machine` | A5 | not started |
-| 41 | `/login` page: the id and code steps | `feat/login-page` | A5 | not started |
-| 42 | Sign-up and done steps, demo states and the login e2e | `feat/login-signup-steps` | A5 | not started |
-| 43 | Header sign-in dialog and account pill | `feat/login-dialog` | A5 | not started |
-| 44 | Login finish-review gate | `fix/login-finish-review` | A5 | not started |
+Everything here must be true before the first production deploy. The H4 gate (see
+[deploy.md](dev/deploy.md#production-gates-phase-h-planned)) is meant to check as many as can
+be checked in code.
+
+1. **No real providers.** `msg91`, `resend` and `razorpay` are accepted by the env schema but
+   throw "not implemented yet", and mocks are refused in production, so nobody can sign in. Built
+   in N and O.
+2. **Legal facts are "To be added"** (drug licence numbers, registered pharmacist, grievance
+   officer, GSTIN, customer care, data storage and retention, liability and governing law).
+   `assertLegalConfigComplete()` (H4) covers `SITE_CONFIG` only, not page copy (owner actions 7,
+   23, 24).
+3. **Startup assertions are not written:** `VERCEL_ENV=production` must imply
+   `MONGODB_DB=aarvion_prod`; `APP_URL` must be set to an `https` URL that is not localhost
+   (H4).
+4. **No security headers** (`next.config.ts`): no CSP, `frame-ancestors 'none'` (so `/login`
+   cannot be framed), `nosniff` or HSTS. Phase H.
+5. **The database must be seeded** (`pnpm db:indexes && pnpm seed`) in every Vercel scope before
+   a build: every build reads the catalogue (owner action 5).
+6. **Cart, account, prescription upload and order tracking are not built, and there is no
+   sign-out.** `/cart`, `/account` and `/account/prescriptions` are in `PENDING_ROUTES`: the
+   header cart pill and Upload prescription link, the quick actions, the close, the footer and
+   the privacy page all link to them and 404, and order tracking (part of `/account`, P) does not exist. Since #173 a real
+   sign-in exists, but no UI calls `POST /api/auth/logout`, so a shopper on a shared device has
+   a 30-day sliding session, no way to end it and an Account button that 404s. Built in K2, R
+   and P (put a Sign out action in the account pill menu or `/account`); the H4 gate must refuse
+   a production build while `PENDING_ROUTES` is non-empty.
+7. **Online payments stay hidden** while `SITE_CONFIG.onlinePayments` is false (no UPI or card
+   claims; the ordering steps, FAQ, footer, trust strip and Terms already branch on it). Flip it
+   only with live Razorpay keys.
+8. **Repo hygiene before launch:** the provenance sidecars in `public/**/*.json` and the
+   "Where everything lives" table below name the owner's Figma file key (access still needs
+   Figma permission): move or redact; decide log retention for the search `q` parameter (it
+   travels in the URL).
+9. **Watch after launch:** search, `/api/products` and OTP send are rate limited per IPv4;
+   mobile carrier NAT can put many shoppers behind one address, so watch the 429 rate.
+
+UI plan tasks: all 44 are merged; see the ledger for the per-task record.
 
 ### Open owner actions and blockers
 
@@ -115,7 +118,7 @@ UI plan tasks:
 | 2 | A domain | email OTP and notifications need a verified sender | email in production (N) |
 | 3 | DLT registration with MSG91 (sender ID + 6 SMS templates) | required by Indian law for any SMS; takes days | SMS OTP and order SMS (N) |
 | 4 | Vercel Pro team, linked to GitHub | Hobby is non-commercial | previews and deploy |
-| 5 | MongoDB Atlas, Mumbai; then seed each Vercel database with `pnpm db:indexes && pnpm seed` (**Preview before UI Task 9 (the footer, read by the `(store)` layout) merges into a Vercel-connected repo**, `aarvion_prod` before the first deploy) | every build reads the catalogue (the footer's categories), so an unseeded scope fails closed | previews and deploy |
+| 5 | MongoDB Atlas, Mumbai; then seed each Vercel database with `pnpm db:indexes && pnpm seed` (**Preview first**, since the `(store)` layout reads the catalogue for the footer; `aarvion_prod` before the first deploy) | every build reads the catalogue (the footer's categories), so an unseeded scope fails closed | previews and deploy |
 | 6 | Razorpay test keys (by the O phase), then KYC and live keys | online payments | prepaid checkout |
 | 7 | Drug licence numbers, registered pharmacist, grievance officer, GSTIN, customer care details | legal display on footer, contact and policies; Razorpay KYC; the H4 gate | launch |
 | 8 | Who issues the GST invoice (Aarvion or a dispensing partner), HSN codes and GST rates | invoices | order invoices (O) |
@@ -128,7 +131,7 @@ UI plan tasks:
 | 15 | Aarvion-branded photos for the 8 placeholder products; photos for the 20 missing products and Vildage-M 50/1000 | Win2Age swap; catalogue growth | [swap](dev/runbooks/swap-a-product-photo.md), [add](dev/runbooks/add-a-product.md) |
 | 16 | ~~Branch protection~~ Done 2026-11-19: the repo is public and protection is applied (see [decisions/repo.md](decisions/repo.md)) | — | — |
 | 17 | Deleted-branch disclosure: merges #1–#15 used `gh pr merge --delete-branch`, deleting those head branches without asking. Merges since do not delete. Restore any with "Restore branch" on its PR page if wanted | owner's rule on remote branches | — |
-| 18 | Approve the banner composites explicitly: the store v2 prototype was approved on 2026-11-18, but the Eye slide shows Win2Age packs | banners ship in UI Task 19 | — |
+| 18 | Approve the banner composites explicitly: the store v2 prototype was approved on 2026-11-18, but the Eye slide shows Win2Age packs | banners are live on the home page | — |
 | 19 | Review the official logo now in `public/brand/` (#67; it replaced the redrawn draft and the "outlined wordmark" input) | brand use everywhere | header and footer |
 | 20 | Legally reviewed product information copy (uses, storage, precautions) | sections are omitted until then (no claims) | product pages |
 | 21 | Sacuwin leads the Heart care rail through `sortOrder` 0–2 (controller ruling, landed in #51); override if wanted, and review the other rulings in `rulings.md` | owner's override | — |
@@ -138,11 +141,11 @@ UI plan tasks:
 
 ## What is next
 
-Phases K (cart) and R (prescriptions) have a plan:
+Phases K (cart) and R (prescriptions) have a plan (in progress):
 [superpowers/plans/2026-11-27-phase-kr-cart-prescriptions.md](superpowers/plans/2026-11-27-phase-kr-cart-prescriptions.md)
 (15 tasks K1–K7, R1–R7 and the KR8 gate; its provisional rulings are in `decisions/rulings.md`). The other
 phases after UI each get their own plan under `docs/superpowers/plans/` before work starts. Scope comes from the [project plan](plan/project-plan.md)
-(Stage 5 phase table) and `docs/requirements.md`; obligations already carried are listed per phase.
+(Stage 5 phase table) and `docs/requirements.md`; obligations already carried are listed per phase. K and R are in flight (see "In flight"); the rest have no plan yet.
 
 | Phase | Ships | Carried obligations (where recorded) |
 | --- | --- | --- |
@@ -151,8 +154,8 @@ phases after UI each get their own plan under `docs/superpowers/plans/` before w
 | **O** Orders and payments | O2 COD placement (idempotent, priced on the server); checkout stepper and reduced checkout header; order history; Razorpay order + verify; webhook; reconcile cron | O2 judges the Rx at `createdAt` and passes server time as `ctx.at`; `hold` is staff-only; customer cancel only until packed; `refund_pending` in the same write as the hold; idempotent refunds; decide whether a refund is deferred while on hold (F16); COD ≤ ₹5,000; replace the fake gateway with a contract-tested fake (phase-ca-ledger, phase-f-ledger "Parked … O5") |
 | **N** Notifications | outbox and cron; MSG91 SMS; Resend email and templates; event wiring | adapters keep OTP codes out of logs; DLT templates; messages never carry prescription content (phase-ca-ledger "Carry → N phase") |
 | **D** Admin | shell and roles; Rx review API and UI; orders API and UI; products API and UI (MRP edit, photo swap, "needs photo swap" filter) | every MRP, photo, active or category write calls `revalidateCatalogue()`; category names admin-editable; D1 creates staff users and revokes a user's sessions on a role change; a user status (block or delete) honoured by verify and `getAuth`; prototype carries: `AAR-` order ids, ship URL with AWB over https, Rx re-check on confirm/pack/ship, required match attestation on approve, append-only audit trail UI, confirm MRP changes over 25 %, confirm deactivation (UI plan "After this plan"; phase-ca-ledger "Carry → H2/D"; the admin prototype review, recorded here) |
-| **P** Account | P1 `/account`: track an order, profile, addresses, marketing opt-out, data download and deletion | DPDP rights (requirements §10) |
-| **H** Hardening and deploy | security headers (CSP) and log redaction; privacy rights and retention; Lighthouse CI; H4 production gates; index drift detection; H5 production deploy and runbook | H4: startup assertion `VERCEL_ENV=production ⇒ MONGODB_DB=aarvion_prod`, `assertLegalConfigComplete()` from `instrumentation.ts`; production `db:indexes` needs dev dependencies (tsx); parked minors: health failure logging, pingDb timeout log, test env restore, the double build in e2e, stale `public/products` file and hash checks ([deploy.md](dev/deploy.md#production-gates-phase-h-planned); phase-f-ledger and phase-ca-ledger "Parked … Phase H") |
+| **P** Account | P1 `/account`: track an order, profile, addresses, marketing opt-out, data download and deletion; **a Sign out action** (nothing calls `POST /api/auth/logout` yet) | DPDP rights (requirements §10); deploy blocker 6 |
+| **H** Hardening and deploy | security headers (CSP) and log redaction; privacy rights and retention; Lighthouse CI; H4 production gates; index drift detection; H5 production deploy and runbook | H4: startup assertion `VERCEL_ENV=production ⇒ MONGODB_DB=aarvion_prod`, `assertLegalConfigComplete()` from `instrumentation.ts`, refuse a production build while `PENDING_ROUTES` is non-empty, an `https` `APP_URL`, security headers incl. `frame-ancestors 'none'`; production `db:indexes` needs dev dependencies (tsx); parked minors: health failure logging, pingDb timeout log, test env restore, the double build in e2e, stale `public/products` file and hash checks ([deploy.md](dev/deploy.md#production-gates-phase-h-planned); phase-f-ledger and phase-ca-ledger "Parked … Phase H") |
 
 ## Known issues
 
@@ -166,8 +169,6 @@ phases after UI each get their own plan under `docs/superpowers/plans/` before w
   another DB name, sharing a database with a mocks-enabled preview, would bypass the guard.
 - **Insert-only seed:** changes to existing products or categories in the JSON or code do not
   reach existing databases; the runbooks give the targeted updates.
-- `resetRateLimit` after a successful verify is not wrapped in try/catch, so a limiter failure
-  there turns a good login into a 500 (carried to A5; UI plan Task 38 [C6]).
 - **Third-party lockout (F11):** someone who knows a phone or email can still lock that user out
   of login for 24 h, at the cost of two real OTP sends each (accepted risk). A timing difference
   between a mismatch and a missing challenge is also accepted.
@@ -176,7 +177,9 @@ phases after UI each get their own plan under `docs/superpowers/plans/` before w
 - No index drift detection: `ensureIndexes` matches by name only (phase H).
 - A prepaid order put on hold with its refund executed can only be cancelled (F16; O2 decides).
 - Two local `pnpm test:int` runs at once share port blocks and retry (slower, not failing).
-  CI's `int` job timed out once on `tests/int/auth-otp-verify.test.ts` (#47, passed on rerun).
+  CI's `int` job timed out once on `tests/int/auth-otp-verify.test.ts` (#47, passed on rerun), and
+  `MongoMemoryServer` startup failures (`ECONNREFUSED` on its port) recur locally when several
+  worktrees run int tests at once: rerun; CI is unaffected.
 - Vitest prints a warning that `vitest.config.ts` is ESM loaded as CommonJS (no `"type":
   "module"` in `package.json`); harmless.
 - The UI plan's Global Constraints exclude "docs" from the PR size, but `scripts/pr-size.ts`
@@ -191,7 +194,7 @@ phases after UI each get their own plan under `docs/superpowers/plans/` before w
 1. Read [AGENTS.md](../AGENTS.md), this page, [dev/README.md](dev/README.md) and the
    [project plan](plan/project-plan.md).
 2. See what changed since "Current state" was written:
-   `git fetch origin && git log --oneline 04c83db..origin/main`, `gh pr list --state open`, and
+   `git fetch origin && git log --oneline b5cd2f5..origin/main` (the `main` commit this page was last refreshed at), `gh pr list --state open`, and
    the `[Unreleased]` section of the CHANGELOG. Update "Current state" first if it is stale.
 3. Find each task's status by matching merged and open PR branch names against the task table
    (the plan names every branch), and read new rulings in `docs/decisions/rulings.md`. If you
@@ -218,7 +221,7 @@ phases after UI each get their own plan under `docs/superpowers/plans/` before w
 | Project plan | [plan/project-plan.md](plan/project-plan.md): context, owner decisions, Stages 0–6, the phase table, owner inputs |
 | Phase plans | [superpowers/plans/](superpowers/plans/) |
 | Product and requirements | [PRODUCT.md](../PRODUCT.md), [requirements.md](requirements.md), [catalogue.md](catalogue.md), [missing-products.md](missing-products.md) |
-| Decisions and ledgers | [decisions/](decisions/): `rulings.md`, `stack.md`, `db.md`, `environments.md`, `repo.md`, and one ledger per finished phase (`phase-f-ledger.md`, `phase-ca-ledger.md`) |
+| Decisions and ledgers | [decisions/](decisions/): `rulings.md`, `stack.md`, `db.md`, `environments.md`, `repo.md`, and one ledger per finished phase (`phase-f-ledger.md`, `phase-ca-ledger.md`, `phase-ui-ledger.md`) |
 | Design system | [DESIGN.md](../DESIGN.md), `.impeccable/design.json`, surface briefs in `.impeccable/surfaces/`, [design/direction-round-1.md](design/direction-round-1.md), review pages in [review/](review/) |
 | Prototype | [design/prototype/](../design/prototype/) (generator in `design/prototype/src/`); published copy https://claude.ai/artifact/BCPDh3iJPP6asGvRz3xJkc |
 | Seed data and images | `data/products.json`, `data/product-images.json`, `data/source/`, `assets/products/{original,cutout}/`, `public/products/` |

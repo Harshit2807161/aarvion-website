@@ -45,21 +45,22 @@ Why each was chosen: [docs/decisions/stack.md](docs/decisions/stack.md).
 ## Repo map
 
 ```
-src/app/            Next.js routes: api/{health,auth/**}, dev/{outbox,styleguide}, layout, (store)/ route group (customer pages and the footer; admin goes in another group), the home (`page.tsx`: hero banner, quick actions, trust strip, product rails, ordering steps so far);
+src/app/            Next.js routes: api/{health,products,auth/**}, dev/{outbox,styleguide,catalogue/revalidate}, layout, error and global-error, not-found, sitemap.ts and robots.ts, (store)/ route group (customer pages and the footer: the home, category/[slug], product/[slug], login, contact, legal/*; admin goes in another group); the home (`page.tsx`) is complete: banner, quick actions, trust strip, shop by category, rails, ordering steps, FAQ and the close;
                     globals.css (Tailwind 4 @theme tokens)
-src/styles/         ported prototype CSS (base.css, one @layer base; buttons, stamp, forms, overlay, otp, toast and bento.css) and the token and CSS tests
-src/lib/            helpers: cn, format/, cart/ (session cart), catalogue/ (display.ts wording helpers and home-model.ts for the home bento and rails, client-safe; cached.ts reads, server only)
+src/styles/         ported prototype CSS, one file per area (27 stylesheets: base.css is one @layer base, the rest are imported by globals.css into layer(components); see docs/dev/architecture.md) and the token and CSS tests; no selector repeats across files (css-hygiene.test.ts)
+src/lib/            helpers: cn, format/, cart/ (session cart), catalogue/ (display.ts wording helpers and home-model.ts for the home bento and rails, client-safe; cached.ts reads, server only), next-url.ts, site-url.ts (server only), claims and price-source tests
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES, PENDING_ANCHORS)
-src/components/     React components, built task by task by the UI plan (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/, cart/, catalogue/ so far)
+src/components/     React components (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/, cart/, catalogue/, product/, search/, auth/)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
 src/components/overlay/  dialog and side sheet: `Overlay` (dialog and side sheet), the drag thresholds and `useDragDismiss`
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
 src/server/         framework-free business logic (the only place rules live)
-  catalogue/        schema, pricing, categories, seed, search, queries
+  catalogue/        schema, pricing, categories, seed, search, queries, order (pure)
+  cart/             rules (pure, client-safe), carts (compare-and-set store), service (priced cart)
   auth/             identifier, otp, users, sessions, cookie, login, guards, roles
   security/         rate-limit, client-ip, origin
   orders/           status (state machine), order-number
-  prescriptions/    validity (IST, 6 months)
+  prescriptions/    validity (IST, 6 months), review (transitions, list view), file-check
   providers/        mock SMS/email, fake payments, memory files, the production guard
   db/               client, index registry, register-all
   env.ts deps.ts http.ts audit.ts dev-only.ts
@@ -278,9 +279,10 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 **Code rules that protect the invariants**
 
 - Components (`src/components/**`) and client-safe `src/lib/**` import at runtime from
-  `src/server/**` only the pure `catalogue/pricing`, `catalogue/search` and `catalogue/order`;
+  `src/server/**` only the pure `catalogue/pricing`, `catalogue/search`, `catalogue/order` and
+  `cart/rules`;
   anything else from there is a statement-level `import type` (`src/components/server-imports.test.ts`).
-  `src/lib/catalogue/{cached,errors}.ts` are server-only (listed in that test): never import them
+  `src/lib/catalogue/{cached,errors}.ts` and `src/lib/site-url.ts` are server-only (listed in that test): never import them
   from a `"use client"` module.
 - Money is integer paise. Inputs reach Mongo only as zod-parsed primitives; no user input becomes
   a regex or an operator object. Public catalogue data never includes `internalNotes`.
