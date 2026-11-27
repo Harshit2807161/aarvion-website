@@ -4,6 +4,7 @@ import type { MouseEvent, ReactNode, Ref } from "react";
 import { RxBadge } from "@/components/base/badge";
 import { Icon } from "@/components/base/icon";
 import { openLogin } from "@/components/auth/account-pill";
+import { fetchSessionState } from "@/components/auth/session-state";
 import { announce } from "@/components/feedback/live-region";
 import { ROUTES } from "@/config/routes";
 import { cartStore } from "@/lib/cart/store";
@@ -93,15 +94,21 @@ export function Group({
   );
 }
 
-/** Checkout: signed in, a link to it; otherwise to /login?next=/checkout, whose plain click opens the sign-in dialog. */
+/**
+ * Checkout: signed in, a link to it; otherwise to /login?next=/checkout, whose plain click opens the
+ * sign-in dialog. With `checkSession` (the store has not learnt who is signed in yet) a plain click
+ * asks the session first and goes straight to /checkout for someone already signed in.
+ */
 export function CheckoutLink({
   signedIn,
+  checkSession = false,
   className,
   tabIndex,
   anchorRef,
   children,
 }: {
   signedIn: boolean;
+  checkSession?: boolean;
   className: string;
   tabIndex?: number;
   anchorRef?: Ref<HTMLAnchorElement>;
@@ -110,7 +117,11 @@ export function CheckoutLink({
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (signedIn || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
-    openLogin(ROUTES.checkout);
+    if (!checkSession) return openLogin(ROUTES.checkout);
+    void fetchSessionState().then((session) => {
+      if (session.state === "in") window.location.assign(ROUTES.checkout);
+      else openLogin(ROUTES.checkout);
+    });
   };
   // A plain <a>: /checkout is pending until phase O, so it is not prefetched.
   return (

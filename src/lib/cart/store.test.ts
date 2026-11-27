@@ -276,6 +276,21 @@ describe("price (the cart page's mount)", () => {
     expect(m.quoteCart).toHaveBeenCalledTimes(1);
   });
 
+  it("tries again once a quote gave up after its retries (a return visit re-quotes)", async () => {
+    seed([{ slug: "a", qty: 2 }]);
+    m.quoteCart.mockImplementation(() => fail("network"));
+    cartStore.price();
+    await tick(400 + 1000 + 3000 + 8000);
+    expect(m.quoteCart).toHaveBeenCalledTimes(4); // the first try and three retries, then it gives up
+    expect(cartStore.getView()).toBeNull();
+    cartStore.price();
+    m.quoteCart.mockImplementation(() => ok({ a: 2 }));
+    await tick(400);
+    expect(m.quoteCart).toHaveBeenCalledTimes(5);
+    expect(cartStore.getView()).not.toBeNull();
+    expect(cartStore.isViewStale()).toBe(false);
+  });
+
   it("does nothing for an empty cart or a signed-in store", async () => {
     cartStore.price();
     await tick(400);
