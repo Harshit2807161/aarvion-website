@@ -157,7 +157,8 @@ React components, added task by task. The folders below exist today:
   - `Gallery` (JS-free scroll-snap track with 64px thumbnail anchors; the first photo is the LCP, eager with `fetchPriority="high"`, never preloaded [C24]; Win2Age caption when `imageSource` is `win2age`)
   - `ProductFacts` (server-safe `dl.product-facts`: the Legal Metrology declarations in fixed order, ending with customer care from `SITE_CONFIG.customerCare`; an unknown fact is `Pending`)
   - `VariantSwitcher` (`nav[aria-label="Strengths"]` of real links to `ROUTES.product(slug)` in `compareVariants` order, `aria-current="page"` on the current strength, nothing for a family of one; no script and no live region; CSS in `src/styles/product-facts.css`)
-- `rx/`: the prescription upload pieces (lazy surfaces only, never first-load code):
+- `rx/`: the prescription upload client and form (lazy surfaces only; `rx-api.test.ts` fails if any module outside `rx/` value-imports them):
+  - `rx-api.ts`: `uploadRx({ blob, patientName }, { signal })` (staging, then a `direct` PUT of the bytes, then finalise; a `client-token` slot is not sent yet); nothing throws or logs; every status maps to a typed error (`busy` and `upload_unconfirmed` are returned as they are; the Blob path, `listRx` and the retries follow)
   - `prepare-file.ts`: `prepareRxFile(file)` (type by MIME or extension; a photo over 1.5 MiB or 2560 px, or any HEIC, is redrawn as a JPEG at most 2560 px at quality 0.85; a PDF goes as is; over 8 MiB is refused with the prototype's wording); a convenience, the server decides
   - `rx-copy.ts`: `RX_COPY` (prototype wording; entries marked NEW await owner approval) and `fileSize()`
 - `search/`: the header search, mounted by `withStoreChrome` in the `StoreHeader` `search` slot on every customer page (404s included):
