@@ -47,6 +47,8 @@ export type LoginFlowProps = {
   allowDemo?: boolean;
   /** Called once when the shopper is signed in. In page mode the flow then redirects to `next`. */
   onDone?(r: LoginDone): void;
+  /** Where sign-in leads, when the opener knows (the header dialog); a page falls back to `?next=`. */
+  next?: string;
 };
 
 /** The machine's reducer, plus the one event only a demo state may send: replace the state. */
@@ -59,7 +61,10 @@ const CHANNELS = [
   { value: "email", label: LOGIN_COPY.email, icon: "mail" },
 ] as const;
 
-export function LoginFlow({ mode, allowDemo = false, onDone }: LoginFlowProps) {
+/** How long "You’re signed in" shows before the page (or the dialog) moves on. */
+export const DONE_MS = 900;
+
+export function LoginFlow({ mode, allowDemo = false, onDone, next: nextProp }: LoginFlowProps) {
   const p = mode === "page" ? "pg" : "dlg";
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -70,7 +75,8 @@ export function LoginFlow({ mode, allowDemo = false, onDone }: LoginFlowProps) {
   const finished = useRef(false);
   const focusNext = useRef<string | null>(null);
 
-  const next = sanitizeNext(searchParams.get("next"));
+  // The dialog goes only where its opener says; the host page's own ?next= is not its business.
+  const next = sanitizeNext(nextProp ?? (mode === "page" ? searchParams.get("next") : null));
   const goNext = useEffectEvent(() => router.replace(next));
   const finish = useEffectEvent((r: LoginDone) => {
     if (finished.current) return;
@@ -111,7 +117,7 @@ export function LoginFlow({ mode, allowDemo = false, onDone }: LoginFlowProps) {
     document.getElementById(`${p}-done`)?.focus();
     if (mode !== "page") return;
     // Long enough to read "You’re signed in"; the timer (not `finish`) is re-armed under Strict Mode.
-    const t = setTimeout(() => goNext(), 900);
+    const t = setTimeout(() => goNext(), DONE_MS);
     return () => clearTimeout(t);
   }, [doneNew, p, mode]);
 
