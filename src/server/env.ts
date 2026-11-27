@@ -20,6 +20,8 @@ const schema = z.object({
   FILE_STORE: z.preprocess(emptyToUndefined, z.enum(["memory", "local", "blob"]).default("memory")),
   /** Folder for FILE_STORE=local (pnpm dev); gitignored. */
   FILE_STORE_LOCAL_DIR: z.preprocess(emptyToUndefined, z.string().min(1).default(".data/files")),
+  /** Vercel Blob read-write token for FILE_STORE=blob; Vercel sets it when a store is connected. */
+  BLOB_READ_WRITE_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   OTP_PEPPER: z.preprocess(emptyToUndefined, z.string().min(32).optional()),
   ALLOW_MOCKS_IN_PROD_BUILD: z.preprocess(emptyToUndefined, z.literal("1").optional()),
 });
