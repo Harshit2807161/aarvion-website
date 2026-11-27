@@ -24,11 +24,13 @@ describe("env", () => {
     expect(getEnv().MONGODB_DB).toBe("aarvion");
   });
 
-  it("defaults FILE_STORE_LOCAL_DIR to .data/files", async () => {
+  it("defaults FILE_STORE_LOCAL_DIR to .data/files and leaves BLOB_READ_WRITE_TOKEN unset", async () => {
     vi.stubEnv("FILE_STORE_LOCAL_DIR", "");
+    vi.stubEnv("BLOB_READ_WRITE_TOKEN", "");
     const { getEnv, resetEnvForTests } = await import("./env");
     resetEnvForTests();
     expect(getEnv().FILE_STORE_LOCAL_DIR).toBe(".data/files");
+    expect(getEnv().BLOB_READ_WRITE_TOKEN).toBeUndefined();
   });
 
   it("rejects an invalid VERCEL_ENV with the key named", async () => {
