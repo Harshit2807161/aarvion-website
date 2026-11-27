@@ -42,9 +42,12 @@ function TrashIcon() {
 export function CartLineItem({
   line,
   variant,
+  heading: Heading = "h3",
 }: {
   line: PricedLine;
   variant: "full" | "compact";
+  /** The name's heading level: the cart page sets what fits under its h1, the drawer what fits under its title. */
+  heading?: "h2" | "h3" | "h4";
 }) {
   const { slug, name, qty } = line;
   const lines = useCartLines();
@@ -53,10 +56,9 @@ export function CartLineItem({
   const incDisabled = productFull || orderFull;
   const each = sellingPricePaise(line.mrpPaise);
 
-  function step(to: number) {
-    // `set` ignores a quantity past the cap without saying so; the line says why.
-    if (to > CART_LIMITS.perProduct) return announce(CART_COPY.productLimit(name));
-    const blocked = cartStore.dispatch({ type: "set", slug, qty: to });
+  /** A relative change: signed in, "+" lands on the server's quantity, not this tab's cached one. */
+  function step(type: "inc" | "dec") {
+    const blocked = cartStore.dispatch({ type, slug });
     if (blocked) {
       announce(
         blocked === "product_limit" ? CART_COPY.productLimit(name) : CART_COPY.orderLimit,
@@ -83,10 +85,10 @@ export function CartLineItem({
         />
       </span>
       <div className="line-main">
-        <h3 className="line-name">
+        <Heading className="line-name">
           {name}
           {line.rxRequired && <RxBadge />}
-        </h3>
+        </Heading>
         <p className="line-salt">{fullComposition(line.composition)}</p>
         <p className="line-pack">{packDisplay(line)}</p>
       </div>
@@ -112,7 +114,7 @@ export function CartLineItem({
             data-dec
             aria-label={CART_COPY.oneFewer(name)}
             aria-disabled={qty <= 1}
-            onClick={() => qty > 1 && step(qty - 1)}
+            onClick={() => qty > 1 && step("dec")}
           >
             <Icon name="minus" size={18} />
           </button>
@@ -122,7 +124,7 @@ export function CartLineItem({
             data-inc
             aria-label={CART_COPY.oneMore(name)}
             aria-disabled={incDisabled}
-            onClick={() => step(qty + 1)}
+            onClick={() => step("inc")}
           >
             <Icon name="plus" size={18} />
           </button>

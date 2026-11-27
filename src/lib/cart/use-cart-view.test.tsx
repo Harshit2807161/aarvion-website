@@ -89,4 +89,32 @@ describe("useCartView", () => {
     act(() => void cartStore.dispatch({ type: "inc", slug: "a" }));
     expect(read()).toEqual({ lines: [], payable: 0, pending: ["a"], updating: true });
   });
+
+  it("reports updating while a quote for newer lines is out, with the totals still computed, and clears it when it lands", async () => {
+    await pricedA();
+    let land!: () => void;
+    m.quoteCart.mockReturnValue(
+      new Promise((resolve) => {
+        land = () =>
+          resolve({
+            ok: true,
+            view: {
+              lines: [pricedLine(2, { slug: "a", name: "A" })],
+              totals: cartTotals([]),
+              removed: [],
+            },
+          });
+      }),
+    );
+    act(() => void cartStore.dispatch({ type: "inc", slug: "a" }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500); // the quote is now in flight
+    });
+    expect(read()).toEqual({ lines: [["a", 2]], payable: 77400, pending: [], updating: true });
+    await act(async () => {
+      land();
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(read()).toEqual({ lines: [["a", 2]], payable: 77400, pending: [], updating: false });
+  });
 });

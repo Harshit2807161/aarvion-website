@@ -2,10 +2,22 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveRegion } from "@/components/feedback/live-region";
+import * as api from "@/lib/cart/api";
 import { cartStore, resetCartStore } from "@/lib/cart/store";
+import { cartTotals } from "@/server/catalogue/pricing";
 import { findClaims } from "../../../tests/helpers/claims";
 import { pricedLine as line, seedGuest } from "../../../tests/helpers/cart";
 import { CartLineItem } from "./cart-line";
+
+vi.mock("@/lib/cart/api", () => ({
+  getCart: vi.fn(),
+  addItem: vi.fn(),
+  setQty: vi.fn(),
+  removeItem: vi.fn(),
+  mergeCart: vi.fn(),
+  quoteCart: vi.fn(),
+}));
+const m = vi.mocked(api);
 
 const spoken = async () => {
   await act(async () => {
@@ -23,6 +35,7 @@ const seen = (el: Element) => {
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   sessionStorage.clear();
+  vi.resetAllMocks();
   resetCartStore();
 });
 
@@ -148,5 +161,35 @@ describe("CartLineItem", () => {
   it("makes no health claim", () => {
     const { container } = renderLine(2);
     expect(findClaims(container.textContent ?? "")).toEqual([]);
+  });
+
+  it("uses the relative inc and dec when signed in, so a stale tab cannot overwrite the server's quantity", async () => {
+    const cart = (qty: number) => ({
+      ok: true as const,
+      view: { lines: [line(qty)], totals: cartTotals([]), removed: [] },
+    });
+    m.getCart.mockResolvedValue(cart(2));
+    m.addItem.mockResolvedValue(cart(7));
+    m.setQty.mockResolvedValue(cart(1));
+    await act(async () => void (await cartStore.signIn()));
+    renderLine(2);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(document.querySelector("[data-inc]")!);
+    await act(async () => void (await vi.advanceTimersByTimeAsync(10)));
+    expect(m.addItem).toHaveBeenCalledWith("sacuwin-100", 1);
+    expect(m.setQty).not.toHaveBeenCalledWith("sacuwin-100", 3);
+  });
+
+  it("takes the name's heading level, h3 by default", () => {
+    const { unmount } = renderLine(1);
+    expect(document.querySelector("h3.line-name")).not.toBeNull();
+    unmount();
+    render(
+      <ul>
+        <CartLineItem line={line(1)} variant="full" heading="h2" />
+      </ul>,
+    );
+    expect(document.querySelector("h2.line-name")).not.toBeNull();
+    expect(document.querySelector("h3")).toBeNull();
   });
 });
