@@ -298,12 +298,14 @@ ported prototype CSS imported by `globals.css`.
 | `cart/rules.ts` | pure cart rules, client-safe and import-free: `CART_LIMITS` (10 per product, 20 per order), `CartLine`, `addLine`, `setLineQty`, `removeLine` (a refused or no-op change returns the same array; `product_limit` then `order_limit`), `capLines` (untrusted input to a valid cart, cut at 20 packs from the end) and `mergeLines` (max per slug, server order first, idempotent); lines are an array, so a slug like `__proto__` is ordinary |
 | `auth/` | `identifier.ts`, `otp.ts`, `users.ts`, `sessions.ts`, `cookie.ts`, `login.ts` (`sendOtp`, `verifyOtpAndLogin`), `guards.ts` (`getAuth`, `requireUser`, `requireRole`, `sessionRefreshHeaders`: the `Set-Cookie` that re-issues the sliding customer cookie, which every customer route that calls `requireUser` merges into its response), `roles.ts` |
 | `security/` | `rate-limit.ts` (`hitRateLimit`, `peekRateLimit`, `resetRateLimit`), `client-ip.ts` (`clientIp`, `ipBucket`), `origin.ts` (`assertSameOrigin`) |
-| `audit.ts` | `appendAudit()`, the only writer of `audit_logs` |
+| `audit.ts` | `appendAudit()`, the only writer of `audit_logs` (actions `auth.login`, `auth.logout`, `rx.upload`, `rx.view`) |
 | `orders/status.ts` | pure state machine: `ORDER_EDGES`, `transition()`, `initialStatus()` |
 | `orders/order-number.ts` | `nextOrderNumber(now)`, `formatOrderNumber`, `orderMonthKey` |
 | `prescriptions/file-check.ts` | `checkRxFile(bytes)`: magic-byte type (`sniffType`), 1 to 8 MiB; an image is re-encoded with sharp to WebP q85 (longest side 3000, shortest at least 400, 50 MP input cap, one frame, EXIF rotation applied, all metadata dropped, 5 s timeout); returns `{ ok, file }` or a named `RxFileError`, plus the sha256 of the stored body. PDFs are refused until the scan lands (part B) |
 | `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6`, `istMidnight(ymd)` (a day's 00:00 IST instant; `RangeError` for a malformed or impossible date), `istDay(at)`, `rxEnd(rx)` (the exclusive end: `min(validUntil, rxDate + 6 months)`) |
 | `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput`, and `reviewRx` (approve only from pending; reject from pending, or from approved as a revoke; a reject's `set` carries no dates, so an approved Rx keeps them; rejected is final; an unknown status is `invalid_transition`), `rxView` (the customer list item: under review, approved, expired or rejected, with IST days) |
+| `prescriptions/prescriptions.ts` | the `prescriptions` and `rx_staging` collections and their indexes; `RxDoc`, `StagingDoc`, `RxCreateBody`, `RX_UPLOAD_LIMITS`; `createStaging`, `peekStaging`, `takeStaging` (single use), `insertRx`, `listRxForUser`, `getRxForUser` (ownership in the filter), `applyRxReview` |
+| `prescriptions/upload.ts` | `startRxUpload` (IP limit, then user limit, then a staging slot; `mode` is `client-token` on Blob, else `direct`) and `finishRxUpload` (take the slot, read and check the staged file, store `rx/<uid>/<rxId>.<ext>`, insert, delete the staged file, audit `rx.upload`; a put that already landed with the same SHA-256 counts as success) |
 
 ## Collections and indexes
 
@@ -316,11 +318,14 @@ ported prototype CSS imported by `globals.css`.
 | `users` | ObjectId | `phone_unique`, `email_unique` (both partial) | `findOrCreateUserByIdentifier` (sign-up `name` and `consents` on insert only), `setUserRole`; lookups filter `{ $eq, $type: "string" }` so the partial indexes apply |
 | `sessions` | SHA-256 of the token | `expiresAt_ttl`, `userId_1` | `createSession`, `resolveSession`, `revokeSession` |
 | `audit_logs` | ObjectId | `at_desc`, `actorUserId_at_desc` | `appendAudit` |
+| `prescriptions` | ObjectId | `userId_createdAt_desc`, `status_createdAt` (the pharmacist queue, oldest first) | `finishRxUpload` (`insertRx`), `applyRxReview` (a conditional update on the status it was read in) |
+| `rx_staging` | base64url of 16 random bytes (22 chars) | `expiresAt_ttl` (TTL 0; a slot lives 15 minutes) | `startRxUpload` (`createStaging`), `finishRxUpload` (`takeStaging`, single use) |
 | `dev_outbox` | `mock_<uuid>` | `expiresAt_1` (TTL 24 h), `to_1_createdAt_1` | mock SMS and email |
 | `counters` | `order-number:<YYMM>` | none | `nextOrderNumber` |
 
 Rate-limit keys: `otp-send:ip:<bucket>` (20/h), `otp-send:id:<channel>:<value>` (3/10 min),
-`otp-verify:ip:<bucket>` (60/h), `otp-verify-fail:<channel>:<value>` (10/24 h).
+`otp-verify:ip:<bucket>` (60/h), `otp-verify-fail:<channel>:<value>` (10/24 h). Prescription uploads:
+`rx-upload:ip:<bucket>` (30/h, checked first) and `rx-upload:user:<id>` (10/h).
 
 ## Request flow
 

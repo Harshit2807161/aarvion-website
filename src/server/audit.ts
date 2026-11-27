@@ -8,7 +8,7 @@ registerIndexes("audit_logs", [
   { key: { "actor.userId": 1, at: -1 }, name: "actorUserId_at_desc" },
 ]);
 
-export type AuditAction = "auth.login" | "auth.logout";
+export type AuditAction = "auth.login" | "auth.logout" | "rx.upload" | "rx.view";
 
 /** Ids, hashes and flags only: never a phone, email, code or token. */
 export type AuditEntry = {
