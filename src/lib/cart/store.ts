@@ -256,6 +256,14 @@ export const cartStore = {
     scheduleQuote();
     notify();
   },
+  /**
+   * Prices a stored guest cart now when nothing has priced it yet: the cart page calls it on mount
+   * rather than wait for `CartSync`'s idle mount. A no-op signed in (the server cart brings its own
+   * view), with a view already in hand or a quote already on its way, and for an empty cart.
+   */
+  price(): void {
+    if (mode !== "user" && !view && !viewStale) scheduleQuote();
+  },
   /** Signed in: reloads the server cart (quietly) so a change made in another tab shows up. */
   refresh(): void {
     if (mode === "user") user?.refresh();

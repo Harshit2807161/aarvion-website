@@ -263,6 +263,35 @@ describe("the guest view", () => {
   });
 });
 
+describe("price (the cart page's mount)", () => {
+  it("quotes a stored guest cart that nothing has priced, once, without a change", async () => {
+    seed([{ slug: "a", qty: 2 }]);
+    m.quoteCart.mockImplementation(() => ok({ a: 2 }));
+    cartStore.price();
+    expect(cartStore.isViewStale()).toBe(true);
+    cartStore.price(); // a quote is already on its way
+    await tick(400);
+    expect(m.quoteCart).toHaveBeenCalledTimes(1);
+    expect(m.quoteCart).toHaveBeenCalledWith([{ slug: "a", qty: 2 }]);
+    expect(cartStore.getView()).not.toBeNull();
+    cartStore.price(); // a view is in hand
+    await tick(400);
+    expect(m.quoteCart).toHaveBeenCalledTimes(1);
+  });
+
+  it("does nothing for an empty cart or a signed-in store", async () => {
+    cartStore.price();
+    await tick(400);
+    expect(m.quoteCart).not.toHaveBeenCalled();
+    m.getCart.mockImplementation(() => ok({ a: 1 }));
+    await cartStore.signIn();
+    m.quoteCart.mockClear();
+    cartStore.price();
+    await tick(400);
+    expect(m.quoteCart).not.toHaveBeenCalled();
+  });
+});
+
 describe("signIn", () => {
   it("merges the guest cart once, clears guest storage and switches to user mode", async () => {
     seed([{ slug: "a", qty: 1 }]);

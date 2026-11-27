@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { CartTotals, PricedLine } from "@/server/cart/service";
-import { cartTotals } from "@/server/catalogue/pricing";
+import { cartTotals } from "@/server/catalogue/cart-totals";
 import type { CartLines } from "./cart";
 import { cartStore } from "./store";
 

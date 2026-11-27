@@ -6,6 +6,7 @@ import { SIGNED_IN_EVENT } from "@/components/auth/events";
 import { announce } from "@/components/feedback/live-region";
 import { cartStore, type CartIssue } from "@/lib/cart/store";
 import { CART_LIMITS } from "@/lib/cart/cart";
+import { CART_SENTENCES } from "./cart-sentences";
 
 /** What the shopper hears (awaiting owner approval, like every new customer string). Lazy with this module. */
 const COPY = {
@@ -14,7 +15,7 @@ const COPY = {
   syncFailed: "We couldn’t update your cart. Check your connection and try again.",
   notFound: "That medicine isn’t available right now.",
   productLimit: `You can order up to ${CART_LIMITS.perProduct} packs of one medicine.`,
-  orderLimit: `An order can hold up to ${CART_LIMITS.perOrder} packs.`,
+  orderLimit: CART_SENTENCES.orderLimit,
 } as const;
 
 function sentence(issue: CartIssue): string {

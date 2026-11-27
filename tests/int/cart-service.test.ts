@@ -12,7 +12,8 @@ import {
 } from "@/server/cart/service";
 import { CATEGORY_LIST } from "@/server/catalogue/categories";
 import { CATEGORIES_COLLECTION, PRODUCTS_COLLECTION } from "@/server/catalogue/collections";
-import { DEFAULT_MRP_PAISE, cartTotals } from "@/server/catalogue/pricing";
+import { cartTotals } from "@/server/catalogue/cart-totals";
+import { DEFAULT_MRP_PAISE } from "@/server/catalogue/pricing";
 import { CatalogueJson } from "@/server/catalogue/schema";
 import { seedCatalogue, toProductDoc } from "@/server/catalogue/seed";
 import { getDb } from "@/server/db/client";

@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { cartTotals } from "@/server/catalogue/pricing";
+import { cartTotals } from "@/server/catalogue/cart-totals";
 import { findClaims } from "../../../tests/helpers/claims";
 import { CartSummary } from "./cart-summary";
 

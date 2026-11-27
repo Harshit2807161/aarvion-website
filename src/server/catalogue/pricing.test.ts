@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { cartTotals, percentOff, sellingPricePaise } from "./pricing.ts";
+import { cartTotals } from "./cart-totals.ts";
+import { percentOff, sellingPricePaise } from "./pricing.ts";
 
 describe("sellingPricePaise", () => {
   it("subtracts Rs 20 from the MRP", () => {

@@ -6,11 +6,12 @@ import { announce } from "@/components/feedback/live-region";
 import { CART_LIMITS, cartCount, type CartBlock } from "@/lib/cart/cart";
 import { cartStore } from "@/lib/cart/store";
 import { useCartLines } from "@/lib/cart/use-cart-lines";
+import { CART_SENTENCES } from "./cart-sentences";
 
 function blockedMessage(blocked: CartBlock, name: string): string {
   return blocked === "product_limit"
-    ? `You can order up to ${CART_LIMITS.perProduct} packs of ${name}.`
-    : `An order can hold up to ${CART_LIMITS.perOrder} packs.`;
+    ? CART_SENTENCES.productLimit(name)
+    : CART_SENTENCES.orderLimit;
 }
 
 /**
@@ -49,7 +50,7 @@ export function CartControl({ slug, name }: { slug: string; name: string }) {
     if (after === before) return;
     if (before === 0) focusNext.current = "inc";
     if (after === 0) focusNext.current = "add";
-    announce(after === 0 ? `${name} removed from cart` : `${name}: ${after} in cart`);
+    announce(after === 0 ? CART_SENTENCES.removed(name) : CART_SENTENCES.inCart(name, after));
   }
 
   return (
