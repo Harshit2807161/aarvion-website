@@ -39,7 +39,7 @@ export type RxReview =
  * between letters or marks. Inlined here; R4 re-points it to the shared PersonName.
  */
 const NO_HIDDEN_CHARS =
-  /^(?:[^\p{C}\p{Default_Ignorable_Code_Point}]|(?<=[\p{L}\p{M}])[‌‍](?=[\p{L}\p{M}]))*$/u;
+  /^(?:[^\p{C}\p{Default_Ignorable_Code_Point}]|(?<=[\p{L}\p{M}])[\u200C\u200D](?=[\p{L}\p{M}]))*$/u;
 const PersonName = z.string().trim().min(2).max(80).regex(/\p{L}/u).regex(NO_HIDDEN_CHARS);
 
 const YMD = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);

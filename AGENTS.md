@@ -170,7 +170,10 @@ otherwise). How to write each kind: [docs/dev/testing.md](docs/dev/testing.md).
 - `confirm`, `pack` and `ship` judge the Rx **currently attached** to the order at the
   transition time (`ctx.at`) only. Order placement judges it at the order's `createdAt` (O
   phase). `ctx.at` is server time.
-- A calendar day from a form becomes an instant only through `istMidnight("YYYY-MM-DD")`, and an instant becomes a shown day only through `istDay` ([validity.ts](src/server/prescriptions/validity.ts)); never `new Date("YYYY-MM-DD")`. A pharmacist's valid-until is entered as the last valid day and stored as the next IST midnight.
+- A calendar day from a form becomes an instant only through `istMidnight("YYYY-MM-DD")`, and an
+  instant becomes a shown day only through `istDay`
+  ([validity.ts](src/server/prescriptions/validity.ts)); never `new Date("YYYY-MM-DD")`. A
+  pharmacist's valid-until is entered as the last valid day and stored as the next IST midnight.
 
 **Order state machine** ([status.ts](src/server/orders/status.ts), pure, no DB, no clock)
 
