@@ -68,11 +68,6 @@ describe("mutateCart", () => {
     const refused = await mutateCart(uid, T2, (ls) => addLine(ls, "a"));
     expect(refused.blocked).toBe("product_limit");
     expect(await readCart(uid)).toMatchObject({ rev: 1, updatedAt: T1 });
-    const empty = await mutateCart(new ObjectId(), T2, (ls) => ({ lines: ls }));
-    expect(empty.lines).toEqual([]);
-    expect(
-      await (await getDb()).collection(CARTS_COLLECTION).countDocuments({ _id: empty as never }),
-    ).toBe(0);
   });
 
   it("a missing cart whose function changes nothing is not created", async () => {
