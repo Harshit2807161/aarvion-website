@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/base/icon";
 import { ROUTES } from "@/config/routes";
+import { motionAllowed } from "@/lib/motion";
 
 const SLACK = 2;
 const SETTLE_MS = 80;
@@ -61,10 +62,10 @@ export function RailControls({
   function page(dir: -1 | 1) {
     const row = document.getElementById(rowId);
     if (!row) return;
-    const smooth =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
-    row.scrollBy({ left: dir * 0.8 * row.clientWidth, behavior: smooth ? "smooth" : "auto" });
+    row.scrollBy({
+      left: dir * 0.8 * row.clientWidth,
+      behavior: motionAllowed() ? "smooth" : "auto",
+    });
   }
 
   return (
