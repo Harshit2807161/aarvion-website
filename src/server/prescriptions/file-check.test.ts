@@ -6,6 +6,8 @@ import {
   htmlAsJpgName,
   jpegWithExif,
   jpegWithTrailer,
+  padPdf,
+  pdf,
   pixelBombPng,
   png,
 } from "../../../tests/helpers/rx-fixtures";
@@ -106,9 +108,41 @@ describe("checkRxFile: type and size", () => {
   });
 });
 
+describe("checkRxFile: PDFs", () => {
+  it("keeps a 2-page PDF byte for byte", async () => {
+    const input = pdf({ pages: 2 });
+    const r = await checkRxFile(input);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.file).toMatchObject({
+      contentType: "application/pdf",
+      ext: "pdf",
+      kind: "pdf",
+      pages: 2,
+      width: null,
+      height: null,
+    });
+    expect(Buffer.from(r.file.body).equals(Buffer.from(input))).toBe(true);
+  });
+
+  it("accepts a PDF of exactly 8 MiB and refuses one byte more", async () => {
+    expect((await checkRxFile(padPdf(pdf(), RX_MAX_BYTES))).ok).toBe(true);
+    expect(await checkRxFile(padPdf(pdf(), RX_MAX_BYTES + 1))).toEqual({
+      ok: false,
+      error: "too_large",
+    });
+  });
+
+  it("returns the scan's named error", async () => {
+    expect(await checkRxFile(pdf({ extra: "/Encrypt 5 0 R" }))).toEqual({
+      ok: false,
+      error: "encrypted",
+    });
+  });
+});
+
 describe("checkRxFile: sha256", () => {
-  it("is the hex digest of the stored body", async () => {
-    for (const input of [await png(800, 800)]) {
+  it("is the hex digest of the stored body, for an image and for a PDF", async () => {
+    for (const input of [await png(800, 800), pdf()]) {
       const r = await checkRxFile(input);
       if (!r.ok) throw new Error(r.error);
       expect(r.file.sha256).toMatch(/^[0-9a-f]{64}$/);

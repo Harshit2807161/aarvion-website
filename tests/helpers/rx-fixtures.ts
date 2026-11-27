@@ -66,3 +66,27 @@ export function pixelBombPng(side: number): Uint8Array {
     chunk("IEND", Buffer.alloc(0)),
   ]);
 }
+/** A small PDF of `pages` pages; `extra` goes into the catalog dictionary. */
+export function pdf({
+  pages = 1,
+  extra = "",
+}: { pages?: number; extra?: string } = {}): Uint8Array {
+  const kids = Array.from({ length: pages }, (_, i) => `${3 + i} 0 R`).join(" ");
+  const leaves = Array.from(
+    { length: pages },
+    (_, i) => `${3 + i} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] >>\nendobj\n`,
+  ).join("");
+  const text =
+    `%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R ${extra} >>\nendobj\n` +
+    `2 0 obj\n<< /Type /Pages /Count ${pages} /Kids [${kids}] >>\nendobj\n${leaves}` +
+    `trailer\n<< /Root 1 0 R /Size ${3 + pages} >>\nstartxref\n0\n%%EOF\n`;
+  return Buffer.from(text, "latin1");
+}
+
+/** Pad a PDF to exactly `size` bytes with a comment line after the header, keeping %%EOF last. */
+export function padPdf(bytes: Uint8Array, size: number): Uint8Array {
+  const header = 9; // "%PDF-1.4\n"
+  const fill = size - bytes.length;
+  const comment = Buffer.from(`%${"x".repeat(fill - 2)}\n`, "latin1");
+  return Buffer.concat([bytes.subarray(0, header), comment, bytes.subarray(header)]);
+}
