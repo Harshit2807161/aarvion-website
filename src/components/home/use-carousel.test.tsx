@@ -23,8 +23,15 @@ function Fixture() {
       <div ref={trackRef} className="hero-track" data-testid="track">
         {[0, 1, 2, 3].map((i) => (
           <section key={i} className="slide" data-testid={`slide-${i}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- a plain fixture */}
-            <img alt="" src={`/s${i}.webp`} loading={i === 0 ? "eager" : "lazy"} />
+            {i === 0 ? (
+              // eslint-disable-next-line @next/next/no-img-element -- a plain fixture
+              <img alt="" src="/s0.webp" loading="eager" />
+            ) : (
+              <picture>
+                <source data-srcset={`/s${i}-m.webp 840w`} />
+                <img alt="" data-src={`/s${i}.webp`} data-srcset={`/s${i}.webp 1792w`} loading="lazy" />
+              </picture>
+            )}
           </section>
         ))}
       </div>
@@ -276,6 +283,19 @@ describe("useCarousel DOM", () => {
   it("makes the remaining slides' images eager on window load", () => {
     const m = mount({ reduced: false, phone: false });
     for (const i of [1, 2, 3]) expect(m.img(i)).toHaveAttribute("loading", "eager");
+  });
+
+  it("gives the later slides' pictures their real sources on window load, and not before", () => {
+    const m = mount({ reduced: false, phone: false });
+    for (const i of [1, 2, 3]) {
+      expect(m.img(i)).toHaveAttribute("src", `/s${i}.webp`);
+      expect(m.img(i)).toHaveAttribute("srcset", `/s${i}.webp 1792w`);
+      expect(m.img(i)).not.toHaveAttribute("data-src");
+      const source = m.img(i).previousElementSibling!;
+      expect(source).toHaveAttribute("srcset", `/s${i}-m.webp 840w`);
+      expect(source).not.toHaveAttribute("data-srcset");
+    }
+    expect(m.img(0)).not.toHaveAttribute("srcset");
   });
 });
 
