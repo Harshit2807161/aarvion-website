@@ -38,6 +38,10 @@ const DEBOUNCE_MS = 120;
 export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy(): void } {
   if (!o.film) return { destroy() {} };
 
+  // The pinned layout and the hidden start states apply only once the engine runs (film.css
+  // keys on `.film.is-running`); a page whose script never loads keeps the static composition.
+  root.classList.add("is-running");
+
   const acts: Act[] = [...root.querySelectorAll<HTMLElement>("[data-act]")].map((el) => ({
     id: el.id,
     el,
@@ -137,7 +141,6 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
     timer = setTimeout(measure, DEBOUNCE_MS);
   };
 
-  measure();
 
   const io = new IntersectionObserver(
     (entries) => {
@@ -183,11 +186,15 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
     if (y !== null) window.scrollTo(0, y);
   };
   if (document.readyState === "complete") start();
-  else window.addEventListener("load", start, { once: true });
+  else {
+    measure(); // a first layout now; `start` measures again once images and fonts have settled
+    window.addEventListener("load", start, { once: true });
+  }
 
   return {
     destroy() {
       dead = true;
+      root.classList.remove("is-running");
       window.removeEventListener("scroll", dirty);
       window.removeEventListener("resize", remeasure);
       window.removeEventListener("load", start);
