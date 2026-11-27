@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { CATEGORY_LIST } from "@/server/catalogue/categories";
 import type { Category } from "@/server/catalogue/schema";
 import { mockPathname } from "../../../tests/helpers/navigation-mocks";
 import { CategoryBar } from "./category-bar";
@@ -35,6 +36,36 @@ describe("CategoryBar", () => {
       "/category/ophthalmology",
       "/category/respiratory",
       "/#medicines",
+    ]);
+  });
+
+  it("keeps the order it is given (the caller passes sortOrder order) and never re-sorts", () => {
+    const ordered: Category[] = [
+      { slug: "respiratory", name: "Respiratory care", status: "live", sortOrder: 4 },
+      { slug: "cardiology", name: "Heart care", status: "live", sortOrder: 1 },
+      { slug: "diabetology", name: "Diabetes care", status: "live", sortOrder: 2 },
+    ];
+    render(<CategoryBar categories={ordered} />);
+    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual([
+      "Respiratory care",
+      "Heart care",
+      "Diabetes care",
+      "All medicines",
+    ]);
+  });
+
+  it("is fed in sortOrder by the seed catalogue's live categories", () => {
+    const live = CATEGORY_LIST.filter((c) => c.status === "live");
+    expect(live.map((c) => c.sortOrder)).toEqual(
+      [...live.map((c) => c.sortOrder)].sort((a, b) => a - b),
+    );
+    render(<CategoryBar categories={live} />);
+    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual([
+      "Heart care",
+      "Diabetes care",
+      "Eye care",
+      "Respiratory care",
+      "All medicines",
     ]);
   });
 

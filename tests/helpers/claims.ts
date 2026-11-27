@@ -37,6 +37,12 @@ export const RX_UNIVERSAL_CLAIMS: RegExp[] = [
   /\b(?:every|all|each)(?:\s+(?:of|our|the|its|these|listed|current|currently|available|aarvion(?:['’]s)?))*\s+(?:medicines?|products?|packs?)\b[^.]{0,60}?\b(?:prescriptions?|rx|schedule\s+h1?)\b/i,
   /\bcurrently listed\b/i,
   /\b(?:medicines|products)\b[^.]{0,30}?\ball\s+(?:need|require)s?\b/i,
+  // Reverse order: the prescription first, the universal after ("You need a prescription for all medicines").
+  /\b(?:prescriptions?|rx)\b[^.]{0,40}?\b(?:for|on)\s+(?:every|all|each)\b[^.]{0,30}?\b(?:medicines?|products?|packs?)\b/i,
+  // "Every order needs a prescription": the order, not the medicine, as the subject.
+  /\b(?:every|each|all)\s+(?:of\s+(?:our|the)\s+)?orders?\b[^.]{0,30}?\b(?:needs?|requires?)\b[^.]{0,30}?\b(?:prescriptions?|rx)\b/i,
+  // "No medicine is sold without a prescription".
+  /\bno\s+(?:medicines?|products?)\b[^.]{0,40}?\bwithout\b[^.]{0,20}?\b(?:prescriptions?|rx)\b/i,
 ];
 
 /**

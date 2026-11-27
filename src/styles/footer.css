@@ -5,7 +5,7 @@
   page content (`.wrap`, `.work-in`) stays at --container-page, 75rem.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
-.foot .wrap { width: min(80rem, 100% - 2 * var(--spacing-gutter)); }
+.foot .wrap { width: min(var(--container-chrome), 100% - 2 * var(--spacing-gutter)); }
 .foot { background: var(--color-forest-900); color: var(--color-text-on-dark-muted); padding: 56px 0 28px; font-size: var(--text-sm); line-height: 1.5; }
 .foot-top { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr)); gap: 32px 40px; }
 .foot-logo { display: grid; justify-items: start; gap: 8px; color: var(--color-white); }
