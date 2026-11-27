@@ -158,6 +158,7 @@ bottom use commit SHAs.
   behave the same for new and existing identifiers (`tests/int/auth-signup.test.ts`) (#116).
 
 ### Changed
+- Banner slides 2 to 4 are server-rendered with `data-src` / `data-srcset` and get their sources from `revealSlideImages` (`use-carousel.ts`) after window load, so they are no longer fetched before `load` next to the LCP image; each also has a `<noscript>` picture, so a phone without JavaScript still swipes to a real image (#TBD)
 - Scroll film engine (`src/components/film/engine.ts`) hardening before it is wired into the page: each image is decoded once, the ResizeObserver's first report no longer triggers a second measure, the `?p=<act>:<progress>` capture jump runs after `load` like the prototype, and the duplicate clamp uses `clamp01`. Tests now cover the per-item `--ti` / `--to` skip, destroy (the very handlers removed, the frame cancelled, the timer cleared) and the `film: false` no-op (#158)
 
 - docs: architecture.md lists files one per line to stop merge conflicts (#157).
