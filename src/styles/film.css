@@ -7,14 +7,18 @@
   transform and opacity only, from the --ti / --to numbers the engine writes (src/components/
   film/engine.ts). The engine sets `measuring` on `#home` (the `film-root`), never on <html>, so
   that rule is a descendant selector. `.live` (set by the engine on the acts near the viewport)
-  scopes `will-change`, so only the layers that move are promoted.
+  scopes `will-change`, so only the layers that move are promoted, and it also scopes the hidden
+  start state (`--ti: 0`): before the engine runs, or if its script never loads, everything shows
+  in its final static state.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
 @property --ti { syntax: "<number>"; inherits: false; initial-value: 1; }
 @property --to { syntax: "<number>"; inherits: false; initial-value: 0; }
 
 /* ═══ The film: pinned stages driven by --ti (arrival) and --to (exit) ═══ */
-.film [data-in] { --ti: 0; }
+/* The hidden start state belongs to acts the engine has armed (`.live`): until it runs, or if its
+   script never loads, every element shows in its final static state. */
+.film .live [data-in], .film .live[data-in] { --ti: 0; }
 .film .act[data-act="pin"] { height: calc(100vh + var(--pin)); height: calc(100lvh + var(--pin)); }
 .film .act-steps { --pin: 200lvh; }
 .film .act-close { --pin: 110lvh; }

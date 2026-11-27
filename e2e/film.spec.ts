@@ -2,12 +2,6 @@ import { expect, test, type Page } from "@playwright/test";
 import { collectConsoleErrors } from "./helpers/console";
 
 /** The scroll film on `/`: pinned acts under motion, the static composition under reduced motion. */
-const num = (page: Page, sel: string, prop: string) =>
-  page
-    .locator(sel)
-    .first()
-    .evaluate((el, p) => Number(getComputedStyle(el).getPropertyValue(p)), prop);
-
 async function scrollThrough(page: Page) {
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   for (let y = 0; y < height; y += 600) {
@@ -26,7 +20,13 @@ test.describe("film with motion at 1440", () => {
     const vh = await page.evaluate(() => innerHeight);
     expect(how!.height).toBeGreaterThan(2.9 * vh);
     await expect(page.locator(".step").nth(1)).toHaveClass(/is-active/);
-    await expect.poll(() => num(page, ".perf-fill", "--ti")).toBeGreaterThan(0.5);
+    await expect
+      .poll(() =>
+        page
+          .locator(".perf-fill")
+          .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).d),
+      )
+      .toBeGreaterThan(0.5);
   });
 
   test("raises the category tiles from ?p=4:0.3", async ({ page }) => {
@@ -78,5 +78,26 @@ test.describe("film under reduced motion", () => {
     }
     await scrollThrough(page);
     expect(errors()).toEqual([]);
+  });
+});
+
+test.describe("film without its script", () => {
+  test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "no-preference" });
+
+  test("shows the tiles and the closing call to action at full opacity when the JS chunks never load", async ({
+    page,
+  }) => {
+    await page.route("**/_next/static/chunks/**", (route) => route.abort());
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("#home")).toHaveClass(/(^|\s)film(\s|$)/);
+    for (const sel of [".tile", ".close-copy", ".close-swoosh", ".vis-log", ".vis-label"]) {
+      for (const el of await page.locator(sel).all()) {
+        await expect(el).toHaveCSS("opacity", "1");
+      }
+    }
+    const swoosh = await page
+      .locator(".close-swoosh")
+      .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
+    expect(swoosh).toBeCloseTo(1, 1);
   });
 });

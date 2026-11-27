@@ -137,7 +137,6 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
     timer = setTimeout(measure, DEBOUNCE_MS);
   };
 
-  measure();
 
   const io = new IntersectionObserver(
     (entries) => {
@@ -183,7 +182,10 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
     if (y !== null) window.scrollTo(0, y);
   };
   if (document.readyState === "complete") start();
-  else window.addEventListener("load", start, { once: true });
+  else {
+    measure(); // a first layout now; `start` measures again once images and fonts have settled
+    window.addEventListener("load", start, { once: true });
+  }
 
   return {
     destroy() {
