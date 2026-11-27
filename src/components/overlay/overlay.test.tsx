@@ -4,7 +4,9 @@ import { useRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Overlay, type OverlayProps } from "./overlay";
 
-type Props = Partial<Pick<OverlayProps, "variant" | "count" | "footer" | "initialFocus">> & {
+type Props = Partial<
+  Pick<OverlayProps, "variant" | "count" | "footer" | "initialFocus" | "mark">
+> & {
   onOpenChange?: (open: boolean) => void;
   focusEmail?: boolean;
   returnToFallback?: boolean;
@@ -72,6 +74,19 @@ describe("Overlay", () => {
     render(<Harness initialFocus={() => document.querySelector("input")} />);
     await openIt(user);
     expect(screen.getByLabelText("Email")).toHaveFocus();
+  });
+
+  it("renders an optional mark in the head, before the title", async () => {
+    const user = userEvent.setup();
+    render(<Harness mark={<span className="sheet-mark" aria-hidden="true" />} />);
+    const dialog = await openIt(user);
+    const head = dialog.querySelector(".sheet-head")!;
+    const mark = head.querySelector(".sheet-mark")!;
+    expect(mark).not.toBeNull();
+    expect(mark.compareDocumentPosition(head.querySelector(".sheet-title")!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(dialog).toHaveAccessibleName("Sign in");
   });
 
   it("traps focus: Tab from the last focusable wraps to the first", async () => {

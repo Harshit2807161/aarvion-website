@@ -15,7 +15,7 @@
  * - Messages are spoken through `announce()` (the page's single live region). `.auth-alert` has
  *   no role, so a countdown never re-announces every second.
  */
-import { type Dispatch, useRef, useState } from "react";
+import { type Dispatch, type ReactNode, useRef, useState } from "react";
 import { Button } from "@/components/base/button";
 import { Icon } from "@/components/base/icon";
 import { announce } from "@/components/feedback/live-region";
@@ -47,6 +47,22 @@ export function liveCodeMessage(s: LoginState, now: number): string | null {
       : LOGIN_COPY.daily(s.channel === "phone" ? "number" : "email", waitText(left));
   }
   return codeMessage(s, now);
+}
+
+/**
+ * The message with each `m:ss` wait set in Geist Mono, as the prototype does, so a live countdown
+ * keeps its width every second and matches the mono resend timer. The copy stays verbatim.
+ */
+export function withMonoTimes(message: string): ReactNode[] {
+  return message.split(/(\d+:\d{2})/).map((part, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className="mono">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
 }
 
 export function CodeStep({
@@ -157,7 +173,7 @@ export function CodeStep({
   const resendMain = s.locked === "tries" && !waiting;
   const otpState = s.locked ? "locked" : message && !s.busy ? "invalid" : "idle";
   return (
-    <div className="auth-step" data-step="code">
+    <div className="auth-step enter" data-step="code">
       <div className="auth-head">
         <h2 tabIndex={-1}>{LOGIN_COPY.codeTitle}</h2>
         <p className="auth-sent">
@@ -199,7 +215,7 @@ export function CodeStep({
           {message ? (
             <p className="auth-alert" id={`${p}-otp-err`}>
               <Icon name="alert" size={18} />
-              <span>{message}</span>
+              <span>{withMonoTimes(message)}</span>
             </p>
           ) : null}
         </div>

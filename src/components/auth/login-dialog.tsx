@@ -80,6 +80,11 @@ export function LoginDialog({
       }}
       variant="dialog"
       title={<span className="sr-only">Sign in</span>}
+      // The approved head: grip, the mint swoosh, Close (decorative; the title names the dialog).
+      mark={
+        // eslint-disable-next-line @next/next/no-img-element -- static SVG; next/image would not optimise it
+        <img className="sheet-mark" src="/brand/aarvion-mark.svg" alt="" width={56} height={12} />
+      }
       closeLabel="Close sign in"
       initialFocus={identifierField}
       returnFocusTo={returnFocusTo}

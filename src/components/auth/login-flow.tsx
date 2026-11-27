@@ -209,6 +209,7 @@ export function LoginFlow({ mode, allowDemo = false, onDone, next: nextProp }: L
                 mono
                 inputMode="numeric"
                 autoComplete="tel-national"
+                placeholder={LOGIN_COPY.mobilePlaceholder}
                 value={state.raw}
                 error={state.error}
                 onChange={(e) => dispatch({ type: "input", raw: e.target.value })}
@@ -221,6 +222,7 @@ export function LoginFlow({ mode, allowDemo = false, onDone, next: nextProp }: L
                 label={LOGIN_COPY.emailLabel}
                 inputMode="email"
                 autoComplete="email"
+                placeholder={LOGIN_COPY.emailPlaceholder}
                 autoCapitalize="none"
                 spellCheck={false}
                 value={state.raw}
@@ -268,7 +270,7 @@ export function LoginFlow({ mode, allowDemo = false, onDone, next: nextProp }: L
       ) : null}
 
       {state.step === "done" ? (
-        <div className="auth-step" data-step="done">
+        <div className="auth-step enter" data-step="done">
           <div className="auth-done">
             <span className="done-mark">
               <Icon name="check" size={28} />
