@@ -18,6 +18,11 @@ mock-enabled deploy on the production database would expose real customers.
   e2e smoke can run without a database. Vercel production (`VERCEL_ENV=production`)
   always fails closed.
 
+- `APP_URL` is required in every Vercel scope that serves customers (Production, and Preview
+  if its sitemap should name the preview host). The sitemap, `robots.txt` sitemap line, canonical
+  links, Open Graph URLs and product JSON-LD are built from it; unset, they point at
+  `http://localhost:3000`. `robots.txt` allows crawling only when `VERCEL_ENV=production`.
+
 ## Build-time database (Cache Components)
 
 Pages prerender from the catalogue at build time (`src/lib/catalogue/cached.ts`), so a build
