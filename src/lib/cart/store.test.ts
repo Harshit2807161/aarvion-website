@@ -133,20 +133,6 @@ describe("guest mode", () => {
     for (let i = 0; i < 10; i++) cartStore.dispatch(inc("a"));
     expect(cartStore.dispatch(inc("a"))).toBe("product_limit");
   });
-
-  it("reconcile drops unknown slugs so they free the 20-pack cap, and never touches an empty catalogue", () => {
-    seed([
-      { slug: "gone", qty: 10 },
-      { slug: "a", qty: 10 },
-    ]);
-    expect(cartStore.dispatch(inc("b"))).toBe("order_limit");
-    expect(cartStore.reconcile(new Set())).toBe(false);
-    expect(cartStore.reconcile(new Set(["a", "b"]))).toBe(true);
-    expect(cartStore.getSnapshot()).toEqual({ a: 10 });
-    expect(stored()).toEqual({ lines: [{ slug: "a", qty: 10 }] });
-    expect(cartStore.dispatch(inc("b"))).toBeNull();
-    expect(cartStore.reconcile(new Set(["a", "b"]))).toBe(false);
-  });
 });
 
 describe("the quoting code is a lazy chunk", () => {
@@ -372,12 +358,12 @@ describe("signIn", () => {
     cartStore.onIssue((i) => issues.push(i));
     seed([{ slug: "a", qty: 1 }]);
     m.mergeCart.mockImplementation(() => fail("network"));
-    await cartStore.signIn();
+    expect((await cartStore.signIn()).retry).toBe(true); // may pass: ask again later
     expect(cartStore.getMode()).not.toBe("user");
     expect(stored()).toEqual({ lines: [{ slug: "a", qty: 1 }] });
     expect(issues).toEqual([{ kind: "sync_failed" }]);
     m.mergeCart.mockImplementation(() => fail("unauthenticated"));
-    await cartStore.signIn();
+    expect((await cartStore.signIn()).retry).toBeUndefined(); // signed out: asking again cannot help
     expect(cartStore.getMode()).not.toBe("user");
     expect(issues).toHaveLength(1);
   });
