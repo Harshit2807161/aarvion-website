@@ -157,12 +157,14 @@ describe("LoginFlow: id step", () => {
 });
 
 describe("LoginFlow: code step", () => {
-  it("shows where the code went and counts down the resend wait", async () => {
+  it("shows where the code went and counts down to Send a new code", async () => {
     const { container } = await toCodeStep();
     expect(container.textContent).toContain("+91 98765 43210");
     expect(container.querySelector(".otp-timer")!.textContent).toBe("Resend code in 0:30");
+    expect(button(LOGIN_COPY.resend)).toBeNull();
     await advance(30_000);
     expect(container.querySelector(".otp-timer")).toBeNull();
+    expect(button(LOGIN_COPY.resend)).not.toBeNull();
   });
 
   it("adds no live region of its own and makes no banned claims", async () => {
@@ -233,6 +235,7 @@ describe("LoginFlow: code step", () => {
     expect(otp().disabled).toBe(true);
     await advance(30_000);
     expect(document.querySelector(".auth-alert")!.textContent).toBe(LOGIN_COPY.lockedReady);
+    expect(button(LOGIN_COPY.resend)!.className).toContain("btn");
   });
 
   it("[C3] a network limit counts down live from lockedUntil", async () => {
@@ -280,6 +283,37 @@ describe("LoginFlow: code step", () => {
     expect(document.querySelector(".auth-alert")!.textContent).toBe(LOGIN_COPY.network);
     expect(button(LOGIN_COPY.verify)!.getAttribute("aria-busy")).toBeNull();
   });
+  it("Send a new code shows the busy copy, ignores a second click, and restarts the timer", async () => {
+    const { container } = await toCodeStep();
+    await advance(30_000);
+    const send = held();
+    reply(SEND, send.promise);
+    fireEvent.click(button(LOGIN_COPY.resend)!);
+    await flush();
+    fireEvent.click(button(LOGIN_COPY.sending)!);
+    send.resolve(SENT);
+    await flush();
+    expect(calls(SEND)).toHaveLength(2);
+    expect(calls(SEND)[1]!.body).toEqual({ channel: "phone", identifier: "9876543210" });
+    expect(container.querySelector(".otp-timer")!.textContent).toBe("Resend code in 0:30");
+  });
+
+  it("Verify with a short code says so and sends nothing", async () => {
+    await toCodeStep();
+    type("123");
+    fireEvent.click(button(LOGIN_COPY.verify)!);
+    await flush();
+    expect(document.querySelector(".auth-alert")!.textContent).toBe(LOGIN_COPY.incomplete);
+    expect(calls(VERIFY)).toHaveLength(0);
+  });
+
+  it("Change goes back to the id step with the number kept and focused", async () => {
+    await toCodeStep();
+    fireEvent.click(button(LOGIN_COPY.change)!);
+    const input = screen.getByLabelText<HTMLInputElement>(LOGIN_COPY.mobileLabel);
+    expect(input.value).toBe("9876543210");
+    expect(document.activeElement).toBe(input);
+  });
 });
 
 describe("LoginFlow: done step", () => {
@@ -308,6 +342,16 @@ describe("LoginFlow: done step", () => {
     await flush();
     await advance(900);
     expect(routerSpies.replace).toHaveBeenCalledWith(to);
+  });
+
+  it("a raw ?next=/%2F%2Fevil.com, decoded once by get(), still goes home", async () => {
+    mockSearchParams.value = new URLSearchParams("next=/%2F%2Fevil.com");
+    reply(VERIFY, OK);
+    await toCodeStep();
+    paste("482913");
+    await flush();
+    await advance(900);
+    expect(routerSpies.replace).toHaveBeenCalledWith("/");
   });
 
   it("says it is taking you to checkout when next is the checkout", async () => {

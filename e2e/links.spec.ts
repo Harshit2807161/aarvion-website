@@ -6,7 +6,12 @@ import { PENDING_ROUTES, ROUTES } from "../src/config/routes";
  * stripped, deduped) must return 200, except a path in PENDING_ROUTES, which must still 404.
  * Later tasks (30, 32, 42) add their pages to START.
  */
-const START: string[] = ["/", ROUTES.contact, ...Object.values(ROUTES.legal)];
+const START: string[] = [
+  "/",
+  ROUTES.contact,
+  ...Object.values(ROUTES.legal),
+  ROUTES.product("sacuwin-100"),
+];
 
 const pending = new Set<string>(PENDING_ROUTES);
 

@@ -1,0 +1,68 @@
+/*
+  Auth: port of design/prototype/css/flows.css (v2) lines 360-399 (the login page and the card)
+  and the auth rules of its responsive block (802-end), plus .otp-meta and .otp-timer (354-355),
+  which the code step needs and otp.css does not carry. For src/components/auth/ (login-flow,
+  code-step, profile-step) and src/app/(store)/login/page.tsx. The page sits in flow under the
+  store header, so it needs no offset of its own; scroll-padding-top (--sticky-top) is set once in
+  base.css. .auth-step.enter is ported for a later step transition; nothing sets it yet.
+  Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
+*/
+.otp-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; min-height: 44px; font-size: var(--text-sm); color: var(--color-text-muted); }
+.otp-timer { font-variant-numeric: tabular-nums; }
+
+/* ── Auth (login page and dialog) ─────────────────────────────────────── */
+.auth-page { position: relative; isolation: isolate; overflow: clip; background: var(--color-forest-800); color: var(--color-white); }
+.auth-field { position: absolute; inset: 0; z-index: -2;
+  background:
+    radial-gradient(55% 50% at 30% -10%, rgb(127 211 166 / 0.14), transparent 70%),
+    radial-gradient(circle, rgb(255 255 255 / 0.075) 0 0.8px, transparent 1.2px) 0 0 / 5px 5px,
+    var(--color-forest-800); }
+.auth-wrap {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); grid-template-areas: "intro card" "why card";
+  align-items: start; column-gap: clamp(40px, 7vw, 112px); row-gap: 28px;
+  padding: 64px 0 120px;
+}
+.auth-intro { grid-area: intro; align-self: end; display: grid; gap: 16px; padding-top: 40px; }
+.auth-title { font: 700 var(--text-display-l)/var(--text-display-l--line-height) var(--font-display); letter-spacing: var(--text-display-l--letter-spacing); text-wrap: balance; max-width: 13ch; }
+.auth-lead { color: var(--color-text-on-dark-muted); font-size: var(--text-lead); line-height: 1.5; max-width: 30rem; text-wrap: pretty; }
+.auth-why { grid-area: why; display: grid; gap: 4px; max-width: 30rem; }
+.auth-why li { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 14px; min-height: 52px; color: var(--color-white); font-weight: 500; }
+.auth-why .i { width: 40px; height: 40px; padding: 9px; border-radius: 50%; color: var(--color-leaf-300); background: rgb(255 255 255 / 0.08); }
+.auth-card { grid-area: card; color: var(--color-ink); background: var(--color-white); border-radius: var(--radius-strip); padding: 32px; box-shadow: 0 30px 60px -30px rgb(5 15 10 / 0.6), 0 8px 18px -10px rgb(5 15 10 / 0.35); }
+.auth { display: grid; gap: 20px; }
+.auth-step { display: grid; gap: 20px; }
+.auth-head { display: grid; gap: 6px; }
+.auth-head h1, .auth-head h2 { font: 700 1.625rem/1.15 var(--font-display); letter-spacing: -0.02em; color: var(--color-ink); text-wrap: balance; }
+.auth-head p { color: var(--color-text-muted); font-size: 0.9375rem; text-wrap: pretty; }
+.auth-head p b { color: var(--color-ink); font-weight: 600; font-family: var(--font-mono); font-size: 0.9375rem; white-space: nowrap; }
+.auth-sent { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; }
+/* The 32px link keeps the prototype line height; ::after pads its hit area to 44px (DESIGN.md targets). */
+.auth-sent .link { position: relative; min-height: 32px; }
+.auth-sent .link::after { content: ""; position: absolute; inset: -6px -4px; }
+.auth-foot { display: grid; gap: 10px; padding-top: 18px; border-top: 1px solid var(--color-neutral-200); font-size: var(--text-sm); color: var(--color-text-muted); }
+.auth-foot p { display: flex; gap: 10px; align-items: flex-start; }
+.auth-foot .i { width: 18px; height: 18px; color: var(--color-forest-700); margin-top: 1px; }
+/* The consent links inside a checkbox label (profile step): drawn like .link, without its 44px box. */
+.auth .check-text a { color: var(--color-forest-700); font-weight: 600; text-decoration: underline; text-decoration-color: var(--color-forest-300); text-underline-offset: 0.22em; }
+@media (hover: hover) and (pointer: fine) { .auth .check-text a:hover { text-decoration-color: currentColor; } }
+.auth-done { display: grid; justify-items: center; gap: 12px; padding: 24px 0 8px; text-align: center; }
+.auth-done .done-mark { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--color-forest-50); color: var(--color-forest-700); }
+.auth-done .done-mark .i { width: 30px; height: 30px; stroke-width: 2.2; }
+.auth-alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--color-danger-50); color: var(--color-danger-ink); font-size: var(--text-sm); line-height: 1.45; font-weight: 500; }
+.auth-alert .i { width: 18px; height: 18px; color: var(--color-danger); margin-top: 1px; }
+@media (prefers-reduced-motion: no-preference) {
+  .auth-step.enter { animation: step-in var(--duration-slow) var(--ease-out); }
+}
+@keyframes step-in { from { opacity: 0; transform: translateY(8px); } }
+
+@media (max-width: 960px) {
+  .auth-wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "intro" "card" "why"; padding-top: 40px; max-width: 560px; }
+  .auth-intro { padding-top: 0; }
+}
+@media (max-width: 720px) {
+  .auth-card { padding: 24px 20px; border-radius: 22px; }
+  .auth-wrap { padding-bottom: 72px; row-gap: 24px; }
+  .auth-title { font-size: clamp(2rem, 1.4rem + 3vw, 2.5rem); }
+  .auth-lead { font-size: 1rem; }
+  .auth-why li { font-size: 0.9375rem; }
+}

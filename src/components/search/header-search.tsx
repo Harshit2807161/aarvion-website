@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   useEffect,
   useRef,
@@ -47,7 +47,6 @@ function reveal(el: HTMLElement) {
  */
 export function HeaderSearch({ chips }: { chips: string[] }) {
   const router = useRouter();
-  const pathname = usePathname();
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
@@ -61,7 +60,9 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
 
   function choose(item: SearchResult) {
     setOpen(false);
-    const el = pathname === "/" ? document.getElementById(`p-${item.slug}`) : null;
+    // Read at the click, not through usePathname(): that hook would need a Suspense boundary in the
+    // chrome of every page rendered at request time, and a boundary delays this input's hydration.
+    const el = window.location.pathname === "/" ? document.getElementById(`p-${item.slug}`) : null;
     if (el) reveal(el);
     else router.push(ROUTES.product(item.slug));
   }
