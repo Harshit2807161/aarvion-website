@@ -63,9 +63,10 @@ Enforced. `isMockForbidden()` refuses mocks, and dev-only routes 404, when any o
 - a production build without `ALLOW_MOCKS_IN_PROD_BUILD=1`;
 - `MONGODB_DB`, or the database in the `MONGODB_URI` path, equals `aarvion_prod` (case-insensitive).
 
-File stores: `FILE_STORE=memory` and the dev disk store `FILE_STORE=local` count as mocks, and
-both are also refused whenever `VERCEL_ENV` is set (Preview included), because they do not persist
-across Vercel functions. Every Vercel scope uses `FILE_STORE=blob` with its own private store (Phase K+R plan,
+File stores: `FILE_STORE=memory` and the dev disk store `FILE_STORE=local` are refused wherever
+mocks are forbidden, and whenever `VERCEL_ENV` is set (Preview included), because they do not
+persist across Vercel functions. The refusal happens on the first file access (an `EnvError`), not
+when `getDeps()` builds, so a mis-set file store never takes login down with it (review R3, I1). Every Vercel scope uses `FILE_STORE=blob` with its own private store (Phase K+R plan,
 Task R3).
 
 Production therefore sets `MONGODB_DB=aarvion_prod`. Every dev-only route calls
