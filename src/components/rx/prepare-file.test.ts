@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { RX_MAX_BYTES } from "@/server/prescriptions/file-check";
-import { prepareRxFile, RX_UPLOAD_MAX_BYTES, RX_UPLOAD_MAX_SIDE } from "./prepare-file.ts";
+import { RX_IMAGE_MIN_SIDE, RX_MAX_BYTES } from "@/server/prescriptions/file-check";
+import {
+  prepareRxFile,
+  RX_UPLOAD_MAX_BYTES,
+  RX_UPLOAD_MAX_SIDE,
+  RX_UPLOAD_MIN_SIDE,
+} from "./prepare-file.ts";
 import { fileSize, RX_COPY } from "./rx-copy.ts";
 
 const MB = 1_048_576;
@@ -32,8 +37,17 @@ function stubCanvas(width: number, height: number, encodedBytes = 400_000) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("prepareRxFile", () => {
-  it("pins the size cap to the server's", () => {
+  it("pins the size cap and the minimum side to the server's", () => {
     expect(RX_UPLOAD_MAX_BYTES).toBe(RX_MAX_BYTES);
+    expect(RX_UPLOAD_MIN_SIDE).toBe(RX_IMAGE_MIN_SIDE);
+  });
+
+  it("never shrinks the short side below the server's minimum (a long, narrow page)", async () => {
+    const { canvas } = stubCanvas(1000, 8000);
+    const r = await prepareRxFile(fileOf("long.jpg", "image/jpeg", 3 * MB));
+    expect(r.ok && r.blob.type).toBe("image/jpeg");
+    expect(canvas.width).toBe(RX_UPLOAD_MIN_SIDE);
+    expect(canvas.height).toBe(3200);
   });
 
   it("refuses a type it cannot use, by name", async () => {
