@@ -50,7 +50,11 @@ function setup(next?: string) {
 describe("LoginDialog", () => {
   it("is a dialog named Sign in holding the flow, which gets the opener's next", () => {
     setup("/checkout");
-    expect(screen.getByRole("dialog", { name: "Sign in" })).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog", { name: "Sign in" });
+    // The approved head: the mint swoosh, decorative, before the (sr-only) title.
+    const mark = dialog.querySelector<HTMLImageElement>(".sheet-head img.sheet-mark")!;
+    expect(mark.getAttribute("src")).toBe("/brand/aarvion-mark.svg");
+    expect(mark.getAttribute("alt")).toBe("");
     expect(screen.getByText("finish")).toHaveAttribute("data-next", "/checkout");
   });
 
