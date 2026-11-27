@@ -1,4 +1,5 @@
 import { Suspense, type ReactNode } from "react";
+import { AccountPill } from "@/components/auth/account-pill";
 import { CartPill } from "@/components/cart/cart-pill";
 import { CartReconcile } from "@/components/cart/cart-reconcile";
 import { HeaderSearch } from "@/components/search/header-search";
@@ -29,7 +30,11 @@ export async function withStoreChrome(children: ReactNode): Promise<ReactNode> {
         <SkipLink />
       </Suspense>
       <AnnounceBar />
-      <StoreHeader search={<HeaderSearch chips={chips} />} cart={<CartPill />} />
+      <StoreHeader
+        search={<HeaderSearch chips={chips} />}
+        account={<AccountPill />}
+        cart={<CartPill />}
+      />
       <CartReconcile slugs={slugs} />
       <CategoryBar categories={live} />
       {children}
