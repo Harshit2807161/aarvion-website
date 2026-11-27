@@ -47,10 +47,10 @@ Why each was chosen: [docs/decisions/stack.md](docs/decisions/stack.md).
 ```
 src/app/            Next.js routes: api/{health,products,auth/**}, dev/{outbox,styleguide,catalogue/revalidate}, layout, error and global-error, not-found, sitemap.ts and robots.ts, (store)/ route group (customer pages and the footer: the home, category/[slug], product/[slug], login, contact, legal/*; admin goes in another group); the home (`page.tsx`) is complete: banner, quick actions, trust strip, shop by category, rails, ordering steps, FAQ and the close;
                     globals.css (Tailwind 4 @theme tokens)
-src/styles/         ported prototype CSS, one file per area (27 stylesheets: base.css is one @layer base, the rest are imported by globals.css into layer(components); see docs/dev/architecture.md) and the token and CSS tests; no selector repeats across files (css-hygiene.test.ts)
+src/styles/         ported prototype CSS, one file per area (30 stylesheets: base.css is one @layer base, the rest are imported by globals.css into layer(components); see docs/dev/architecture.md) and the token and CSS tests; no selector repeats across files (css-hygiene.test.ts)
 src/lib/            helpers: cn, format/, cart/ (session cart), catalogue/ (display.ts wording helpers and home-model.ts for the home bento and rails, client-safe; cached.ts reads, server only), next-url.ts, site-url.ts (server only), claims and price-source tests
 src/config/         site.ts (legal facts, "To be added" until supplied) and routes.ts (ROUTES, PENDING_ROUTES, PENDING_ANCHORS)
-src/components/     React components (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/, cart/, catalogue/, product/, search/, auth/)
+src/components/     React components (base/, home/, film/, overlay/, form/, feedback/, shell/, legal/, cart/, catalogue/, product/, search/, auth/, rx/)
 src/components/ui/  shadcn primitives (generated, then edited; `// @generated shadcn` on line 1); see docs/dev/architecture.md
 src/components/overlay/  dialog and side sheet: `Overlay` (dialog and side sheet), the drag thresholds and `useDragDismiss`
 src/fonts/          committed font subsets (Host Grotesk, Geist, Geist Mono) for next/font/local
