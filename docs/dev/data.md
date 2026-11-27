@@ -152,6 +152,7 @@ categories with `status` and `sortOrder`:
   renders prices only through `StampPrice`, `PriceInline` or `Rupees`, and
   `src/lib/price-source.test.ts` forbids `pricePaise`, `MRP_DISCOUNT_PAISE` or `- 2000` under
   `src/app/**` and `src/components/**`.
+- `cartTotals(items)` in the same file totals a cart from each line's current MRP: `packs`, `mrpPaise`, `discountPaise` (MRP minus payable), `discountPerPackPaise` (always 2000, even for an empty cart), `deliveryPaise` (always 0) and `payablePaise` (the sum of `sellingPricePaise(mrp) × qty`). A bad MRP or a qty that is not a non-negative integer throws `RangeError`. Cart rules (10 per product, 20 per order) are pure code in `src/server/cart/rules.ts`; a cart stores slugs and quantities only, never a price.
 - Orders (O phase) will snapshot prices computed on the server; the browser is never trusted.
 
 ## Search

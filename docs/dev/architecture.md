@@ -292,7 +292,7 @@ ported prototype CSS imported by `globals.css`.
 | `db/client.ts` | one cached `MongoClient` per process on `globalThis` (survives HMR, drops a failed connect); `getDb()` uses `MONGODB_DB` |
 | `db/indexes.ts` | `registerIndexes(collection, specs)` (names mandatory), `ensureIndexes(db)` (creates missing indexes by name) |
 | `db/register-all.ts` | imports every module that registers indexes, for `pnpm db:indexes` and int tests |
-| `catalogue/` | `schema.ts` (zod), `pricing.ts`, `categories.ts`, `collections.ts`, `seed.ts`, `search.ts`, `queries.ts`, `order.ts` (pure `compareVariants`, `orderForShelf`; client-safe) |
+| `catalogue/` | `schema.ts` (zod), `pricing.ts` (`sellingPricePaise`, `percentOff`, and `cartTotals`: packs, MRP, discount, payable from each line's MRP; client-safe), `categories.ts`, `collections.ts`, `seed.ts`, `search.ts`, `queries.ts`, `order.ts` (pure `compareVariants`, `orderForShelf`; client-safe) |
 | `cart/rules.ts` | pure cart rules, client-safe and import-free: `CART_LIMITS` (10 per product, 20 per order), `CartLine`, `addLine`, `setLineQty`, `removeLine` (a refused or no-op change returns the same array; `product_limit` then `order_limit`), `capLines` (untrusted input to a valid cart, cut at 20 packs from the end) and `mergeLines` (max per slug, server order first, idempotent); lines are an array, so a slug like `__proto__` is ordinary |
 | `auth/` | `identifier.ts`, `otp.ts`, `users.ts`, `sessions.ts`, `cookie.ts`, `login.ts` (`sendOtp`, `verifyOtpAndLogin`), `guards.ts` (`getAuth`, `requireUser`, `requireRole`), `roles.ts` |
 | `security/` | `rate-limit.ts` (`hitRateLimit`, `peekRateLimit`, `resetRateLimit`), `client-ip.ts` (`clientIp`, `ipBucket`), `origin.ts` (`assertSameOrigin`) |
