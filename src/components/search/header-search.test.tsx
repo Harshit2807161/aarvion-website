@@ -171,21 +171,48 @@ describe("HeaderSearch", () => {
     expect(screen.queryAllByRole("option")).toHaveLength(0); // the old list is not offered
     fireEvent.keyDown(input(), { key: "Enter" });
     expect(routerSpies.push).not.toHaveBeenCalled();
-    // The form is left to submit natively (its GET to the medicines section) instead.
-    expect(fireEvent.submit(input().closest("form")!)).toBe(true);
+    // The form never submits natively with JS running: the Enter is remembered instead.
+    expect(fireEvent.submit(input().closest("form")!)).toBe(false);
     expect(routerSpies.push).not.toHaveBeenCalled();
 
-    // Once the new query settles, Enter opens the new first result.
+    // Once the current query settles, the remembered Enter opens ITS first result.
     await act(async () => answer(reply(200, [hit("bemptor-180", "Bemptor-180")])));
-    fireEvent.keyDown(input(), { key: "Enter" });
+    expect(routerSpies.push).toHaveBeenCalledTimes(1);
     expect(routerSpies.push).toHaveBeenCalledWith("/product/bemptor-180");
   });
 
-  it("Enter with no match leaves the form to submit natively", async () => {
+  it("drops a remembered Enter when the shopper keeps typing", async () => {
+    window.history.pushState({}, "", "/legal/terms");
+    setup();
+    let answer: (r: Response) => void = () => {};
+    fetchMock.mockImplementationOnce(() => new Promise<Response>((r) => (answer = r)));
+    fireEvent.focus(input());
+    fireEvent.change(input(), { target: { value: "bemp" } });
+    await act(() => vi.advanceTimersByTimeAsync(200));
+    expect(fireEvent.submit(input().closest("form")!)).toBe(false);
+    fireEvent.change(input(), { target: { value: "bempt" } });
+    await act(async () => answer(reply(200, [hit("bemptor-180", "Bemptor-180")])));
+    await settle();
+    expect(routerSpies.push).not.toHaveBeenCalled();
+  });
+
+  it("Enter with no match stays put and keeps the panel's message", async () => {
     setup();
     await typeQuery("zzz");
-    expect(fireEvent.submit(input().closest("form")!)).toBe(true);
+    expect(fireEvent.submit(input().closest("form")!)).toBe(false);
     expect(routerSpies.push).not.toHaveBeenCalled();
+    expect(screen.getByText(/No medicine matches/)).toBeInTheDocument();
+    expect(input()).toHaveValue("zzz");
+  });
+
+  it("Enter after a limit or an error stays put and keeps the message", async () => {
+    fetchMock.mockImplementation(async () => reply(429));
+    setup();
+    await typeQuery("sacu");
+    expect(fireEvent.submit(input().closest("form")!)).toBe(false);
+    expect(routerSpies.push).not.toHaveBeenCalled();
+    expect(screen.getByText("Too many searches. Try again in a moment.")).toBeInTheDocument();
+    expect(input()).toHaveValue("sacu");
   });
 
   it("zzz shows the empty text exactly", async () => {

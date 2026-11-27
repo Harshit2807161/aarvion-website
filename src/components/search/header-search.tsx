@@ -52,6 +52,8 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
   const [q, setQ] = useState("");
   const [strength, setStrength] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  // Enter pressed while the current query is still loading: open its first result once it settles.
+  const submitPending = useRef(false);
 
   const strengths = chips.filter((c) => STRENGTH_RE.test(c));
   const hasQuery = queryTokens(q).length > 0 || strength !== null;
@@ -86,6 +88,13 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
     } else if (status === "limited") announce(LIMITED_TEXT);
   }, [status, results, hasQuery]);
 
+  // A remembered Enter fires only for the query it was pressed on: typing again drops it.
+  useEffect(() => {
+    if (!submitPending.current || status === "loading" || status === "idle") return;
+    submitPending.current = false;
+    if (status === "done" && results.length > 0) choose(results[0]!);
+  });
+
   // "Search for a medicine" anywhere on the page puts the caret in the header search.
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -118,12 +127,15 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
     setOpen(false);
   }
 
-  // Enter picks the first result of the query shown. With none (still loading, no match, or an
-  // error) it is left alone: the form's own GET to the medicines section is the fallback.
+  // With JavaScript running the form never submits natively (that would drop what was typed and
+  // put the query in server logs). Enter opens the first result of the query shown; while that
+  // query is still loading it is remembered and runs when the query settles; with no match, a
+  // limit or an error the panel's message stays on screen. Without JavaScript the plain GET form
+  // to the medicines section is the fallback.
   function onSubmit(e: FormEvent) {
-    if (items.length === 0) return;
     e.preventDefault();
-    choose(items[0]!);
+    if (items.length > 0) choose(items[0]!);
+    else if (hasQuery && status === "loading") submitPending.current = true;
   }
 
   function onFocusOut(e: FocusEvent<HTMLFormElement>) {
@@ -181,6 +193,7 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
           placeholder="Search medicines by brand or salt"
           value={q}
           onChange={(e) => {
+            submitPending.current = false;
             setQ(e.target.value);
             setOpen(true);
           }}
