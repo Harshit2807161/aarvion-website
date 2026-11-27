@@ -1,4 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const sdk = vi.hoisted(() => ({ put: vi.fn(), get: vi.fn(), del: vi.fn() }));
+vi.mock("@vercel/blob", async (orig) => ({ ...(await orig<object>()), ...sdk }));
 import { EnvError, getEnv, resetEnvForTests } from "./env.ts";
 import { createFileStore } from "./providers/file-store.ts";
 import { readOutbox } from "./providers/outbox.ts";
@@ -16,6 +19,7 @@ function setEnv(vars: Record<string, string>) {
     "PAYMENTS_PROVIDER",
     "FILE_STORE",
     "FILE_STORE_LOCAL_DIR",
+    "BLOB_READ_WRITE_TOKEN",
     "MONGODB_DB",
   ]) {
     delete process.env[k];
@@ -113,13 +117,27 @@ describe("file store wiring", () => {
     expect(err).toBeInstanceOf(EnvError);
     expect((err as Error).message).toMatch(/not allowed in production/);
   });
-  it("still throws not implemented for FILE_STORE=blob, on first file use only", async () => {
+  it("needs BLOB_READ_WRITE_TOKEN for FILE_STORE=blob on first file use, leaving the rest working", async () => {
     setEnv({ FILE_STORE: "blob" });
-    const files = getDeps().files;
-    expect(files.kind).toBe("blob");
-    await expect(files.delete("rx/u/a.webp")).rejects.toThrow(
-      /FILE_STORE=blob: not implemented yet/,
-    );
+    const deps = getDeps();
+    expect(deps.files.kind).toBe("blob");
+    expect(() => deps.now()).not.toThrow();
+    const err = await deps.files.delete("rx/u/a.webp").catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(EnvError);
+    expect((err as Error).message).toMatch(/BLOB_READ_WRITE_TOKEN/);
+  });
+  it("loads the Blob store only on first use, with the token, on a preview", async () => {
+    sdk.del.mockResolvedValue(undefined);
+    setEnv({
+      FILE_STORE: "blob",
+      BLOB_READ_WRITE_TOKEN: "vercel_blob_rw_test_not_a_secret",
+      VERCEL_ENV: "preview",
+      ALLOW_MOCKS_IN_PROD_BUILD: "1",
+    });
+    await getDeps().files.delete("rx/u/a.webp");
+    expect(sdk.del).toHaveBeenCalledWith("rx/u/a.webp", {
+      token: "vercel_blob_rw_test_not_a_secret",
+    });
   });
 });
 

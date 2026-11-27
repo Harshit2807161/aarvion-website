@@ -1,4 +1,4 @@
-import { EnvError, type Env } from "../env.ts";
+import { EnvError, requireEnv, type Env } from "../env.ts";
 import { isMockForbidden } from "./guard.ts";
 import { createLocalFiles } from "./local-files.ts";
 import { createMemoryFiles } from "./memory-files.ts";
@@ -35,7 +35,13 @@ async function resolveFileStore(env: Env): Promise<FileStore> {
       `FILE_STORE=${env.FILE_STORE} does not persist across Vercel functions: use blob`,
     );
   }
-  if (env.FILE_STORE === "blob") throw new Error("FILE_STORE=blob: not implemented yet");
+  if (env.FILE_STORE === "blob") {
+    // requireEnv throws an EnvError naming BLOB_READ_WRITE_TOKEN. The SDK (and its undici) is
+    // imported only here, so routes that never touch files never load it on a cold start.
+    const token = requireEnv("BLOB_READ_WRITE_TOKEN");
+    const { createBlobFiles } = await import("./blob-files.ts");
+    return createBlobFiles({ token });
+  }
   if (env.FILE_STORE === "local") return createLocalFiles(env.FILE_STORE_LOCAL_DIR);
   return createMemoryFiles();
 }

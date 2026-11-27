@@ -156,9 +156,11 @@ phases after UI each get their own plan under `docs/superpowers/plans/` before w
 
 ## Known issues
 
-- **Production cannot serve logins yet:** the real providers (`msg91`, `resend`, `razorpay`, `blob`)
+- **Production cannot serve logins yet:** the real providers (`msg91`, `resend`, `razorpay`)
   are accepted by the env schema but throw "not implemented yet"; mocks are refused in
-  production. Built in N and O; the private Blob file store (`blob`) follows in R3 part B.
+  production. Built in N and O. The private Blob file store (`FILE_STORE=blob`) exists since R3;
+  `pnpm vercel-build` refuses a Vercel build without it (confirm on the first deploy that the
+  project's build command runs `vercel-build`).
 - **The repository is public** (since 2026-11-19): keep secrets and personal data out of every file and commit.
 - **`MONGODB_DB=aarvion_prod` is not asserted at startup** until H4. A production deploy on
   another DB name, sharing a database with a mocks-enabled preview, would bypass the guard.

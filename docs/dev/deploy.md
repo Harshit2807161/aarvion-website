@@ -40,9 +40,11 @@ refuses mocks whenever the database is `aarvion_prod`.
 | `MONGODB_DB` | `aarvion_prod` | e.g. `aarvion_preview` |
 | `OTP_PEPPER` | its own 64-hex secret | its own, different secret |
 | `APP_URL` | the production URL (also the base for Open Graph and icon URLs; unset falls back to `http://localhost:3000`) | set it, or shared links point at localhost |
-| `SMS_PROVIDER`, `EMAIL_PROVIDER`, `PAYMENTS_PROVIDER`, `FILE_STORE` | `msg91`, `resend`, `razorpay`, `blob` (once built) | `mock`, `mock`, `fake`, `memory` |
+| `SMS_PROVIDER`, `EMAIL_PROVIDER`, `PAYMENTS_PROVIDER` | `msg91`, `resend`, `razorpay` (once built) | `mock`, `mock`, `fake` |
+| `FILE_STORE` | `blob` | `blob` too: `memory` and `local` are refused whenever `VERCEL_ENV` is set, because files must persist across functions |
+| `BLOB_READ_WRITE_TOKEN` | the production private Blob store's token | the preview store's token (a separate store, never production's) |
 | `ALLOW_MOCKS_IN_PROD_BUILD` | unset | `1` |
-| Provider keys (MSG91, Resend, Razorpay, Blob) | names defined by the N, O and R phases | test keys |
+| Provider keys (MSG91, Resend, Razorpay) | names defined by the N and O phases | test keys |
 
 `VERCEL_ENV` and `NODE_ENV` are set by the platform.
 
@@ -50,6 +52,25 @@ refuses mocks whenever the database is `aarvion_prod`.
 every Vercel scope needs `MONGODB_URI` and `MONGODB_DB` at build time, a seeded database, and
 Atlas network access for Vercel builds. An empty catalogue throws `CatalogueEmptyError` and fails
 the build instead of deploying an empty store. The `(store)` layout (`src/app/(store)/layout.tsx`, UI Task 9) renders the footer from the live categories, so from that PR on every customer page build reads the DB (`/api/*` and `/dev/*` sit outside `(store)` and do not; the 404 page reads the same cached categories for its chrome). **Seed the Preview database before that PR merges into a Vercel-connected repo** (no Vercel project exists yet, so CI, which seeds its own Mongo, is the only build today); otherwise Preview deploys fail closed. Seed `aarvion_prod` before the first production deploy: `pnpm db:indexes && pnpm seed` with that scope's `MONGODB_URI` and `MONGODB_DB` exported. Redeploy after a direct database edit.
+
+## Prescription file store (Vercel Blob, private)
+
+- Create **two private Blob stores**, one connected to the Production scope and one to Preview,
+  so preview uploads never land beside real prescriptions. Connecting a store sets
+  `BLOB_READ_WRITE_TOKEN` in that scope; set `FILE_STORE=blob` there as well (expose both at
+  build time too).
+- Create the production store in the Mumbai region (`bom1`) if Vercel offers it, next to the
+  functions and the database. Whether prescription files must stay in India is the owner's legal
+  call; S3 Mumbai is the project plan's fallback (provisional ruling, Phase K+R plan).
+- **Build gate:** Vercel runs `pnpm vercel-build` (`scripts/vercel-build-gate.ts`, then `next
+  build`), which fails the build when `FILE_STORE` is not `blob` or `BLOB_READ_WRITE_TOKEN` is
+  missing, naming the keys only. At runtime the same mistake fails only file access with an
+  `EnvError` (the store resolves lazily), never login.
+- Blobs are written `access: "private"` with exact keys (`rx/<userId>/<rxId>.<ext>`,
+  `rx-staging/…`) and no overwrite; they are read only through the app's ownership-checked
+  handlers. Never hand out a blob URL, `downloadUrl` or a read-capable token.
+- Never set `DEBUG` (or `NEXT_PUBLIC_DEBUG`) containing `blob` on a Vercel scope: the SDK then logs
+  pathnames and request headers.
 
 ## First deploy (planned)
 
