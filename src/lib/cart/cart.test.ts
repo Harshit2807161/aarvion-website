@@ -4,6 +4,8 @@ import { cartStore } from "./store";
 
 const inc = (slug: string) => ({ type: "inc", slug }) as const;
 const dec = (slug: string) => ({ type: "dec", slug }) as const;
+const set = (slug: string, qty: number) => ({ type: "set", slug, qty }) as const;
+const remove = (slug: string) => ({ type: "remove", slug }) as const;
 
 describe("applyCart", () => {
   it("adds a first pack", () => {
@@ -47,6 +49,30 @@ describe("applyCart", () => {
     const lines = Object.freeze({ a: 1 });
     expect(applyCart(lines, inc("a")).lines).toEqual({ a: 2 });
     expect(lines).toEqual({ a: 1 });
+  });
+});
+
+describe("applyCart set and remove", () => {
+  it("sets a quantity, appends an absent slug, and 0 or remove drops the line", () => {
+    expect(applyCart({ a: 1 }, set("a", 5))).toEqual({ lines: { a: 5 }, blocked: null });
+    expect(applyCart({ a: 1 }, set("b", 2)).lines).toEqual({ a: 1, b: 2 });
+    expect(applyCart({ a: 1, b: 2 }, set("a", 0)).lines).toEqual({ b: 2 });
+    expect(applyCart({ a: 1, b: 2 }, remove("b")).lines).toEqual({ a: 1 });
+  });
+
+  it("refuses a set past 20 packs and keeps the same object", () => {
+    const lines = { a: 10, b: 5, c: 5 };
+    const next = applyCart(lines, set("b", 10));
+    expect(next.blocked).toBe("order_limit");
+    expect(next.lines).toBe(lines);
+  });
+
+  it("ignores a quantity outside 0..10 and removing an absent slug", () => {
+    const lines = { a: 1 };
+    for (const qty of [-1, 11, 1.5, Number.NaN]) {
+      expect(applyCart(lines, set("a", qty))).toEqual({ lines, blocked: null });
+    }
+    expect(applyCart(lines, remove("zzz")).lines).toBe(lines);
   });
 });
 
