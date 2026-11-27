@@ -1,3 +1,4 @@
+import { render, screen } from "@testing-library/react";
 import { type ReactElement, isValidElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginFlow } from "@/components/auth/login-flow";
@@ -51,5 +52,12 @@ describe("/login page", () => {
   it("is noindex and lets the keyboard resize the page", () => {
     expect(metadata).toMatchObject({ title: "Sign in", robots: { index: false } });
     expect(viewport).toMatchObject({ interactiveWidget: "resizes-content" });
+  });
+
+  it("tells the shopper their cart stays as it is when they sign in", () => {
+    render(LoginPage());
+    expect(screen.getByRole("list", { name: "With an account you can" })).toHaveTextContent(
+      "Your cart stays as it is when you sign in.",
+    );
   });
 });

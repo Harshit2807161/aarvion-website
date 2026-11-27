@@ -14,6 +14,7 @@ const WHY = [
   { icon: "file", text: "Reuse a prescription while it’s valid, for 6 months from its date" },
   { icon: "pharm", text: "Follow each order from the pharmacist’s check to your door" },
   { icon: "phone", text: "Sign in with a one-time code by SMS or email. No password to remember." },
+  { icon: "cart", text: "Your cart stays as it is when you sign in." },
 ] as const;
 
 /**
