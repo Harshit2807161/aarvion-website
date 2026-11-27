@@ -99,6 +99,8 @@ curl -s -X POST http://localhost:3000/api/auth/otp/send \
 curl -s 'http://localhost:3000/dev/outbox?to=you@example.test'
 ```
 
+- To sign in through the UI, open `/login`, ask for a code, then read it here (the page itself never
+  shows the outbox; its demo states, Task 42, appear only where `isMockForbidden()` is false).
 - `to` is the **normalised** identifier: an email trimmed and lowercased, or a phone as
   `+91XXXXXXXXXX` (URL-encode the plus: `to=%2B91XXXXXXXXXX`). SMS messages carry the code in
   `payload.vars.code`; emails in `payload.text`.
