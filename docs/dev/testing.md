@@ -126,7 +126,7 @@ Helpers in `tests/helpers/`:
   before `load`; CLS under 0.1 at both widths with and without motion; the header logo as the
   only image preload (the `Link` response header) and exactly the three self-hosted fonts, none
   from Google, covering the rupee sign; the banner unchanged after 7 s under reduced motion; with JavaScript off at 390, cards 2 to 4 show a loaded picture. The JS total is the sum of the scripts' encoded body sizes from Resource Timing (never `content-length`, which Next omits when compressing), with a 50 kB floor so a measurement that reads nothing cannot pass. The
-  first-load JS on `/` is a ratchet at 175 kB gzipped (about 170 kB today, target 150 kB; product pages keep 150): lower `HOME_JS_BUDGET_BYTES` whenever it shrinks.
+  first-load JS on `/` is a ratchet at 171 kB (168.5 kB today, target 150 kB; product pages keep 150): lower `HOME_JS_BUDGET_BYTES` whenever it shrinks.
 - `e2e/freshness.spec.ts` [P55] changes `sacuwin-100`'s MRP straight in the `aarvion_e2e` database
   (the admin editor does not exist yet; use it instead once it does), expires the cache through
   the dev-only `POST /dev/catalogue/revalidate`, and expects the home rails to show the new

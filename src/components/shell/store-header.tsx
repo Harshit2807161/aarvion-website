@@ -4,28 +4,8 @@ import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { Icon } from "@/components/base/icon";
 import { ROUTES } from "@/config/routes";
+import { StaticSearch } from "@/components/search/static-search";
 import { Brand } from "./brand";
-
-/** The no-JS default search field; `withStoreChrome` passes `HeaderSearch` (suggestions, strength chips) as `search`. */
-function StaticSearch() {
-  return (
-    <form className="search" role="search" action={ROUTES.medicines} autoComplete="off">
-      <label className="sr-only" htmlFor="q">
-        Search medicines by brand or salt
-      </label>
-      <div className="search-pill">
-        <Icon name="search" />
-        <input
-          id="q"
-          name="q"
-          type="search"
-          spellCheck={false}
-          placeholder="Search medicines by brand or salt"
-        />
-      </div>
-    </form>
-  );
-}
 
 /** The link carries its own name: `.acct-label` is hidden at 1100px and below. */
 function SignIn() {

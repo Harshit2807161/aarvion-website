@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type FocusEvent,
@@ -37,6 +38,14 @@ function reveal(el: HTMLElement) {
   ctl?.querySelector<HTMLElement>(target)?.focus({ preventScroll: true });
 }
 
+/** What the plain field held when `LazyHeaderSearch` swapped this component in. */
+export type HeaderSearchHandoff = {
+  value: string;
+  start: number | null;
+  end: number | null;
+  focused: boolean;
+};
+
 /**
  * The header search: brand or salt, optionally narrowed by a strength chip. The parts live beside
  * it (`useProductSearch` debounces and talks to `/api/products`, `useCombobox` carries the ARIA 1.2
@@ -45,13 +54,30 @@ function reveal(el: HTMLElement) {
  * query. Choosing a result reveals its pocket on the home page, and goes to its product page
  * anywhere else.
  */
-export function HeaderSearch({ chips }: { chips: string[] }) {
+export function HeaderSearch({
+  chips,
+  handoff,
+}: {
+  chips: string[];
+  handoff?: HeaderSearchHandoff;
+}) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(handoff?.value ?? "");
   const [strength, setStrength] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+
+  // Picks up where the plain field left off: its focus and caret (the value is the initial `q`).
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!handoff?.focused || !input) return;
+    input.focus();
+    if (handoff.start !== null && handoff.end !== null) {
+      input.setSelectionRange(handoff.start, handoff.end);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, at mount
+  }, []);
 
   const strengths = chips.filter((c) => STRENGTH_RE.test(c));
   const hasQuery = queryTokens(q).length > 0 || strength !== null;

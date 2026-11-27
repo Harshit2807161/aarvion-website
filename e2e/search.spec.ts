@@ -86,3 +86,45 @@ test.describe("header search at 390", () => {
     await expect(page.locator("#p-mucohelp")).toBeInViewport();
   });
 });
+
+test.describe("header search code loading", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("the combobox code is not in the first load and arrives on focus", async ({ page }) => {
+    const scripts: string[] = [];
+    page.on("response", (r) => {
+      if (r.request().resourceType() === "script") scripts.push(r.url());
+    });
+    await page.goto("/legal/privacy", { waitUntil: "load" });
+    await expect(page.getByRole("combobox")).toHaveCount(0);
+    await expect(page.locator("#q")).toBeVisible();
+    const before = scripts.length;
+    await page.locator("#q").focus();
+    await expect(page.getByRole("combobox")).toBeVisible();
+    expect(scripts.length).toBeGreaterThan(before);
+  });
+
+  test("text typed before the code loads is kept, with the caret and focus", async ({ page }) => {
+    // Hold every script back so the plain field is all there is while typing.
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    await page.route(/\/_next\/static\/chunks\/.*\.js/, async (route) => {
+      await gate;
+      await route.continue();
+    });
+    await page.goto("/legal/privacy", { waitUntil: "domcontentloaded" });
+    const q = page.locator("#q");
+    await q.click();
+    await page.keyboard.type("sacuwin");
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("ArrowLeft");
+    release();
+    const box = page.getByRole("combobox");
+    await expect(box).toBeVisible();
+    await expect(box).toHaveValue("sacuwin");
+    await expect(box).toBeFocused();
+    const caret = await box.evaluate((el: HTMLInputElement) => el.selectionStart);
+    expect(caret).toBe(5);
+    await expect(page.getByRole("option").first()).toBeVisible();
+  });
+});

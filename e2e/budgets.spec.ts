@@ -174,13 +174,14 @@ test.describe("home loading", () => {
   });
 });
 
-// First-load JS on `/`, gzipped. The plan's target is 150 kB, but `/` ships about 170 kB today:
-// React DOM 73, Next's client 47, the app and runtime about 50. The ruling is a ratchet at 175 kB
-// so it can only get smaller; product pages keep 150. Follow-up (filed separately): lazy-load the
-// header search island on first focus or idle and trim the hero chunk, then lower this number.
-const HOME_JS_BUDGET_BYTES = 175_000;
+// First-load JS on `/`, as transferred. The plan's target is 150 kB; `/` ships about 168.5 kB: React
+// DOM 73, Next's client 45, the rest the app and runtime (cart store, hero, rails, header chrome).
+// The header search's combobox is a separate chunk loaded on focus or when idle (see
+// lazy-header-search.tsx), so it is not in this number. Ratchet: lower it whenever the page
+// shrinks, and trim the hero and shared client code next; product pages keep the 150 target.
+const HOME_JS_BUDGET_BYTES = 171_000;
 
-test("first-load JS on / stays within the 175 kB ratchet (target 150 kB)", async ({ page }) => {
+test("first-load JS on / stays within the 171 kB ratchet (target 150 kB)", async ({ page }) => {
   await page.goto("/", { waitUntil: "load" });
   const { total, count } = await scriptBytes(page);
   // A floor, so a measurement that reads nothing cannot pass.

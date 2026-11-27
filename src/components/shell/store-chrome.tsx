@@ -1,7 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import { CartPill } from "@/components/cart/cart-pill";
 import { CartReconcile } from "@/components/cart/cart-reconcile";
-import { HeaderSearch } from "@/components/search/header-search";
+import { LazyHeaderSearch } from "@/components/search/lazy-header-search";
 import { STRENGTH_CHIP_FAMILY, strengthChips } from "@/components/search/strength-chips";
 import { AnnounceBar } from "@/components/shell/announce-bar";
 import { CategoryBar } from "@/components/shell/category-bar";
@@ -29,7 +29,7 @@ export async function withStoreChrome(children: ReactNode): Promise<ReactNode> {
         <SkipLink />
       </Suspense>
       <AnnounceBar />
-      <StoreHeader search={<HeaderSearch chips={chips} />} cart={<CartPill />} />
+      <StoreHeader search={<LazyHeaderSearch chips={chips} />} cart={<CartPill />} />
       <CartReconcile slugs={slugs} />
       <CategoryBar categories={live} />
       {children}
