@@ -47,8 +47,10 @@ export function OrderingSteps({
               <h3>A pharmacist checks it</h3>
               <p>
                 A registered pharmacist matches your order against the prescription before anything
-                is packed. If it can’t be approved, we tell you why by SMS or email and refund your
-                payment.
+                is packed.{" "}
+                {onlinePayments
+                  ? "If it can’t be approved, we tell you why by SMS or email and refund your payment."
+                  : "If it can’t be approved, we tell you why by SMS or email, and the order is not packed."}
               </p>
             </li>
             <li className="step">

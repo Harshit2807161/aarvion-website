@@ -232,6 +232,7 @@ bottom use commit SHAs.
   official logo (#67).
 
 ### Fixed
+- "How ordering works" step 2 promised a refund while the store is cash on delivery only: it now says "...by SMS or email, and the order is not packed" until `onlinePayments` is true, as the FAQ already does (`ordering-steps.tsx`, both states tested). At 719px and below the steps get the prototype's two-row grid (`steps.css`: dot spans both rows, heading and text start in column 2) so the spacing between steps is even; checked at 390 and 360 with the film running (#PR).
 - Login finish review (Task 44): the sign-in dialog head carries the mint swoosh again (`Overlay` gains a `mark` slot, `.sheet-mark` in `overlay.css`); the mobile and email fields show their format placeholders (`LOGIN_COPY.mobilePlaceholder` and `.emailPlaceholder`, awaiting owner approval); a live lock countdown is set in Geist Mono with tabular figures, so it no longer jitters; the code, profile and done steps ease in (`.auth-step.enter`, off under reduced motion) (#190)
 - Home finish review (Task 29): the rail "View all N" link now points forward (the arrow icon, not a disclosure chevron) and sits at the head's right edge when the strip fits, since hidden arrows no longer reserve space; the rail aside's "Search medicines" button has the prototype's search icon (#170)
 
