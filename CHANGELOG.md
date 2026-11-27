@@ -154,6 +154,7 @@ bottom use commit SHAs.
   behave the same for new and existing identifiers (`tests/int/auth-signup.test.ts`) (#116).
 
 ### Changed
+- Scroll film engine (`src/components/film/engine.ts`) hardening before it is wired into the page: each image is decoded once, the ResizeObserver's first report no longer triggers a second measure, the `?p=<act>:<progress>` capture jump runs after `load` like the prototype, and the duplicate clamp uses `clamp01`. Tests now cover the per-item `--ti` / `--to` skip, destroy (the very handlers removed, the frame cancelled, the timer cleared) and the `film: false` no-op (#TBD)
 
 - docs: architecture.md lists files one per line to stop merge conflicts (#157).
 - `normMobile` (`src/components/auth/phone.ts`) strips exactly one prefix the server also accepts (`+91`, a 12-digit `91...` or an 11-digit `0...`) and never truncates; anything that is not then exactly ten digits fails `MOBILE_RE`. Digits of other scripts (Devanagari, fullwidth) read as the digits typed, and any other stray character (a letter O, a zero-width space) makes the input invalid instead of being dropped. It used to keep the first ten digits, which turned a mistyped number into a different valid-looking one (#137, #140).

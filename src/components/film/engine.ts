@@ -10,6 +10,7 @@
  */
 import {
   actProgress,
+  clamp01,
   deepLinkTarget,
   measureAct,
   parseRange,
@@ -48,7 +49,13 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
     box: { top: 0, len: 1 },
     items: [el, ...el.querySelectorAll<HTMLElement>("[data-in],[data-out]")]
       .filter((a) => a.dataset.in || a.dataset.out)
-      .map((a) => ({ el: a, i: parseRange(a.dataset.in), o: parseRange(a.dataset.out), vi: -1, vo: -1 })),
+      .map((a) => ({
+        el: a,
+        i: parseRange(a.dataset.in),
+        o: parseRange(a.dataset.out),
+        vi: -1,
+        vo: -1,
+      })),
   }));
   const steps = [...root.querySelectorAll<HTMLElement>(".step")];
   const byEl = new Map(acts.map((a) => [a.el, a]));
@@ -58,6 +65,7 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
   let timer: ReturnType<typeof setTimeout> | undefined;
   let step = -1;
   let dead = false;
+  const decoded = new WeakSet<HTMLImageElement>();
 
   const hooks: Record<string, (p: number) => void> = {
     how(p) {
@@ -73,7 +81,7 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
     const y = window.scrollY;
     for (const a of acts) {
       if (!a.on) continue;
-      const p = Math.min(1, Math.max(0, actProgress(y, a.box)));
+      const p = clamp01(actProgress(y, a.box));
       if (p === a.p) continue;
       a.p = p;
       for (const x of a.items) {
@@ -142,6 +150,8 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
         if (a.on) {
           for (const img of a.el.querySelectorAll("img")) {
             img.loading = "eager";
+            if (decoded.has(img)) continue;
+            decoded.add(img);
             img.decode?.().catch(() => {});
           }
         }
@@ -154,20 +164,33 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
 
   window.addEventListener("scroll", dirty, { passive: true });
   window.addEventListener("resize", remeasure, { passive: true });
-  const ro = new ResizeObserver(remeasure);
+  // A ResizeObserver reports once on observe; measure() already ran, so that report is skipped.
+  let firstResize = true;
+  const ro = new ResizeObserver(() => {
+    if (firstResize) firstResize = false;
+    else remeasure();
+  });
   ro.observe(document.body);
 
-  const y = deepLinkTarget(
-    location.search,
-    acts.map((a) => ({ id: a.id, ...a.box })),
-  );
-  if (y !== null) window.scrollTo(0, y);
+  // Like the prototype, the ?p= jump waits for load: images and fonts settle the layout first.
+  const start = () => {
+    if (dead) return;
+    measure();
+    const y = deepLinkTarget(
+      location.search,
+      acts.map((a) => ({ id: a.id, ...a.box })),
+    );
+    if (y !== null) window.scrollTo(0, y);
+  };
+  if (document.readyState === "complete") start();
+  else window.addEventListener("load", start, { once: true });
 
   return {
     destroy() {
       dead = true;
       window.removeEventListener("scroll", dirty);
       window.removeEventListener("resize", remeasure);
+      window.removeEventListener("load", start);
       io.disconnect();
       ro.disconnect();
       clearTimeout(timer);
