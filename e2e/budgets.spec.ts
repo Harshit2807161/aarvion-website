@@ -188,3 +188,68 @@ test("first-load JS on / stays within the 175 kB ratchet (target 150 kB)", async
   expect(total).toBeGreaterThan(50_000);
   expect(total).toBeLessThanOrEqual(HOME_JS_BUDGET_BYTES);
 });
+
+// Product page budgets (UI plan, Performance budgets). First-load JS is a ratchet, like `/`'s:
+// the plan's target is 150 kB, but the route ships about 166.5 kB today, and all of it is shared
+// framework and chrome, none of it the product page's own code (React DOM 73 kB, Next's client
+// 47 kB, the router chunks, the header search island, the cart store and the toaster). The ruling
+// is a ratchet at 170 kB so it can only get smaller. The follow-up is lazy-loading the header
+// search island (a separate PR); lower this number, and `/`'s, whenever the route shrinks.
+const PRODUCT = "/product/sacuwin-100";
+const PRODUCT_JS_BUDGET_BYTES = 170_000;
+
+test.describe("product page on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+
+  test("first-load JS stays within the 170 kB ratchet (target 150 kB)", async ({ page }) => {
+    await page.goto(PRODUCT, { waitUntil: "load" });
+    const { total, count } = await scriptBytes(page);
+    expect(count).toBeGreaterThan(5);
+    expect(total).toBeGreaterThan(50_000);
+    expect(total).toBeLessThanOrEqual(PRODUCT_JS_BUDGET_BYTES);
+  });
+
+  test("LCP is the first gallery photo, eager, under 2.5 s", async ({ browser, page }) => {
+    test.setTimeout(SLOW_START.timeout);
+    const ctx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+    });
+    // A visit in a fresh context warms the server and the image optimizer, not this browser's cache.
+    const first = await ctx.newPage();
+    await first.goto(PRODUCT, { waitUntil: "load" });
+    await ctx.close();
+    await emulateMobile(page);
+    await page.goto(PRODUCT, { waitUntil: "load" });
+    const lcp = await measureLcp(page);
+    expect(lcp.tag).toBe("IMG");
+    expect(lcp.lazy).toBe(false);
+    expect(lcp.ms).toBeLessThan(2500);
+    const photo = page.locator("#photo-1 img");
+    expect(await photo.evaluate((i: HTMLImageElement) => i.currentSrc)).toBe(lcp.src);
+  });
+
+  test("the gallery photo is served as AVIF", async ({ page }) => {
+    // The browser's own request for photo 1 (its Accept header), not one this test builds.
+    const photo = page.waitForResponse(
+      (r) => r.url().includes("/_next/image") && r.request().resourceType() === "image",
+    );
+    await page.goto(PRODUCT, { waitUntil: "load" });
+    expect((await photo).headers()["content-type"]).toBe("image/avif");
+  });
+
+  test("CLS stays under 0.1", async ({ browser }) => {
+    const ctx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+    });
+    const page = await ctx.newPage();
+    await watchCls(page);
+    await page.goto(PRODUCT, { waitUntil: "load" });
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(500);
+    expect(await readCls(page)).toBeLessThan(0.1);
+    await ctx.close();
+  });
+});
