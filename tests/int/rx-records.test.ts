@@ -148,8 +148,16 @@ describe("indexes", () => {
     await ensureIndexes(db);
     const names = async (c: string) => (await db.collection(c).indexes()).map((i) => i.name);
     expect(await names(PRESCRIPTIONS_COLLECTION)).toEqual(
-      expect.arrayContaining(["userId_createdAt_desc", "status_createdAt"]),
+      expect.arrayContaining(["userId_createdAt_desc", "status_createdAt", "stagingId_unique"]),
     );
+    const slotIndex = (await db.collection(PRESCRIPTIONS_COLLECTION).indexes()).find(
+      (i) => i.name === "stagingId_unique",
+    );
+    expect(slotIndex).toMatchObject({
+      key: { stagingId: 1 },
+      unique: true,
+      partialFilterExpression: { stagingId: { $type: "string" } },
+    });
     expect(await names(RX_STAGING_COLLECTION)).toContain("expiresAt_ttl");
   });
 });

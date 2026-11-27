@@ -151,7 +151,7 @@ describe("the slot lease", () => {
     expect(await peekStaging(started.stagingId, userId, at(31_000))).toBeNull();
   });
 
-  it("an overrun finish loses cleanly: one record, its own final file deleted, the winner's kept", async () => {
+  it("an overrun finish loses cleanly: one record, its own final file deleted, the winner's kept and returned", async () => {
     const userId = uid();
     let open!: () => void;
     let parked!: () => void;
@@ -174,9 +174,13 @@ describe("the slot lease", () => {
     const a = finish(userId, started.stagingId, NOW);
     // Wait until A is parked in its put, then let its lease lapse and run B to completion.
     await inPut;
-    expect((await finish(userId, started.stagingId, at(31_000))).ok).toBe(true);
+    const b = await finish(userId, started.stagingId, at(31_000));
+    expect(b.ok).toBe(true);
     open();
-    expect(await a).toEqual({ ok: false, error: "upload_expired" });
+    // The loser answers with the winner's record (idempotent by slot, R6-I1), not a new one.
+    const lost = await a;
+    expect(lost).toMatchObject({ ok: true, replay: true });
+    expect(lost.ok && b.ok && lost.rx.id).toBe(b.ok && b.rx.id);
 
     const records = await listRxForUser(userId);
     expect(records).toHaveLength(1);

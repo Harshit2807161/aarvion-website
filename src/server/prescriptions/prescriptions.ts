@@ -18,6 +18,14 @@ registerIndexes(PRESCRIPTIONS_COLLECTION, [
   { key: { userId: 1, createdAt: -1 }, name: "userId_createdAt_desc" },
   // The pharmacist's queue, oldest first (phase D).
   { key: { status: 1, createdAt: 1 }, name: "status_createdAt" },
+  // One record per staging slot, so a repeated finalise finds the record its slot made. Partial:
+  // records made before the field existed have none.
+  {
+    key: { stagingId: 1 },
+    name: "stagingId_unique",
+    unique: true,
+    partialFilterExpression: { stagingId: { $type: "string" } },
+  },
 ]);
 registerIndexes(RX_STAGING_COLLECTION, [
   { key: { expiresAt: 1 }, name: "expiresAt_ttl", expireAfterSeconds: 0 },
@@ -26,6 +34,11 @@ registerIndexes(RX_STAGING_COLLECTION, [
 export type RxDoc = {
   _id: ObjectId;
   userId: ObjectId;
+  /**
+   * The staging slot this record was finalised from (unique). A finalise that arrives after the
+   * slot was used returns this record instead of 410. Absent on records made before 2026-11-28.
+   */
+  stagingId?: string;
   patientName: string;
   declaration: { version: string; at: Date };
   file: {
@@ -164,6 +177,11 @@ export async function takeStaging(
 
 export async function insertRx(doc: RxDoc, session?: ClientSession): Promise<void> {
   await (await prescriptions()).insertOne(doc, { session });
+}
+
+/** The record finalised from staging slot `stagingId`, only if it belongs to `userId`. */
+export async function getRxByStaging(stagingId: string, userId: ObjectId): Promise<RxDoc | null> {
+  return (await prescriptions()).findOne({ stagingId, userId });
 }
 
 /** The user's prescriptions, newest first. */
