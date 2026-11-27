@@ -155,6 +155,39 @@ describe("HeaderSearch", () => {
     expect(routerSpies.push).toHaveBeenCalledWith("/product/sacuwin-50");
   });
 
+  it("never opens a result that belongs to an earlier query", async () => {
+    window.history.pushState({}, "", "/legal/terms");
+    setup();
+    await typeQuery("sacu");
+    expect(screen.getAllByRole("option")).toHaveLength(3);
+
+    // The shopper changes the query; its response is still in flight when Enter is pressed.
+    let answer: (r: Response) => void = () => {};
+    fetchMock.mockImplementationOnce(() => new Promise<Response>((r) => (answer = r)));
+    fireEvent.change(input(), { target: { value: "bemp" } });
+    await act(() => vi.advanceTimersByTimeAsync(200));
+    expect(urls().at(-1)).toContain("q=bemp");
+
+    expect(screen.queryAllByRole("option")).toHaveLength(0); // the old list is not offered
+    fireEvent.keyDown(input(), { key: "Enter" });
+    expect(routerSpies.push).not.toHaveBeenCalled();
+    // The form is left to submit natively (its GET to the medicines section) instead.
+    expect(fireEvent.submit(input().closest("form")!)).toBe(true);
+    expect(routerSpies.push).not.toHaveBeenCalled();
+
+    // Once the new query settles, Enter opens the new first result.
+    await act(async () => answer(reply(200, [hit("bemptor-180", "Bemptor-180")])));
+    fireEvent.keyDown(input(), { key: "Enter" });
+    expect(routerSpies.push).toHaveBeenCalledWith("/product/bemptor-180");
+  });
+
+  it("Enter with no match leaves the form to submit natively", async () => {
+    setup();
+    await typeQuery("zzz");
+    expect(fireEvent.submit(input().closest("form")!)).toBe(true);
+    expect(routerSpies.push).not.toHaveBeenCalled();
+  });
+
   it("zzz shows the empty text exactly", async () => {
     setup();
     await typeQuery("zzz");

@@ -118,9 +118,12 @@ export function HeaderSearch({ chips }: { chips: string[] }) {
     setOpen(false);
   }
 
+  // Enter picks the first result of the query shown. With none (still loading, no match, or an
+  // error) it is left alone: the form's own GET to the medicines section is the fallback.
   function onSubmit(e: FormEvent) {
+    if (items.length === 0) return;
     e.preventDefault();
-    if (items.length > 0) choose(items[0]!);
+    choose(items[0]!);
   }
 
   function onFocusOut(e: FocusEvent<HTMLFormElement>) {
