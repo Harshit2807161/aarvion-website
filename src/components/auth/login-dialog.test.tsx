@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { routerSpies } from "../../../tests/helpers/navigation-mocks";
+import { SIGNED_IN_EVENT } from "./events";
 import { LoginDialog } from "./login-dialog";
 
 // The flow itself is tested in login-flow.test.tsx; here it only needs to finish.
@@ -80,6 +81,18 @@ describe("LoginDialog", () => {
     expect(order(onOpenChange)).toBeLessThan(order(routerSpies.push));
     expect(order(onSignedIn)).toBeLessThan(order(routerSpies.push));
     expect(toast).not.toHaveBeenCalled();
+  });
+
+  it("announces the sign-in on window once the dialog tells the header, and not before", async () => {
+    const heard = vi.fn();
+    window.addEventListener(SIGNED_IN_EVENT, heard);
+    const { finish } = setup();
+    finish();
+    await advance(899);
+    expect(heard).not.toHaveBeenCalled();
+    await advance(1);
+    expect(heard).toHaveBeenCalledTimes(1);
+    window.removeEventListener(SIGNED_IN_EVENT, heard);
   });
 
   it("without next it closes, toasts the first name and lets the header refresh", async () => {

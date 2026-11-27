@@ -197,7 +197,7 @@ export const cartStore = {
   getMode(): CartMode {
     return mode;
   },
-  /** The last priced view (a quote of the guest lines), or null before one exists. Check `isViewStale()` before showing totals as current. */
+  /** The last priced view (the server's when signed in, else a quote of the guest lines), or null before one exists. Check `isViewStale()` before showing totals as current. */
   getView(): CartView | null {
     return view;
   },
@@ -272,6 +272,10 @@ export const cartStore = {
     viewStale = false;
     scheduleQuote();
     notify();
+  },
+  /** Signed in: reloads the server cart (quietly) so a change made in another tab shows up. */
+  refresh(): void {
+    if (mode === "user") user?.refresh();
   },
   /** Drops the old `aarv-cart-ui-v0` key, which is never migrated (pre-launch). Run once on load. */
   forgetLegacy(): void {

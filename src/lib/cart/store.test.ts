@@ -388,6 +388,32 @@ describe("signIn", () => {
     expect(cartStore.getMode()).toBe("guest");
     expect(cartStore.getSnapshot()).toEqual({ a: 2 });
   });
+  it("a tap the merged cart refuses is reported, not dropped silently", async () => {
+    const issues: CartIssue[] = [];
+    cartStore.onIssue((i) => issues.push(i));
+    seed([{ slug: "a", qty: 1 }]);
+    let release: () => void = () => {};
+    m.mergeCart.mockImplementation(
+      () =>
+        new Promise(
+          (r) => (release = () => r({ ok: true, view: view({ a: 10, b: 10 }) } as never)),
+        ),
+    );
+    const signing = cartStore.signIn();
+    await vi.dynamicImportSettled(); // the chunk is loaded and the merge is in flight
+    cartStore.dispatch(inc("c"));
+    release();
+    await signing;
+    expect(cartStore.getSnapshot()).toEqual({ a: 10, b: 10 });
+    expect(issues).toEqual([{ kind: "refused", error: "order_limit" }]);
+  });
+
+  it("refresh does nothing when not signed in", async () => {
+    cartStore.refresh();
+    await tick(0);
+    expect(m.getCart).not.toHaveBeenCalled();
+  });
+
   it("toGuest(true) leaves a store that is already signed in alone", async () => {
     m.getCart.mockImplementation(() => ok({ a: 3 }));
     await cartStore.signIn();
@@ -415,9 +441,16 @@ describe("user mode", () => {
   });
 
   it("a + lands on the server's quantity, not this tab's cached one (another tab set 5)", async () => {
-    m.addItem.mockImplementation(() => ok({ a: 6 })); // the server already held 5
+    const server: Record<string, number> = { a: 1 };
+    m.addItem.mockImplementation(async (slug, n) => {
+      server[slug] = (server[slug] ?? 0) + n;
+      return { ok: true, view: view({ ...server }) } as never;
+    });
+    server.a = 5; // the other tab set 5; this tab still caches 1
+    expect(cartStore.getSnapshot()).toEqual({ a: 1 });
     cartStore.dispatch(inc("a"));
     await tick(0);
+    expect(m.addItem).toHaveBeenCalledWith("a", 1);
     expect(cartStore.getSnapshot()).toEqual({ a: 6 });
   });
 
@@ -518,6 +551,62 @@ describe("user mode", () => {
     await tick(0);
     expect(cartStore.getSnapshot()).toEqual({ z: 5, y: 1, q: 2 }); // the server's lines were adopted
     expect(m.addItem).toHaveBeenCalledTimes(2); // the queued ones from before the 401 were never sent
+  });
+
+  it("after a request that timed out, looks at the server's cart before any retry", async () => {
+    m.addItem.mockImplementation(() => fail("network"));
+    m.getCart.mockImplementation(() => ok({ a: 2 })); // the server did apply the add
+    cartStore.dispatch(inc("a"));
+    await tick(0);
+    expect(m.getCart).toHaveBeenCalledTimes(2); // sign-in's load, then the refresh
+    expect(cartStore.getSnapshot()).toEqual({ a: 2 });
+  });
+
+  it("a failed refresh is silent and does not revert a tap still on its way", async () => {
+    const issues: CartIssue[] = [];
+    cartStore.onIssue((i) => issues.push(i));
+    let release: () => void = () => {};
+    m.addItem
+      .mockImplementationOnce(() => ok({ a: 2 }))
+      .mockImplementationOnce(
+        () => new Promise((r) => (release = () => r({ ok: true, view: view({ a: 3 }) } as never))),
+      );
+    m.getCart.mockImplementation(() => fail("network"));
+    cartStore.dispatch(inc("a"));
+    cartStore.refresh();
+    cartStore.dispatch(inc("a")); // optimistic {a:3}, queued behind the refresh
+    await tick(0); // the refresh has failed; the second add is still in flight
+    expect(issues).toEqual([]);
+    expect(cartStore.getSnapshot()).toEqual({ a: 3 });
+    release();
+    await tick(0);
+    expect(cartStore.getSnapshot()).toEqual({ a: 3 });
+  });
+
+  it("a refresh that finds a 401 still drops to guest", async () => {
+    m.getCart.mockImplementation(() => fail("unauthenticated"));
+    cartStore.refresh();
+    await tick(0);
+    expect(cartStore.getMode()).toBe("guest");
+  });
+
+  it("two refreshes close together are one request", async () => {
+    m.getCart.mockClear();
+    m.getCart.mockImplementation(() => ok({ a: 1 }));
+    cartStore.refresh();
+    cartStore.refresh();
+    await tick(0);
+    expect(m.getCart).toHaveBeenCalledTimes(1);
+    cartStore.refresh();
+    await tick(0);
+    expect(m.getCart).toHaveBeenCalledTimes(2);
+  });
+
+  it("refresh reloads the server cart through the queue", async () => {
+    m.getCart.mockImplementation(() => ok({ a: 5 }));
+    cartStore.refresh();
+    await tick(0);
+    expect(cartStore.getSnapshot()).toEqual({ a: 5 });
   });
 
   it("a sign-in call while changes are pending leaves it to their replies", async () => {
