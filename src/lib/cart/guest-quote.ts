@@ -25,25 +25,33 @@ export type QuoteHost = {
 export function createQuoter(host: QuoteHost) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let retries = 0;
+  let busy = false; // a quote is waiting or in flight; false once one lands or the retries give up
   return {
     /** Prices the cart as it is now, for generation `mine`. */
     schedule(mine: number): void {
       if (mine !== host.generation()) return; // the chunk arrived after a newer change
       clearTimeout(timer);
       retries = 0;
+      busy = true;
       const lines = Object.entries(host.lines()).map(([slug, qty]) => ({ slug, qty }));
       const run = async () => {
         const res = await quoteCart(lines);
         if (mine !== host.generation()) return; // a newer change superseded this request
         if (res.ok) host.accept(res.view);
-        else if (retries < QUOTE_RETRY_MS.length)
+        else if (retries < QUOTE_RETRY_MS.length) {
           timer = setTimeout(run, QUOTE_RETRY_MS[retries++]);
+          return host.notify();
+        }
+        busy = false;
         host.notify();
       };
       timer = setTimeout(run, QUOTE_DEBOUNCE_MS);
     },
     cancel(): void {
       clearTimeout(timer);
+      busy = false;
     },
+    /** Whether a quote is waiting or in flight (not once it landed or gave up after its retries). */
+    busy: () => busy,
   };
 }

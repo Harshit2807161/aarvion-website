@@ -257,12 +257,13 @@ export const cartStore = {
     notify();
   },
   /**
-   * Prices a stored guest cart now when nothing has priced it yet: the cart page calls it on mount
-   * rather than wait for `CartSync`'s idle mount. A no-op signed in (the server cart brings its own
-   * view), with a view already in hand or a quote already on its way, and for an empty cart.
+   * Prices a stored guest cart now when nothing current has priced it: the cart page calls it on
+   * mount rather than wait for `CartSync`'s idle mount, and a quote that gave up after its retries
+   * is tried again (a return visit re-quotes). A no-op signed in (the server cart brings its own
+   * view), with a current view, or with a quote already on its way.
    */
   price(): void {
-    if (mode !== "user" && !view && !viewStale) scheduleQuote();
+    if (mode !== "user" && (!view || viewStale) && !quoter?.busy()) scheduleQuote();
   },
   /** Signed in: reloads the server cart (quietly) so a change made in another tab shows up. */
   refresh(): void {
