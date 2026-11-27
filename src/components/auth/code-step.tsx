@@ -58,6 +58,7 @@ export function CodeStep({
   onName,
   focus,
   idInputId,
+  initialCode = "",
 }: {
   /** Id prefix: "pg" on the page, "dlg" in the dialog. */
   p: string;
@@ -72,8 +73,10 @@ export function CodeStep({
   focus(id: string): void;
   /** The id step's input, focused after Change or a failed delivery. */
   idInputId: string;
+  /** The code already in the boxes when the step opens (demo states only). */
+  initialCode?: string;
 }) {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(initialCode);
   const [incomplete, setIncomplete] = useState(false);
   const [op, setOp] = useState<"verify" | "resend" | null>(null);
   const verifying = useRef(false);

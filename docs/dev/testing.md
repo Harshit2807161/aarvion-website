@@ -118,6 +118,15 @@ Helpers in `tests/helpers/`:
   leaves `collectConsoleErrors` empty. `?p=` works only with motion on. With the JS chunks
   blocked (motion on), the tiles, the CTA and the logo are still at full opacity and the three
   ordering cards do not overlap.
+  blocked (motion on), the tiles, the CTA and the logo are still at full opacity.
+  leaves `collectConsoleErrors` empty. `?p=` works only with motion on.
+- `e2e/budgets.spec.ts` holds the home budgets, with helpers in `e2e/helpers/perf.ts`: LCP under
+  2.5 s at 390 (Slow 4G, 4x CPU) and 1440 with the LCP element being banner slide 1 (eager, an
+  `img` under `banners`); slide 1's image at most 60 kB at 390; no request for slides 2 to 4
+  before `load`; CLS under 0.1 at both widths with and without motion; the header logo as the
+  only image preload (the `Link` response header) and exactly the three self-hosted fonts, none
+  from Google, covering the rupee sign; the banner unchanged after 7 s under reduced motion; with JavaScript off at 390, cards 2 to 4 show a loaded picture. The JS total is the sum of the scripts' encoded body sizes from Resource Timing (never `content-length`, which Next omits when compressing), with a 50 kB floor so a measurement that reads nothing cannot pass. The
+  first-load JS on `/` is a ratchet at 175 kB gzipped (about 170 kB today, target 150 kB; product pages keep 150): lower `HOME_JS_BUDGET_BYTES` whenever it shrinks.
 - `e2e/freshness.spec.ts` [P55] changes `sacuwin-100`'s MRP straight in the `aarvion_e2e` database
   (the admin editor does not exist yet; use it instead once it does), expires the cache through
   the dev-only `POST /dev/catalogue/revalidate`, and expects the home rails to show the new
@@ -126,8 +135,7 @@ Helpers in `tests/helpers/`:
   bar, footer, rails, the header search form) and on the 404 page lands on an element, and that
   the ids in `PENDING_ANCHORS` (`src/config/routes.ts`) are still missing and still linked;
   delete an entry when its section is built.
-- Planned (UI plan): `e2e/budgets.spec.ts` (LCP, CLS, first-load JS), and
-  specs for the shell, catalogue, search and login.
+- Planned (UI plan): specs for the shell, catalogue, search and login.
 
 ## Guard tests (they enforce conventions)
 
@@ -155,9 +163,10 @@ Helpers in `tests/helpers/`:
 | `src/components/overlay/overlay.test.tsx` | the Overlay: dialog role and aria-modal, focus on open, focus trap, Escape and focus return, scrim click, scroll lock and aria-hidden siblings, variants, and the phone drag through the head |
 | `e2e/styleguide.spec.ts` | also: at 390px a short drag or a tap on the overlay head leaves no running animation and the transform at identity |
 | `src/components/overlay/use-drag-dismiss.test.tsx` | the drag hook: follows the finger, dismisses over the thresholds, snaps back otherwise, never removes `is-dragging` while open, ignores a second pointer and Close, skips the snap-back transition under reduced motion |
+| `e2e/login.spec.ts` | `/login` by email against the seeded server: a new address goes Send → code (read from `/dev/outbox`) → profile → consent → Create → `/` with the `__Host-aarv_sid` cookie; after an API logout the same address signs in again (via Send a new code, past the 30 s cooldown) with no profile step; signed in, `/login?next=//evil.com` and `/.//evil.com` land on `/`; `?state=otp-locked` opens the locked demo where mocks are allowed, and the page is `noindex` with no `/dev/` link. Each run uses a fresh address and its own `x-real-ip` |
 | `e2e/catalogue.spec.ts` | the product page (`/product/sacuwin-100`) loses its buy box, struck MRP and price, facts or eager LCP photo; the strength switcher stops landing on `/product/sacuwin-50`; `/product/nope` is not a 404 on the first hit or shows more than one `header` or `#q`; a product page loses its title or description; a home rail pocket name stops linking to its page |
 | `e2e/catalogue.spec.ts` (category pages) | `/category/cardiology` (5 Add to cart buttons), `/category/urology` (coming soon), a hidden or unknown category (404 on the first request, one header and one `#q`), the home bento link |
-| `e2e/links.spec.ts` | a same-origin link on `/`, a category page, `/contact`, a `/legal/*` page or `/product/sacuwin-100` does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START` as their tasks land (runs in CI against the seeded server) |
+| `e2e/links.spec.ts` | a same-origin link on `/`, a category page, `/contact`, `/login`, a `/legal/*` page or `/product/sacuwin-100` does not return 200, or a `PENDING_ROUTES` path stops returning 404; add new pages to `START` as their tasks land (runs in CI against the seeded server) |
 | `src/styles/overlay.test.ts` | the compiled `globals.css` carries the overlay rules, the Aarvion scrim (not `bg-black/50`) and the shadcn colour mapping |
 | `scripts/deps-policy.test.ts` | a banned animation, carousel, toast or icon library (framer-motion, swiper, gsap, sonner, lucide-react, …) or an unlisted Radix package is added |
 

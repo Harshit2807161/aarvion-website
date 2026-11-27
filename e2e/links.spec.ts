@@ -11,6 +11,7 @@ const START: string[] = [
   ROUTES.category("cardiology"),
   ROUTES.category("urology"),
   ROUTES.contact,
+  ROUTES.login,
   ...Object.values(ROUTES.legal),
   ROUTES.product("sacuwin-100"),
 ];
