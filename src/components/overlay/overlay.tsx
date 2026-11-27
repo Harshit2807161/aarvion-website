@@ -17,8 +17,11 @@ export type OverlayProps = {
   count?: ReactNode;
   /** Accessible name of the Close button (callers pass translated, context-aware text). */
   closeLabel: string;
-  /** Element to focus on open; defaults to the first focusable element (Close). */
-  initialFocus?: RefObject<HTMLElement | null>;
+  /**
+   * Element to focus on open; defaults to the first focusable element (Close). A function is
+   * called at open, for an element the overlay's children own (the login dialog's first field).
+   */
+  initialFocus?: RefObject<HTMLElement | null> | (() => HTMLElement | null);
   /**
    * Element to focus when the overlay closes. By default focus returns to whatever had focus when
    * it opened, but Safari and Firefox on macOS do not focus a button on mouse click, so for a
@@ -67,9 +70,11 @@ export function Overlay({
         onOpenAutoFocus={(e) => {
           // Focus has not moved yet, so this is the control that opened the overlay.
           opener.current = document.activeElement as HTMLElement | null;
-          if (initialFocus?.current) {
+          const target =
+            typeof initialFocus === "function" ? initialFocus() : initialFocus?.current;
+          if (target) {
             e.preventDefault();
-            initialFocus.current.focus();
+            target.focus();
           }
         }}
         onCloseAutoFocus={(e) => {

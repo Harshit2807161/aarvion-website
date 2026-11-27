@@ -13,13 +13,16 @@ vi.mock("./login-flow", () => ({
     onDone(r: { isNewUser: boolean; name: string | null }): void;
     next?: string;
   }) => (
-    <button
-      type="button"
-      data-next={next}
-      onClick={() => onDone({ isNewUser: false, name: " Asha Rao" })}
-    >
-      finish
-    </button>
+    <>
+      <input id="dlg-mobile" aria-label="Mobile number" />
+      <button
+        type="button"
+        data-next={next}
+        onClick={() => onDone({ isNewUser: false, name: " Asha Rao" })}
+      >
+        finish
+      </button>
+    </>
   ),
 }));
 vi.mock("@/components/feedback/toast", () => ({ toast: vi.fn() }));
@@ -51,17 +54,27 @@ describe("LoginDialog", () => {
     expect(screen.getByText("finish")).toHaveAttribute("data-next", "/checkout");
   });
 
+  it("opens on the flow's identifier field", () => {
+    setup();
+    expect(document.activeElement).toBe(screen.getByLabelText("Mobile number"));
+  });
+
   it.each([
     ["/checkout", "/checkout"],
     ["//evil.com", "/"],
-  ])("with next=%s it goes to %s after the done step, without a toast", async (next, to) => {
-    const { onOpenChange, finish } = setup(next);
+  ])("with next=%s it closes, tells the header, then goes to %s", async (next, to) => {
+    const { onOpenChange, onSignedIn, finish } = setup(next);
     finish();
     await advance(899);
     expect(routerSpies.push).not.toHaveBeenCalled();
     await advance(1);
     expect(routerSpies.push).toHaveBeenCalledWith(to);
-    expect(onOpenChange).not.toHaveBeenCalled();
+    // The header lives in the persistent layout: it must not stay stale under the new page.
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onSignedIn).toHaveBeenCalledTimes(1);
+    const order = (f: ReturnType<typeof vi.fn>) => f.mock.invocationCallOrder[0]!;
+    expect(order(onOpenChange)).toBeLessThan(order(routerSpies.push));
+    expect(order(onSignedIn)).toBeLessThan(order(routerSpies.push));
     expect(toast).not.toHaveBeenCalled();
   });
 
@@ -77,15 +90,25 @@ describe("LoginDialog", () => {
     expect(routerSpies.push).not.toHaveBeenCalled();
   });
 
-  it("closing within the done step cancels what would follow", async () => {
-    const { onOpenChange, onSignedIn, finish } = setup();
-    finish();
+  it.each([undefined, "/checkout"])(
+    "closing during the done step (next=%s) skips the redirect and toast but still tells the header",
+    async (next) => {
+      const { onOpenChange, onSignedIn, finish } = setup(next);
+      finish();
+      fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(onSignedIn).toHaveBeenCalledTimes(1);
+      await advance(900);
+      expect(onSignedIn).toHaveBeenCalledTimes(1);
+      expect(toast).not.toHaveBeenCalled();
+      expect(routerSpies.push).not.toHaveBeenCalled();
+    },
+  );
+
+  it("closing before sign-in tells the header nothing", () => {
+    const { onOpenChange, onSignedIn } = setup();
     fireEvent.keyDown(document.activeElement!, { key: "Escape" });
     expect(onOpenChange).toHaveBeenCalledWith(false);
-    onOpenChange.mockClear();
-    await advance(900);
-    expect(onOpenChange).not.toHaveBeenCalled();
-    expect(toast).not.toHaveBeenCalled();
     expect(onSignedIn).not.toHaveBeenCalled();
   });
 });

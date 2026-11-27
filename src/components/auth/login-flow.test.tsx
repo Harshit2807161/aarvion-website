@@ -411,6 +411,23 @@ describe("LoginFlow: done step", () => {
     expect(screen.getByText(LOGIN_COPY.doneCheckout)).toBeInTheDocument();
   });
 
+  it("the dialog ignores the host page's ?next= when its opener gave none", async () => {
+    mockSearchParams.value = new URLSearchParams({ next: "/checkout" });
+    reply(VERIFY, OK);
+    render(<LoginFlow mode="dialog" />);
+    await flush();
+    fireEvent.change(screen.getByLabelText(LOGIN_COPY.mobileLabel), {
+      target: { value: "9876543210" },
+    });
+    fireEvent.click(button(LOGIN_COPY.send)!);
+    await flush();
+    fireEvent.paste(document.querySelector("#dlg-otp")!, {
+      clipboardData: { getData: () => "482913" },
+    });
+    await flush();
+    expect(screen.getByText(LOGIN_COPY.doneDefault)).toBeInTheDocument();
+  });
+
   it("the dialog gets onDone at once and no redirect", async () => {
     const onDone = vi.fn();
     reply(VERIFY, OK);

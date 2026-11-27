@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Overlay, type OverlayProps } from "./overlay";
 
-type Props = Partial<Pick<OverlayProps, "variant" | "count" | "footer">> & {
+type Props = Partial<Pick<OverlayProps, "variant" | "count" | "footer" | "initialFocus">> & {
   onOpenChange?: (open: boolean) => void;
   focusEmail?: boolean;
   returnToFallback?: boolean;
@@ -64,6 +64,13 @@ describe("Overlay", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     const dialog = await openIt(user);
     expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(screen.getByLabelText("Email")).toHaveFocus();
+  });
+
+  it("initialFocus may be a function, called at open, for an element the children own", async () => {
+    const user = userEvent.setup();
+    render(<Harness initialFocus={() => document.querySelector("input")} />);
+    await openIt(user);
     expect(screen.getByLabelText("Email")).toHaveFocus();
   });
 

@@ -47,7 +47,7 @@ export type LoginFlowProps = {
   allowDemo?: boolean;
   /** Called once when the shopper is signed in. In page mode the flow then redirects to `next`. */
   onDone?(r: LoginDone): void;
-  /** Where sign-in leads, when the opener knows (the header dialog); otherwise `?next=`. */
+  /** Where sign-in leads, when the opener knows (the header dialog); a page falls back to `?next=`. */
   next?: string;
 };
 
@@ -75,7 +75,8 @@ export function LoginFlow({ mode, allowDemo = false, onDone, next: nextProp }: L
   const finished = useRef(false);
   const focusNext = useRef<string | null>(null);
 
-  const next = sanitizeNext(nextProp ?? searchParams.get("next"));
+  // The dialog goes only where its opener says; the host page's own ?next= is not its business.
+  const next = sanitizeNext(nextProp ?? (mode === "page" ? searchParams.get("next") : null));
   const goNext = useEffectEvent(() => router.replace(next));
   const finish = useEffectEvent((r: LoginDone) => {
     if (finished.current) return;
