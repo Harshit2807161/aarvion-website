@@ -59,6 +59,17 @@ test("a product page has its own title, description, canonical link and one JSON
   expect(data).not.toHaveProperty("aggregateRating");
 });
 
+test("robots.txt disallows everything outside production, and the sitemap lists products", async ({
+  request,
+}) => {
+  const robots = await (await request.get("/robots.txt")).text();
+  expect(robots).toMatch(/Disallow: \/\s/);
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  expect(sitemap).toContain("/product/sacuwin-100</loc>");
+  expect(sitemap).not.toMatch(/\/(login|dev|api)\b/);
+});
+
+
 test("a pocket name on the home page leads to its product page", async ({ page }) => {
   await page.goto("/");
   await page.locator("#p-sacuwin-100 a.pocket-link").click();
