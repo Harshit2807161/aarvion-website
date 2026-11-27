@@ -118,6 +118,22 @@ describe("getSiteEnv", () => {
     expect(() => fn()).toThrow(/APP_URL/);
   });
 
+  it.each(["http://aarvion.example", "ftp://aarvion.example", "ws://aarvion.example"])(
+    "throws in production when APP_URL is not https: %s",
+    async (value) => {
+      vi.stubEnv("VERCEL_ENV", "production");
+      vi.stubEnv("APP_URL", value);
+      const fn = await load();
+      expect(() => fn()).toThrow(/APP_URL must be set to the site's public https URL/);
+    },
+  );
+
+  it("still allows an http APP_URL outside production", async () => {
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("APP_URL", "http://localhost:3000");
+    expect((await load())().appUrl).toBe("http://localhost:3000");
+  });
+
   it("accepts a valid APP_URL in production", async () => {
     vi.stubEnv("VERCEL_ENV", "production");
     vi.stubEnv("APP_URL", "https://aarvion.in");

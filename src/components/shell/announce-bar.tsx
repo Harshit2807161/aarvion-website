@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
+import { REDUCED_MOTION_QUERY } from "@/lib/motion";
 
 export const ANNOUNCEMENTS = [
   "Free delivery across India",
@@ -13,7 +14,6 @@ export const ANNOUNCEMENTS = [
 export const ANNOUNCE_MS = 5000;
 
 const PHONE = "(max-width: 720px)";
-const REDUCED = "(prefers-reduced-motion: reduce)";
 
 /**
  * The line above the header. Desktop shows all three notices; at 720px and below it cross-fades
@@ -27,7 +27,7 @@ export function AnnounceBar() {
 
   useEffect(() => {
     const phone = window.matchMedia(PHONE);
-    const reduced = window.matchMedia(REDUCED);
+    const reduced = window.matchMedia(REDUCED_MOTION_QUERY);
     let timer: ReturnType<typeof setInterval> | undefined;
     const run = () => {
       clearInterval(timer);
