@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { PersonName } from "../auth/login.ts";
-import { addCalendarMonthsIst, istDay, istMidnight, RX_VALIDITY_MONTHS } from "./validity.ts";
+import {
+  addCalendarMonthsIst,
+  isRxValidOn,
+  istDay,
+  istMidnight,
+  rxEnd,
+  RX_VALIDITY_MONTHS,
+} from "./validity.ts";
 
 // Pure: no I/O, no clock (callers pass `at`), and runtime imports only of the PersonName schema
 // (auth/login) and validity.ts (a client may still `import type` the view types). Writes and audit rows
@@ -162,4 +169,63 @@ export function reviewRx(
       validUntil: end ?? cap,
     },
   };
+}
+
+/** One row of the customer's prescription list. Dates are plain IST days, never instants. */
+export type RxListItem = {
+  id: string;
+  patientName: string;
+  kind: "image" | "pdf";
+  pages: number;
+  /** ISO instant. */
+  uploadedAt: string;
+  status: "under_review" | "approved" | "expired" | "rejected";
+  /** The last IST day an approved Rx can be used. */
+  validUntilDay: string | null;
+  /** The first IST day an expired Rx could no longer be used. */
+  expiredOnDay: string | null;
+  rejection: { reason: RxRejectReason; note: string | null } | null;
+};
+
+/** What `rxView` reads; the stored prescription document (R4's `RxDoc`) satisfies it. */
+export type RxViewSource = {
+  _id: { toHexString(): string };
+  patientName: string;
+  file: { kind: "image" | "pdf"; pages: number };
+  status: RxStatus;
+  review: RxReview | null;
+  rxDate: Date | null;
+  validUntil: Date | null;
+  createdAt: Date;
+};
+
+/** The list view of a prescription at `now`: an approved Rx past its end shows as expired. */
+export function rxView(doc: RxViewSource, now: Date): RxListItem {
+  const item: RxListItem = {
+    id: doc._id.toHexString(),
+    patientName: doc.patientName,
+    kind: doc.file.kind,
+    pages: doc.file.pages,
+    uploadedAt: doc.createdAt.toISOString(),
+    status: "under_review",
+    validUntilDay: null,
+    expiredOnDay: null,
+    rejection: null,
+  };
+  if (doc.status === "rejected") {
+    const r = doc.review;
+    return {
+      ...item,
+      status: "rejected",
+      rejection: r?.kind === "rejected" ? { reason: r.reason, note: r.note } : null,
+    };
+  }
+  if (doc.status === "approved") {
+    const end = rxEnd(doc);
+    if (isRxValidOn(doc, now) && end) {
+      return { ...item, status: "approved", validUntilDay: istDay(new Date(end.getTime() - 1)) };
+    }
+    return { ...item, status: "expired", expiredOnDay: end ? istDay(end) : null };
+  }
+  return item;
 }

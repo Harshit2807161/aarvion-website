@@ -7,8 +7,11 @@ import {
   RxApproveInput,
   RxRejectInput,
   reviewRx,
+  rxView,
+  type RxReview,
   type RxReviewSet,
   type RxStatus,
+  type RxViewSource,
 } from "./review";
 import { istMidnight } from "./validity";
 
@@ -269,6 +272,103 @@ describe("reviewRx reject", () => {
     expect(reviewRx({ status: "rejected" }, approve({ rxDate: "2026-11-12" }), ctx)).toEqual({
       ok: false,
       error: "final",
+    });
+  });
+});
+
+describe("rxView", () => {
+  const base = {
+    _id: { toHexString: () => "64b0c0ffee00000000000001" },
+    patientName: "Asha Rao",
+    file: { kind: "pdf" as const, pages: 2 },
+    createdAt: d("2026-11-12T10:00:00Z"),
+  };
+  const approvedReview: RxReview = {
+    kind: "approved",
+    by: "s",
+    at: d("2026-11-13T00:00:00Z"),
+    doctorName: "Dr A",
+    doctorRegNo: "DMC/1",
+  };
+  const approved: RxViewSource = {
+    ...base,
+    status: "approved",
+    review: approvedReview,
+    rxDate: istMidnight("2026-11-12"),
+    validUntil: istMidnight("2027-05-12"),
+  };
+
+  it("is approved through the last valid IST day", () => {
+    expect(rxView(approved, d("2027-05-11T18:29:59.999Z"))).toEqual({
+      id: "64b0c0ffee00000000000001",
+      patientName: "Asha Rao",
+      kind: "pdf",
+      pages: 2,
+      uploadedAt: "2026-11-12T10:00:00.000Z",
+      status: "approved",
+      validUntilDay: "2027-05-11",
+      expiredOnDay: null,
+      rejection: null,
+    });
+  });
+
+  it("is expired from the end instant, naming the first expired day", () => {
+    expect(rxView(approved, d("2027-05-11T18:30:00Z"))).toMatchObject({
+      status: "expired",
+      validUntilDay: null,
+      expiredOnDay: "2027-05-12",
+    });
+  });
+
+  it("uses an earlier pharmacist validUntil", () => {
+    const early = { ...approved, validUntil: istMidnight("2027-02-01") };
+    expect(rxView(early, d("2027-01-15T00:00:00Z"))).toMatchObject({
+      status: "approved",
+      validUntilDay: "2027-01-31",
+    });
+  });
+
+  it("is under review while pending", () => {
+    expect(
+      rxView({ ...base, status: "pending", review: null, rxDate: null, validUntil: null }, NOW),
+    ).toMatchObject({
+      status: "under_review",
+      validUntilDay: null,
+      expiredOnDay: null,
+      rejection: null,
+    });
+  });
+
+  it("carries the rejection reason and note", () => {
+    const review: RxReview = {
+      kind: "rejected",
+      by: "s",
+      at: NOW,
+      reason: "incomplete",
+      note: "no signature",
+      revoked: false,
+    };
+    expect(
+      rxView({ ...base, status: "rejected", review, rxDate: null, validUntil: null }, NOW),
+    ).toMatchObject({
+      status: "rejected",
+      rejection: { reason: "incomplete", note: "no signature" },
+    });
+  });
+
+  it("shows a revoked Rx as rejected, not approved", () => {
+    const review: RxReview = {
+      kind: "rejected",
+      by: "s",
+      at: NOW,
+      reason: "other",
+      note: null,
+      revoked: true,
+    };
+    expect(rxView({ ...approved, status: "rejected", review }, NOW)).toMatchObject({
+      status: "rejected",
+      validUntilDay: null,
+      rejection: { reason: "other", note: null },
     });
   });
 });

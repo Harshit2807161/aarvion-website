@@ -302,7 +302,7 @@ ported prototype CSS imported by `globals.css`.
 | `orders/order-number.ts` | `nextOrderNumber(now)`, `formatOrderNumber`, `orderMonthKey` |
 | `prescriptions/file-check.ts` | `checkRxFile(bytes)`: magic-byte type (`sniffType`), 1 to 8 MiB; an image is re-encoded with sharp to WebP q85 (longest side 3000, shortest at least 400, 50 MP input cap, one frame, EXIF rotation applied, all metadata dropped, 5 s timeout); returns `{ ok, file }` or a named `RxFileError`, plus the sha256 of the stored body. PDFs are refused until the scan lands (part B) |
 | `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6`, `istMidnight(ymd)` (a day's 00:00 IST instant; `RangeError` for a malformed or impossible date), `istDay(at)`, `rxEnd(rx)` (the exclusive end: `min(validUntil, rxDate + 6 months)`) |
-| `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput`, and `reviewRx` (approve only from pending; reject from pending, or from approved as a revoke; a reject's `set` carries no dates, so an approved Rx keeps them; rejected is final; an unknown status is `invalid_transition`) (the list view is added in the next PR) |
+| `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput`, and `reviewRx` (approve only from pending; reject from pending, or from approved as a revoke; a reject's `set` carries no dates, so an approved Rx keeps them; rejected is final; an unknown status is `invalid_transition`), `rxView` (the customer list item: under review, approved, expired or rejected, with IST days) |
 
 ## Collections and indexes
 
