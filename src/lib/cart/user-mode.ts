@@ -119,7 +119,7 @@ export function createUserMode(host: Host): UserMode {
         if (cartStore.getMode() === "user") cartStore.toGuest();
         return none; // signed out: asking again cannot help
       }
-      host.emit({ kind: "sync_failed" });
+      host.emit({ kind: "sync_failed", signIn: true });
       return { ...none, retry: true };
     }
     host.stopQuoting();

@@ -78,11 +78,10 @@ export function CartSync({ slugs }: { slugs: readonly string[] }) {
       }
       spoken.push(text);
     };
-    let signingIn = false;
     let saidSignInFailure = false;
     const offIssue = cartStore.onIssue((issue) => {
       // A failed sign-in that is retried on every wake-up says so once per visit, not every time.
-      if (issue.kind === "sync_failed" && signingIn) {
+      if (issue.kind === "sync_failed" && issue.signIn) {
         if (saidSignInFailure) return;
         saidSignInFailure = true;
       }
@@ -91,9 +90,7 @@ export function CartSync({ slugs }: { slugs: readonly string[] }) {
 
     cartStore.forgetLegacy();
     const signIn = () => {
-      signingIn = true;
       void cartStore.signIn().then((r) => {
-        signingIn = false;
         // The code or the network failed: try once more when the tab wakes up or the network returns.
         // A 401 (signed out) is not retried.
         if (alive && r.retry) retrySignIn = true;

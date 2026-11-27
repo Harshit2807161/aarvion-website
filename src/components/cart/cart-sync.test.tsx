@@ -171,6 +171,33 @@ describe("CartSync when the tab wakes up", () => {
   });
 });
 
+describe("a sign-in that failed", () => {
+  it("says so once per visit, however often it is retried", async () => {
+    session.mockResolvedValue({ state: "in", name: null });
+    seedGuest({ a: 1 });
+    vi.mocked(mergeCart).mockResolvedValue({ ok: false, error: "network" } as never);
+    setup();
+    await settle();
+    expect(live()).toBe("We couldn’t update your cart. Check your connection and try again.");
+    document.getElementById("live")!.textContent = "";
+    act(() => void window.dispatchEvent(new Event("online"))); // retried, and fails again
+    await settle();
+    expect(mergeCart).toHaveBeenCalledTimes(2);
+    expect(live()).toBe("");
+  });
+
+  it("a 401 stops the retries", async () => {
+    session.mockResolvedValue({ state: "in", name: null });
+    seedGuest({ a: 1 });
+    vi.mocked(mergeCart).mockResolvedValue({ ok: false, error: "unauthenticated" } as never);
+    setup();
+    await settle();
+    act(() => void window.dispatchEvent(new Event("online")));
+    await settle();
+    expect(mergeCart).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("a sign-in whose code failed to load", () => {
   it("is tried again on the next wake-up, once", async () => {
     session.mockResolvedValue({ state: "in", name: null });
