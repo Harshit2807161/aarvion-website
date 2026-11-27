@@ -149,6 +149,7 @@
   --spacing-heading: clamp(2rem, 1.6rem + 1.6vw, 3rem);
 
   --container-page: 75rem;
+  --container-chrome: 80rem; /* header, category bar and footer: 1280 wide on every page */
   --container-prose: 40rem;
 
   /* ── Radii ────────────────────────────────────────────────────────────── */
