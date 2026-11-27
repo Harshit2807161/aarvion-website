@@ -7,6 +7,9 @@ import { PDF_SCAN_TIMEOUT_MS, scanPdf } from "./pdf-scan";
 
 const refused = (error: string) => ({ ok: false, error });
 const FIXTURES = path.resolve(import.meta.dirname, "../../../tests/fixtures/rx");
+/** A catalog entry holding one link annotation with the given action. */
+const LINK = (action: string) =>
+  `/Annots [<< /Type /Annot /Subtype /Link /Rect [0 0 10 10] /A ${action} >>]`;
 const text = (s: string) => Buffer.from(s, "latin1");
 
 describe("scanPdf: what is allowed", () => {
@@ -25,6 +28,15 @@ describe("scanPdf: what is allowed", () => {
       ok: true,
       pages: 1,
     });
+  });
+
+  it("accepts link annotations the user has to click: a URI link and a GoTo link", async () => {
+    for (const action of [
+      "<< /S /URI /URI (https://example.com) >>",
+      "<< /S /GoTo /D [3 0 R /Fit] >>",
+    ]) {
+      expect(await scanPdf(pdf({ extra: LINK(action) }))).toEqual({ ok: true, pages: 1 });
+    }
   });
 
   it("accepts an /OpenAction that is a destination array, direct or by reference", async () => {
@@ -53,8 +65,9 @@ describe("scanPdf: refused by the parse, not by a pattern", () => {
     ["an /OpenAction action (a GoTo)", "/OpenAction << /S /GoTo /D [3 0 R /Fit] >>"],
     ["an /OpenAction action (a URI)", "/OpenAction << /S /URI /URI (https://example.com) >>"],
     ["an /OpenAction that is a name", "/OpenAction /Print"],
-    ["a URI action", "/X << /S /URI /URI (https://example.com) >>"],
-    ["a GoTo action", "/X << /S /GoTo /D (x) >>"],
+    ["a link whose action is /Launch", LINK("<< /S /Launch /F (calc.exe) >>")],
+    ["a link whose action is /JavaScript", LINK("<< /S /JavaScript /JS (app.alert(1)) >>")],
+    ["a link with a /JS key in its action", LINK("<< /S /URI /URI (x) /JS (y) >>")],
     ["/AA", "/AA << /O 9 0 R >>"],
     ["/Launch", "/X << /Launch << /F (calc.exe) >> >>"],
     ["an action whose /S is Launch", "/X << /S /Launch >>"],

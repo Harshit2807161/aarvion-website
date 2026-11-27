@@ -23,24 +23,21 @@ const REFUSED_KEYS = new Set([
   "Movie",
   "Rendition",
 ]);
-/** An action dictionary's /S: every action type is refused, /URI and /GoTo included. */
+/**
+ * An action dictionary's /S that makes a PDF refused: the types that match the banned keys. A link
+ * the user has to click (`/Link` with `/A` of `/S /URI` or `/S /GoTo`, as Word and Google Docs write
+ * them) is allowed; only automatic triggers (/OpenAction as an action, /AA) are refused.
+ */
 const ACTION_TYPES = new Set([
-  "GoTo",
+  "JavaScript",
+  "Launch",
   "GoToR",
   "GoToE",
-  "GoTo3DView",
-  "Launch",
+  "SubmitForm",
+  "ImportData",
   "Thread",
-  "URI",
   "Sound",
   "Movie",
-  "Hide",
-  "Named",
-  "SubmitForm",
-  "ResetForm",
-  "ImportData",
-  "JavaScript",
-  "SetOCGState",
   "Rendition",
   "RichMediaExecute",
 ]);
