@@ -38,6 +38,10 @@ const DEBOUNCE_MS = 120;
 export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy(): void } {
   if (!o.film) return { destroy() {} };
 
+  // The pinned layout and the hidden start states apply only once the engine runs (film.css
+  // keys on `.film.is-running`); a page whose script never loads keeps the static composition.
+  root.classList.add("is-running");
+
   const acts: Act[] = [...root.querySelectorAll<HTMLElement>("[data-act]")].map((el) => ({
     id: el.id,
     el,
@@ -190,6 +194,7 @@ export function createFilm(root: HTMLElement, o: { film: boolean }): { destroy()
   return {
     destroy() {
       dead = true;
+      root.classList.remove("is-running");
       window.removeEventListener("scroll", dirty);
       window.removeEventListener("resize", remeasure);
       window.removeEventListener("load", start);

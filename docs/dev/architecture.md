@@ -103,7 +103,7 @@ React components, added task by task. The folders below exist today:
   - `progress.ts`: the pure maths.
   - `engine.ts`: `createFilm`, one passive scroll listener and one rAF tick, an IntersectionObserver that marks the acts near the viewport `.live`, `measuring` set on `#home` only while it measures, and the `?p=<act>:<progress>` capture jump after load. With `film: false` it does nothing at all.
   - `film-root.tsx`: `FilmRoot` (server), `main#home.home.film-root`. An inline script adds `film` before first paint when motion is allowed, then the sections, then the engine. The server HTML is the full static page, so no JS or reduced motion shows everything.
-  - `film-engine.tsx`: `FilmEngine` (client, renders null) starts the engine in a layout effect and adds `film` for a soft navigation.
+  - `film-engine.tsx`: `FilmEngine` (client, renders null) starts the engine (which adds `is-running` to `#home`; the pinned layout and hidden start states key on `.film.is-running`, so a page whose engine never runs keeps the static layout) in a layout effect and adds `film` for a soft navigation.
   - CSS in `src/styles/film.css`.
 - `form/`:
   - `Checkbox` (the same for its error, including `errorAlert`)
@@ -193,7 +193,7 @@ ported prototype CSS imported by `globals.css`.
 - `css-hygiene.test.ts`
 - `empty.css`: the empty-state well, `.empty*` and `.well-count`
 - `faq-close.css`: the home's questions and closing act, `.faq*`, `.act-close`, `.close-*` (static; `.act-close .field` is scoped because `forms.css` owns `.field`)
-- `film.css`: the scroll film, every rule under `.film` (the ordering act pinned 200lvh and the close 110lvh, 160lvh and 80lvh on phones; motion is transform and opacity only, from `--ti` / `--to`; `.film-root.measuring` is a descendant selector, never `html.measuring`)
+- `film.css`: the scroll film, every rule under `.film.is-running` (the ordering act pinned 200lvh and the close 110lvh, 160lvh and 80lvh on phones; motion is transform and opacity only, from `--ti` / `--to`; `.film-root.measuring` is a descendant selector, never `html.measuring`)
 - `footer.css`: the store footer, `.foot*`
 - `forms.css`: `.field`, `.field-box`, `.input`, `.check*`, `.seg*`
 - `header.css`: the announcement line and store header, `.announce*`, `.store-head`, `.sh-*`, `--row-h` and `--hdr-h`

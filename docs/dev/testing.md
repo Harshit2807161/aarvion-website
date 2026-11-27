@@ -116,7 +116,8 @@ Helpers in `tests/helpers/`:
   shows the tiles, `?p=5:1` lands the copy and the logo; under reduced motion there is no `film`
   class, `#how` is under 1.2 viewports and nothing is hidden; scrolling top to bottom in both
   leaves `collectConsoleErrors` empty. `?p=` works only with motion on. With the JS chunks
-  blocked (motion on), the tiles, the CTA and the logo are still at full opacity.
+  blocked (motion on), the tiles, the CTA and the logo are still at full opacity and the three
+  ordering cards do not overlap.
 - `e2e/freshness.spec.ts` [P55] changes `sacuwin-100`'s MRP straight in the `aarvion_e2e` database
   (the admin editor does not exist yet; use it instead once it does), expires the cache through
   the dev-only `POST /dev/catalogue/revalidate`, and expects the home rails to show the new
