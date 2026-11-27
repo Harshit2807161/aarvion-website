@@ -2,8 +2,7 @@ import { expect, test } from "@playwright/test";
 import { collectConsoleErrors } from "./helpers/console";
 
 /**
- * The header search on real pages. `/product/<slug>` is built by Task 32 and still 404s, so these
- * tests assert the URL the search navigates to, not that page's content.
+ * The header search on real pages: Enter on a result lands on its `/product/<slug>` page.
  */
 test.describe("header search at 1440", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
@@ -21,7 +20,7 @@ test.describe("header search at 1440", () => {
     await expect(page.getByRole("option")).toHaveCount(3);
     await q.press("Enter");
     await expect(page).toHaveURL(/\/product\/sacuwin-50$/);
-    expect(errors().filter((e) => !/404/.test(e))).toEqual([]);
+    expect(errors()).toEqual([]);
   });
 
   test("a strength chip narrows the results", async ({ page }) => {
