@@ -229,7 +229,7 @@ I present a comparison table and the user decides. My current recommendation is 
 - `next/image` AVIF;
 - content-hashed product images (Win2Age→Aarvion swaps bust caches);
 - self-hosted variable fonts (≤ 2 families);
-- first-load JS ≤ 150 KB on product pages;
+- first-load JS ≤ 150 KB on product pages (target; the enforced ratchets since 2026-11-27 are home 175 kB and product 170 kB, see `docs/decisions/rulings.md`);
 - functions in Mumbai (`bom1`) next to Atlas Mumbai.
 
 ## Stage 6 — Deploy

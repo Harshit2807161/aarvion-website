@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { InputOTP } from "@/components/ui/input-otp";
 import { cn } from "@/lib/cn";
+import { MOTION_ALLOWED_QUERY, motionAllowed } from "@/lib/motion";
 
 export const OTP_LENGTH = 6;
 
@@ -19,17 +20,11 @@ const OTP_PATTERN = "^[0-9]*$";
 
 const AUTOFILL_INPUT_TYPES = new Set(["insertText", "insertReplacementText", "insertFromPaste"]);
 
-const MOTION_QUERY = "(prefers-reduced-motion: no-preference)";
-
 function subscribeMotion(notify: () => void) {
   if (typeof window.matchMedia !== "function") return () => {};
-  const mq = window.matchMedia(MOTION_QUERY);
+  const mq = window.matchMedia(MOTION_ALLOWED_QUERY);
   mq.addEventListener("change", notify);
   return () => mq.removeEventListener("change", notify);
-}
-
-function motionAllowed() {
-  return typeof window.matchMedia === "function" && window.matchMedia(MOTION_QUERY).matches;
 }
 
 /**

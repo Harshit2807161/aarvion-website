@@ -52,8 +52,8 @@ export function getEnv(): Env {
 /**
  * The two variables the SEO routes need, parsed on their own so an unrelated bad variable cannot
  * take down robots.txt, the sitemap or every product page. `VERCEL_ENV` is validated. `APP_URL` is
- * returned as given (blank is undefined), except in production, where a missing or invalid value
- * throws: a production site must never publish localhost canonicals or sitemap URLs. Lazy: it
+ * returned as given (blank is undefined), except in production, where a missing, invalid or
+ * non-https value throws: a production site must never publish localhost canonicals or sitemap URLs. Lazy: it
  * throws only when called, never at import. Not cached, so tests can change the environment.
  */
 export function getSiteEnv(): { appUrl: string | undefined; vercelEnv: Env["VERCEL_ENV"] } {
@@ -66,7 +66,8 @@ export function getSiteEnv(): { appUrl: string | undefined; vercelEnv: Env["VERC
   const raw = emptyToUndefined(process.env.APP_URL?.trim());
   if (env.data === "production") {
     const url = appUrl.safeParse(raw);
-    if (!url.success || url.data === undefined) {
+    // z.url() also passes http:, ftp: and the like; a production canonical must be https.
+    if (!url.success || url.data === undefined || new URL(url.data).protocol !== "https:") {
       throw new EnvError(
         "APP_URL must be set to the site's public https URL when VERCEL_ENV is production",
       );

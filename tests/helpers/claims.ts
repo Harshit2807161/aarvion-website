@@ -25,6 +25,10 @@ export const BANNED_CLAIMS: RegExp[] = [
   /bestseller/i,
   /trending/i,
   /therapy area/i,
+  // Owner ruling (v2 brief): shoppers read Heart care, Eye care and so on, never "therapy" or the
+  // Latin specialties. Slugs and URLs may keep them, so run findClaims on visible text only.
+  /\btherapy\b/i,
+  /\b(?:cardiolog|diabetolog|ophthalmolog)\w*/i,
 ];
 
 /**

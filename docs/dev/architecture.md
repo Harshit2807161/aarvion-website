@@ -190,6 +190,7 @@ React components, added task by task. The folders below exist today:
 - `catalogue/json-ld.ts` (`productJsonLd(p, base)`: schema.org Product with the selling price, the manufacturer's name only when the catalogue has one, and never `availability`, `aggregateRating` or `review`; `jsonLdScript` escapes `<`; `productMetadata(p)`: the title (name and actives), the MRP and price description, the canonical path and the share image; the product page renders one `application/ld+json` block)
 - `cn.ts` (`clsx` + `tailwind-merge` class helper)
 - `format/rupees.ts` (Indian rupee formatting)
+- `motion.ts` (`REDUCED_MOTION_QUERY`, `MOTION_ALLOWED_QUERY`, `prefersReducedMotion()` and `motionAllowed()`: the one place client code asks the reduced-motion question; the film's inline flag script keeps its own literal)
 - `site-url.ts` (`siteUrl()`: `APP_URL` through `getSiteEnv()` and `resolveSiteMetadataBase`, else `http://localhost:3000`, but a production deploy without a valid `APP_URL` throws; server-only; used by the sitemap, robots and JSON-LD)
 - Also `next-url.ts` (`sanitizeNext(raw)`: the `?next=` guard for post-login redirects; returns "/" unless the value is a same-origin path of at most 512 characters with no backslash or control character and not under `/login`, `/api/` or `/dev/`; it checks the resolved output, because dot segments collapse (`/.//x` becomes `//x`), and blocks the prefixes case-insensitively (a malformed percent escape returns "/"); use it for every `next` read from a URL and pass the result straight to `router.replace`/`push`/`redirect`, never decode it)
 
@@ -313,6 +314,7 @@ ported prototype CSS imported by `globals.css`.
 | `prescriptions/validity.ts` | `isRxValidOn(rx, at)`, `addCalendarMonthsIst`, `RX_VALIDITY_MONTHS = 6`, `istMidnight(ymd)` (a day's 00:00 IST instant; `RangeError` for a malformed or impossible date), `istDay(at)`, `rxEnd(rx)` (the exclusive end: `min(validUntil, rxDate + 6 months)`) |
 | `prescriptions/review.ts` | pure: the status and reject-reason lists, the patient declaration text and version, `RxApproveInput` and `RxRejectInput`, and `reviewRx` (approve only from pending; reject from pending, or from approved as a revoke; a reject's `set` carries no dates, so an approved Rx keeps them; rejected is final; an unknown status is `invalid_transition`), `rxView` (the customer list item: under review, approved, expired or rejected, with IST days) |
 | `prescriptions/prescriptions.ts` | the `prescriptions` and `rx_staging` collections and their indexes; `RxDoc`, `StagingDoc`, `RxCreateBody`, `RX_UPLOAD_LIMITS`; `createStaging`, `peekStaging`, `takeStaging` (single use), `insertRx`, `listRxForUser`, `getRxForUser` (ownership in the filter), `applyRxReview` |
+| `prescriptions/upload.ts` | `startRxUpload`: the IP limit, then the user limit, then a staging slot (`mode` is `client-token` on Blob, else `direct`); `finishRxUpload` follows in the next PR |
 
 ## Collections and indexes
 
