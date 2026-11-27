@@ -1,12 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import { MongoClient } from "mongodb";
-import { MRP_DISCOUNT_PAISE } from "../src/server/catalogue/pricing";
+import { MRP_DISCOUNT_PAISE, percentOff } from "../src/server/catalogue/pricing";
 
 /**
  * [P55] Catalogue freshness: after an MRP changes in the database and the catalogue is expired
  * (`revalidateCatalogue()`, here through the dev-only POST /dev/catalogue/revalidate that the
- * e2e server allows), the home rails show the new price on the next load. Pages are cached for
- * hours, so a stale price here would mean an admin edit never reaches customers.
+ * e2e server allows), the product page and the home rails show the new price, and the % off, on the next load. The
+ * page is first loaded unchanged after the edit to prove it is cached. Pages are cached for hours,
+ * so a stale price here would mean an admin edit never reaches customers.
  *
  * The test edits one product in the e2e database the way the admin editor will (mrpSource
  * "admin", MRP up by Rs 10) and puts it back afterwards, even when it fails. It talks to Mongo
@@ -15,17 +16,18 @@ import { MRP_DISCOUNT_PAISE } from "../src/server/catalogue/pricing";
  * playwright.config.ts.
  *
  * Playwright runs spec files in parallel against one server and one cache, and nothing enforces
- * isolation: no other spec may assert the price of SLUG (none does today). A spec that does
+ * isolation: no other spec may assert the price of SLUG (none does today; catalogue.spec.ts and
+ * budgets.spec.ts assert sacuwin-100's, which is why this one uses mucohelp). A spec that does
  * must pick another product or move this file to its own Playwright project.
  */
-const SLUG = "sacuwin-100";
+const SLUG = "mucohelp";
 const URI =
   process.env.MONGODB_URI ?? "mongodb://localhost:27017/?replicaSet=rs0&directConnection=true";
 const DB = "aarvion_e2e";
 
 const price = (page: Page) => page.locator(`#p-${SLUG} .stamp-price`);
 
-test("the home rails show a changed MRP after the catalogue is expired", async ({
+test("the product page and the home rails show a changed MRP after the catalogue is expired", async ({
   page,
   baseURL,
 }) => {
@@ -49,13 +51,30 @@ test("the home rails show a changed MRP after the catalogue is expired", async (
 
     await page.goto("/");
     await expect(price(page)).toContainText(`₹${(before - MRP_DISCOUNT_PAISE) / 100}`);
+    await page.goto(`/product/${SLUG}`);
+    await expect(page.locator("[data-hierarchy=price] .stamp-price")).toContainText(
+      `₹${(before - MRP_DISCOUNT_PAISE) / 100}`,
+    );
 
     const mrpPaise = before + 1000;
     await products().updateOne(
       { slug: SLUG },
       { $set: { mrpPaise, mrpSource: "admin", updatedAt: new Date() } },
     );
+    // Still the old price: the page is served from the cache until it is expired.
+    await page.goto(`/product/${SLUG}`);
+    await expect(page.locator("[data-hierarchy=price] .stamp-price")).toContainText(
+      `₹${(before - MRP_DISCOUNT_PAISE) / 100}`,
+    );
     await expire();
+
+    await page.goto(`/product/${SLUG}`);
+    const buy = page.locator("[data-hierarchy=price]");
+    await expect(buy.locator(".stamp-mrp")).toContainText(`MRP ₹${mrpPaise / 100}`);
+    await expect(buy.locator(".off")).toContainText(`${percentOff(mrpPaise)}% off`);
+    await expect(buy.locator(".stamp-price")).toContainText(
+      `₹${(mrpPaise - MRP_DISCOUNT_PAISE) / 100}`,
+    );
 
     await page.goto("/");
     await expect(page.locator(`#p-${SLUG} .stamp-mrp`)).toContainText(`₹${mrpPaise / 100}`);

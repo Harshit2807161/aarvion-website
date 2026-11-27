@@ -188,3 +188,67 @@ test("first-load JS on / stays within the 175 kB ratchet (target 150 kB)", async
   expect(total).toBeGreaterThan(50_000);
   expect(total).toBeLessThanOrEqual(HOME_JS_BUDGET_BYTES);
 });
+
+// Product page budgets (UI plan, Performance budgets). Unlike `/`, product pages keep the plan's
+// 150 kB first-load JS target: never raise it, find what the route loads that it should not.
+const PRODUCT = "/product/sacuwin-100";
+const PRODUCT_JS_BUDGET_BYTES = 153_600;
+
+test.describe("product page on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+
+  // OPEN RULING (Task 33 report): the product route ships 166,506 bytes today, 12.9 kB over the
+  // 150 kB target, and `/` ships about the same. It is all shared chrome and framework, none of it
+  // the product page's own code (React DOM 73 kB, Next client 47 kB, the rest the header search
+  // island, cart store, toaster and the router). The assertion stays at the plan's number and is
+  // marked fixme, not loosened, until the controller rules (lazy-load the header search island
+  // or raise this route's ratchet like `/`'s).
+  test.fixme("first-load JS stays within 150 kB", async ({ page }) => {
+    await page.goto(PRODUCT, { waitUntil: "load" });
+    const { total, count } = await scriptBytes(page);
+    expect(count).toBeGreaterThan(5);
+    expect(total).toBeGreaterThan(50_000);
+    expect(total).toBeLessThanOrEqual(PRODUCT_JS_BUDGET_BYTES);
+  });
+
+  test("LCP is the first gallery photo, eager, under 2.5 s", async ({ browser, page }) => {
+    test.setTimeout(SLOW_START.timeout);
+    const ctx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+    });
+    const first = await ctx.newPage();
+    await first.goto(PRODUCT, { waitUntil: "load" });
+    await ctx.close();
+    await emulateMobile(page);
+    await page.goto(PRODUCT, { waitUntil: "load" });
+    const lcp = await measureLcp(page);
+    expect(lcp.tag).toBe("IMG");
+    expect(lcp.lazy).toBe(false);
+    expect(lcp.ms).toBeLessThan(2500);
+    const photo = page.locator("#photo-1 img");
+    expect(await photo.evaluate((i: HTMLImageElement) => i.currentSrc)).toBe(lcp.src);
+  });
+
+  test("the gallery photo is served as AVIF", async ({ page }) => {
+    await page.goto(PRODUCT, { waitUntil: "load" });
+    const src = await page.locator("#photo-1 img").evaluate((i: HTMLImageElement) => i.currentSrc);
+    const res = await page.request.get(src, { headers: { accept: "image/avif,image/webp,*/*" } });
+    expect(res.headers()["content-type"]).toBe("image/avif");
+  });
+
+  test("CLS stays under 0.1", async ({ browser }) => {
+    const ctx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+    });
+    const page = await ctx.newPage();
+    await watchCls(page);
+    await page.goto(PRODUCT, { waitUntil: "load" });
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(500);
+    expect(await readCls(page)).toBeLessThan(0.1);
+    await ctx.close();
+  });
+});
