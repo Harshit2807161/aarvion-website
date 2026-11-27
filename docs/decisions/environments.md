@@ -23,7 +23,7 @@ mock-enabled deploy on the production database would expose real customers.
   links, Open Graph URLs and product JSON-LD are built from it; unset, they point at
   `http://localhost:3000`, except in Production (`VERCEL_ENV=production`), where a missing or invalid
   value makes `getSiteEnv()` throw an `EnvError` so the build fails instead of shipping localhost
-  URLs.
+  URLs. `robots.txt` allows crawling only when `VERCEL_ENV=production`; the sitemap and its robots line are built from `APP_URL`.
 
 ## Build-time database (Cache Components)
 
