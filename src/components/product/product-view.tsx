@@ -61,7 +61,7 @@ export function ProductView({
         </div>
       </div>
       <section className="product-facts-block" aria-labelledby="facts-h">
-        <h2 id="facts-h" className="h-sub">
+        <h2 id="facts-h" className="h-section">
           Product details
         </h2>
         <ProductFacts product={product} />

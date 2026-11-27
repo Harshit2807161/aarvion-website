@@ -115,8 +115,20 @@ export const CONSENT_VERSION = POLICY_VERSION;
 const NO_HIDDEN_CHARS =
   /^(?:[^\p{C}\p{Default_Ignorable_Code_Point}]|(?<=[\p{L}\p{M}])[\u200C\u200D](?=[\p{L}\p{M}]))*$/u;
 
+/**
+ * A person's name: the sign-up rule, shared with the prescription records (patient and doctor
+ * names). At least one letter, trimmed, 2 to 80 characters, and no hidden character as above.
+ */
+export const PersonName = z
+  .string()
+  .trim()
+  .min(2)
+  .max(80)
+  .regex(/\p{L}/u)
+  .regex(NO_HIDDEN_CHARS);
+
 export const SignupInput = z.strictObject({
-  name: z.string().trim().min(2).max(80).regex(/\p{L}/u).regex(NO_HIDDEN_CHARS),
+  name: PersonName,
   adult: z.literal(true),
   termsPrivacy: z.literal(true),
   marketing: z.boolean(),

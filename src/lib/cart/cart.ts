@@ -1,10 +1,21 @@
+import {
+  CART_LIMITS,
+  addLine,
+  setLineQty,
+  type CartBlock,
+  type CartLine,
+} from "@/server/cart/rules";
+
 /**
  * Pure cart rules for the session-only UI cart (Task 15). The cart holds slugs and quantities
  * only: prices are never computed here, they come from the catalogue when a line is rendered.
+ * The limits and the add / set rules live in `src/server/cart/rules.ts`, shared with the server
+ * cart; this module keeps the record shape the UI store uses and converts at its boundary.
  * The real server cart and the guest merge replace this in phase K.
  */
 
-export const CART_LIMITS = { perProduct: 10, perOrder: 20 } as const;
+export { CART_LIMITS };
+export type { CartBlock };
 
 /** sessionStorage key for the UI cart. The "v0" is the shape version: bump it, never reinterpret. */
 export const CART_UI_STORAGE_KEY = "aarv-cart-ui-v0";
@@ -13,8 +24,6 @@ export const CART_UI_STORAGE_KEY = "aarv-cart-ui-v0";
 export type CartLines = Readonly<Record<string, number>>;
 
 export type CartAction = { type: "inc"; slug: string } | { type: "dec"; slug: string };
-
-export type CartBlock = "product_limit" | "order_limit";
 
 export type CartResult = { lines: CartLines; blocked: CartBlock | null };
 
@@ -29,13 +38,15 @@ export function cartCount(lines: CartLines): number {
 export function applyCart(lines: CartLines, action: CartAction): CartResult {
   // Own keys only: a slug like "constructor" must not reach Object.prototype.
   const have = Object.hasOwn(lines, action.slug) ? lines[action.slug]! : 0;
-  if (action.type === "inc") {
-    if (have >= CART_LIMITS.perProduct) return { lines, blocked: "product_limit" };
-    if (cartCount(lines) >= CART_LIMITS.perOrder) return { lines, blocked: "order_limit" };
-    return { lines: { ...lines, [action.slug]: have + 1 }, blocked: null };
-  }
-  if (have === 0) return { lines, blocked: null };
-  const next = { ...lines, [action.slug]: have - 1 };
-  if (have === 1) delete next[action.slug];
-  return { lines: next, blocked: null };
+  if (action.type === "dec" && have === 0) return { lines, blocked: null };
+  const asLines: CartLine[] = Object.entries(lines).map(([slug, qty]) => ({ slug, qty }));
+  const change =
+    action.type === "inc"
+      ? addLine(asLines, action.slug)
+      : setLineQty(asLines, action.slug, have - 1);
+  if (change.lines === asLines) return { lines, blocked: change.blocked };
+  return {
+    lines: Object.fromEntries(change.lines.map((l) => [l.slug, l.qty])),
+    blocked: change.blocked,
+  };
 }

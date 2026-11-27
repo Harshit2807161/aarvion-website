@@ -67,6 +67,11 @@ describe("server time zone independence", () => {
       leap: m.addCalendarMonthsIst(new Date("2027-08-30T18:30:00Z"), 6).toISOString(),
       before: m.isRxValidOn({ status: "approved", rxDate: new Date("2026-05-16T18:30:00Z"), validUntil: null }, new Date("2026-11-16T18:29:59.999Z")),
       at: m.isRxValidOn({ status: "approved", rxDate: new Date("2026-05-16T18:30:00Z"), validUntil: null }, new Date("2026-11-16T18:30:00Z")),
+      midnight: m.istMidnight("2026-11-12").toISOString(),
+      dayBefore: m.istDay(new Date("2026-11-11T18:29:59.999Z")),
+      dayAfter: m.istDay(new Date("2026-11-11T18:30:00.000Z")),
+      end: m.rxEnd({ rxDate: new Date("2026-05-16T18:30:00Z"), validUntil: null }).toISOString(),
+      impossible: (() => { try { m.istMidnight("2027-02-30"); return "no throw"; } catch (e) { return e instanceof RangeError ? "RangeError" : "other"; } })(),
     };
     console.log(JSON.stringify(out));
   `;
@@ -83,6 +88,11 @@ describe("server time zone independence", () => {
         leap: "2028-02-28T18:30:00.000Z",
         before: true,
         at: false,
+        midnight: "2026-11-11T18:30:00.000Z",
+        dayBefore: "2026-11-11",
+        dayAfter: "2026-11-12",
+        end: "2026-11-16T18:30:00.000Z",
+        impossible: "RangeError",
       });
     },
   );

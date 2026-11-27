@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { RX_VALIDITY_MONTHS, addCalendarMonthsIst, isRxValidOn, type RxSnapshot } from "./validity";
+import {
+  RX_VALIDITY_MONTHS,
+  addCalendarMonthsIst,
+  isRxValidOn,
+  istDay,
+  istMidnight,
+  rxEnd,
+  type RxSnapshot,
+} from "./validity";
 
 const d = (s: string) => new Date(s);
 
@@ -94,5 +102,61 @@ describe("isRxValidOn", () => {
 
   it("is false when rxDate is null", () => {
     expect(isRxValidOn(rx({ rxDate: null }), d("2026-06-01T00:00:00Z"))).toBe(false);
+  });
+});
+
+describe("istMidnight", () => {
+  it("is the day's 00:00 IST instant", () => {
+    expect(istMidnight("2026-11-12").toISOString()).toBe("2026-11-11T18:30:00.000Z");
+    expect(istMidnight("2028-02-29").toISOString()).toBe("2028-02-28T18:30:00.000Z");
+  });
+
+  it.each(["2027-02-29", "2027-02-30", "2026-13-01", "2026-00-10", "2026-11-00", "2026-11-31"])(
+    "throws a RangeError for the impossible date %s",
+    (ymd) => {
+      expect(() => istMidnight(ymd)).toThrow(RangeError);
+    },
+  );
+
+  it.each([
+    "",
+    "2026-1-12",
+    "26-11-12",
+    "2026-11-12T00:00",
+    " 2026-11-12",
+    "2026/11/12",
+    "abcd-ef-gh",
+  ])("throws a RangeError for the malformed date %j", (ymd) => {
+    expect(() => istMidnight(ymd)).toThrow(RangeError);
+  });
+});
+
+describe("istDay", () => {
+  it("rolls over at midnight IST", () => {
+    expect(istDay(d("2026-11-11T18:29:59.999Z"))).toBe("2026-11-11");
+    expect(istDay(d("2026-11-11T18:30:00.000Z"))).toBe("2026-11-12");
+  });
+
+  it("round-trips with istMidnight", () => {
+    expect(istDay(istMidnight("2027-03-01"))).toBe("2027-03-01");
+  });
+});
+
+describe("rxEnd", () => {
+  it("is the six month cap when there is no validUntil", () => {
+    expect(rxEnd(rx({ validUntil: null }))?.toISOString()).toBe("2026-11-16T18:30:00.000Z");
+  });
+
+  it("is the earlier of validUntil and the cap", () => {
+    expect(rxEnd(rx({ validUntil: d("2026-08-16T18:30:00Z") }))?.toISOString()).toBe(
+      "2026-08-16T18:30:00.000Z",
+    );
+    expect(rxEnd(rx({ validUntil: d("2027-05-16T18:30:00Z") }))?.toISOString()).toBe(
+      "2026-11-16T18:30:00.000Z",
+    );
+  });
+
+  it("is null without an rxDate", () => {
+    expect(rxEnd(rx({ rxDate: null }))).toBeNull();
   });
 });
