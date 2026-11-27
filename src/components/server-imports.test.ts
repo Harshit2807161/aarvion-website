@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 /**
  * Global Constraints: client-reachable code (`src/components/**`, and `src/lib/**` but for its
  * server-only modules) imports at runtime from `src/server/**` only the pure, framework-free
- * `catalogue/pricing`, `catalogue/search` and `catalogue/order`. Anything else there may pull
+ * `catalogue/pricing`, `catalogue/search`, `catalogue/order` and `cart/rules`. Anything else there may pull
  * Mongo, env or auth code into a client bundle, so it may be imported only with a statement-level
  * `import type` (or `export type`), which is always erased. An inline `import { type X }` is not enough: depending on the compiler settings
  * it can leave a side-effect import of the module behind.

@@ -42,6 +42,12 @@ describe("addLine", () => {
   it("allows exactly 10 of one product", () => {
     expect(addLine([L("a", 9)], "a").lines).toEqual([L("a", 10)]);
   });
+  it("allows landing exactly on 20 packs in the order", () => {
+    expect(addLine([L("a", 10), L("b", 9)], "b")).toEqual({
+      lines: [L("a", 10), L("b", 10)],
+      blocked: null,
+    });
+  });
   it("refuses past 20 packs in the order and returns the same array", () => {
     const lines = [L("a", 10), L("b", 10)];
     const next = addLine(lines, "c");
@@ -155,6 +161,13 @@ describe("mergeLines", () => {
     const out = mergeLines([L("a", 10), L("b", 6)], [L("c", 10)]);
     expect(packs(out.lines)).toBe(20);
     expect(out.trimmed).toBe(true);
+  });
+  it("clamps a quantity above 10, first duplicate wins on each side, drops non-integers", () => {
+    const out = mergeLines(
+      [L("a", 3), L("a", 9), L("x", 2.5)],
+      [L("a", 1), L("b", 15), L("b", 2), L("c", 0), L("d", 1.5)],
+    );
+    expect(out).toEqual({ lines: [L("a", 3), L("b", 10)], trimmed: false });
   });
   it.each([
     [[L("a", 2)], [L("a", 1), L("b", 3)]],
