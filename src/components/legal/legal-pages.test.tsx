@@ -81,7 +81,7 @@ describe("findClaims", () => {
   it("passes plain copy and the real Rx status Under review", () => {
     expect(findClaims("Under review. Your order is under review by our pharmacist.")).toEqual([]);
     expect(findClaims("Sign-in is rate-limited and stored securely.")).toEqual([]);
-    expect(BANNED_CLAIMS).toHaveLength(14);
+    expect(BANNED_CLAIMS).toHaveLength(16);
   });
 
   it("flags a positive guarantee but passes a negated disclaimer", () => {

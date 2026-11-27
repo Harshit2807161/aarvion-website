@@ -102,9 +102,11 @@ Nothing below exists yet; each lands before or with the production deploy.
 
 - **H4 production gates:**
   - a startup assertion that `VERCEL_ENV=production` implies `MONGODB_DB=aarvion_prod`;
-  - `APP_URL` must be set, and must not be localhost, in production. An unset or invalid value
-    silently gives a localhost `metadataBase`, so shared links and Open Graph images would
-    point at localhost;
+  - `APP_URL` must be set, and must not be localhost, in production. `getSiteEnv()`
+    (`src/server/env.ts`, used by the SEO routes) already throws in production when it is unset,
+    not a URL or not `https:`; the startup check that it is not localhost remains. An unset or
+    invalid value would otherwise give a localhost `metadataBase`, so shared links and Open
+    Graph images would point at localhost;
   - `assertLegalConfigComplete()` (in `src/config/site.ts`, UI plan Task 9; the function exists,
     the call does not yet) called from `instrumentation.ts`. Gate it on
     `VERCEL_ENV === "production"`, not `NODE_ENV` (Preview builds also run with
