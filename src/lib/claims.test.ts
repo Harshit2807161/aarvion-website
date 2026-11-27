@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CATEGORY_LIST } from "@/server/catalogue/categories";
 import { findClaims } from "../../tests/helpers/claims";
 
 describe("findClaims: visible-text bans", () => {
@@ -12,9 +13,13 @@ describe("findClaims: visible-text bans", () => {
     expect(findClaims(text).length).toBeGreaterThan(0);
   });
 
-  it("lets the shopper names through, and slugs are not visible text", () => {
-    expect(findClaims("Heart care, Eye care, Diabetes care and Respiratory care")).toEqual([]);
-    expect(findClaims("Open the category page")).toEqual([]);
+  it("passes every shopper-facing category name, while the slugs would be flagged", () => {
+    const live = CATEGORY_LIST.filter((c) => c.status !== "hidden");
+    for (const c of live) expect(findClaims(c.name), c.name).toEqual([]);
+    // The Latin specialty slugs are banned in visible text, so findClaims must only ever be run on
+    // visible text, never on slugs, hrefs or ids.
+    const flagged = CATEGORY_LIST.filter((c) => findClaims(c.slug).length > 0).map((c) => c.slug);
+    expect(flagged).toEqual(["cardiology", "diabetology", "ophthalmology"]);
   });
 });
 
