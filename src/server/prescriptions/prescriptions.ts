@@ -179,9 +179,16 @@ export async function insertRx(doc: RxDoc, session?: ClientSession): Promise<voi
   await (await prescriptions()).insertOne(doc, { session });
 }
 
-/** The record finalised from staging slot `stagingId`, only if it belongs to `userId`. */
+/**
+ * The record finalised from staging slot `stagingId`, only if it belongs to `userId`. `$type:
+ * "string"` matches `stagingId_unique`'s partial filter, so the planner can use that index; a
+ * plain `{ stagingId }` would scan the user's records instead.
+ */
 export async function getRxByStaging(stagingId: string, userId: ObjectId): Promise<RxDoc | null> {
-  return (await prescriptions()).findOne({ stagingId, userId });
+  return (await prescriptions()).findOne({
+    stagingId: { $eq: stagingId, $type: "string" },
+    userId,
+  });
 }
 
 /** The user's prescriptions, newest first. */

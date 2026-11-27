@@ -1,11 +1,20 @@
-import { ClientSession, Collection, MongoServerError, ObjectId } from "mongodb";
+import {
+  ClientSession,
+  Collection,
+  type Document,
+  type Filter,
+  MongoServerError,
+  ObjectId,
+} from "mongodb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getDb } from "@/server/db/client";
 import { ensureIndexes } from "@/server/db/indexes";
 import { getDeps } from "@/server/deps";
 import {
+  getRxByStaging,
   insertRx,
   listRxForUser,
+  peekStaging,
   PRESCRIPTIONS_COLLECTION,
   type RxDoc,
 } from "@/server/prescriptions/prescriptions";
@@ -113,19 +122,49 @@ describe("finalise is idempotent by staging slot", () => {
 
   it("a double finalise creates one record: the second gets busy, then the same record", async () => {
     const userId = uid();
+    // Park the first finish in its final put, so the second is certain to arrive while it holds
+    // the lease (no reliance on timing).
+    let open!: () => void;
+    let parked!: () => void;
+    const gate = new Promise<void>((resolve) => (open = resolve));
+    const inPut = new Promise<void>((resolve) => (parked = resolve));
+    const store = getDeps().files;
+    let first = true;
+    trackFiles({
+      put: async (p, b, t) => {
+        if (p.startsWith("rx/") && first) {
+          first = false;
+          parked();
+          await gate;
+        }
+        await store.put(p, b, t);
+      },
+    });
     const started = await stage(userId, await jpegWithExif());
-    const [a, b] = await Promise.all([
-      finish(userId, started.stagingId),
-      finish(userId, started.stagingId),
-    ]);
-    const results = [a, b];
-    expect(results.filter((r) => r.ok)).toHaveLength(1);
-    expect(results.filter((r) => !r.ok)).toEqual([{ ok: false, error: "busy" }]);
-    const winner = results.find((r) => r.ok)!;
+    const a = finish(userId, started.stagingId);
+    await inPut;
+    expect(await finish(userId, started.stagingId)).toEqual({ ok: false, error: "busy" });
+    open();
+    const winner = await a;
+    expect(winner.ok).toBe(true);
     const again = await finish(userId, started.stagingId);
+    expect(again).toMatchObject({ ok: true, replay: true });
     expect(again.ok && winner.ok && again.rx.id).toBe(winner.ok && winner.rx.id);
     expect(await count(PRESCRIPTIONS_COLLECTION)).toBe(1);
     expect(await count(AUDIT, { action: "rx.upload" })).toBe(1);
+  });
+
+  it("looks the slot up through stagingId_unique, not a scan of the user's records", async () => {
+    await ensureIndexes(await getDb());
+    // The filter getRxByStaging really sends, explained against the real indexes.
+    const spy = vi.spyOn(Collection.prototype, "findOne");
+    await getRxByStaging("abcdefghijklmnopqrstuv", uid());
+    const filter = spy.mock.calls[0]![0] as Filter<Document>;
+    spy.mockRestore();
+    const plan = await (await getDb()).collection(PRESCRIPTIONS_COLLECTION).find(filter).explain();
+    expect(JSON.stringify(plan.queryPlanner.winningPlan)).toContain(
+      '"indexName":"stagingId_unique"',
+    );
   });
 
   it("the unique index refuses a second record for one slot, and finish answers with the first", async () => {
@@ -166,5 +205,7 @@ describe("finalise is idempotent by staging slot", () => {
     expect(await count(PRESCRIPTIONS_COLLECTION)).toBe(1);
     // This call's own final file was dropped.
     for (const k of finals()) expect(await store.get(k)).toBeNull();
+    // The slot is consumed, so a later finish replays without re-checking the file.
+    expect(await peekStaging(started.stagingId, userId, NOW)).toBeNull();
   });
 });

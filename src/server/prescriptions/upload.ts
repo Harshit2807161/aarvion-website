@@ -101,7 +101,10 @@ export function isUnknownCommit(e: unknown): boolean {
 
 /** A duplicate key on `stagingId_unique`: another finish already recorded this slot. */
 function isDuplicateSlot(e: unknown): boolean {
-  return e instanceof MongoError && e.code === 11000 && /stagingId/.test(e.message);
+  if (!(e instanceof MongoError) || e.code !== 11000) return false;
+  // The key pattern, not the message text, says which unique index refused the insert.
+  const pattern = (e as MongoError & { keyPattern?: Record<string, unknown> }).keyPattern;
+  return pattern !== undefined && Object.hasOwn(pattern, "stagingId");
 }
 
 /**
@@ -249,8 +252,13 @@ export async function finishRxUpload(i: {
       taken = true;
     } else {
       await dropQuietly(key);
+      if (isDuplicateSlot(e)) {
+        // The slot already has its record: consume the slot, so a later finish replays at once
+        // instead of re-checking and re-putting the file.
+        await consumeStaging(body.stagingId, i.userId, slot.claimedUntil!).catch(() => {});
+        return replayOrExpired(body.stagingId, i.userId, i.now);
+      }
       await release().catch(() => {});
-      if (isDuplicateSlot(e)) return replayOrExpired(body.stagingId, i.userId, i.now);
       throw e;
     }
   } finally {
