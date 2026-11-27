@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ProductView } from "@/components/product/product-view";
-import { fullComposition, packDisplay } from "@/lib/catalogue/display";
 import {
   getCachedCategory,
   getCachedFamily,
@@ -17,19 +15,6 @@ const RELATED_MAX = 4;
 /** Every public product is prerendered; an empty catalogue fails the build [C11]. */
 export async function generateStaticParams() {
   return assertCatalogue(await getCachedProducts()).map((p) => ({ slug: p.slug }));
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const product = await getCachedProduct((await params).slug);
-  if (!product) return {};
-  return {
-    title: product.name,
-    description: `${product.name}: ${fullComposition(product.composition)}. ${packDisplay(product)}.`,
-  };
 }
 
 /**
