@@ -118,6 +118,25 @@ describe("scanPdf: the reviewed attack files", () => {
     expect((await scanPdf(read(file))).ok).toBe(false);
   });
 
+  // Files where pdf-lib's linear parse differs from a viewer's xref walk: an object on a comment
+  // line, in a string, swallowed by a stream /Length, defined twice (the xref names the first),
+  // or 24 of 25 pages on comment lines. All refused (dangling reference, or every copy walked).
+  it.each(files("viewer-").filter((f) => !f.includes("root-confusion")))(
+    "refuses %s",
+    async (file) => {
+      expect((await scanPdf(read(file))).ok).toBe(false);
+    },
+  );
+
+  // DOCUMENTED RESIDUAL RISK (docs/decisions/rulings.md): the xref trailer names an evil /Root on a
+  // comment line and a later trailer names the harmless one; pdf-lib takes the last trailer, a
+  // viewer the one `startxref` names. Nothing references the hidden root, so this check cannot see
+  // it. The Phase D admin viewer (pdf.js, scripting off, sandboxed iframe) is what contains it.
+  // If this test starts failing because the file is refused, the residual has been closed.
+  it("still accepts the dual-trailer /Root file (residual risk, see the ruling)", async () => {
+    expect((await scanPdf(read("viewer-root-confusion.pdf"))).ok).toBe(true);
+  });
+
   it.each(["25-untyped-leaves-Count-1.pdf", "25-untyped-leaves-no-Count.pdf"])(
     "does not take %s as a small PDF",
     async (file) => {
