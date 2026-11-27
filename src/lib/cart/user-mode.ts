@@ -8,7 +8,7 @@
 import type { CartView } from "@/server/cart/service";
 import * as api from "./api";
 import type { CartAction, CartLines } from "./cart";
-import { cartStore, type CartIssue, type CartMode } from "./store";
+import { cartStore, type CartIssue, type CartMode, type SignInResult } from "./store";
 
 export type Host = {
   setLines(lines: CartLines): void;
@@ -26,7 +26,7 @@ export type Host = {
 };
 
 export type UserMode = {
-  signIn(): Promise<{ trimmed: boolean; removed: string[] }>;
+  signIn(): Promise<SignInResult>;
   /** Sends a change that was already applied locally. */
   send(action: CartAction, next: number): void;
   /**
@@ -103,7 +103,7 @@ export function createUserMode(host: Host): UserMode {
     }, true);
   }
 
-  async function signIn(): Promise<{ trimmed: boolean; removed: string[] }> {
+  async function signIn(): Promise<SignInResult> {
     const none = { trimmed: false, removed: [] as string[] };
     const signedIn = cartStore.getMode() === "user";
     // Signed in already with changes on their way: their replies bring the server's lines.
@@ -117,8 +117,10 @@ export function createUserMode(host: Host): UserMode {
     if (!res.ok) {
       if (res.error === "unauthenticated") {
         if (cartStore.getMode() === "user") cartStore.toGuest();
-      } else host.emit({ kind: "sync_failed" });
-      return none;
+        return none; // signed out: asking again cannot help
+      }
+      host.emit({ kind: "sync_failed" });
+      return { ...none, retry: true };
     }
     host.stopQuoting();
     adopt(res.view);

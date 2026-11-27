@@ -1,7 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import { AccountPill } from "@/components/auth/account-pill";
 import { CartPill } from "@/components/cart/cart-pill";
-import { CartReconcile } from "@/components/cart/cart-reconcile";
+import { CartSyncLoader } from "@/components/cart/cart-sync-loader";
 import { HeaderSearch } from "@/components/search/header-search";
 import { STRENGTH_CHIP_FAMILY, strengthChips } from "@/components/search/strength-chips";
 import { AnnounceBar } from "@/components/shell/announce-bar";
@@ -35,7 +35,7 @@ export async function withStoreChrome(children: ReactNode): Promise<ReactNode> {
         account={<AccountPill />}
         cart={<CartPill />}
       />
-      <CartReconcile slugs={slugs} />
+      <CartSyncLoader slugs={slugs} />
       <CategoryBar categories={live} />
       {children}
       <StoreFooter categories={live} />
