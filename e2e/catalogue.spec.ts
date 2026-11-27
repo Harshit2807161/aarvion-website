@@ -27,7 +27,9 @@ test("the strength switcher moves to another strength's page", async ({ page }) 
 });
 
 // ensureStatic = "navigation" makes the first hit a real 404, not a streamed 200.
-test("an unknown product is a 404 on the first hit with one copy of the chrome", async ({ page }) => {
+test("an unknown product is a 404 on the first hit with one copy of the chrome", async ({
+  page,
+}) => {
   const res = await page.goto("/product/nope");
   expect(res?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "We can’t find that page" })).toBeVisible();
@@ -35,13 +37,26 @@ test("an unknown product is a 404 on the first hit with one copy of the chrome",
   await expect(page.locator("#q")).toHaveCount(1);
 });
 
-test("a product page has its own title and description", async ({ page }) => {
+test("a product page has its own title, description, canonical link and one JSON-LD block", async ({
+  page,
+}) => {
   await page.goto("/product/sacuwin-100");
-  await expect(page).toHaveTitle(/Sacuwin 100/);
+  await expect(page).toHaveTitle(
+    "Sacuwin 100, Sacubitril 49 mg + Valsartan 51 mg · Aarvion Pharmaceuticals",
+  );
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     "content",
-    /Sacubitril \(as sodium\) 49 mg \+ Valsartan 51 mg/,
+    /^MRP ₹407, our price ₹387\. Strip of 14 tablets\./,
   );
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    /\/product\/sacuwin-100$/,
+  );
+  const blocks = page.locator('script[type="application/ld+json"]');
+  await expect(blocks).toHaveCount(1);
+  const data = JSON.parse((await blocks.textContent())!);
+  expect(data.offers.price).toBe("387.00");
+  expect(data).not.toHaveProperty("aggregateRating");
 });
 
 test("a pocket name on the home page leads to its product page", async ({ page }) => {

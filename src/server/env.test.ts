@@ -76,3 +76,42 @@ describe("requireEnv", () => {
     expect(() => getEnv()).toThrow(/OTP_PEPPER/);
   });
 });
+
+describe("getSiteEnv", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  const load = async () => (await import("./env")).getSiteEnv;
+
+  it("does not throw on import, and returns APP_URL and VERCEL_ENV as given", async () => {
+    vi.stubEnv("OTP_PEPPER", "short"); // an unrelated bad variable must not matter
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("APP_URL", " https://aarvion.example ");
+    expect((await load())()).toEqual({ appUrl: "https://aarvion.example", vercelEnv: "preview" });
+  });
+
+  it("is lenient about APP_URL outside production", async () => {
+    vi.stubEnv("VERCEL_ENV", "");
+    vi.stubEnv("APP_URL", "");
+    expect((await load())()).toEqual({ appUrl: undefined, vercelEnv: undefined });
+    vi.stubEnv("APP_URL", "not a url");
+    expect((await load())().appUrl).toBe("not a url");
+  });
+
+  it("rejects an unknown VERCEL_ENV", async () => {
+    vi.stubEnv("VERCEL_ENV", "bogus");
+    const fn = await load();
+    expect(() => fn()).toThrow(/VERCEL_ENV/);
+  });
+
+  it.each(["", "not a url"])("throws in production when APP_URL is %j", async (value) => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("APP_URL", value);
+    const fn = await load();
+    expect(() => fn()).toThrow(/APP_URL/);
+  });
+
+  it("accepts a valid APP_URL in production", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("APP_URL", "https://aarvion.in");
+    expect((await load())().vercelEnv).toBe("production");
+  });
+});
