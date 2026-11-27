@@ -5,7 +5,7 @@ import { fetchSessionState } from "@/components/auth/session-state";
 import { SIGNED_IN_EVENT } from "@/components/auth/events";
 import { announce } from "@/components/feedback/live-region";
 import { cartStore, type CartIssue } from "@/lib/cart/store";
-import { CART_LIMITS } from "@/lib/cart/cart";
+import { CART_LIMITS, CART_UI_STORAGE_KEY } from "@/lib/cart/cart";
 import { CART_SENTENCES } from "./cart-sentences";
 
 /** What the shopper hears (awaiting owner approval, like every new customer string). Lazy with this module. */
@@ -29,6 +29,19 @@ function sentence(issue: CartIssue): string {
     case "refused":
       if (issue.error === "product_limit") return COPY.productLimit;
       return issue.error === "order_limit" ? COPY.orderLimit : COPY.notFound;
+  }
+}
+
+/**
+ * Drops the old `aarv-cart-ui-v0` key, which is never migrated (pre-launch). Run once on mount. It
+ * lives here rather than on `cartStore` because only this lazy module needs it, and the store is
+ * first-load code (13 B of the product page's budget).
+ */
+function forgetLegacy(): void {
+  try {
+    sessionStorage.removeItem(CART_UI_STORAGE_KEY);
+  } catch {
+    // Nothing to forget.
   }
 }
 
@@ -89,7 +102,7 @@ export function CartSync({ slugs }: { slugs: readonly string[] }) {
       say(sentence(issue));
     });
 
-    cartStore.forgetLegacy();
+    forgetLegacy();
     const signIn = () => {
       void cartStore.signIn().then((r) => {
         // The code or the network failed: try once more when the tab wakes up or the network returns.

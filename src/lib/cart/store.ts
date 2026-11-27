@@ -57,8 +57,8 @@ function clearGuest(): void {
 
 function writeGuest(lines: CartLines): void {
   try {
+    // The old v0 key is dropped by CartSync on mount (and by clearGuest), not on every write.
     sessionStorage.setItem(CART_GUEST_STORAGE_KEY, JSON.stringify({ lines: toArray(lines) }));
-    sessionStorage.removeItem(CART_UI_STORAGE_KEY);
   } catch {
     // Blocked or full: the cart still works for this page view, it just will not survive a reload.
   }
@@ -267,14 +267,6 @@ export const cartStore = {
   /** Signed in: reloads the server cart (quietly) so a change made in another tab shows up. */
   refresh(): void {
     if (mode === "user") user?.refresh();
-  },
-  /** Drops the old `aarv-cart-ui-v0` key, which is never migrated (pre-launch). Run once on load. */
-  forgetLegacy(): void {
-    try {
-      sessionStorage.removeItem(CART_UI_STORAGE_KEY);
-    } catch {
-      // Nothing to forget.
-    }
   },
 };
 
