@@ -2,10 +2,10 @@
 
 /**
  * The login flow (pages/login.html v2, lines 108-191) for the /login page and, later, the header
- * dialog. It owns `loginReducer`, the 1 s clock and the end of the flow, renders the id step and
- * runs its send effect and the session check; the code step (`code-step.tsx`) runs verify.
- * Resend and Change come with the /login page (Task 41 part C). The profile and done steps and the demo states (`allowDemo`) are Task 42, which fills
- * the seam marked below.
+ * dialog. It owns `loginReducer`, the 1 s clock and the end of the flow, renders the id and done
+ * steps and runs the send effect and the session check; the code step (`code-step.tsx`) runs
+ * verify. The profile step (sign-up, Task 42) renders at the seam marked below; resend and Change
+ * come with the /login page (Task 41 part C), and the demo states (`allowDemo`) after it.
  *
  * Rules kept here, each pinned by login-flow.test.tsx:
  * - Post exactly `identifierOf(...)`, the string the machine validated; the raw mobile input has
@@ -14,8 +14,9 @@
  *   multi-field submit (and so no error summary) until the profile step.
  * - When a verify ends in `network`, the machine sets `sessionCheck`: call `fetchSession()` and
  *   dispatch `sessionChecked`, since the sign-in may have worked.
- * - On sign-in the page goes to `sanitizeNext(next)`, passed to `router.replace` undecoded; the
- *   dialog gets `onDone`. A visitor who is already signed in completes on mount.
+ * - On sign-in the done step shows "You’re signed in" and the dialog gets `onDone`; the page goes
+ *   to `sanitizeNext(next)` 900 ms later, passed to `router.replace` undecoded. A visitor who is
+ *   already signed in skips the done step and goes at once.
  */
 import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useEffectEvent, useReducer, useRef, useState } from "react";
@@ -55,28 +56,37 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
   const finished = useRef(false);
   const focusNext = useRef<string | null>(null);
 
+  const next = sanitizeNext(searchParams.get("next"));
+  const goNext = useEffectEvent(() => router.replace(next));
   const finish = useEffectEvent((r: LoginDone) => {
     if (finished.current) return;
     finished.current = true;
     onDone?.(r);
-    if (mode === "page") router.replace(sanitizeNext(searchParams.get("next")));
   });
 
   // Already signed in (another tab, or a back button): complete at once.
   useEffect(() => {
     let live = true;
     void fetchSession().then((s) => {
-      if (live && s) finish({ isNewUser: false, name: s.name });
+      if (!live || !s) return;
+      finish({ isNewUser: false, name: s.name });
+      if (mode === "page") goNext();
     });
     return () => {
       live = false;
     };
-  }, []);
+  }, [mode]);
 
   const doneNew = state.step === "done" ? state.isNewUser : null;
   useEffect(() => {
-    if (doneNew !== null) finish({ isNewUser: doneNew, name: name.current });
-  }, [doneNew]);
+    if (doneNew === null) return;
+    finish({ isNewUser: doneNew, name: name.current });
+    document.getElementById(`${p}-done`)?.focus();
+    if (mode !== "page") return;
+    // Long enough to read "You’re signed in"; the timer (not `finish`) is re-armed under Strict Mode.
+    const t = setTimeout(() => goNext(), 900);
+    return () => clearTimeout(t);
+  }, [doneNew, p, mode]);
 
   // A verify that ended in `network` may still have signed in: ask before showing the error.
   const sessionCheck = (state.step === "code" || state.step === "profile") && state.sessionCheck;
@@ -209,7 +219,23 @@ export function LoginFlow({ mode, onDone }: LoginFlowProps) {
         />
       ) : null}
 
-      {/* Task 42: the profile step (sign-up) and the done step render here. */}
+      {/* Task 42: the profile step (sign-up) renders here. */}
+
+      {state.step === "done" ? (
+        <div className="auth-step" data-step="done">
+          <div className="auth-done">
+            <span className="done-mark">
+              <Icon name="check" size={28} />
+            </span>
+            <h2 id={`${p}-done`} tabIndex={-1}>
+              {LOGIN_COPY.doneTitle}
+            </h2>
+            <p className="muted">
+              {next.startsWith("/checkout") ? LOGIN_COPY.doneCheckout : LOGIN_COPY.doneDefault}
+            </p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
