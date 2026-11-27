@@ -4,6 +4,7 @@ import { POST as STAGE } from "@/app/api/prescriptions/staging/route";
 import { getDeps, setDepsForTests } from "@/server/deps";
 import { resetEnvForTests } from "@/server/env";
 import { RX_STAGING_TTL_MS } from "@/server/prescriptions/prescriptions";
+import { installClock } from "../helpers/clock";
 import { jsonPost } from "../helpers/http";
 import { json, setupRxRouteHarness, stageReq } from "../helpers/rx-routes";
 import { signedIn } from "../helpers/session";
@@ -65,6 +66,38 @@ describe("POST /api/prescriptions/blob-token", () => {
     });
     // The callback refuses any other pathname too.
     await expect(call.onBeforeGenerateToken("rx/other", slot.stagingId, false)).rejects.toThrow();
+  });
+
+  it("re-issues the sliding session cookie on the token response", async () => {
+    asBlob();
+    const { cookie } = await signedIn();
+    const slot = await json(await STAGE(stageReq(cookie)));
+    installClock("2026-11-27T10:02:00Z"); // past the 60 s touch interval: the session slides
+    const res = await TOKEN(tokenReq(slot.pathname, slot.stagingId, cookie));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toMatch(/^__Host-aarv_sid=[A-Za-z0-9_-]{43};/);
+  });
+
+  it("with the real SDK, signs the pathname and every limit into the client token", async () => {
+    // A well-formed but fake read-write token: the SDK signs locally and makes no request.
+    vi.stubEnv("BLOB_READ_WRITE_TOKEN", "vercel_blob_rw_teststore_testsecret");
+    resetEnvForTests();
+    const real = await vi.importActual<typeof import("@vercel/blob/client")>("@vercel/blob/client");
+    sdk.handleUpload.mockImplementationOnce(real.handleUpload);
+    asBlob();
+    const { cookie } = await signedIn();
+    const slot = await json(await STAGE(stageReq(cookie)));
+    const res = await TOKEN(tokenReq(slot.pathname, slot.stagingId, cookie));
+    expect(res.status).toBe(200);
+    const { clientToken } = await json(res);
+    expect(real.getPayloadFromClientToken(clientToken)).toMatchObject({
+      pathname: slot.pathname,
+      allowedContentTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
+      maximumSizeInBytes: 8388608,
+      addRandomSuffix: false,
+      allowOverwrite: false,
+      validUntil: getDeps().now().getTime() + RX_STAGING_TTL_MS,
+    });
   });
 
   it("answers 403 for a pathname that is not the staging key, or another user's slot", async () => {

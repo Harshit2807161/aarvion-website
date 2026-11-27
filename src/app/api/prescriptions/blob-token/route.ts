@@ -1,6 +1,6 @@
 import type { HandleUploadBody } from "@vercel/blob/client";
 import { z } from "zod";
-import { requireUser } from "@/server/auth/guards";
+import { requireUser, sessionRefreshHeaders } from "@/server/auth/guards";
 import { getDeps } from "@/server/deps";
 import { requireEnv } from "@/server/env";
 import { HttpError, jsonResponse, readJson, withErrors } from "@/server/http";
@@ -82,5 +82,6 @@ export const POST = withErrors(async (req) => {
       };
     },
   });
-  return jsonResponse(result);
+  // Re-issue the sliding cookie like every customer route (carry K1).
+  return jsonResponse(result, { headers: sessionRefreshHeaders(auth) });
 });
