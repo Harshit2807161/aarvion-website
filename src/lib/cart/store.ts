@@ -22,7 +22,7 @@ export type CartMode = "unknown" | "guest" | "user";
 export type CartIssue =
   | { kind: "removed"; slugs: string[] }
   | { kind: "refused"; error: CartBlock | "product_not_found" }
-  | { kind: "sync_failed" }
+  | { kind: "sync_failed"; signIn?: true }
   | { kind: "trimmed" };
 
 /** The lines as a prototype-less record, so a slug like "constructor" or "__proto__" is just a key. */
@@ -232,7 +232,7 @@ export const cartStore = {
     return (signInPromise ??= loadUser()
       .then((u) => u.signIn())
       .catch(() => {
-        emit({ kind: "sync_failed" });
+        emit({ kind: "sync_failed", signIn: true });
         return { trimmed: false, removed: [] as string[], retry: true };
       })
       .finally(() => {

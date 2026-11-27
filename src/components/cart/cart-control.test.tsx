@@ -4,7 +4,7 @@ import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveRegion } from "@/components/feedback/live-region";
-import { resetCartStore } from "@/lib/cart/store";
+import { cartStore, resetCartStore } from "@/lib/cart/store";
 import { CartControl } from "./cart-control";
 import { CartPill } from "./cart-pill";
 import { seedGuest } from "../../../tests/helpers/cart";
@@ -114,6 +114,17 @@ describe("CartControl", () => {
     expect(incBtn().getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(incBtn());
     expect(await spoken()).toBe("An order can hold up to 20 packs.");
+  });
+});
+
+describe("a server revert while focus is on the stepper", () => {
+  it("moves focus to Add when the line empties, so it is not left on a hidden button", () => {
+    setup();
+    fireEvent.click(add());
+    expect(document.activeElement).toBe(incBtn());
+    act(() => void cartStore.dispatch({ type: "remove", slug: SLUG }));
+    expect(document.querySelector(".cart-ctl")?.getAttribute("data-qty")).toBe("0");
+    expect(document.activeElement).toBe(add());
   });
 });
 

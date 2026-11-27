@@ -27,6 +27,7 @@ export function CartControl({ slug, name }: { slug: string; name: string }) {
   const full = qty >= CART_LIMITS.perProduct || cartCount(lines) >= CART_LIMITS.perOrder;
   const addRef = useRef<HTMLButtonElement>(null);
   const incRef = useRef<HTMLButtonElement>(null);
+  const stepperRef = useRef<HTMLDivElement>(null);
   // Focus can only move once the target is displayed, i.e. after the render for the new qty.
   const focusNext = useRef<"inc" | "add" | null>(null);
 
@@ -35,6 +36,9 @@ export function CartControl({ slug, name }: { slug: string; name: string }) {
     focusNext.current = null;
     if (target === "inc" && qty > 0) incRef.current?.focus();
     if (target === "add" && qty === 0) addRef.current?.focus();
+    // The stepper is hidden at 0. A server revert (a refused or lost add) can empty the line while
+    // focus is on its + or -: put focus on Add instead of letting it fall to the page.
+    if (qty === 0 && stepperRef.current?.contains(document.activeElement)) addRef.current?.focus();
   }, [qty]);
 
   function step(type: "inc" | "dec") {
@@ -62,7 +66,7 @@ export function CartControl({ slug, name }: { slug: string; name: string }) {
         <Icon name="plus" size={18} />
         <span>Add to cart</span>
       </button>
-      <div className="stepper" role="group" aria-label={`${name} in cart`}>
+      <div ref={stepperRef} className="stepper" role="group" aria-label={`${name} in cart`}>
         <button
           type="button"
           data-dec
