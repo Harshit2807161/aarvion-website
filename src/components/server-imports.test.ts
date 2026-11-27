@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
  */
 const root = path.resolve(import.meta.dirname, "../..");
 const serverDir = path.join(root, "src/server");
-const ALLOWED = new Set(["catalogue/pricing", "catalogue/search", "catalogue/order"]);
+const ALLOWED = new Set(["catalogue/pricing", "catalogue/search", "catalogue/order", "cart/rules"]);
 
 /** The module path under src/server that `specifier` names from `file`, or null if it is not one. */
 function serverModule(specifier: string, file: string): string | null {
@@ -103,6 +103,7 @@ describe("runtimeServerImports", () => {
         import { percentOff } from "@/server/catalogue/pricing";
         import { queryTokens } from "@/server/catalogue/search.ts";
         import { compareVariants } from "../../server/catalogue/order";
+        import { addLine } from "@/server/cart/rules";
         import type { Category } from "@/server/catalogue/schema";
         import type { PublicProduct } from "../../server/catalogue/queries";
         export type { Session } from "@/server/auth/sessions";
@@ -121,6 +122,7 @@ describe("runtimeServerImports", () => {
         export { getDb } from "@/server/db/client";
         const q = await import("@/server/catalogue/queries");
         const deps = require("../../server/deps");
+        import { getCart } from "@/server/cart/carts";
       `),
     ).toEqual([
       "../../server/auth/login",
@@ -129,6 +131,7 @@ describe("runtimeServerImports", () => {
       "@/server/db/client",
       "@/server/catalogue/queries",
       "../../server/deps",
+      "@/server/cart/carts",
     ]);
   });
 
