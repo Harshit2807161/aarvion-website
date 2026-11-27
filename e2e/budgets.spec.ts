@@ -176,11 +176,11 @@ test.describe("home loading", () => {
 
 // First-load JS on `/`, gzipped. The plan's target is 150 kB, but `/` ships about 170 kB today:
 // React DOM 73, Next's client 47, the app and runtime about 50. The ruling is a ratchet at 175 kB
-// so it can only get smaller; product pages keep 150. Follow-up (filed separately): lazy-load the
+// so it can only get smaller; product pages have their own 170 kB ratchet. Follow-up (filed separately): lazy-load the
 // header search island on first focus or idle and trim the hero chunk, then lower this number.
 const HOME_JS_BUDGET_BYTES = 175_000;
 
-test("first-load JS on / stays within the 175 kB ratchet (target 150 kB)", async ({ page }) => {
+test("first-load JS on / stays within the 175 kB ratchet", async ({ page }) => {
   await page.goto("/", { waitUntil: "load" });
   const { total, count } = await scriptBytes(page);
   // A floor, so a measurement that reads nothing cannot pass.
@@ -201,7 +201,7 @@ const PRODUCT_JS_BUDGET_BYTES = 170_000;
 test.describe("product page on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 
-  test("first-load JS stays within the 170 kB ratchet (target 150 kB)", async ({ page }) => {
+  test("first-load JS stays within the 170 kB ratchet", async ({ page }) => {
     await page.goto(PRODUCT, { waitUntil: "load" });
     const { total, count } = await scriptBytes(page);
     expect(count).toBeGreaterThan(5);
