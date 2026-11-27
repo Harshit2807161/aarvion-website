@@ -17,7 +17,7 @@ bottom use commit SHAs.
 ## [Unreleased]
 
 ### Added
-- The category bar link for the current page carries `aria-current="page"` (new client piece `CategoryBarLink`; the 880px chip row uses the same links).
+- The category bar link for the current page carries `aria-current="page"` (new client piece `CategoryBarLink`; the 880px chip row uses the same links). (#167)
 - Scroll film wired into the home page: `FilmRoot` (`src/components/film/film-root.tsx`) replaces `main#home` and adds the `film` class from an inline script before first paint when motion is allowed (the server HTML stays the complete static page), `FilmEngine` starts `createFilm` after hydration, and `src/styles/film.css` ports the v2 film: the ordering act pinned for 200lvh with the steps, perforation and documents, the bento tiles and rails rising, and the logo panning in from 14x to the closing call to action. Transform and opacity only; reduced motion keeps the static composition. The pinned layout and the hidden start states apply only under `.film.is-running` (added by the engine when it starts) and `.live` acts, so a page whose script is slow or never loads keeps the complete static composition. `e2e/film.spec.ts` covers both modes and the blocked-script case (#161)
 - `src/app/(store)/not-found.tsx` and the shared `NotFoundBody`: a `notFound()` inside the store (a category or product slug that does not exist) no longer shows the store chrome twice (#153).
 - `/login` page, Login UI part C of 3: `src/app/(store)/login/page.tsx` (the intro, the card with `LoginFlow` rendered per request so `allowDemo` follows `isMockForbidden()`, the reasons list; `noindex`, `interactiveWidget: "resizes-content"`), styles in `src/styles/auth.css`; the code step gains Send a new code (with busy copy), Change and the short-code message; `/login` leaves `PENDING_ROUTES` (#162)
@@ -162,7 +162,7 @@ bottom use commit SHAs.
 
 ### Changed
 - Scroll film engine (`src/components/film/engine.ts`) hardening before it is wired into the page: each image is decoded once, the ResizeObserver's first report no longer triggers a second measure, the `?p=<act>:<progress>` capture jump runs after `load` like the prototype, and the duplicate clamp uses `clamp01`. Tests now cover the per-item `--ti` / `--to` skip, destroy (the very handlers removed, the frame cancelled, the timer cleared) and the `film: false` no-op (#158)
-- The home rails' "View all N" is now a link to `/category/<slug>`, always visible, on a rail of one category (the shared rail has none). The in-place open/close toggle, its announcements and the `.is-open` / `.is-grid` rules are removed; the arrows stay (Task 30).
+- The home rails' "View all N" is now a link to `/category/<slug>`, always visible, on a rail of one category (the shared rail has none). The in-place open/close toggle, its announcements and the `.is-open` / `.is-grid` rules are removed; the arrows stay (Task 30). (#167)
 
 - docs: architecture.md lists files one per line to stop merge conflicts (#157).
 - `normMobile` (`src/components/auth/phone.ts`) strips exactly one prefix the server also accepts (`+91`, a 12-digit `91...` or an 11-digit `0...`) and never truncates; anything that is not then exactly ten digits fails `MOBILE_RE`. Digits of other scripts (Devanagari, fullwidth) read as the digits typed, and any other stray character (a letter O, a zero-width space) makes the input invalid instead of being dropped. It used to keep the first ten digits, which turned a mistyped number into a different valid-looking one (#137, #140).
