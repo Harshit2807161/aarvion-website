@@ -72,8 +72,7 @@ describe("guest mode", () => {
     expect(Object.isFrozen(cartStore.getServerSnapshot())).toBe(true);
   });
 
-  it("writes the v1 shape and removes the old v0 key", () => {
-    sessionStorage.setItem(CART_UI_STORAGE_KEY, JSON.stringify({ old: 3 }));
+  it("writes the v1 shape (CartSync drops the old v0 key on mount)", () => {
     cartStore.dispatch(inc("a"));
     cartStore.dispatch(set("b", 2));
     expect(stored()).toEqual({
@@ -82,7 +81,6 @@ describe("guest mode", () => {
         { slug: "b", qty: 2 },
       ],
     });
-    expect(sessionStorage.getItem(CART_UI_STORAGE_KEY)).toBeNull();
   });
 
   it("reads v1 once and re-caps what it reads, without writing", () => {
@@ -101,9 +99,8 @@ describe("guest mode", () => {
       ["b", 10],
     ]);
     expect(cartCount(lines)).toBe(CART_LIMITS.perOrder);
-    expect(sessionStorage.getItem(CART_UI_STORAGE_KEY)).not.toBeNull(); // a read never writes
-    cartStore.forgetLegacy();
-    expect(sessionStorage.getItem(CART_UI_STORAGE_KEY)).toBeNull();
+    // A read never writes; CartSync drops the old key on mount (cart-sync.test.tsx "forgets the old v0 key").
+    expect(sessionStorage.getItem(CART_UI_STORAGE_KEY)).not.toBeNull();
   });
 
   it("survives malformed data and blocked storage", () => {

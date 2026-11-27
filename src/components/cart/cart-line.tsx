@@ -14,7 +14,7 @@ import { sellingPricePaise } from "@/server/catalogue/pricing";
 import { CART_COPY } from "./cart-copy";
 
 /** The prototype's trash glyph (flows.js `icon("trash")`); drawn here so the shared icon set, which is first-load code, does not grow for a cart-only icon. */
-function TrashIcon() {
+export function TrashIcon() {
   return (
     <svg
       className="i"

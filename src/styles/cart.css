@@ -117,3 +117,8 @@
   .dock { transition: opacity var(--duration-fast) ease; transform: none; opacity: 0; pointer-events: none; }
   .dock.is-shown { opacity: 1; pointer-events: auto; }
 }
+
+/* The /cart page's own states (not in the prototype): before the cart is known, and a line the server has not priced yet. */
+.cart-loading { padding: 48px 0; text-align: center; color: var(--color-text-muted); }
+.line--pending .well { background: var(--color-neutral-100); box-shadow: none; }
+.line-pending { font-size: var(--text-sm); font-weight: 500; color: var(--color-wait-ink); }
