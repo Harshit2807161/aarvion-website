@@ -239,6 +239,39 @@ describe("uploadRx", () => {
     expect(await uploadRx(input)).toEqual({ ok: false, error: "network" });
   });
 
+  it("a resume answered 401 or 400 keeps its slot: an earlier try may have committed (I1-C)", async () => {
+    mockFetch(reply(401, { error: "unauthenticated" }));
+    expect(await uploadRx({ ...input, stagingId: STAGING_ID })).toEqual({
+      ok: false,
+      error: "unauthenticated",
+      stagingId: STAGING_ID,
+    });
+    mockFetch(reply(400, { error: "invalid_request" }));
+    expect(await uploadRx({ ...input, stagingId: STAGING_ID })).toEqual({
+      ok: false,
+      error: "invalid_request",
+      stagingId: STAGING_ID,
+    });
+  });
+
+  it("a fresh finalise answered 401 or 400 after the bytes landed keeps the live slot (M2)", async () => {
+    mockFetch(staged("direct"), reply(204), reply(401, { error: "unauthenticated" }));
+    expect(await uploadRx(input)).toEqual({
+      ok: false,
+      error: "unauthenticated",
+      stagingId: STAGING_ID,
+    });
+    mockFetch(staged("direct"), reply(204), reply(400, { error: "invalid_request" }));
+    expect(await uploadRx(input)).toEqual({
+      ok: false,
+      error: "invalid_request",
+      stagingId: STAGING_ID,
+    });
+    // A 401 at staging, before any bytes, has no slot to keep.
+    mockFetch(reply(401, { error: "unauthenticated" }));
+    expect(await uploadRx(input)).toEqual({ ok: false, error: "unauthenticated" });
+  });
+
   it("settled answers carry no slot", async () => {
     mockFetch(
       staged("direct"),
@@ -252,7 +285,7 @@ describe("uploadRx", () => {
 
   it("a 400 is invalid_request, and a 2xx that is not the expected shape is network", async () => {
     mockFetch(staged("direct"), reply(204), reply(400, { error: "invalid_request" }));
-    expect(await uploadRx(input)).toEqual({ ok: false, error: "invalid_request" });
+    expect(await uploadRx(input)).toMatchObject({ ok: false, error: "invalid_request" });
     mockFetch(reply(201, { nope: true }));
     expect(await uploadRx(input)).toEqual({ ok: false, error: "network" });
   });

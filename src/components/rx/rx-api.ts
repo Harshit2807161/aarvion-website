@@ -9,12 +9,14 @@
  * - a PUT that failed in transit is sent once more (the same bytes are idempotent, 204);
  * - a PUT 409 (the slot holds other bytes) starts one fresh slot;
  * - a 503 `busy` finalise waits `Retry-After` and tries again, up to RX_BUSY_RETRIES times;
- * - a 500 `upload_unconfirmed`, or a finalise lost in transit after the bytes were sent, is never
- *   retried here: the record may exist. The result hands back the `stagingId`, and a later
- *   `uploadRx` with it finalises that same slot. Finalise is idempotent by slot (#244): a slot
- *   that was already finalised answers 200 with its record, so the resume is exact. A 410 on a
- *   resume means the slot is gone with no record of ours, and is never reported as sent
- *   (`upload_unknown`: the shopper checks their prescriptions).
+ * - once the bytes are sent, every finalise answer that does not settle the slot hands it back
+ *   (`stagingId`) and is never retried here: `upload_unconfirmed`, a request lost in transit or
+ *   timed out, `busy` after the retries, and also 401 and 400 (the record of an earlier try may
+ *   exist; a resend after sign-in or a fixed name then needs no new slot or upload). A later
+ *   `uploadRx` with that `stagingId` finalises the same slot. Finalise is idempotent by slot
+ *   (#244): a slot that was already finalised answers 200 with its record, so the resume is
+ *   exact. Only a success, a 410 and a 422 file refusal settle the slot. A 410 on a resume means
+ *   the slot is gone with no record of ours, and is never reported as sent (`upload_unknown`).
  */
 import type { RxFileError } from "@/server/prescriptions/file-check";
 import type { RxListItem } from "@/server/prescriptions/review";
@@ -308,13 +310,19 @@ export async function uploadRx(
 }
 
 /**
- * A finalise whose outcome is open carries its slot, so the next send resumes it instead of
- * uploading a copy: `upload_unconfirmed`, a request lost in transit or timed out (`network`, M4),
- * and `busy` after the bounded retries. Every other answer settles the slot.
+ * Only these settle a slot: a success, a 410 (no record of ours: `upload_expired` fresh,
+ * `upload_unknown` on a resume) and a 422 file refusal (the server consumed the slot). Every other
+ * finalise answer carries its slot, so the next send resumes it instead of uploading a copy:
+ * `upload_unconfirmed`, `network` (lost, timed out or malformed), `busy` after the retries, and
+ * `unauthenticated` and `invalid_request`, where an earlier try on a resumed slot may have
+ * committed (review I1-C; on a fresh slot it saves a new slot and a re-upload, M2).
  */
-const RESUMABLE: readonly RxUploadError[] = ["upload_unconfirmed", "network", "busy"];
+function settles(error: RxUploadError): boolean {
+  if (error === "upload_expired" || error === "upload_unknown") return true;
+  return error !== "busy" && FILE_ERRORS.includes(error as RxFileError | "file_missing");
+}
 const withSlot = (r: RxUploadResult, stagingId: string): RxUploadResult =>
-  !r.ok && RESUMABLE.includes(r.error) ? { ...r, stagingId } : r;
+  r.ok || settles(r.error) ? r : { ...r, stagingId };
 
 /** The signed-in shopper's prescriptions, newest first (at most 50). */
 export async function listRx(
