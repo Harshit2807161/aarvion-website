@@ -563,6 +563,54 @@ describe("LoginFlow: profile step", () => {
   });
 });
 
+describe("LoginFlow: demo states (?state=, only with allowDemo)", () => {
+  async function demo(state: string, allowDemo = true) {
+    mockSearchParams.value = new URLSearchParams({ state });
+    const view = render(<LoginFlow mode="page" allowDemo={allowDemo} />);
+    await flush();
+    return view;
+  }
+  const alert = () => document.querySelector(".auth-alert")?.textContent;
+
+  it("otp-sent shows the code step for the fixture number, posting nothing", async () => {
+    const { container } = await demo("otp-sent");
+    expect(container.textContent).toContain("+91 98765 43210");
+    expect(container.querySelector(".otp-timer")!.textContent).toBe("Resend code in 0:30");
+    expect(posted).toEqual([]);
+  });
+
+  it("otp-error shows the red boxes with the tries-left alert", async () => {
+    const { container } = await demo("otp-error");
+    expect(otp().value).toBe("482913");
+    expect(container.querySelector(".otp")!.classList.contains("is-invalid")).toBe(true);
+    expect(alert()).toBe(LOGIN_COPY.wrong(4));
+  });
+
+  it("otp-locked shows the locked boxes with the countdown sentence", async () => {
+    const { container } = await demo("otp-locked");
+    expect(container.querySelector(".otp")!.classList.contains("is-locked")).toBe(true);
+    expect(alert()).toBe(LOGIN_COPY.lockedWait("0:18"));
+    expect(button(LOGIN_COPY.verify)).toBeNull();
+    await advance(1_000);
+    expect(alert()).toBe(LOGIN_COPY.lockedWait("0:17"));
+  });
+
+  it("new-account shows the profile step with three checkboxes", async () => {
+    await demo("new-account");
+    expect(screen.getByRole("heading", { name: LOGIN_COPY.profileTitle })).toBeInTheDocument();
+    expect(screen.getAllByRole("checkbox")).toHaveLength(3);
+  });
+
+  it.each([
+    ["otp-locked", false],
+    ["nonsense", true],
+  ])("?state=%s with allowDemo=%s stays on the id step", async (state, allowDemo) => {
+    const { container } = await demo(state, allowDemo);
+    expect(container.querySelector('[data-step="id"]')).not.toBeNull();
+    expect(container.textContent).not.toMatch(/outbox|482913/i);
+  });
+});
+
 describe("LoginFlow: an existing session", () => {
   it("a signed-in visitor completes at once", async () => {
     reply(SESSION, { status: 200, body: { user: { name: "Asha Rao" } } });
