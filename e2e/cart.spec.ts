@@ -201,3 +201,38 @@ test("/cart: a guest cart, sign-in merge, reload, Remove to empty, and the phone
     .toBe(0);
   expect(errorsAfter()).toEqual([]);
 });
+
+test("/cart with the quote blocked: pending rows, a working Remove and focus to the next line", async ({
+  page,
+}) => {
+  // P4-M2: the K5 carries end to end. Every quote fails, so both lines stay pending.
+  await page.route("**/api/cart/quote", (route) => route.abort());
+  await page.addInitScript(
+    ([key, lines]) => sessionStorage.setItem(key as string, JSON.stringify(lines)),
+    [
+      CART_GUEST_STORAGE_KEY,
+      {
+        lines: [
+          { slug: "sacuwin-100", qty: 2 },
+          { slug: "hyloage", qty: 1 },
+        ],
+      },
+    ] as const,
+  );
+  await page.goto("/cart");
+  const rows = page.locator("li.line--pending");
+  await expect(rows).toHaveCount(2);
+  await expect(rows.first()).toContainText("Price updating…");
+  await expect(page.locator(".lines")).not.toContainText("₹");
+  await expect(page.locator(".receipt .sum")).toHaveCount(0);
+  await expect(pill(page)).toHaveAttribute("aria-label", "Cart, 3 packs");
+
+  await rows
+    .first()
+    .getByRole("button", { name: /^Remove .* from cart$/ })
+    .click();
+  await expect(rows).toHaveCount(1);
+  await expect(page.locator("li.line[data-slug='sacuwin-100']")).toHaveCount(0);
+  await expect(rows.first().getByRole("button", { name: /^Remove .* from cart$/ })).toBeFocused();
+  await expect(pill(page)).toHaveAttribute("aria-label", "Cart, 1 pack");
+});

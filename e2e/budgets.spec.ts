@@ -179,18 +179,19 @@ test.describe("home loading", () => {
   });
 });
 
-// First-load JS on `/`, gzipped. The plan's original 150 kB target was replaced by this ratchet (2026-11-27); `/` ships about 170 kB:
-// React DOM 73, Next's client 47, the app and runtime about 50. The ruling is a ratchet at 175 kB
-// so it can only get smaller; product pages have their own 170 kB ratchet. Follow-up (filed separately): lazy-load the
-// header search island on first focus or idle and trim the hero chunk, then lower this number.
-const HOME_JS_BUDGET_BYTES = 175_000;
+// First-load JS on `/`, gzipped. The plan's original 150 kB target was replaced by this ratchet (2026-11-27):
+// React DOM 73, Next's client 47, the app and runtime about 50. It can only get smaller. Lowered
+// 2026-11-28 (after #245 lazy-loaded the search listbox and #252 added /cart) from 175,000 to the
+// measured 173,549 B plus about 600 B; product pages have their own ratchet below. Lower it again
+// whenever the route shrinks.
+const HOME_JS_BUDGET_BYTES = 174_150;
 
 // Both first-load JS tests warm the server first, in a fresh context (as the LCP tests do), so the
 // measured visit is a warm one in a cold browser. The first request after `next start` can load a
 // script that later visits do not (measured 2026-11-27: the product page read 170,855 B cold and
 // 169,590 B warm, on main), which put the product ratchet over 170 kB on the first attempt and
 // left the test passing only on CI's single retry, marked flaky.
-test("first-load JS on / stays within the 175 kB ratchet", async ({ browser, page }) => {
+test("first-load JS on / stays within its ratchet (174,150 B)", async ({ browser, page }) => {
   await warm(browser, { width: 1280, height: 720 }, 1);
   await page.goto("/", { waitUntil: "load" });
   const { total, count } = await scriptBytes(page);
@@ -204,15 +205,16 @@ test("first-load JS on / stays within the 175 kB ratchet", async ({ browser, pag
 // the plan's target is 150 kB, but the route ships about 166.5 kB today, and all of it is shared
 // framework and chrome, none of it the product page's own code (React DOM 73 kB, Next's client
 // 47 kB, the router chunks, the header search island, the cart store and the toaster). The ruling
-// is a ratchet at 170 kB so it can only get smaller. The follow-up is lazy-loading the header
-// search island (a separate PR); lower this number, and `/`'s, whenever the route shrinks.
+// is a ratchet so it can only get smaller. Lowered 2026-11-28 from 170,000 to the measured
+// 169,302 B plus about 600 B (#245 lazy-loaded the search listbox, #252 added /cart); lower this
+// number, and `/`'s, whenever the route shrinks.
 const PRODUCT = "/product/sacuwin-100";
-const PRODUCT_JS_BUDGET_BYTES = 170_000;
+const PRODUCT_JS_BUDGET_BYTES = 169_900;
 
 test.describe("product page on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 
-  test("first-load JS stays within the 170 kB ratchet", async ({ browser, page }) => {
+  test("first-load JS stays within its ratchet (169,900 B)", async ({ browser, page }) => {
     await warm(browser, { width: 390, height: 844 }, 2, PRODUCT);
     await page.goto(PRODUCT, { waitUntil: "load" });
     const { total, count } = await scriptBytes(page);
