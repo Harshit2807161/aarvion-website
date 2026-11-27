@@ -69,6 +69,16 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
 - Blobs are written `access: "private"` with exact keys (`rx/<userId>/<rxId>.<ext>`,
   `rx-staging/…`) and no overwrite; they are read only through the app's ownership-checked
   handlers. Never hand out a blob URL, `downloadUrl` or a read-capable token.
+- **TODO (R5, the route that calls `checkRxFile`): make the PDF check deployable.** The check runs
+  `src/server/prescriptions/pdf-worker.mjs` in a worker thread, and Next emits that file as a plain
+  asset (`.next/server/assets/pdf-worker.*.mjs`) whose `import "pdf-lib"` is resolved at run time.
+  Nothing bundled imports pdf-lib, so file tracing will not copy `pdf-lib` and its dependencies
+  (`@pdf-lib/standard-fonts`, `@pdf-lib/upng`, `pako`, `tslib`) into the function. R5 must add
+  `outputFileTracingIncludes` for the upload route (or `serverExternalPackages: ["pdf-lib"]` plus a
+  static import so it is traced), set the function's `maxDuration` and memory (a hostile object
+  stream can take several hundred MB before the 1 s scan timeout fires), keep the upload rate
+  limit, and add a Vercel-preview smoke test that uploads a one-page PDF and expects it accepted.
+  Until then every PDF would fail closed (refused as `corrupt`) in production.
 - Never set `DEBUG` (or `NEXT_PUBLIC_DEBUG`) containing `blob` on a Vercel scope: the SDK then logs
   pathnames and request headers.
 
