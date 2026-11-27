@@ -111,6 +111,13 @@ the build instead of deploying an empty store. The `(store)` layout (`src/app/(s
 Nothing below exists yet; each lands before or with the production deploy.
 
 - **H4 production gates:**
+  - refuse a production build while `PENDING_ROUTES` (`src/config/routes.ts`) is non-empty: `/cart`,
+    `/account` and `/account/prescriptions` are linked from the chrome and 404 until K, R and P build
+    them (a unit test keyed on `VERCEL_ENV=production`, or an `instrumentation.ts` check);
+  - a Sign out action must exist (account pill menu or `/account`) before deploy: nothing calls
+    `POST /api/auth/logout` yet, so a signed-in shopper cannot end the 30-day sliding session;
+  - security headers (`next.config.ts`): CSP, `frame-ancestors 'none'` (`/login` can be framed
+    today), `nosniff` and HSTS;
   - a startup assertion that `VERCEL_ENV=production` implies `MONGODB_DB=aarvion_prod`;
   - `APP_URL` must be set, and must not be localhost, in production. An unset or invalid value
     silently gives a localhost `metadataBase`, so shared links and Open Graph images would
