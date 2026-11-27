@@ -97,7 +97,20 @@ Helpers in `tests/helpers/`:
 - `testTimeout` is 30 s and `hookTimeout` 180 s (replica set start-up).
 - Scripts are tested by spawning them: `tests/int/db-indexes-script.test.ts` runs
   `pnpm db:indexes`, and `tests/int/seed.test.ts` runs `pnpm seed` (with `SEED_DATA_DIR` for the
-  failure path).
+  failure path). Spawn with `runPnpm` or `runCommand` (`tests/helpers/run-script.ts`: async,
+  kills the process group after a timeout), **never `spawnSync`, `execSync` or `execFileSync`**
+  in a file that starts a replica set; `tests/int/run-script.test.ts` fails if one does.
+- **Former flake, fixed (#221):** `db-indexes-script` failed about 36 s into the job
+  (`MongoServerSelectionError: Server selection timed out after 3000 ms`, or
+  `MongoNetworkTimeoutError: connection 1 to 127.0.0.1:271x0 timed out`) and twice hung the
+  `int` job for over an hour (#206, #215; the file never reported). Cause: mongodb-memory-server
+  reads mongod's log from a pipe on the worker's event loop. `spawnSync` blocked that loop for
+  both script runs, the pipe filled (64 KiB on Linux; one `db:indexes` run makes mongod log 30
+  to 40 KiB), mongod blocked on a log write, and the script's server selection timed out, or a
+  command sent before the stall waited for a reply forever (no socket timeout). A blocked loop
+  also stops Vitest's 30 s test timeout from firing. Reproduced locally: six back-to-back
+  `spawnSync` runs gave one hang and five selection timeouts; the same runs through `runPnpm`
+  all passed. The job's `timeout-minutes: 15` is the backstop for any future hang.
 
 ## End-to-end tests
 

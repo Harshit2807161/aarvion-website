@@ -6,6 +6,8 @@
 to the same PR cancels the older run; runs on `main` are never cancelled. Permissions:
 `contents: read`. Every job checks out, installs pnpm (`pnpm/action-setup@v6`) and Node from
 `.nvmrc` (`actions/setup-node@v7`, pnpm cache), then `pnpm install --frozen-lockfile`.
+Every job has a `timeout-minutes` (about 10× its usual run): `lint`, `typecheck` and `unit` 10,
+`int` and `build` 15, `e2e` 20, so a hung job fails instead of running until GitHub's 6 h cap.
 
 | Job id | Runs | Notes |
 | --- | --- | --- |

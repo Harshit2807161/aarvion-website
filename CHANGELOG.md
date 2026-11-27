@@ -16,6 +16,9 @@ bottom use commit SHAs.
 
 ## [Unreleased]
 
+### Fixed
+- The `int` CI job no longer hangs or fails at about 36 s: `db-indexes-script` and `seed` int tests spawned their scripts with `spawnSync`, which stopped the worker draining mongod's log pipe, so mongod stalled and the script timed out or hung forever. They now use the async `runPnpm` (`tests/helpers/run-script.ts`, kills the process group on timeout), `tests/int/run-script.test.ts` refuses a sync spawn in a replica-set file, and every job in `ci.yml` has a `timeout-minutes` (#221)
+
 ### Added
 - Upload fault and race tests (`tests/int/rx-upload-faults.test.ts`): cleanup after a failed insert (and the original error kept when cleanup also fails), the Blob retry put with the same and with different bytes, a failed staged delete, the lease boundary (claimable exactly at 30 s), a deterministic overrun race (the loser's `upload_expired`, its own file deleted) and a labelled unknown commit retried through the driver's commit loop. The lease release and refusal are now fenced to the claim that wrote them (`releaseStaging`, `consumeStaging`), and the concurrent-claim test parks the first finish behind a gate instead of relying on timing (#220).
 - Upload refusal and stored-file tests (`tests/int/rx-upload-refusals.test.ts`, with the shared harness `tests/helpers/rx-upload.ts`): a disguised HTML file, nothing staged, a file over the cap, single use (another user, +15 minutes exactly), bytes appended after an image, a PDF stored unchanged, the audit role and the input re-parse. Part A of the R4 fault tests; the race and fault cases follow (#217).
