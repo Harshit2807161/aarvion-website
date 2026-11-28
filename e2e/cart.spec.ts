@@ -185,6 +185,15 @@ test("/cart: a guest cart, sign-in merge, reload, Remove to empty, and the phone
   await page.locator("footer").scrollIntoViewIfNeeded();
   await expect(dock).toHaveClass(/is-shown/);
   await expect(dock).toContainText("₹774");
+  // Toasts sit above the shown dock (the prototype's body.dock-on, as CSS :has()).
+  const toastBottom = await page.evaluate(() => {
+    const el = Object.assign(document.createElement("div"), { className: "toasts" });
+    document.body.append(el);
+    const bottom = getComputedStyle(el).bottom;
+    el.remove();
+    return bottom;
+  });
+  expect(toastBottom).toBe("96px");
   await page.evaluate(() => window.scrollTo(0, 0));
 
   // Remove → the empty state, with focus on its link.

@@ -65,4 +65,11 @@ export const CART_COPY = {
     // NEW (owner approval needed): the quantity on that line, "Qty 2".
     qty: "Qty",
   },
+  /** The cart drawer: verbatim from the design prototype (cart.html's `#cart-drawer`); the title is `page.title`. */
+  drawer: {
+    close: "Close cart",
+    viewCart: "View cart",
+    emptyBody: "Find your medicine by brand or salt, then add it here.",
+    browse: "Browse medicines",
+  },
 } as const;

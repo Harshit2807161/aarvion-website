@@ -20,3 +20,7 @@
 .toast.is-leaving { opacity: 0; transform: translateY(12px); transition-duration: 220ms; }
 @starting-style { .toast { opacity: 0; transform: translateY(100%); } }
 @media (prefers-reduced-motion: reduce) { @starting-style { .toast { transform: none; } } .toast.is-leaving { transform: none; } }
+/* Above the /cart phone dock while it shows (the prototype's `body.dock-on`, flows.css line 849), read
+   from the dock itself with :has() so no script sets a body class. The cart drawer needs no offset:
+   nothing raises a toast while it is open (its Checkout closes it before the sign-in dialog opens). */
+@media (max-width: 720px) { body:has(.dock.is-shown) .toasts { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); } }

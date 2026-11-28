@@ -23,15 +23,17 @@ export type Row = { slug: string; rx: boolean; node: ReactNode };
 
 const guestCheckout = `${ROUTES.login}?next=${encodeURIComponent(ROUTES.checkout)}`;
 
-/** A line the server has not priced yet: the name if the catalogue knows it, the quantity and a working Remove, so packs that count toward the cap can always go. */
+/** A line the server has not priced yet: the name if the catalogue knows it, the quantity and a working Remove, so packs that count toward the cap can always go. `compact` (the drawer) drops the Remove text, as `CartLineItem` does. */
 export function PendingLine({
   slug,
   qty,
   known,
+  compact = false,
 }: {
   slug: string;
   qty: number;
   known?: KnownProduct;
+  compact?: boolean;
 }) {
   const name = known?.name ?? slug;
   return (
@@ -61,7 +63,7 @@ export function PendingLine({
           }}
         >
           <TrashIcon />
-          <span>{CART_COPY.remove}</span>
+          {!compact && <span>{CART_COPY.remove}</span>}
         </button>
       </div>
     </li>

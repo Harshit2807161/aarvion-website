@@ -1,6 +1,6 @@
 /*
   Empty state: port of design/prototype/css/flows.css (.empty block, lines 161-163 and 546-551)
-  for src/components/shell/empty-state.tsx; `.empty--compact` (flows.css 162 and 550-552) is the cart drawer's. The count is masked by `.dm` from stamp.css.
+  for src/components/shell/empty-state.tsx; `.empty--compact` (flows.css 162 and 550-552) is the cart drawer's (cart-drawer.tsx). The count is masked by `.dm` from stamp.css.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
 .well--empty { display: grid; place-items: center; width: 132px; height: 132px; border-radius: 22px; background: var(--color-sand-50); border: 1.5px dashed var(--color-sand-200); }
