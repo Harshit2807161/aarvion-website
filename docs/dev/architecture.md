@@ -168,7 +168,9 @@ React components, added task by task. The folders below exist today:
   - `rx-messages.ts`: `patientError()` (the server's name rule) and `rxFailure()`, which says where a failed upload's message goes (drop zone, name field or form note) and its words
   - `rx-upload-form.tsx`: `RxUploadForm({ onUploaded, onCancel })`, `form.form#rx-form` with the picker, the patient field and the declaration; one problem keeps its field alert, two or more show one focused `ErrorSummary`; one send at a time (`aria-busy`, busy button); the `stagingId` rx-api hands back for any answer that does not settle the slot is kept until a success, a settled answer or a new file, so the next Send resumes it, and an answer with a wait (`upload_unconfirmed` 30 s, `busy` 5 s) holds Send (`aria-disabled`) with a visible countdown (`#rx-wait`); a 401 announces the sign-in note (the dialog takes focus), calls `openLogin(undefined, { returnFocusId: "rx-send" })` so the dialog returns focus to Send, and keeps the file; on `SIGNED_IN_EVENT` the note says "Press Send"; server file errors go on the drop zone (announced, picker focused), others in a focused `.note--bad` (not also announced); success focuses a note naming the patient as the server recorded it
   - `load-rx-upload-form.ts`: `loadRxUploadForm()`, the dynamic import pages use to mount the form
-  - `rx-copy.ts`: `RX_COPY` (prototype wording; entries marked NEW await owner approval) and `fileSize()`
+  - `rx-copy.ts`: `RX_COPY` (prototype wording; entries marked NEW await owner approval; `reasons` words each R1 rejection reason) and `fileSize()`
+  - `rx-page-copy.ts`: `RX_PAGE_COPY` (the /account/prescriptions and list strings; NEW entries await owner approval), `formatIstDay(ymd)` ("12 May 2027") and `istDayOf(iso)`; import-free, so the server page reads its title without importing an upload module
+  - `rx-list.tsx`: `RxList({ items, onUploadAnother })`, `ul.rx-list` of `li.rx-item`: the recorded patient name, "Photo" or "PDF · N pages" with the IST upload day, the `StatusTag` (under review, approved until the server's `validUntilDay`, expired on `expiredOnDay`, rejected), the why line (the reason and the pharmacist's note, with Upload another), and View, a new-tab link to `rxFileUrl(id)` (the R5 file route; the bytes never pass through page script)
 - `search/`: the header search, mounted by `withStoreChrome` in the `StoreHeader` `search` slot on every customer page (404s included):
   - `HeaderSearch` (client; the `form.search` with `input#q`, the strength chips and the panel; `STRENGTH_CHIP_FAMILY` and `strengthChips` in `strength-chips.ts` give the chips from the family's variants, none if it is gone; Escape on a chip closes the panel and refocuses `#q`; focus opens it, pointer and mouse down on the chips are prevented so a press does not blur the input, `focusout` outside the form closes it, submit and Enter choose the first or active result; on `/` a result whose `#p-<slug>` pocket exists is scrolled into view, marked `is-found` and its Add or + is focused, anywhere else it goes to `/product/<slug>`; the count is announced through `announce()`, a 429 shows "Too many searches" and is never retried; Escape closes the list, then clears the field, and stops bubbling to ancestor handlers while it does either (a Radix dialog listens in the capture phase and is not protected; one mounting this search would need its own guard); a `[data-search]` click anywhere focuses `#q`; without JS it is a GET form to `/#medicines`), and its parts:
   - `highlight` (pure, no RegExp)
@@ -179,7 +181,7 @@ React components, added task by task. The folders below exist today:
   - `AnnounceBar` (client; rotates one notice per 5 s at 720px and below unless reduced motion)
   - `Brand` (`placement` `footer` or `header`)
   - `CategoryBar` (server; live categories then All medicines; skips anything not live; each link is a `CategoryBarLink`, a client link that sets `aria-current="page"` on the current path, in the 880px chip row too; the `usePathname()` leaf is in `Suspense` with the plain link as fallback)
-  - `EmptyState` (dashed well with a dot-matrix count, title, copy and actions)
+  - `EmptyState` (dashed well with a dot-matrix count, title, copy and actions; `compact` is the smaller one with an h3 title, for the cart drawer and the empty prescriptions list)
   - `OperateShell`
   - `SkipLink`
   - `StoreFooter`
@@ -238,7 +240,7 @@ ported prototype CSS imported by `globals.css`.
 - `catbar.css`: the category bar and the 880px chip row, `.catbar*`
 - `category.css`: the category page's foil sheet, coming-soon panel and other-category pills, `.cat-*`
 - `css-hygiene.test.ts`
-- `empty.css`: the empty-state well, `.empty*` and `.well-count`
+- `empty.css`: the empty-state well, `.empty*` (with `.empty--compact`) and `.well-count`
 - `faq-close.css`: the home's questions and closing act, `.faq*`, `.act-close`, `.close-*` (static; `.act-close .field` is scoped because `forms.css` owns `.field`)
 - `film.css`: the scroll film, every rule under `.film.is-running` (the ordering act pinned 200lvh and the close 110lvh, 160lvh and 80lvh on phones; motion is transform and opacity only, from `--ti` / `--to`; `.film-root.measuring` is a descendant selector, never `html.measuring`)
 - `footer.css`: the store footer, `.foot*`
@@ -255,7 +257,7 @@ ported prototype CSS imported by `globals.css`.
 - `prose.test.ts`
 - `quick-trust.css`: the home quick-action cards and trust strip, `.quick`, `.qa*`, `.trust*`, and the `.home` 1280 width token
 - `rails.css`: the home product rails, `.meds`, `.rail*` (strip, row, aside, the `[data-rail-controls]` slot, the arrow and "View all" rules, the `.is-open` / `.is-grid` sheet) and the phone scroll-snap row (`--pw` at least 164px)
-- `rx.css`: the prescription upload and list, `.drop*`, `.file*`, `.rxc`, `.rx-doc`, `.tab-head*`, `.rx-list`, `.rx-item`, `.rx-title`, `.rx-meta`, `.rx-why` (flows.css 621 to 651 without `.opt*`, 727 to 729, 743 to 752 and `.file-info` from 784)
+- `rx.css`: the prescription upload and list, `.drop*`, `.file*`, `.rxc`, `.rx-doc`, `.tab-head*`, `.rx-list`, `.rx-item`, `.rx-title`, `.rx-meta`, `.rx-why` (flows.css 621 to 651 without `.opt*`, 727 to 729, 743 to 752 and `.file-info` from 784), and the page's `.rx-page`, `.rx-new` and phone rules (725, 610 to 611, 856, 865 to 868)
 - `section-token.test.ts` (compiled CSS has no `.h-section` height)
 - `shell.css`: the Operate shell, `.band*` and `.work*`
 - `shell.test.ts`

@@ -69,4 +69,13 @@ export const RX_COPY = {
   signIn: "Sign in to send your prescription. Your file is still here.",
   // NEW: after that sign-in; focus is on Send, which the shopper presses (no automatic resend).
   signedIn: "Signed in. Press Send for review.",
+  // The rejection reasons a pharmacist picks (R1 `RX_REJECT_REASONS`), as the list shows them.
+  reasons: {
+    unreadable: "We couldn’t read the prescription clearly.",
+    outdated: "The prescription is more than 6 months old.",
+    incomplete: "The doctor’s name, registration number or signature is missing.",
+    patient_mismatch: "The patient’s name doesn’t match the prescription.",
+    not_prescription: "This file isn’t a prescription.",
+    other: "A pharmacist couldn’t approve it.",
+  },
 } as const;

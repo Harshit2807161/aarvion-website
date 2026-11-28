@@ -16,6 +16,9 @@ bottom use commit SHAs.
 
 ## [Unreleased]
 
+### Added
+- The prescription list for R7: `RxList` (`src/components/rx/rx-list.tsx`) shows each record's patient name as recorded, "Photo" or "PDF · N pages" with the IST upload day, the status tag (under review, approved until, expired on, rejected) with the server's days, the rejection reason and the pharmacist's note with Upload another, and View, a new-tab link to the R5 file route; its strings and `formatIstDay` are in `rx-page-copy.ts`, the reasons in `RX_COPY.reasons`; `EmptyState` gains `compact` (h3, the smaller well); `rx.css` gains the page, new-form panel and phone rules
+
 ### Changed
 - The first-load JS ratchets in `e2e/budgets.spec.ts` are lowered to the measured values plus about 600 B: the product page to 169,900 B (169,302 measured) and `/` to 174,150 B (173,549 measured), after the search listbox went lazy (#245) and /cart landed (#252); `e2e/cart.spec.ts` adds the pending-row Remove and focus test with the quote blocked (P4-M2) (#254)
 - The header search's listbox (`SuggestionList`, with its prices, `Rupees` and the highlighter) loads as its own chunk on the first focus, press or typing in the search, freeing 587 B of first-load JS on `/` and every product page; the input is never remounted, text typed before the chunk arrives is kept, and the combobox ARIA stays valid before and after (#245)

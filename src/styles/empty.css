@@ -1,6 +1,6 @@
 /*
   Empty state: port of design/prototype/css/flows.css (.empty block, lines 161-163 and 546-551)
-  for src/components/shell/empty-state.tsx. The count is masked by `.dm` from stamp.css.
+  for src/components/shell/empty-state.tsx; `.empty--compact` (flows.css 162 and 550-552) is the cart drawer's. The count is masked by `.dm` from stamp.css.
   Ignored by Prettier (see .prettierignore); imported by globals.css inside @layer components.
 */
 .well--empty { display: grid; place-items: center; width: 132px; height: 132px; border-radius: 22px; background: var(--color-sand-50); border: 1.5px dashed var(--color-sand-200); }
@@ -9,3 +9,7 @@
 .empty h2 { margin-top: 10px; font: 700 var(--text-display-m)/1.1 var(--font-display); letter-spacing: -0.025em; color: var(--color-ink); text-wrap: balance; }
 .empty p { color: var(--color-text-muted); text-wrap: pretty; }
 .empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px; }
+.empty--compact { margin-top: 8px; padding: 32px 0; }
+.empty--compact .well--empty { width: 96px; height: 96px; border-radius: 18px; }
+.empty--compact .well-count { --pitch: 3px; font-size: 3.25rem; }
+.empty--compact h3 { font: 600 1.375rem/1.3 var(--font-display); color: var(--color-ink); margin-top: 6px; }
