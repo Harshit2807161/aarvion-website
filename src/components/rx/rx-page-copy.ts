@@ -27,6 +27,7 @@ export function istDayOf(iso: string): string {
 export const RX_PAGE_COPY = {
   title: "Prescriptions",
   sub: "A pharmacist checks each one. Approved prescriptions stay valid for 6 months from their date.",
+  // NEW: the static fallback while the session and the list load (worded like the cart's).
   loading: "Loading your prescriptions…",
   signInTitle: "Sign in to upload a prescription",
   signInBody: "Your prescriptions are private to your account.",
