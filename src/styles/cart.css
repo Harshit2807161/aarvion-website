@@ -120,5 +120,7 @@
 
 /* The /cart page's own states (not in the prototype): before the cart is known, and a line the server has not priced yet. */
 .cart-loading { padding: 48px 0; text-align: center; color: var(--color-text-muted); }
+/* The cart drawer's foot wrapper only catches the Checkout click: its children sit in .sheet-foot's grid. */
+.cart-drawer-foot { display: contents; }
 .line--pending .well { background: var(--color-neutral-100); box-shadow: none; }
 .line-pending { font-size: var(--text-sm); font-weight: 500; color: var(--color-wait-ink); }
