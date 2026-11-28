@@ -39,6 +39,8 @@
 @media (hover: hover) and (pointer: fine) { .sheet-close:hover { background: var(--color-neutral-100); } }
 .sheet-body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 8px 24px 20px; scrollbar-width: thin; }
 .sheet-foot { flex: none; display: grid; gap: 14px; padding: 18px 24px calc(20px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--color-neutral-200); background: var(--color-white); }
+/* The foot's two actions (the cart drawer's View cart and Checkout), flows.css line 418. */
+.sheet-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 10px; }
 
 /* Side drawer (cart, menu) */
 .sheet--side { top: 8px; right: 8px; bottom: 8px; width: min(460px, calc(100% - 16px)); border-radius: 22px; }

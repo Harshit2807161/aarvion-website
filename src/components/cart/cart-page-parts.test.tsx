@@ -44,6 +44,16 @@ describe("PendingLine", () => {
     expect(screen.getByRole("button", { name: "Remove gone-medicine from cart" })).toBeTruthy();
   });
 
+  it("compact (the drawer) drops the Remove text but keeps its full name", () => {
+    render(
+      <ul>
+        <PendingLine slug="sacuwin-100" qty={1} compact />
+      </ul>,
+    );
+    const remove = screen.getByRole("button", { name: "Remove sacuwin-100 from cart" });
+    expect(remove.querySelector("span")).toBeNull();
+  });
+
   it("Remove takes the packs out of the cart and says so through #live", async () => {
     seedGuest({ "sacuwin-100": 2 });
     render(
